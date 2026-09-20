@@ -207,13 +207,11 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
         (CE == Estatic::noE_V) ? target.V_noE() : target.V();
 
     for (Index source_id : registry_.AllIds()) {
-      if (source_id == target_segment_id) {
-        // Intermolecular scope only -- see class documentation. This
-        // excludes every site of the target's own segment, at every
-        // translation (including nonzero ones, i.e. that segment's own
-        // periodic images), not just the zero-translation case.
-        continue;
-      }
+      // No per-segment skip: a target's own segment is treated like any
+      // other. Its COINCIDENT copy is dropped by the foreground
+      // suppression below; its other lattice images are ordinary
+      // background molecules and stay. Legacy agrees -- SetupMidground
+      // excludes by (segment id, na, nb, nc), not by segment id.
       if (!registry_.Has(source_id, source_state)) {
         continue;
       }
@@ -323,6 +321,24 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
               continue;
             }
           }
+        }
+
+        // The target's own segment at ZERO translation is the segment
+        // itself: intramolecular pairs plus the r = 0 self-pair, never
+        // part of this sum (AddIntraSegmentCoupling owns the induced
+        // side, the permanent side has its own compensation pass).
+        //
+        // Only where the segment has no recorded foreground copy. Where
+        // it does, the suppression above already decides which copy is
+        // carved out, and that need not be the t = 0 one: a foreground
+        // segment sitting at a nonzero image has its t = 0 copy as a
+        // genuine neighbour. Omitting this guard made the field infinite
+        // in every background solve.
+        const bool source_has_foreground =
+            !foreground_.empty() && foreground_.count(source_id) > 0;
+        if (!source_has_foreground && source_id == target_segment_id &&
+            t.squaredNorm() < kSelfTranslationTol * kSelfTranslationTol) {
+          continue;
         }
 
         visited_pairs.emplace_back(&source_segment, idx, baseline_shift);

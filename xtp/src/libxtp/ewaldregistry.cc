@@ -68,6 +68,24 @@ std::string GroupName(Index id, EwaldChargeState state) {
 
 void EwaldRegistry::Register(Index id, EwaldChargeState state,
                               PolarSegment segment) {
+  // RANK GUARD. Every Ewald kernel reads getCharge() and
+  // getStaticDipole() and nothing else, so a rank-2 site's quadrupole is
+  // parsed, stored, and then silently dropped: a wrong energy with no
+  // symptom to notice it by. Checked here because this is the one place
+  // every segment passes through on its way into a background or a
+  // region.
+  for (const PolarSite& site : segment) {
+    if (site.getRank() > 1) {
+      std::stringstream message;
+      message << "EwaldRegistry: segment " << id << ", site " << site.getId()
+              << " (" << site.getElement() << ") has rank " << site.getRank()
+              << ". This Ewald implementation handles charges and dipoles "
+                 "(rank <= 1) only -- higher multipoles would be read and "
+                 "then ignored, giving a wrong energy with no symptom. Use "
+                 "a rank 0 or rank 1 .mps.";
+      throw std::runtime_error(message.str());
+    }
+  }
   // PolarSegment has no default constructor, so operator[] (which would
   // value-initialize a fresh entry before assigning into it) is not usable
   // here; insert_or_assign constructs the entry directly from the moved

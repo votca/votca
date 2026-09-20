@@ -292,6 +292,13 @@ class EwaldRealSpaceSum {
   // Tolerance for deciding that a shifted source segment coincides with a
   // foreground segment. Round-off only -- see the constructor.
   static constexpr double kForegroundMatchTol = 1e-4;
+  // Tolerance for recognising the ZERO lattice translation, used to skip
+  // a target's own segment at its own position (intramolecular, and
+  // containing the r = 0 self-pair) while keeping its other images. The
+  // quantity tested is built from an exactly-zero baseline shift plus an
+  // exactly-zero lattice vector, so this only has to absorb round-off;
+  // the next-smallest translation is a full lattice vector away.
+  static constexpr double kSelfTranslationTol = 1e-8;
   // Foreground copies to suppress, grouped by segment id. Most segments
   // have no entry at all; those that do usually have exactly one.
   std::map<Index, std::vector<Eigen::Vector3d>> foreground_;

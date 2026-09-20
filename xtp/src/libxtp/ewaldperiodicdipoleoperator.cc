@@ -321,6 +321,8 @@ void EwaldPeriodicDipoleOperator::AddIntraSegmentCoupling(
         const double r = r_vec.norm();
         const EwaldRealSpaceInteractor::BFunctions b =
             intra_interactor_.ComputeB(r);
+        const EwaldRealSpaceInteractor::BFunctions berf =
+            intra_interactor_.ComputeErfB(r);
         const EwaldRealSpaceInteractor::TholeFactors t =
             intra_interactor_.ComputeThole(r, site_j, site_i);
         // Same l3*B1 / l5*B2 combination ApplyInducedField itself uses
@@ -336,8 +338,30 @@ void EwaldPeriodicDipoleOperator::AddIntraSegmentCoupling(
         // this case, but that's a property of ComputeThole's own
         // symmetric input, not assumed structurally the way it was
         // before.
-        Eigen::Matrix3d block = t.l5 * b.B2 * (r_vec * r_vec.transpose()) -
-                               t.l3 * b.B1 * Eigen::Matrix3d::Identity();
+        //
+        // ALPHA-INDEPENDENCE: l*B_erfc is NOT what this term must
+        // contribute. An intramolecular pair is absent from real_sum_
+        // but PRESENT, undamped, in recip_sum_, so site.V() already
+        // carries its B_erf; adding l*B_erfc gives l*B_erfc + B_erf
+        // where the alpha-independent target is l*B_bare. The
+        // difference, (l-1)*B_erf, vanishes only where damping is
+        // inactive -- and intramolecular separations are where l < 1.
+        // It grows with alpha and contaminates the converged dipoles:
+        // found as a 0.43% drift of the [fg permanent x bg induced]
+        // channel over alpha = 1.5 ... 3.0 1/nm, visible even in its
+        // shape term, which contains no alpha at all.
+        //
+        // So this term supplies the damped FULL interaction minus the
+        // undamped erf piece already added:
+        //
+        //     l*B_bare - B_erf  ==  l*B_erfc + (l-1)*B_erf
+        //
+        // Second form, so l = 1 is visibly unchanged and no large bare
+        // terms cancel at small r.
+        const double c3 = t.l3 * b.B1 + (t.l3 - 1.0) * berf.B1;
+        const double c5 = t.l5 * b.B2 + (t.l5 - 1.0) * berf.B2;
+        Eigen::Matrix3d block =
+            c5 * (r_vec * r_vec.transpose()) - c3 * Eigen::Matrix3d::Identity();
         result.segment<3>(base + 3 * i) += block * v.segment<3>(base + 3 * j);
         result.segment<3>(base + 3 * j) +=
             block.transpose() * v.segment<3>(base + 3 * i);

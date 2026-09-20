@@ -20,6 +20,7 @@
 // Standard includes
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 // Third party includes
 #include <boost/test/tools/floating_point_comparison.hpp>
@@ -420,6 +421,213 @@ BOOST_AUTO_TEST_CASE(static_energy_shift_matches_moving_the_source) {
   const double shifted =
       interactor.CalcStaticEnergy<PolarSite, PolarSite>(moved, target, shift);
   BOOST_CHECK_SMALL(std::abs(shifted - direct) / std::abs(direct), 1e-14);
+}
+
+// The four erf-screened routines special-case coincident sites
+// (r < kCoincidenceTol = 1e-2) with an analytic self-term. Those are
+// LIMITS of the general branch, so the two must agree where they meet --
+// a continuous function of r cannot jump.
+//
+// Not a formality: all four had the dipole term the wrong way round, a
+// jump of exactly 2*self_coeff*mu. Only ApplyErfInducedFieldCorrection's
+// was observable at rank 0 (the others contract against a STATIC dipole,
+// zero when the .mps carry only charges), and it surfaced as an alpha^2.9
+// drift in the polar energy of an 18-segment job.
+//
+// Tolerance is set from the actual truncation at kCoincidenceTol, not
+// guessed: the general branch approaches its limit as 1.45*(alpha*r)^2
+// (measured 7.12e-5, 1.78e-5, 4.40e-6 at r = 2e-2, 1e-2, 5e-3 with
+// alpha = 0.35). That is 1.8e-5 here, so 1e-5 is unusable -- an earlier
+// version used it and failed on correct code -- and smaller r does not
+// help, since 1/r^3 - B1_erfc has lost four digits by r = 1e-4. 1e-3 is
+// fifty times the truncation and still 2000x tighter than the factor of
+// two a flipped sign gives.
+BOOST_AUTO_TEST_CASE(coincidence_branches_match_their_own_limit) {
+  const double alpha = 0.35;
+  EwaldRealSpaceInteractor interactor(alpha, 0.39);
+  const double self_coeff =
+      (4.0 / 3.0) * alpha * alpha * alpha / std::sqrt(votca::tools::conv::Pi);
+
+  const double r_edge = 1e-2;  // == kCoincidenceTol
+  const Eigen::Vector3d mu_src(3.1e-2, -1.7e-2, 4.4e-2);
+  const Eigen::Vector3d mu_tgt(-2.3e-2, 5.2e-2, 1.1e-2);
+
+  auto make = [](const Eigen::Vector3d& pos) {
+    PolarSite site(0, "C", pos);
+    site.setpolarization(2.0 * Eigen::Matrix3d::Identity());
+    return site;
+  };
+
+  // First, the limit itself, stated independently of any branch: the
+  // general branch's dipole field approaches -self_coeff*mu, NOT +. The
+  // routine applies V -= src.field, so the delivered V approaches
+  // +self_coeff*mu. Getting this backwards is the whole bug.
+  {
+    PolarSite src = make(Eigen::Vector3d::Zero());
+    src.setInduced_Dipole(mu_src);
+    PolarSite tgt = make(r_edge * Eigen::Vector3d::UnitZ());
+    tgt.Reset();
+    interactor.ApplyErfInducedFieldCorrection<Estatic::V>(src, tgt);
+    const Eigen::Vector3d expected = self_coeff * mu_src;
+    std::cout << "near-coincident V = " << tgt.V().transpose()
+              << "   expected = " << expected.transpose() << std::endl;
+    BOOST_CHECK_SMALL((tgt.V() - expected).norm() / expected.norm(), 1e-3);
+  }
+
+  // (a) induced-dipole field correction: r = 0 against r = kCoincidenceTol
+  {
+    PolarSite src = make(Eigen::Vector3d::Zero());
+    src.setInduced_Dipole(mu_src);
+
+    PolarSite tgt_at = make(Eigen::Vector3d::Zero());
+    tgt_at.Reset();
+    interactor.ApplyErfInducedFieldCorrection<Estatic::V>(src, tgt_at);
+
+    PolarSite tgt_near = make(r_edge * Eigen::Vector3d::UnitZ());
+    tgt_near.Reset();
+    interactor.ApplyErfInducedFieldCorrection<Estatic::V>(src, tgt_near);
+
+    BOOST_CHECK_SMALL((tgt_at.V() - tgt_near.V()).norm() / tgt_near.V().norm(),
+                      1e-3);
+  }
+
+  // (b) static-dipole field correction. No charge on the source: its own
+  //     limit is a separate (and already correct) one, and including it
+  //     would let a large right answer mask a small wrong one.
+  {
+    PolarSite src = make(Eigen::Vector3d::Zero());
+    src.setStaticDipole(mu_src);
+
+    PolarSite tgt_at = make(Eigen::Vector3d::Zero());
+    tgt_at.Reset();
+    interactor.ApplyErfStaticFieldCorrection<PolarSite, Estatic::V>(src,
+                                                                    tgt_at);
+
+    PolarSite tgt_near = make(r_edge * Eigen::Vector3d::UnitZ());
+    tgt_near.Reset();
+    interactor.ApplyErfStaticFieldCorrection<PolarSite, Estatic::V>(src,
+                                                                    tgt_near);
+
+    BOOST_CHECK_SMALL((tgt_at.V() - tgt_near.V()).norm() / tgt_near.V().norm(),
+                      1e-3);
+  }
+
+  // (c) static-static erf energy, dipole-dipole part only (no charges,
+  //     same reasoning as (b)).
+  {
+    PolarSite src = make(Eigen::Vector3d::Zero());
+    src.setStaticDipole(mu_src);
+    PolarSite tgt_at = make(Eigen::Vector3d::Zero());
+    tgt_at.setStaticDipole(mu_tgt);
+    PolarSite tgt_near = make(r_edge * Eigen::Vector3d::UnitZ());
+    tgt_near.setStaticDipole(mu_tgt);
+
+    const double e_at =
+        interactor.CalcErfStaticEnergy<PolarSite, PolarSite>(src, tgt_at);
+    const double e_near =
+        interactor.CalcErfStaticEnergy<PolarSite, PolarSite>(src, tgt_near);
+    std::cout << "CalcErfStaticEnergy        self = " << e_at
+              << "   near = " << e_near << std::endl;
+    BOOST_CHECK_SMALL(std::abs(e_at - e_near) / std::abs(e_near), 1e-3);
+  }
+
+  // (d) induced-source erf energy: source induced dipole, target static.
+  {
+    PolarSite src = make(Eigen::Vector3d::Zero());
+    src.setInduced_Dipole(mu_src);
+    PolarSite tgt_at = make(Eigen::Vector3d::Zero());
+    tgt_at.setStaticDipole(mu_tgt);
+    PolarSite tgt_near = make(r_edge * Eigen::Vector3d::UnitZ());
+    tgt_near.setStaticDipole(mu_tgt);
+
+    const double e_at = interactor.CalcErfInducedSourceEnergy(src, tgt_at);
+    const double e_near = interactor.CalcErfInducedSourceEnergy(src, tgt_near);
+    std::cout << "CalcErfInducedSourceEnergy self = " << e_at
+              << "   near = " << e_near << std::endl;
+    BOOST_CHECK_SMALL(std::abs(e_at - e_near) / std::abs(e_near), 1e-3);
+  }
+}
+
+// What the induced real-space half must add up to with the reciprocal
+// side: the Thole-damped BARE interaction, with no alpha in it.
+//
+// ApplyErfInducedFieldCorrection computes the undamped erf field the
+// reciprocal sum contributes, stored negated since its job is to remove
+// it. So applying the two routines to separate targets and SUBTRACTING
+// reconstructs the pair's actual contribution:
+//
+//     ApplyInducedField - ApplyErfInducedFieldCorrection
+//        = (l*B_bare - B_erf) - (-B_erf) = l*B_bare
+//
+// The reference is the textbook damped point-dipole tensor, not a
+// B-function, so it cannot agree with a mistake in either branch. Under
+// the old l*B_erfc convention the same combination is alpha-dependent,
+// so the three alphas discriminate on their own.
+BOOST_AUTO_TEST_CASE(damped_real_and_erf_halves_reassemble_to_damped_bare) {
+  const double thole = 0.39;
+  const Eigen::Vector3d r_vec(1.1, -1.4, 0.7);  // |r| ~ 1.93 bohr
+  const Eigen::Vector3d mu(3.1e-2, -1.7e-2, 4.4e-2);
+
+  auto make = [](const Eigen::Vector3d& pos) {
+    PolarSite site(0, "C", pos);
+    site.setpolarization(2.0 * Eigen::Matrix3d::Identity());
+    return site;
+  };
+
+  const double r = r_vec.norm();
+  Eigen::Vector3d reference;
+  {
+    // Damping factors, from the model directly rather than via the
+    // interactor, so this reference stands on its own.
+    PolarSite a = make(Eigen::Vector3d::Zero());
+    PolarSite b = make(r_vec);
+    const double au3 = thole * std::pow(r, 3) * a.getSqrtInvEigenDamp() *
+                       b.getSqrtInvEigenDamp();
+    const double expUa = std::exp(-au3);
+    const double l3 = 1.0 - expUa;
+    const double l5 = 1.0 - (1.0 + au3) * expUa;
+    std::cout << "reassembly test: r = " << r << " bohr, l3 = " << l3
+              << ", l5 = " << l5 << std::endl;
+    // Guard against a vacuous pass: with l3 = l5 = 1 the old and new
+    // conventions coincide and this test would prove nothing.
+    BOOST_REQUIRE_LT(l3, 0.99);
+    BOOST_REQUIRE_LT(l5, 0.99);
+
+    reference = mu.dot(r_vec) * l5 * (3.0 / std::pow(r, 5)) * r_vec -
+                l3 * (1.0 / std::pow(r, 3)) * mu;
+  }
+
+  std::vector<Eigen::Vector3d> assembled;
+  for (double alpha : {0.20, 0.35, 0.60}) {
+    EwaldRealSpaceInteractor interactor(alpha, thole);
+
+    PolarSite source = make(Eigen::Vector3d::Zero());
+    source.setInduced_Dipole(mu);
+
+    PolarSite target_real = make(r_vec);
+    target_real.Reset();
+    interactor.ApplyInducedField<Estatic::V>(source, target_real);
+
+    PolarSite target_erf = make(r_vec);
+    target_erf.Reset();
+    interactor.ApplyErfInducedFieldCorrection<Estatic::V>(source, target_erf);
+
+    const Eigen::Vector3d total = target_real.V() - target_erf.V();
+    std::cout << "  alpha = " << alpha << "  reassembled = "
+              << total.transpose() << std::endl;
+    assembled.push_back(total);
+
+    BOOST_CHECK_SMALL((total - reference).norm() / reference.norm(), 1e-12);
+  }
+
+  std::cout << "  reference   = " << reference.transpose() << std::endl;
+
+  // Stated separately, so that a failure of alpha-independence is
+  // distinguishable from a failure to match the analytic form.
+  for (std::size_t i = 1; i < assembled.size(); ++i) {
+    BOOST_CHECK_SMALL(
+        (assembled[i] - assembled[0]).norm() / assembled[0].norm(), 1e-12);
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

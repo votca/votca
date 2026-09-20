@@ -277,16 +277,27 @@ BOOST_AUTO_TEST_CASE(static_energy_is_independent_of_the_splitting) {
       e_real += real_sum.CalcStaticEnergyAt(probe, EwaldChargeState::Neutral);
       fg_sites.push_back({&site, site.getPos()});
     }
-    // Here the foreground sites ARE the registered background sites, so
-    // the exclusion list is that same list. In EwaldRegion the two lists
-    // genuinely differ -- see the comment at step (5) there.
-    std::vector<const PolarSite*> bg_excl;
-    for (const auto& entry : fg_sites) {
-      bg_excl.push_back(entry.first);
-    }
+    // NOTHING is held out of S_bg (this revision). The foreground
+    // segment's COINCIDENT copy is what real space suppresses, and it is
+    // removed from the reciprocal side by subtracting its erf energy --
+    // its other periodic images are ordinary background molecules and
+    // belong in both sums. Holding the segment out of S_bg instead
+    // removed those images from the reciprocal side while real space
+    // kept them, which is exactly the alpha-dependence this case
+    // measures. See EwaldRegion's step (5).
+    const std::vector<const PolarSite*> no_exclusions;
     const double e_recip = recip_sum.CalcStaticEnergyBetween(
-        fg_sites, bg_excl, EwaldChargeState::Neutral);
-    const double total = e_real + e_recip;
+        fg_sites, no_exclusions, EwaldChargeState::Neutral);
+
+    EwaldRealSpaceInteractor inter(alpha, thole);
+    double e_erf = 0.0;
+    for (const PolarSite& source : fg_seg) {
+      for (const auto& entry : fg_sites) {
+        e_erf += inter.CalcErfStaticEnergy<PolarSite, PolarSite>(
+            source, *entry.first, Eigen::Vector3d::Zero());
+      }
+    }
+    const double total = e_real + e_recip - e_erf;
 
     if (!have_reference) {
       reference = total;
@@ -402,13 +413,21 @@ BOOST_AUTO_TEST_CASE(induced_source_energy_is_independent_of_the_splitting) {
                                                    EwaldChargeState::Neutral);
       fg_sites.push_back({&site, site.getPos()});
     }
-    std::vector<const PolarSite*> bg_excl;
-    for (const auto& entry : fg_sites) {
-      bg_excl.push_back(entry.first);
-    }
+    // Nothing held out of S_bg; the coincident copy comes off via its
+    // erf energy instead. Same reasoning as the static case above.
+    const std::vector<const PolarSite*> no_exclusions;
     const double e_recip = recip_sum.CalcInducedSourceEnergyBetween(
-        fg_sites, bg_excl, EwaldChargeState::Neutral);
-    const double total = e_real + e_recip;
+        fg_sites, no_exclusions, EwaldChargeState::Neutral);
+
+    EwaldRealSpaceInteractor inter(alpha, thole_undamped);
+    double e_erf = 0.0;
+    for (const PolarSite& source : fg_seg) {
+      for (const auto& entry : fg_sites) {
+        e_erf += inter.CalcErfInducedSourceEnergy(source, *entry.first,
+                                                  Eigen::Vector3d::Zero());
+      }
+    }
+    const double total = e_real + e_recip - e_erf;
 
     if (!have_reference) {
       reference = total;
@@ -474,12 +493,21 @@ BOOST_AUTO_TEST_CASE(damping_is_inactive_at_intermolecular_range) {
           real_sum.CalcInducedSourceEnergyAt(probe, EwaldChargeState::Neutral);
       fg_sites.push_back({&site, site.getPos()});
     }
-    std::vector<const PolarSite*> bg_excl;
-    for (const auto& entry : fg_sites) {
-      bg_excl.push_back(entry.first);
+    // Nothing held out of S_bg; the coincident copy comes off via its
+    // erf energy instead. Same reasoning as the two cases above.
+    const std::vector<const PolarSite*> no_exclusions;
+    const double e_recip = recip_sum.CalcInducedSourceEnergyBetween(
+        fg_sites, no_exclusions, EwaldChargeState::Neutral);
+
+    EwaldRealSpaceInteractor inter(alpha, thole);
+    double e_erf = 0.0;
+    for (const PolarSite& source : fg_seg) {
+      for (const auto& entry : fg_sites) {
+        e_erf += inter.CalcErfInducedSourceEnergy(source, *entry.first,
+                                                  Eigen::Vector3d::Zero());
+      }
     }
-    return e_real + recip_sum.CalcInducedSourceEnergyBetween(
-                        fg_sites, bg_excl, EwaldChargeState::Neutral);
+    return e_real + e_recip - e_erf;
   };
 
   // Realistic damping reproduces the undamped answer.
@@ -568,23 +596,12 @@ EwaldRegistry BuildNeutralLattice(double L) {
   return registry;
 }
 
-// The invariant that every other alpha-independence test in this suite
-// misses, and whose absence let a real bug through: a foreground that is
-// BOTH charged and made of more than one segment.
-//
-// Charge alone passes (n_fg = 1 below is exact). Multiple segments alone
-// passes. Together they exposed that a single exclusion list for the
-// whole foreground removes every foreground segment's periodic IMAGES
-// from S_bg, while real space suppresses only the coincident copies --
-// a different physical system (a lattice of vacancies rather than one
-// carved-out cavity). On a charged 18-segment MM/MM job the permanent
-// energy moved from -3.1e-4 through -8.5e-4 to +7.1e-4 eV across
-// alpha = 1.5, 2.0, 3.0 nm^-1.
-//
-// This mirrors EwaldRegion::ApplyFieldTo's per-segment scheme: exclude
-// only the target's own segment from S_bg, add the shape term (which is
-// the k=0 limit the reciprocal sum omits), and subtract the erf energy
-// of the other foreground segments' coincident copies.
+// The invariant the rest of this suite misses: a foreground that is BOTH
+// charged and multi-segment. Charge alone passes (n_fg = 1 below is
+// exact), multiple segments alone passes; together they caught a version
+// that held the whole foreground out of S_bg and so deleted its periodic
+// images -- a lattice of vacancies rather than one carved-out cavity,
+// worth 1e-3 eV of alpha-dependence on a production job.
 BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
   const double L = 20.0;
   const double thole = 0.39;
@@ -628,7 +645,11 @@ BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
 
     double reference = 0.0;
     bool have_reference = false;
-    for (double alpha : {0.25, 0.30, 0.35}) {
+    // Reaches down to 0.12 deliberately: at alpha >= 0.25 in this box the
+    // erfc-screened share of a segment's own-image interaction is already
+    // negligible, so a scan starting there cannot see the real-space half
+    // of the split at all.
+    for (double alpha : {0.12, 0.20, 0.30}) {
       const double k_max = 14.0 * alpha;
       EwaldRealSpaceSum real_sum(box, registry, alpha, thole, 6.0 / alpha,
                                  1e-14, 0.945, 40, 6.0, foreground);
@@ -647,32 +668,27 @@ BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
                                                EwaldChargeState::Neutral);
         }
       }
+      // Nothing held out of S_bg; every foreground copy, the target's own
+      // included, comes off via its erf energy. Mirrors
+      // EwaldRegion::ApplyFieldTo step (5).
+      std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> si;
       for (const PolarSegment& f : fg) {
-        std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> si;
         for (const PolarSite& s : f) {
           si.push_back({&s, s.getPos()});
         }
-        const PolarSegment& own =
+      }
+      const std::vector<const PolarSite*> no_exclusions;
+      total += recip.CalcStaticEnergyBetween(si, no_exclusions,
+                                             EwaldChargeState::Neutral);
+      total += shape.CalcStaticEnergyBetween(si, no_exclusions,
+                                             EwaldChargeState::Neutral);
+      for (const PolarSegment& f : fg) {
+        const PolarSegment& cp =
             registry.Get(f.getId(), EwaldChargeState::Neutral);
-        std::vector<const PolarSite*> excl;
-        for (const PolarSite& s : own) {
-          excl.push_back(&s);
-        }
-        total += recip.CalcStaticEnergyBetween(si, excl,
-                                               EwaldChargeState::Neutral);
-        total += shape.CalcStaticEnergyBetween(si, excl,
-                                               EwaldChargeState::Neutral);
-        for (const PolarSegment& other : fg) {
-          if (other.getId() == f.getId()) {
-            continue;
-          }
-          const PolarSegment& cp =
-              registry.Get(other.getId(), EwaldChargeState::Neutral);
-          for (const PolarSite& src : cp) {
-            for (const PolarSite& tgt : f) {
-              total -= inter.CalcErfStaticEnergy<PolarSite, PolarSite>(src,
-                                                                        tgt);
-            }
+        for (const PolarSite& src : cp) {
+          for (const auto& tgt : si) {
+            total -= inter.CalcErfStaticEnergy<PolarSite, PolarSite>(
+                src, *tgt.first);
           }
         }
       }
@@ -682,12 +698,10 @@ BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
         have_reference = true;
         BOOST_REQUIRE_GT(std::abs(total), 1e-12);
       } else {
-        // 1e-5 rather than the 1e-8 the neutral single-segment cases
-        // reach. The residual shrinks by roughly 30x per alpha step and
-        // the converged value agrees with an independent direct lattice
-        // sum to ~5e-6, so it is a convergence effect rather than a
-        // missing term -- but it is NOT yet explained, and this
-        // tolerance records that honestly rather than hiding it.
+        // 1e-5 rather than the 1e-8 the single-segment cases reach. The
+        // residual shrinks ~30x per alpha step, so it is truncation, not
+        // a missing term -- but it has never been explained, and the
+        // loose tolerance records that rather than hiding it.
         BOOST_CHECK_SMALL(std::abs(total - reference) / std::abs(reference),
                           1e-5);
       }

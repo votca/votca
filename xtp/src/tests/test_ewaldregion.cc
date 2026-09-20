@@ -22,8 +22,12 @@
 #define BOOST_TEST_MODULE ewaldregion_test
 
 // Standard includes
+#include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <iostream>
+#include <utility>
+#include <vector>
 
 // Third party includes
 #include <boost/test/tools/floating_point_comparison.hpp>
@@ -366,6 +370,198 @@ BOOST_AUTO_TEST_CASE(field_reverses_with_the_background_charge) {
   const Eigen::Vector3d minus = field_for(-1.0);
   BOOST_REQUIRE_GT(plus.norm(), 0.0);
   BOOST_CHECK_SMALL((plus + minus).norm() / plus.norm(), 1e-12);
+}
+
+// A foreground segment must interact with its OWN periodic images: it is
+// carved out at ONE lattice site, and every other image of it is an
+// ordinary background molecule. Legacy agrees (SetupMidground excludes
+// by (segment id, na, nb, nc)); this code used to drop the segment at
+// every translation, so those interactions vanished entirely.
+//
+// Production methane hid that completely -- neutral, and tetrahedral
+// symmetry kills the dipole and traceless quadrupole, leaving an
+// octupole that cancels by parity over a cubic image lattice. So the
+// segment here is built with what methane lacks: neutral and dipole-free
+// (the surface term then vanishes identically, since every piece of the
+// shape bracket carries a Q0 or Q1 factor), but strongly quadrupolar.
+//
+// The reference is a direct lattice sum from Coulomb's law, absolutely
+// convergent at 1/r^5. Before the fix the quantity is EXACTLY zero, so
+// the discrimination does not rest on the tolerance.
+BOOST_AUTO_TEST_CASE(foreground_segment_sees_its_own_periodic_images) {
+  const std::string file = "ewaldregion_test_own_images.hdf5";
+  const double box_length = 20.0;
+  const double q = 0.5;
+  const double d = 4.0;
+
+  struct OwnImageSite {
+    double charge;
+    Eigen::Vector3d pos;
+    Eigen::Vector3d dipole;
+  };
+
+  // Three sites along x. The charges (+q, -2q, +q) sum to zero with no
+  // dipole by symmetry; the permanent dipoles sum to zero as well. The
+  // cell carries neither a net charge nor a net dipole, so the direct
+  // lattice sum below converges absolutely -- with a net dipole it is
+  // conditionally convergent and its value depends on the shape of the
+  // summation shell, a different question from the one asked here.
+  const Eigen::Vector3d p0(-d, 0.0, 0.0);
+  const Eigen::Vector3d p1 = Eigen::Vector3d::Zero();
+  const Eigen::Vector3d p2(d, 0.0, 0.0);
+  const Eigen::Vector3d m0(0.20, 0.00, 0.00);
+  const Eigen::Vector3d m1(-0.10, 0.15, 0.00);
+  const Eigen::Vector3d m2(-0.10, -0.15, 0.00);
+  const Eigen::Vector3d no_dipole = Eigen::Vector3d::Zero();
+
+  // RUN IN THREE CONFIGURATIONS. Charges alone was the original case,
+  // and it cannot see anything wrong in the dipole path: with rank-0
+  // sites getStaticDipole() is zero everywhere, so the mu term in the
+  // structure factor, the dipole coincidence limits and dipolar Thole
+  // are all multiplied away. Dipoles alone is the discriminating one --
+  // any alpha-dependence it shows has to come from those branches, with
+  // no charge channel to hide behind. The magnitudes are those of a
+  // real rank-1 .mps (0.1-0.2 e*bohr), not the 5e-3 used elsewhere in
+  // these tests, where a mu^2-sized error sits far below tolerance.
+  const std::vector<std::pair<std::string, std::vector<OwnImageSite>>>
+      configurations = {
+          {"charges only",
+           {{q, p0, no_dipole},
+            {-2.0 * q, p1, no_dipole},
+            {q, p2, no_dipole}}},
+          {"dipoles only", {{0.0, p0, m0}, {0.0, p1, m1}, {0.0, p2, m2}}},
+          {"charges and dipoles",
+           {{q, p0, m0}, {-2.0 * q, p1, m1}, {q, p2, m2}}}};
+
+  // SCANNED OVER ALPHA, and not for decoration. For the charge-only
+  // configuration the erfc share of the own-image interaction, against
+  // its 1.6e-3 hrt total, runs from 8.97e-19 at alpha = 0.50 to 1.03e-3
+  // at alpha = 0.12. At 0.5 the reciprocal sum carries all of it, so a
+  // single-alpha version tests only half the fix -- an earlier revision
+  // did exactly that and passed with the real-space half reverted.
+  auto ewald_energy_at = [&](const std::vector<OwnImageSite>& cluster,
+                             double alpha) {
+    {
+      EwaldRegistry registry;
+      PolarSegment seg("quad", 0);
+      for (std::size_t i = 0; i < cluster.size(); ++i) {
+        PolarSite site(Index(i), "C", cluster[i].pos);
+        site.setpolarization(1e-6 * Eigen::Matrix3d::Identity());
+        site.setCharge(cluster[i].charge);
+        site.setStaticDipole(cluster[i].dipole);
+        // No induced dipoles anywhere, so the returned energy is the
+        // permanent-permanent channel alone.
+        site.setInduced_Dipole(Eigen::Vector3d::Zero());
+        seg.push_back(site);
+      }
+      registry.Register(0, EwaldChargeState::Neutral, seg);
+
+      EwaldParameters params;
+      params.alpha = alpha;
+      // Held at a fixed multiple of alpha so each sum stays equally well
+      // converged and the scan measures the splitting, not truncation.
+      params.k_max = 12.0 * alpha;
+      params.r_min = 12.0;
+      params.field_tol = 1e-12;
+      params.thole_a = 0.39;
+      params.screening_factor = 6.0;
+      params.shape = EwaldShape::Cube;
+      params.box = box_length * Eigen::Matrix3d::Identity();
+
+      CheckpointFile cpf(file, CheckpointAccessLevel::CREATE);
+      CheckpointWriter w = cpf.getWriter();
+      registry.WriteToCpt(w);
+      CheckpointWriter wp = w.openChild("ewald_parameters");
+      params.WriteToCpt(wp);
+    }
+
+    // The foreground: the same segment, at the same positions, carved out.
+    PolarSegment fg("quad", 0);
+    for (std::size_t i = 0; i < cluster.size(); ++i) {
+      PolarSite site(Index(i), "C", cluster[i].pos);
+      site.setpolarization(1e-6 * Eigen::Matrix3d::Identity());
+      site.setCharge(cluster[i].charge);
+      site.setStaticDipole(cluster[i].dipole);
+      fg.push_back(site);
+    }
+    std::vector<PolarSegment> foreground{fg};
+
+    Logger log;
+    log.setReportLevel(Log::error);
+    EwaldRegion region(1, log);
+    tools::Property prop = RegionDefinition(file);
+    region.Initialize(prop.get("ewaldregion"));
+    const double e = region.ApplyFieldTo(foreground);
+    std::remove(file.c_str());
+    return e;
+  };
+
+  // Direct lattice sum: the cluster against every image of itself,
+  // charge-charge plus charge-dipole plus dipole-dipole. The
+  // charge-dipole term is written once per ordered pair and already
+  // covers both orientations, so it is not halved.
+  auto lattice_sum = [&](const std::vector<OwnImageSite>& cluster,
+                         Index n_max) {
+    double total = 0.0;
+    for (Index na = -n_max; na <= n_max; ++na) {
+      for (Index nb = -n_max; nb <= n_max; ++nb) {
+        for (Index nc = -n_max; nc <= n_max; ++nc) {
+          if (na == 0 && nb == 0 && nc == 0) {
+            continue;
+          }
+          const Eigen::Vector3d L =
+              box_length * Eigen::Vector3d(double(na), double(nb), double(nc));
+          for (const auto& a : cluster) {
+            for (const auto& b : cluster) {
+              const Eigen::Vector3d r = a.pos - (b.pos + L);
+              const double rn = r.norm();
+              const double r3 = rn * rn * rn;
+              total += a.charge * b.charge / rn;
+              total += (a.charge * b.dipole.dot(r) -
+                        b.charge * a.dipole.dot(r)) /
+                       r3;
+              total += a.dipole.dot(b.dipole) / r3 -
+                       3.0 * a.dipole.dot(r) * b.dipole.dot(r) / (r3 * rn * rn);
+            }
+          }
+        }
+      }
+    }
+    return total;
+  };
+
+  for (const auto& configuration : configurations) {
+    const std::vector<OwnImageSite>& cluster = configuration.second;
+
+    const double reference_20 = lattice_sum(cluster, 20);
+    const double reference_30 = lattice_sum(cluster, 30);
+    const double tail = std::abs(reference_30 - reference_20);
+
+    // Not vacuous: the interaction has to be a real number, far from the
+    // zero the pre-fix code returns.
+    BOOST_REQUIRE_GT(std::abs(reference_30), 1e-6);
+
+    // The direct sum's own truncation is the limiting error here, not
+    // the Ewald result, so the tolerance is taken from it rather than
+    // guessed.
+    const double tolerance =
+        std::max(20.0 * tail, 1e-3 * std::abs(reference_30));
+
+    std::cout << "own-image energy [" << configuration.first
+              << "]: direct lattice sum = " << reference_30
+              << " hrt, truncation tail = " << tail
+              << ", tolerance = " << tolerance << std::endl;
+
+    for (double alpha : {0.12, 0.20, 0.50}) {
+      const double energy = ewald_energy_at(cluster, alpha);
+      std::cout << "  alpha = " << alpha << "  Ewald = " << energy << " hrt"
+                << std::endl;
+      BOOST_CHECK_SMALL(std::abs(energy - reference_30), tolerance);
+      // Stated separately: whatever the tolerance, the answer must not
+      // be the zero the old convention returns.
+      BOOST_CHECK_GT(std::abs(energy), 0.5 * std::abs(reference_30));
+    }
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

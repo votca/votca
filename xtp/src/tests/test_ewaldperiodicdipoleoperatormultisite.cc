@@ -266,9 +266,21 @@ BOOST_AUTO_TEST_CASE(intramolecular_coupling_matches_direct_solve) {
   // for consistency.
   EwaldRealSpaceInteractor::TholeFactors thole =
       intra_interactor.ComputeThole(r_ab, mseg[1], mseg[0]);
-  Eigen::Matrix3d erfc_block =
-      thole.l5 * bf.B2 * (r_vec * r_vec.transpose()) -
-      thole.l3 * bf.B1 * Eigen::Matrix3d::Identity();
+  // NOTE on what this reference can and cannot catch: it is built from
+  // the same ComputeB/ComputeErfB/ComputeThole primitives the operator
+  // itself uses, and combines them the same way, so it cross-checks the
+  // operator's ASSEMBLY (offsets, signs, transposes, which blocks get
+  // which term) but is blind by construction to the CONVENTION being
+  // assembled. It passed unchanged through both earlier, wrong versions
+  // of AddIntraSegmentCoupling, and it would pass again if the l-versus-
+  // erf combination below were wrong. The property that does discriminate
+  // is alpha-independence, which has a test of its own further down.
+  EwaldRealSpaceInteractor::BFunctions bferf =
+      intra_interactor.ComputeErfB(r_ab);
+  const double c3_ref = thole.l3 * bf.B1 + (thole.l3 - 1.0) * bferf.B1;
+  const double c5_ref = thole.l5 * bf.B2 + (thole.l5 - 1.0) * bferf.B2;
+  Eigen::Matrix3d erfc_block = c5_ref * (r_vec * r_vec.transpose()) -
+                               c3_ref * Eigen::Matrix3d::Identity();
 
   // multiply(v) = D*v + field(v), where field(v) is the TRUE field a
   // trial dipole v produces (whatever its own actual sign is), so the
@@ -379,6 +391,153 @@ BOOST_AUTO_TEST_CASE(intramolecular_coupling_matches_direct_solve) {
   BOOST_CHECK(x.isApprox(x_reference, 1e-6));
   // Sanity: not vacuously passing because both are ~zero.
   BOOST_CHECK(x.norm() > 1e-6);
+}
+
+// The discriminating test for AddIntraSegmentCoupling's CONVENTION, as
+// opposed to its assembly. alpha is a free parameter of the Ewald split
+// and the converged dipoles cannot depend on it; the test above cannot
+// see a violation because its reference is built from the same
+// primitives, combined the same way, so it agrees with whatever the
+// operator does.
+//
+// This is not a hypothetical. Before the (l-1)*B_erf term was added,
+// an intramolecular pair's total induced coupling was l*B_erfc + B_erf
+// rather than l*B_bare -- see AddIntraSegmentCoupling's own comment --
+// and in an 18-segment MM/MM run that drifted the [fg permanent x bg
+// induced] channel by 0.43% across alpha = 1.5 ... 3.0 1/nm, visible
+// even in that channel's shape term, which contains no alpha at all.
+//
+// Geometry, polarizabilities and thole_a are deliberately identical to
+// the test above: 2.0 bohr is a bonded separation where Thole damping
+// is genuinely active (l < 1), which is the whole point -- at a
+// separation where l = 1 the old and new expressions coincide and this
+// test would pass either way. If this test is ever seen to pass against
+// a build WITHOUT the (l-1)*B_erf term, that means l has drifted to 1
+// for this geometry and the test has gone vacuous; the damping printout
+// below is there to make that visible rather than silent.
+BOOST_AUTO_TEST_CASE(converged_dipoles_are_independent_of_the_splitting) {
+  Eigen::Matrix3d box = 40.0 * Eigen::Matrix3d::Identity();
+
+  EwaldRegistry registry;
+
+  PolarSegment external("seg", 1);
+  PolarSite charge(1, "H", Eigen::Vector3d(15.3, 4.7, -8.2));
+  charge.setpolarization(Eigen::Matrix3d::Identity());
+  Vector9d mpoles = Vector9d::Zero();
+  mpoles(0) = 1.0;
+  charge.setMultipole(mpoles, 0);
+  external.push_back(charge);
+  registry.Register(1, EwaldChargeState::Neutral, external);
+
+  PolarSegment molecule("seg", 2);
+  const double alpha_pol = 2.0;
+  const double thole_a = 0.39;
+  PolarSite site_a(1, "H", Eigen::Vector3d(3.4, -1.9, 0.7));
+  site_a.setpolarization(alpha_pol * Eigen::Matrix3d::Identity());
+  molecule.push_back(site_a);
+  PolarSite site_b(2, "H", Eigen::Vector3d(5.4, -1.9, 0.7));
+  site_b.setpolarization(alpha_pol * Eigen::Matrix3d::Identity());
+  molecule.push_back(site_b);
+  registry.Register(2, EwaldChargeState::Neutral, molecule);
+
+  // Report the damping actually in force, so a vacuous pass (l -> 1) is
+  // visible in the test's own output rather than silently harmless.
+  {
+    EwaldRealSpaceInteractor probe(0.30, thole_a);
+    PolarSegment& m = registry.Get(2, EwaldChargeState::Neutral);
+    const double r_ab = (m[0].getPos() - m[1].getPos()).norm();
+    EwaldRealSpaceInteractor::TholeFactors probe_t =
+        probe.ComputeThole(r_ab, m[1], m[0]);
+    std::cout << "intramolecular r = " << r_ab << " bohr, thole l3 = "
+              << probe_t.l3 << ", l5 = " << probe_t.l5 << std::endl;
+    // Guard against the test quietly going vacuous.
+    BOOST_REQUIRE(probe_t.l3 < 0.999);
+  }
+
+  // r_min is held fixed while alpha only INCREASES, so the real-space
+  // truncation error erfc(alpha*r_min) shrinks monotonically across the
+  // scan and cannot itself masquerade as alpha-dependence. k_max is
+  // likewise already far past convergence at the largest alpha here.
+  const std::vector<double> alphas = {0.30, 0.40, 0.50};
+
+  std::vector<Eigen::VectorXd> solutions;
+  std::vector<Eigen::VectorXd> rhs;
+
+  for (double alpha_ewald : alphas) {
+    PolarSegment& mseg = registry.Get(2, EwaldChargeState::Neutral);
+    mseg[0].Reset();
+    mseg[1].Reset();
+    mseg[0].setInduced_Dipole(Eigen::Vector3d::Zero());
+    mseg[1].setInduced_Dipole(Eigen::Vector3d::Zero());
+
+    EwaldRealSpaceSum real_sum(box, registry, alpha_ewald, thole_a,
+                               /*r_min=*/12.0, /*field_tol=*/1e-12);
+    EwaldReciprocalSpaceSum recip_sum(box, registry, alpha_ewald,
+                                      /*k_max=*/20.0);
+    const double volume = box.determinant();
+    EwaldShapeCorrection shape(volume, registry, EwaldShape::Cube);
+
+    // b = permanent field. Only the external segment carries static
+    // multipoles, so this is a clean real+reciprocal split of an
+    // INTERmolecular interaction and is alpha-independent in its own
+    // right -- checked explicitly below, so that a failure of the
+    // dipoles can be attributed to the coupling operator rather than to
+    // a drifting right-hand side.
+    Eigen::VectorXd b(6);
+    {
+      PolarSite& a = mseg[0];
+      a.Reset();
+      real_sum.AddFieldAt<Estatic::V>(2, a, EwaldChargeState::Neutral);
+      recip_sum.AddFieldAt<Estatic::V>(a, EwaldChargeState::Neutral);
+      b.segment<3>(0) = a.V();
+      a.Reset();
+
+      PolarSite& bb = mseg[1];
+      bb.Reset();
+      real_sum.AddFieldAt<Estatic::V>(2, bb, EwaldChargeState::Neutral);
+      recip_sum.AddFieldAt<Estatic::V>(bb, EwaldChargeState::Neutral);
+      b.segment<3>(3) = bb.V();
+      bb.Reset();
+    }
+
+    EwaldPeriodicDipoleOperator op(registry, real_sum, recip_sum, shape,
+                                   std::vector<Index>{2}, alpha_ewald,
+                                   thole_a);
+
+    Eigen::ConjugateGradient<EwaldPeriodicDipoleOperator,
+                             Eigen::Lower | Eigen::Upper,
+                             Eigen::DiagonalPreconditioner<double>>
+        cg;
+    cg.setMaxIterations(200);
+    cg.setTolerance(1e-12);
+    cg.compute(op);
+    Eigen::VectorXd x = cg.solveWithGuess(b, Eigen::VectorXd::Zero(6));
+    BOOST_REQUIRE(cg.info() == Eigen::ComputationInfo::Success);
+
+    std::cout << "alpha = " << alpha_ewald << "  b = " << b.transpose()
+              << "  mu = " << x.transpose() << std::endl;
+
+    rhs.push_back(b);
+    solutions.push_back(x);
+  }
+
+  // Sanity: a real, nonzero induction problem, not a vacuous one.
+  BOOST_REQUIRE(solutions.front().norm() > 1e-6);
+
+  for (std::size_t i = 1; i < solutions.size(); ++i) {
+    const double db = (rhs[i] - rhs[0]).norm() / rhs[0].norm();
+    const double dmu =
+        (solutions[i] - solutions[0]).norm() / solutions[0].norm();
+    std::cout << "alpha = " << alphas[i] << "  relative drift: rhs = " << db
+              << "  mu = " << dmu << std::endl;
+    // The right-hand side is a plain Ewald split and should be tight.
+    BOOST_CHECK_SMALL(db, 1e-8);
+    // The dipoles carry the coupling operator. The pre-fix code failed
+    // this at the 1e-3 level; 1e-7 leaves room for the real-space
+    // truncation at r_min = 12 bohr without leaving room for a
+    // convention error.
+    BOOST_CHECK_SMALL(dmu, 1e-7);
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

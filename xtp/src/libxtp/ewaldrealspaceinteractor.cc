@@ -156,7 +156,14 @@ void EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection(
   if (r < kCoincidenceTol) {
     const double self_coeff =
         (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / std::sqrt(votca::tools::conv::Pi);
-    const Eigen::Vector3d self_field = self_coeff * site1.getStaticDipole();
+    // SIGN: this branch must be the r -> 0 limit of src.field below, so
+    // that the "-=" means the same on both sides of kCoincidenceTol.
+    // That limit is NEGATIVE -- EvaluateSource's dipole term is -B1*mu
+    // and B1_erf -> +4/3 alpha^3/sqrt(pi) -- so the field tends to
+    // -self_coeff*mu. The other sign makes the correction jump by
+    // 2*self_coeff*mu across the threshold, which no continuous
+    // function does.
+    const Eigen::Vector3d self_field = -self_coeff * site1.getStaticDipole();
     if (CE == Estatic::noE_V) {
       site2.V_noE() -= self_field;
     } else {
@@ -205,7 +212,18 @@ void EwaldRealSpaceInteractor::ApplyErfInducedFieldCorrection(
   if (r < kCoincidenceTol) {
     const double self_coeff =
         (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / std::sqrt(votca::tools::conv::Pi);
-    const Eigen::Vector3d self_field = self_coeff * site1.getInducedDipole();
+    // SIGN: negative, as in ApplyErfStaticFieldCorrection's branch.
+    //
+    // This is the one of the four coincidence branches that is live for
+    // a rank-0 system -- the other three contract against a STATIC
+    // dipole, zero when the .mps carry only charges -- and it was the
+    // whole of an alpha^3 drift in the delivered induced field, measured
+    // at alpha^2.9 over alpha = 1...4 1/nm on an 18-segment job and flat
+    // once the background's induced dipoles were switched off.
+    // EwaldPeriodicDipoleOperator::multiply has this sign right (it
+    // forms V + S*mu), which is why the background solve was already
+    // alpha-independent while this path was not.
+    const Eigen::Vector3d self_field = -self_coeff * site1.getInducedDipole();
     if (CE == Estatic::noE_V) {
       site2.V_noE() -= self_field;
     } else {
@@ -239,17 +257,30 @@ double EwaldRealSpaceInteractor::ApplyInducedField(
       site2.getPos() - (site1.getPos() + source_shift);
   const double r = r_vec.norm();
   const BFunctions b = ComputeB(r);
+  const BFunctions berf = ComputeErfB(r);
   const TholeFactors t = ComputeThole(r, site1, site2);
 
   const Eigen::Vector3d mu1 = site1.getInducedDipole();
   const double mu_dot_r = mu1.dot(r_vec);
 
-  // Thole damping is multiplicative on the erfc-screened B-functions, same
-  // combination rule as legacy's l3*B1 + l5*B2 (see class documentation).
-  // B2 already carries its (2l-1)=3 recursion factor -- see the comment
-  // in EvaluateSource (this file) for why there is no separate 3.0* here.
-  const Eigen::Vector3d field =
-      mu_dot_r * (t.l5 * b.B2) * r_vec - (t.l3 * b.B1) * mu1;
+  // Thole damping combines as l3*B1 + l5*B2 (legacy's rule). B2 already
+  // carries its (2l-1)=3 recursion factor -- see EvaluateSource.
+  //
+  // WHAT IS DAMPED: the BARE interaction, not the erfc-screened one.
+  // Thole damping is physics (overlap of two smeared densities, so the
+  // real interaction is l*T_bare); the Ewald split is bookkeeping, with
+  // alpha carrying no physical content. So l*T_bare is the object to be
+  // split, and since the reciprocal sum contributes an UNDAMPED B_erf,
+  // this half must supply
+  //
+  //     l*B_bare - B_erf  ==  l*B_erfc + (l-1)*B_erf
+  //
+  // l*B_erfc alone sums to l*T_bare + (1-l)*erf(ar)/r, which depends on
+  // alpha -- not a split at all. Written in the second form so l = 1 is
+  // visibly unchanged and no large bare terms cancel at small r.
+  const double c3 = t.l3 * b.B1 + (t.l3 - 1.0) * berf.B1;
+  const double c5 = t.l5 * b.B2 + (t.l5 - 1.0) * berf.B2;
+  const Eigen::Vector3d field = mu_dot_r * c5 * r_vec - c3 * mu1;
 
   if (CE == Estatic::noE_V) {
     site2.V_noE() += field;
@@ -305,7 +336,13 @@ double EwaldRealSpaceInteractor::CalcErfStaticEnergy(
     // Charge-charge through the self-potential, dipole-dipole through
     // the self-field. The cross terms vanish: a charge produces no field
     // at its own position, and a dipole no potential.
-    return q2 * q1 * phi_self - mu2.dot(dip_self * mu1);
+    //
+    // SIGN: the general branch returns q2*src.phi - mu2.src.field, and
+    // src.field tends to -dip_self*mu1 (see
+    // ApplyErfStaticFieldCorrection's coincidence branch), so the
+    // dipole-dipole piece enters with a PLUS here. Inert while the .mps
+    // files are rank 0, since mu1 and mu2 are then both zero.
+    return q2 * q1 * phi_self + dip_self * mu2.dot(mu1);
   }
 
   const BFunctions b = ComputeErfB(r);
@@ -333,7 +370,11 @@ double EwaldRealSpaceInteractor::CalcErfInducedSourceEnergy(
         (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / sqrt_pi;
     // A dipole produces no potential at its own position, so the
     // charge-dipole cross term drops; only dipole-dipole survives.
-    return -mu2.dot(dip_self * mu1);
+    //
+    // SIGN: plus, matching the r -> 0 limit of the general branch below
+    // (see CalcErfStaticEnergy's own coincidence branch). Inert at rank
+    // 0, since mu2 is the TARGET's static dipole.
+    return dip_self * mu2.dot(mu1);
   }
 
   const BFunctions b = ComputeErfB(r);
@@ -346,14 +387,22 @@ double EwaldRealSpaceInteractor::CalcInducedEnergy(
   const Eigen::Vector3d r_vec = site2.getPos() - site1.getPos();
   const double r = r_vec.norm();
   const BFunctions b = ComputeB(r);
+  const BFunctions berf = ComputeErfB(r);
   const TholeFactors t = ComputeThole(r, site1, site2);
 
   const Eigen::Vector3d mu1 = site1.getInducedDipole();
   const Eigen::Vector3d mu2 = site2.getInducedDipole();
   const double mu1_dot_r = mu1.dot(r_vec);
 
-  const Eigen::Vector3d field1 =
-      mu1_dot_r * (t.l5 * b.B2) * r_vec - (t.l3 * b.B1) * mu1;
+  // Same damped-bare-minus-erf combination as ApplyInducedField; see the
+  // long note there for why l multiplies the bare interaction and not the
+  // erfc-screened one. This method has no production caller at present
+  // (only tests), and is converted with the others so that a future
+  // caller does not inherit a convention the rest of the class has left
+  // behind.
+  const double c3 = t.l3 * b.B1 + (t.l3 - 1.0) * berf.B1;
+  const double c5 = t.l5 * b.B2 + (t.l5 - 1.0) * berf.B2;
+  const Eigen::Vector3d field1 = mu1_dot_r * c5 * r_vec - c3 * mu1;
   return -mu2.dot(field1);
 }
 
@@ -366,19 +415,23 @@ double EwaldRealSpaceInteractor::CalcInducedSourceEnergy(
       site2.getPos() - (site1.getPos() + source_shift);
   const double r = r_vec.norm();
   const BFunctions b = ComputeB(r);
+  const BFunctions berf = ComputeErfB(r);
   const TholeFactors t = ComputeThole(r, site1, site2);
 
   const Eigen::Vector3d mu1 = site1.getInducedDipole();
   const double mu_dot_r = mu1.dot(r_vec);
 
   // Potential and field of a screened, damped point dipole. The field
-  // is character-for-character ApplyInducedField's own expression; the
-  // potential is its r^-3 partner, phi = (mu . r_vec) * B1, carrying
-  // the same l3 that the field's mu term does. Writing them together
-  // here keeps the two from drifting apart.
-  const double phi = t.l3 * mu_dot_r * b.B1;
-  const Eigen::Vector3d field =
-      mu_dot_r * (t.l5 * b.B2) * r_vec - (t.l3 * b.B1) * mu1;
+  // is character-for-character ApplyInducedField's own expression -- see
+  // the long note there for why the damping multiplies the BARE
+  // interaction and the undamped erf piece is subtracted back off. The
+  // potential is its r^-3 partner, phi = (mu . r_vec) * B1, carrying the
+  // same c3 that the field's mu term does. Writing them together here
+  // keeps the two from drifting apart.
+  const double c3 = t.l3 * b.B1 + (t.l3 - 1.0) * berf.B1;
+  const double c5 = t.l5 * b.B2 + (t.l5 - 1.0) * berf.B2;
+  const double phi = c3 * mu_dot_r;
+  const Eigen::Vector3d field = mu_dot_r * c5 * r_vec - c3 * mu1;
 
   // Target's PERMANENT moments only: its induced dipole is PolarRegion's
   // business, via the field this code separately delivers.

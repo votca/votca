@@ -364,153 +364,92 @@ double EwaldRegion::ApplyFieldTo(std::vector<PolarSegment>& foreground) const {
     }
   }
   // (5) reciprocal-space and shape Q-Q energy between the foreground and
-  //     the rest of the cell, computed PER FOREGROUND SEGMENT.
+  //     the rest of the cell.
   //
-  //     Per-segment, not once for the whole foreground, because the
-  //     real-space sum's exclusions are per-target and cannot be
-  //     expressed in a single structure factor. For a target in
-  //     foreground segment i, real space omits
+  //     NOTHING is held out of S_bg. Every segment contributes at every
+  //     image; what is removed instead is the erf-screened energy of the
+  //     COINCIDENT copy of each foreground segment, because that is
+  //     exactly what real space suppresses.
   //
-  //       - segment i at EVERY translation (intermolecular scope, see
-  //         EwaldRealSpaceSum::AddFieldAt), and
-  //       - the COINCIDENT copy of every other foreground segment j,
-  //         while keeping segment j's other periodic images, which are
-  //         ordinary background molecules.
+  //     Two earlier versions were wrong in opposite directions and the
+  //     answer sits between them. Holding the whole foreground out of
+  //     S_bg also deletes its periodic IMAGES -- a lattice of vacancies
+  //     rather than one carved-out cavity, worth 1e-3 eV of
+  //     alpha-dependence on a charged 18-segment job. Holding out only
+  //     the target's own segment fixed that but still deleted each
+  //     segment's interaction with its own images, and was needed only
+  //     because EwaldRealSpaceSum was skipping that segment at every
+  //     translation. With that skip gone, real space suppresses the same
+  //     set for every target, so one structure factor is correct.
   //
-  //     A structure factor cannot drop a single image: removing a
-  //     segment from S_bg removes it from all of them. An earlier
-  //     version passed one exclusion list for the whole foreground and
-  //     so removed every foreground segment's images too. That is a
-  //     different physical system -- a periodic lattice of vacancies
-  //     rather than one carved-out cavity -- and it showed up as a
-  //     failure of alpha-independence: on a charged 18-segment
-  //     foreground the permanent energy moved from -3.1e-4 through
-  //     -8.5e-4 to +7.1e-4 eV across alpha = 1.5, 2.0, 3.0 nm^-1, while
-  //     the neutral job held to 6e-8. A NEUTRAL foreground cannot see
-  //     this, which is why every alpha-independence test in the suite
-  //     missed it.
-  //
-  //     So: exclude only segment i from S_bg (leaving every other
-  //     segment, images included), then subtract the erf-screened
-  //     energy of the coincident copies of the other foreground
-  //     segments. recip + shape together are the erf interaction over
-  //     all images -- the shape term IS the k=0 limit the reciprocal
-  //     sum omits, which is why its Q0*TrQ2 pieces are not optional --
-  //     so subtracting a pair's erf energy removes that pair exactly.
+  //     recip + shape together are the erf interaction over all images
+  //     (the shape term IS the k=0 limit the reciprocal sum omits), so
+  //     subtracting a pair's erf energy removes that pair exactly. For a
+  //     segment's own coincident copy that subtraction is the r -> 0
+  //     branch of CalcErfStaticEnergy -- whose sign had to be fixed
+  //     before this change was possible.
   {
     double e_recip = 0.0;
     double e_shape = 0.0;
     double e_erf = 0.0;
 
+    std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> fg_sites;
+    fg_sites.reserve(targets.size());
+    for (std::size_t n = 0; n < targets.size(); ++n) {
+      fg_sites.push_back({targets[n], targets[n]->getPos()});
+    }
+    const std::vector<const PolarSite*> no_exclusions;
+
+    e_recip = recip_sum_->CalcStaticEnergyBetween(fg_sites, no_exclusions,
+                                                  EwaldChargeState::Neutral);
+    e_shape = shape_->CalcStaticEnergyBetween(fg_sites, no_exclusions,
+                                              EwaldChargeState::Neutral);
+
+    // Every foreground copy, the target's own included. Real space
+    // suppressed exactly these, so exactly these come back out.
     for (const auto& copy : foreground_copies_) {
-      const PolarSegment& bg_self =
+      const PolarSegment& bg_copy =
           registry_.Get(copy.first, EwaldChargeState::Neutral);
-      const Eigen::Vector3d shift_self = copy.second - Centroid(bg_self);
-
-      // This segment's foreground sites, in the job's charge state, at
-      // the positions they occupy.
-      std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> fg_sites;
-      for (std::size_t n = 0; n < targets.size(); ++n) {
-        if (target_segment_ids[n] == copy.first) {
-          fg_sites.push_back({targets[n], targets[n]->getPos()});
-        }
-      }
-      if (fg_sites.empty()) {
-        continue;
-      }
-
-      // Held out of S_bg: this segment only, at every image.
-      std::vector<const PolarSite*> excl_self;
-      for (const PolarSite& site : bg_self) {
-        excl_self.push_back(&site);
-      }
-
-      e_recip += recip_sum_->CalcStaticEnergyBetween(fg_sites, excl_self,
-                                                     EwaldChargeState::Neutral);
-      e_shape += shape_->CalcStaticEnergyBetween(fg_sites, excl_self,
-                                                 EwaldChargeState::Neutral);
-
-      // Remove the coincident copies of the OTHER foreground segments,
-      // which real space already suppressed. Their images stay.
-      for (const auto& other : foreground_copies_) {
-        if (other.first == copy.first) {
-          continue;
-        }
-        const PolarSegment& bg_other =
-            registry_.Get(other.first, EwaldChargeState::Neutral);
-        const Eigen::Vector3d shift_other =
-            other.second - Centroid(bg_other);
-        for (const PolarSite& source : bg_other) {
-          for (const auto& entry : fg_sites) {
-            e_erf += interactor_->CalcErfStaticEnergy<PolarSite, PolarSite>(
-                source, *entry.first, shift_other);
-          }
+      const Eigen::Vector3d shift = copy.second - Centroid(bg_copy);
+      for (const PolarSite& source : bg_copy) {
+        for (const auto& entry : fg_sites) {
+          e_erf += interactor_->CalcErfStaticEnergy<PolarSite, PolarSite>(
+              source, *entry.first, shift);
         }
       }
     }
     energy += e_recip + e_shape - e_erf;
 
     // (5b), (6b) reciprocal and shape partners of the induced-source
-    //      term added at (1b), with exactly the same per-segment
-    //      exclusion structure and for exactly the same reason.
-    double e_recip_pu = 0.0;
-    double e_shape_pu = 0.0;
+    //      term added at (1b), with exactly the same exclusion structure
+    //      as (5) above and for exactly the same reason.
+    double e_recip_pu = recip_sum_->CalcInducedSourceEnergyBetween(
+        fg_sites, no_exclusions, EwaldChargeState::Neutral);
+    double e_shape_pu = shape_->CalcInducedSourceEnergyBetween(
+        fg_sites, no_exclusions, EwaldChargeState::Neutral);
     double e_erf_pu = 0.0;
     for (const auto& copy : foreground_copies_) {
-      const PolarSegment& bg_self =
+      const PolarSegment& bg_copy =
           registry_.Get(copy.first, EwaldChargeState::Neutral);
-
-      std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> fg_sites_pu;
-      for (std::size_t n = 0; n < targets.size(); ++n) {
-        if (target_segment_ids[n] == copy.first) {
-          fg_sites_pu.push_back({targets[n], targets[n]->getPos()});
-        }
-      }
-      if (fg_sites_pu.empty()) {
-        continue;
-      }
-
-      std::vector<const PolarSite*> excl_self;
-      for (const PolarSite& site : bg_self) {
-        excl_self.push_back(&site);
-      }
-
-      e_recip_pu += recip_sum_->CalcInducedSourceEnergyBetween(
-          fg_sites_pu, excl_self, EwaldChargeState::Neutral);
-      e_shape_pu += shape_->CalcInducedSourceEnergyBetween(
-          fg_sites_pu, excl_self, EwaldChargeState::Neutral);
-
-      for (const auto& other : foreground_copies_) {
-        if (other.first == copy.first) {
-          continue;
-        }
-        const PolarSegment& bg_other =
-            registry_.Get(other.first, EwaldChargeState::Neutral);
-        const Eigen::Vector3d shift_other =
-            other.second - Centroid(bg_other);
-        for (const PolarSite& source : bg_other) {
-          for (const auto& entry : fg_sites_pu) {
-            e_erf_pu += interactor_->CalcErfInducedSourceEnergy(
-                source, *entry.first, shift_other);
-          }
+      const Eigen::Vector3d shift = copy.second - Centroid(bg_copy);
+      for (const PolarSite& source : bg_copy) {
+        for (const auto& entry : fg_sites) {
+          e_erf_pu += interactor_->CalcErfInducedSourceEnergy(
+              source, *entry.first, shift);
         }
       }
     }
     energy += e_recip_pu + e_shape_pu - e_erf_pu;
 
     // Term-by-term report, for comparison against the legacy `ewald`
-    // job calculator's own terms_o block. The correspondence is NOT
-    // one-to-one: legacy adds the full background in its K term and
-    // then subtracts its C term (the erf-screened fgC<->fgN
-    // interaction), where this code excludes the foreground copies up
-    // front. So
-    //
-    //   e_real   <->  legacy R_pp
-    //   e_recip  <->  legacy (K_pp - C_pp)
-    //   e_shape  <->  legacy J_pp
-    //
-    // and the TOTAL is what must agree. Printed in eV, because that is
-    // the unit legacy reports and the unit the job XML carries.
+    // job calculator's terms_o block. The correspondence is now
+    // one-to-one -- real <-> R_pp, recip <-> K_pp, shape <-> J_pp,
+    // erf <-> C_pp -- since this code stopped excluding foreground
+    // copies from S_bg and started subtracting their erf energy the way
+    // legacy does. Measured agreement on an 18-segment job: every term
+    // to legacy's six printed figures, on both a rank-0 and an
+    // artificially dipolar methane. Printed in eV, the unit legacy
+    // reports and the job XML carries.
     const double h2ev = tools::conv::hrt2ev;
     XTP_LOG(Log::error, log_)
         << TimeStamp()
@@ -528,31 +467,29 @@ double EwaldRegion::ApplyFieldTo(std::vector<PolarSegment>& foreground) const {
         << TimeStamp() << " Ewald energy [eV], total = " << energy * h2ev
         << std::flush;
     XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Ewald splitting: alpha = " << params_.alpha
+        << TimeStamp() << " Ewald split: alpha = " << params_.alpha
         << " 1/bohr (" << params_.alpha * 18.8972612 << " 1/nm)"
         << ", k_max = " << params_.k_max << " 1/bohr ("
         << params_.k_max * 18.8972612 << " 1/nm)"
-        << ", r_min = " << params_.r_min << " bohr"
-        << ", V = " << params_.box.determinant() << " bohr^3"
-        << ", thole_a = " << params_.thole_a << std::flush;
+        << ", r_min = " << params_.r_min << " bohr, V = "
+        << params_.box.determinant() << " bohr^3, thole_a = "
+        << params_.thole_a << std::flush;
     XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Ewald counts: foreground sites = "
-        << targets.size() << ", foreground segments = "
-        << foreground_copies_.size() << ", registered segments = "
-        << registry_.AllIds().size() << std::flush;
+        << TimeStamp() << " Foreground: " << foreground_copies_.size()
+        << " segments, " << targets.size() << " sites, carved from "
+        << registry_.AllIds().size() << " registered" << std::flush;
 
-    // Suppression audit. Every target should have had one copy of every
-    // OTHER foreground segment suppressed (its own segment is excluded
-    // earlier, by the intermolecular-scope rule). A shortfall means some
-    // foreground copy was left in the background, which is silent
-    // otherwise and was exactly the failure this run is checking for.
+    // Suppression audit. A shortfall means a foreground copy was left in
+    // the background -- silent otherwise, and exactly the failure this
+    // check exists for. Every copy is suppressed for every target, the
+    // target's own segment included, hence size() and not size() - 1.
     const EwaldRealSpaceSum::NeighborStats stats =
         real_sum_->GetNeighborStats();
     const Index expected =
-        Index(targets.size()) * (Index(foreground_copies_.size()) - 1);
+        Index(targets.size()) * Index(foreground_copies_.size());
     XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Ewald foreground suppression: " << stats.foreground
-        << " of " << expected << " expected"
+        << TimeStamp() << " Foreground copies suppressed: "
+        << stats.foreground << " of " << expected
         << ((stats.foreground == expected) ? " (ok)" : "  <-- MISMATCH")
         << std::flush;
   }
@@ -568,15 +505,10 @@ double EwaldRegion::ApplyFieldTo(std::vector<PolarSegment>& foreground) const {
     warned_no_energy_ = true;
     XTP_LOG(Log::error, log_)
         << TimeStamp()
-        << " NOTE: the Ewald background's permanent (Q-Q) interaction "
-           "energy with this foreground is complete -- real space, "
-           "reciprocal space and the shape/surface term. Its INDUCED "
-           "contribution is not missing either; the polar region "
-           "accounts for it itself, from the field delivered here. What "
-           "is deliberately absent is the background's own internal "
-           "energy, which is a constant of the background and cancels in "
-           "any difference taken between charge states of the same "
-           "segment."
+        << " NOTE: the background's own internal energy is deliberately "
+           "absent -- it is a constant that cancels in any charge-state "
+           "difference. Everything else is here; see ApplyFieldTo's "
+           "declaration for the full accounting."
         << std::flush;
   }
   return energy;

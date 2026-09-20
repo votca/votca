@@ -354,26 +354,36 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
       << TimeStamp() << " Real/reciprocal-space sums constructed ("
       << elapsed_s(t_start) << "s)" << std::flush;
   XTP_LOG(Log::info, log)
-      << TimeStamp() << " Parameters: alpha=" << alpha_ << " bohr^-1 ("
+      << TimeStamp() << " Ewald split: alpha=" << alpha_ << " bohr^-1 ("
       << alpha_ * tools::conv::nm2bohr << " nm^-1), k_max=" << k_max_
       << " bohr^-1 (" << k_max_ * tools::conv::nm2bohr << " nm^-1, "
-      << recip_sum.NumKVectors() << " k-vectors), thole_a=" << thole_a_
-      << ", r_min=" << r_min_ << " bohr (" << r_min_ * tools::conv::bohr2nm
-      << " nm), field_tol=" << field_tol_
-      << ", screening_factor=" << screening_factor_ << " (real-space cutoff "
-      << screening_factor_ / alpha_ << " bohr)"
-      << ", shape="
+      << recip_sum.NumKVectors() << " k-vectors), real-space cutoff "
+      << screening_factor_ / alpha_ << " bohr (screening_factor="
+      << screening_factor_ << ")" << std::flush;
+  XTP_LOG(Log::info, log)
+      << TimeStamp() << " Cell: volume=" << volume << " bohr^3, shape="
       << (shape_ == EwaldShape::Cube ? "cube" : "slab")
-      << ", box volume=" << volume << " bohr^3, max_iter=" << max_iter_
-      << ", pcg_tolerance=" << pcg_tolerance_
-      << ", induce=" << (induce_ ? "true" : "false")
-      << ", use_block_jacobi_preconditioner="
-      << (use_block_jacobi_preconditioner_ ? "true" : "false")
-      << ", use_jor=" << (use_jor_ ? "true" : "false")
-      << ", jor_omega=" << jor_omega_
-      << ", debug_match_legacy_first_step="
-      << (match_legacy_first_step_ ? "true" : "false")
+      << ", r_min=" << r_min_ << " bohr (" << r_min_ * tools::conv::bohr2nm
+      << " nm), field_tol=" << field_tol_ << ", thole_a=" << thole_a_
       << std::flush;
+  XTP_LOG(Log::info, log)
+      << TimeStamp() << " Induction: induce="
+      << (induce_ ? "true" : "false") << ", max_iter=" << max_iter_
+      << ", tolerance=" << pcg_tolerance_ << ", solver="
+      << (use_jor_ ? "JOR" : "PCG")
+      << (use_jor_ ? "" : (use_block_jacobi_preconditioner_
+                               ? " (block-Jacobi)"
+                               : " (unpreconditioned)"))
+      << std::flush;
+  if (use_jor_) {
+    XTP_LOG(Log::info, log)
+        << TimeStamp() << " JOR omega=" << jor_omega_ << std::flush;
+  }
+  if (match_legacy_first_step_) {
+    XTP_LOG(Log::info, log)
+        << TimeStamp() << " debug_match_legacy_first_step is ON"
+        << std::flush;
+  }
 
   // Permanent field only (every induced dipole is still zero at this
   // point), computed once -- this becomes b for the PCG solve below,
@@ -412,7 +422,9 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   recip_sum.AddFieldAtMany<Estatic::V>(
       recip_targets, EwaldChargeState::Neutral,
       [&](std::size_t done, std::size_t total) {
-        XTP_LOG(Log::info, log)
+        // Debug, not info: twenty of these per run drown the lines that
+        // matter, and the total is already on the split line above.
+        XTP_LOG(Log::debug, log)
             << TimeStamp() << "   k-space progress: " << done << "/"
             << total << " k-vectors (" << elapsed_s(t_recip) << "s)"
             << std::flush;
@@ -440,21 +452,31 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   // EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection's own
   // documentation for the fuller account of why (a real mechanism in
   // legacy's own code, missed on an earlier pass through it, not a new
-  // design decision here). Every ordered pair within a segment
-  // (i receiving j's own correction, and j receiving i's own) is
+  // design decision here). Every ordered pair within a segment is
   // visited, matching legacy's own double loop.
+  //
+  // INCLUDING i == j. "Never excludes anything" means the structure
+  // factor sums over j = i as well, so each site also receives its own
+  // erf-screened field. For a charge that self-field is zero by
+  // symmetry, which is why skipping i == j was harmless as long as
+  // every site was rank 0 -- but a static DIPOLE's own erf field is the
+  // finite Ewald self-term -(4/3)alpha^3/sqrt(pi) * mu, and leaving it
+  // in the permanent field biases every induced dipole in the cell by a
+  // quantity that grows as alpha^3. The same term is already removed
+  // from the INDUCED side, where EwaldPeriodicDipoleOperator subtracts
+  // EwaldReciprocalSpaceSum::SelfFieldMatrix() from its own operator;
+  // this loop is the permanent-field counterpart, and it was missing.
+  // ApplyErfStaticFieldCorrection's own r < kCoincidenceTol branch is
+  // exactly that limit, so the self-pair needs no special case here --
+  // and because the branch is proportional to getStaticDipole(), it
+  // contributes identically zero for rank-0 input, leaving every
+  // charge-only result unchanged.
   EwaldRealSpaceInteractor erf_interactor(alpha_, thole_a_);
   for (Index n = 0; n < Index(ids.size()); ++n) {
     PolarSegment& segment = registry.Get(ids[n], EwaldChargeState::Neutral);
     Index n_sites = segment.size();
-    if (n_sites < 2) {
-      continue;
-    }
     for (Index i = 0; i < n_sites; ++i) {
       for (Index j = 0; j < n_sites; ++j) {
-        if (i == j) {
-          continue;
-        }
         erf_interactor
             .ApplyErfStaticFieldCorrection<PolarSite, Estatic::V>(
                 segment[j], segment[i]);
@@ -614,18 +636,15 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
     }
     if (!std::isnan(lanczos_min_eigenvalue)) {
       XTP_LOG(Log::info, log)
-          << TimeStamp() << " Lanczos min eigenvalue estimate (from this "
-             "run's own alpha/beta coefficients, using the whole "
-             "accumulated Krylov subspace -- see "
-             "PcgIndefinitenessResult::lanczos_min_eigenvalue's own "
-             "documentation for what this can and cannot guarantee): "
+          << TimeStamp() << " Lanczos min eigenvalue: "
           << lanczos_min_eigenvalue << std::flush;
       if (lanczos_min_eigenvalue < 0.0) {
         XTP_LOG(Log::info, log)
             << TimeStamp()
-            << " This is NEGATIVE -- strong evidence (not an absolute "
-               "guarantee; see this run's own documentation) that the "
-               "operator is not positive-definite."
+            << " NEGATIVE -- strong evidence the operator is not "
+               "positive-definite (see "
+               "PcgIndefinitenessResult::lanczos_min_eigenvalue for what "
+               "this does and does not guarantee)."
             << std::flush;
       }
     }
