@@ -155,7 +155,12 @@ template <libint2::Operator obtype,
           typename OperatorParams =
               typename libint2::operator_traits<obtype>::oper_params_type>
 std::vector<MatrixLibInt> computeOneBodyIntegralsDeriv1(
-    const AOBasis& aobasis, OperatorParams oparams = OperatorParams()) {
+    // Both are used in the #else branch below and unused in the throwing
+    // one, so a build of LIBINT without 1-body derivative support warns on
+    // them. Attributed rather than silenced: they are genuinely optional
+    // only for that configuration.
+    [[maybe_unused]] const AOBasis& aobasis,
+    [[maybe_unused]] OperatorParams oparams = OperatorParams()) {
 
 #if !LIBINT2_DERIV_ONEBODY_ORDER
   throw std::runtime_error(
@@ -354,7 +359,10 @@ void AOEwaldForegroundCharges::Fill(const AOBasis& aobasis) {
 /***********************************
  * EWALD REAL-SPACE DIPOLES
  ***********************************/
-void AOEwaldRealSpaceDipoles::Fill(const AOBasis& aobasis) {
+// aobasis is used only in the #else branch; see
+// computeOneBodyIntegralsDeriv1 above for why it is attributed rather than
+// silenced.
+void AOEwaldRealSpaceDipoles::Fill([[maybe_unused]] const AOBasis& aobasis) {
   if (eta_ <= 0.0) {
     throw std::runtime_error("AOEwaldRealSpaceDipoles: eta must be > 0");
   }
