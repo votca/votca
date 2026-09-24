@@ -269,7 +269,9 @@ class EwaldRealSpaceInteractor {
   //   B_l = [ (2l-1)*B_{l-1} + (2*alpha)^(2l-1) / sqrt(pi) * exp(-alpha^2 r^2) ] / r^2
   // B0 supports charge-charge, B1 additionally supports charge-dipole,
   // B2 additionally supports dipole-dipole. Cross-checked against
-  // EwdInteractor::UpdateAllBls (xtp/ewald/ewaldactor.h) for correctness.
+  // EwdInteractor::UpdateAllBls (xtp/ewald/ewaldactor.h) for correctness
+  // -- that file was deleted with the legacy code; the check is in the
+  // git history, not in the tree.
   // Public (rather than private) so the free helper functions in
   // ewaldrealspaceinteractor.cc's anonymous namespace can take it by
   // value/reference as a plain parameter type.

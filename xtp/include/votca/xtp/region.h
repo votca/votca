@@ -44,7 +44,6 @@ class QMRegion;
 class PolarRegion;
 class StaticRegion;
 class EwaldRegion;
-class BackgroundRegion;
 
 class Region {
 

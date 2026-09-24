@@ -27,7 +27,8 @@
 #include "qmpackagefactory.h"
 #include "region.h"
 #include "statetracker.h"
-#include <votca/xtp/ewald/ewaldcontainer.h>
+#include "vxc_grid.h"
+#include <votca/xtp/ewaldcontainer.h>
 
 /**
  * \brief defines a qm region and runs dft and gwbse calculations
@@ -209,6 +210,23 @@ class QMRegion : public Region {
   // grid because geometry and basis are fixed, the potential because the
   // background is frozen. See InteractwithEwaldRegion.
   bool ewald_potential_evaluated_ = false;
+  // ORPHANED, deliberately kept. Set only by setEwaldBackground, whose
+  // only remaining caller is XTPDFT's own pass-through -- the code that
+  // originally drove it was the legacy xtp/ewald/ jobcalculator, which
+  // has been removed. So nothing in a current job can make this true,
+  // and the analytic QM-coupling machinery it gates (DFTEngine's
+  // IntegrateEwaldRealSpaceMultipoles / IntegrateEwaldReciprocalSpace,
+  // the foreground and shape corrections, the AOEwald* matrices and
+  // aoplanewave) compiles but is unreachable.
+  //
+  // Kept because that machinery is most of an analytic alternative to
+  // the grid route -- see EwaldRegion::PotentialAt -- which is worth
+  // having once libint2 can do the operator-centre derivatives a rank-1
+  // source needs. Reviving it means feeding these moments from
+  // EwaldRegion rather than from the calculator that used to.
+  //
+  // Said here explicitly so nobody has to work out from scratch why a
+  // whole code path never fires.
   bool ewald_moments_ready_ = false;
   // sum_A Z_A phi(R_A). The grid carries the potential the ELECTRONS
   // feel; the nuclei sit in the same potential and have no other way in.

@@ -25,7 +25,7 @@
 #include "aobasis.h"
 #include "ecpaobasis.h"
 #include "staticsite.h"
-#include <votca/xtp/ewald/ewaldcontainer.h>
+#include <votca/xtp/ewaldcontainer.h>
 
 namespace votca {
 namespace xtp {

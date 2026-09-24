@@ -40,7 +40,7 @@
 #include "staticsite.h"
 #include "vxc_grid.h"
 #include "vxc_potential.h"
-#include <votca/xtp/ewald/ewaldcontainer.h>
+#include <votca/xtp/ewaldcontainer.h>
 
 namespace votca {
 namespace xtp {

@@ -40,7 +40,7 @@
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/dftgradient.h"
 #include "votca/xtp/eeinteractor.h"
-#include "votca/xtp/ewald/ewald_potential.h"
+#include "votca/xtp/ewald_potential.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"

@@ -41,7 +41,6 @@ class QMRegion;
 class PolarRegion;
 class StaticRegion;
 class EwaldRegion;
-class BackgroundRegion;
 
 class PolarRegion : public MMRegion<PolarSegment> {
  public:

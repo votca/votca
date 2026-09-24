@@ -23,7 +23,7 @@
 
 // Local VOTCA includes
 #include "aobasis.h"
-#include <votca/xtp/ewald/ewaldcontainer.h>
+#include <votca/xtp/ewaldcontainer.h>
 
 namespace votca {
 namespace xtp {

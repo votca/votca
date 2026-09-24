@@ -22,7 +22,6 @@
 
 // Local private VOTCA includes
 #include "jobcalculators/eqm.h"
-#include "jobcalculators/ewald.h"
 #include "jobcalculators/iexcitoncl.h"
 #include "jobcalculators/ipodcoupling.h"
 #include "jobcalculators/iqm.h"
@@ -37,7 +36,6 @@ void JobCalculatorfactory::RegisterAll() {
   this->Register<EQM>("eqm");
   this->Register<IEXCITON>("iexcitoncl");
   this->Register<QMMM>("qmmm");
-  this->Register<Ewald<PEwald3D3D> >("ewald");
 }
 
 }  // namespace xtp

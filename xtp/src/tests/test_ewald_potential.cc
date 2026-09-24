@@ -30,7 +30,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/ewald/ewald_potential.h"
+#include "votca/xtp/ewald_potential.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/vxc_grid.h"
 #include "xtp_libint2.h"

@@ -31,8 +31,9 @@
 #include "classicalsegment.h"
 #include "logger.h"
 #include "staticsite.h"
+#include "vxc_grid.h"
 #include "votca/xtp/orbreorder.h"
-#include <votca/xtp/ewald/ewaldcontainer.h>
+#include <votca/xtp/ewaldcontainer.h>
 
 namespace votca {
 namespace xtp {

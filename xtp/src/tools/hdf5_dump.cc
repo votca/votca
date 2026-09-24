@@ -20,14 +20,14 @@
 // Dev/debug tool: NOT part of the production xtp_* tool set (no --help,
 // manpage, or sphinx-doc infrastructure). Dumps an EwaldRegistry HDF5
 // checkpoint (as written by EwaldBackground) as a CSV, one row per site,
-// on the same schema ptop_dump uses, for direct comparison. Deliberately
-// links ONLY against the new code (not legacy xtp/ewald/ at all) -- see
-// ptop_dump.cc's own documentation for why the two dump tools are kept
-// fully separate rather than combined into one binary.
+// one row per site. The schema was originally shared with ptop_dump, the
+// matching dumper for the legacy xtp/ewald/ PolarTop, so that the two
+// could be diffed directly; that tool went with the code it read, and
+// this one remains as the way to inspect a background checkpoint.
 //
 // Positions, permanent field, and induced dipoles are already in this
 // tool's own native units (bohr, atomic-unit-style) -- no conversion
-// needed, unlike ptop_dump's own nm->bohr/field conversion.
+// needed, unlike the nm->bohr/field conversion the legacy dumper did.
 //
 // The permanent-field columns (FPx/FPy/FPz) read out PolarSite's own V()
 // accumulator. This only holds anything meaningful because
