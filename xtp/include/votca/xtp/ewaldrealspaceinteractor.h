@@ -221,9 +221,37 @@ class EwaldRealSpaceInteractor {
   // this reproduces its convention rather than improving on it. The
   // decomposition IS exactly alpha-independent once damping is switched
   // off, which is how the unit test pins it down.
+  //
+  // damp = false is for a target that is a POINT rather than a site: a
+  // field-evaluation point, as EwaldRealSpaceSum::PotentialAtMany uses.
+  // Thole damping corrects the overlap of two POINT-POLARIZABLE sites,
+  // and a coordinate in space is not one of those -- so there is nothing
+  // to correct, and the undamped screened interaction is the whole
+  // answer.
+  //
+  // This is not a free choice, it is what the rest of the package
+  // already does for the same physical interaction. A QM region gets the
+  // classical regions' induced dipoles through AOMultipole (which reads
+  // getDipole(), permanent + induced) and through DFTEngine::
+  // ExternalRepulsion -> eeInteractor::CalcStaticEnergy_site: neither
+  // applies Thole at all. In eeInteractor, Thole lives only in
+  // FillTholeInteraction, which the induction solve and the polar-polar
+  // energies use and the QM path never touches. Damping here would give
+  // a three-region job two different conventions for [induced dipole] x
+  // [QM density] in one Hamiltonian, decided by which code path the
+  // dipole arrived through.
+  //
+  // It cannot be expressed by giving the probe no polarizability.
+  // ComputeThole would then form au3 = 0, read that as COMPLETE overlap,
+  // and damp maximally at every distance (l3 = l5 = 0, c3 = -B1_erf
+  // where undamped wants +B1). A PolarSite cannot be built without a
+  // polarizability in any case -- its constructor assigns one from the
+  // element name -- so the probe unavoidably carries a number that means
+  // nothing, and this flag is how the caller says so.
   double CalcInducedSourceEnergy(
       const PolarSite& site1, const PolarSite& site2,
-      const Eigen::Vector3d& source_shift = Eigen::Vector3d::Zero()) const;
+      const Eigen::Vector3d& source_shift = Eigen::Vector3d::Zero(),
+      bool damp = true) const;
 
   // The erf-screened counterpart of CalcInducedSourceEnergy, used to
   // remove a coincident foreground copy from the reciprocal side, just

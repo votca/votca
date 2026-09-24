@@ -690,4 +690,276 @@ BOOST_AUTO_TEST_CASE(potential_at_reproduces_the_own_image_lattice_sum) {
   }
 }
 
+// PotentialAt and ApplyFieldTo, held against each other.
+//
+// These are the two routes a job takes to the same background: a QM
+// region asks for phi on a grid, a polar region asks for the field and
+// energy on its sites. They share a registry and a foreground
+// declaration and nothing else -- PotentialAt is cache-free, duplicates
+// the distance cull, and does its own erf bookkeeping, precisely because
+// a DFT grid cannot be walked with the neighbour cache the site path
+// relies on. Duplicated rules drift, and until now nothing compared the
+// two on real multipoles.
+//
+// For a RANK-0 foreground the comparison is exact rather than
+// approximate. ApplyFieldTo's returned energy is then sum_i q_i phi(r_i)
+// and nothing else, since every dipole-field term it also assembles
+// contracts against a permanent dipole that is zero. PotentialAt returns
+// that same phi at the same points. So one contracted against the
+// foreground's charges must reproduce the other to round-off.
+//
+// NO INDUCED DIPOLES in the background here, deliberately. The induced
+// channel is the one place these two legitimately differ: ApplyFieldTo's
+// target is a polarizable site and is Thole-damped against the
+// background's induced dipoles, while PotentialAt's target is a point in
+// space, which has no polarizability to damp with (see
+// probe_is_not_thole_damped_against_an_induced_dipole in
+// test_ewaldrealspacesum). Letting that in would make any disagreement
+// here ambiguous. This case is about the permanent channel, where the
+// two have no freedom to differ at all.
+BOOST_AUTO_TEST_CASE(potential_at_matches_apply_field_to_on_a_rank0_foreground) {
+  const std::string file = "ewaldregion_test_crosscheck.hdf5";
+  const double box_length = 24.0;
+  const double alpha = 0.35;
+
+  // Three neutral rank-0 segments, one of which becomes the foreground.
+  // Neutral per segment so the k = 0 omission carries no net charge.
+  const std::vector<std::vector<std::pair<double, Eigen::Vector3d>>> segments = {
+      {{-0.6, Eigen::Vector3d(0.0, 0.0, 0.0)},
+       {0.3, Eigen::Vector3d(1.4, 0.2, -0.3)},
+       {0.3, Eigen::Vector3d(-1.1, 0.9, 0.5)}},
+      {{-0.5, Eigen::Vector3d(7.0, 1.0, 2.0)},
+       {0.5, Eigen::Vector3d(8.3, 1.6, 2.4)}},
+      {{-0.4, Eigen::Vector3d(3.0, 6.5, -4.0)},
+       {0.4, Eigen::Vector3d(4.1, 7.2, -3.4)}}};
+
+  auto centroid_of = [](const std::vector<std::pair<double, Eigen::Vector3d>>&
+                            sites) {
+    Eigen::Vector3d c = Eigen::Vector3d::Zero();
+    for (const auto& s : sites) {
+      c += s.second;
+    }
+    return Eigen::Vector3d(c / double(sites.size()));
+  };
+
+  {
+    EwaldRegistry registry;
+    for (std::size_t s = 0; s < segments.size(); ++s) {
+      PolarSegment seg("seg", Index(s));
+      for (std::size_t i = 0; i < segments[s].size(); ++i) {
+        PolarSite site(Index(i), "C", segments[s][i].second);
+        site.setpolarization(1e-6 * Eigen::Matrix3d::Identity());
+        site.setCharge(segments[s][i].first);
+        // Explicitly zero: this case compares the permanent channel.
+        site.setInduced_Dipole(Eigen::Vector3d::Zero());
+        seg.push_back(site);
+      }
+      registry.Register(Index(s), EwaldChargeState::Neutral, seg);
+    }
+
+    EwaldParameters params;
+    params.alpha = alpha;
+    params.k_max = 12.0 * alpha;
+    params.r_min = 12.0;
+    params.field_tol = 1e-12;
+    params.thole_a = 0.39;
+    params.screening_factor = 6.0;
+    params.shape = EwaldShape::Cube;
+    params.box = box_length * Eigen::Matrix3d::Identity();
+
+    CheckpointFile cpf(file, CheckpointAccessLevel::CREATE);
+    CheckpointWriter w = cpf.getWriter();
+    registry.WriteToCpt(w);
+    CheckpointWriter wp = w.openChild("ewald_parameters");
+    params.WriteToCpt(wp);
+  }
+
+  Logger log;
+  log.setReportLevel(Log::error);
+  EwaldRegion region(1, log);
+  tools::Property prop = RegionDefinition(file);
+  region.Initialize(prop.get("ewaldregion"));
+
+  const Index fg_id = 0;
+  region.RegisterForeground({{fg_id, centroid_of(segments[fg_id])}});
+
+  // The foreground as a polar region would hand it over: the same sites,
+  // at the same positions, with the same charges.
+  std::vector<PolarSegment> foreground;
+  {
+    PolarSegment seg("seg", fg_id);
+    for (std::size_t i = 0; i < segments[fg_id].size(); ++i) {
+      PolarSite site(Index(i), "C", segments[fg_id][i].second);
+      site.setpolarization(1e-6 * Eigen::Matrix3d::Identity());
+      site.setCharge(segments[fg_id][i].first);
+      site.setInduced_Dipole(Eigen::Vector3d::Zero());
+      seg.push_back(site);
+    }
+    foreground.push_back(seg);
+  }
+
+  // ApplyFieldTo first: it builds the sums, and PotentialAt then reuses
+  // the very same objects. Sharing them is the point -- a disagreement
+  // here can only come from the two traversals, not from two different
+  // backgrounds.
+  const double energy_from_field_path = region.ApplyFieldTo(foreground);
+
+  std::vector<Eigen::Vector3d> points;
+  for (const auto& s : segments[fg_id]) {
+    points.push_back(s.second);
+  }
+  const Eigen::VectorXd phi = region.PotentialAt(points);
+  std::remove(file.c_str());
+
+  BOOST_REQUIRE_EQUAL(phi.size(), Index(points.size()));
+  double energy_from_potential = 0.0;
+  for (std::size_t i = 0; i < segments[fg_id].size(); ++i) {
+    energy_from_potential += segments[fg_id][i].first * phi[Index(i)];
+  }
+
+  // Not vacuous: a background this close produces a real interaction, so
+  // agreeing on zero would not be agreeing on anything.
+  BOOST_REQUIRE_GT(std::abs(energy_from_field_path), 1e-6);
+
+  BOOST_CHECK_CLOSE(energy_from_potential, energy_from_field_path, 1e-8);
+}
+
+// The same cross-check as above, with a CHARGED foreground -- which is
+// what tests the gauge, and what the case above cannot.
+//
+// phi carries an arbitrary additive constant: the k = 0 term is omitted
+// (the uniform neutralising background), so phi is only defined up to
+// phi_0. A region of net charge q embedded in it shifts by q * phi_0.
+// The neutral case above therefore says nothing about phi_0 at all --
+// sum q_i = 0 makes it drop out identically, however wrong it might be.
+//
+// That constant does NOT cancel in a site energy, which is the whole
+// point of this code. The neutral job has q_QM = 0 and the hole job has
+// q_QM = +1, so E(h) - E(n) carries +1 * phi_0 outright.
+//
+// So: background stays neutral (the registry is unchanged, and the
+// suppressed copy is still the neutral one the reciprocal sum actually
+// placed), and only the foreground handed to ApplyFieldTo carries net
+// charge -- exactly the arrangement a hole job produces, where the
+// background holds a segment's neutral copy and the job replaces it with
+// a charged one. sum_i q_i phi(r_i) then weights phi_0 by sum q_i, and a
+// disagreement between the two paths proportional to that sum is the one
+// thing nothing else in this file can produce.
+//
+// What this does and does not establish: it shows the two paths share a
+// gauge, not that the shared gauge is the right one. The chain closes
+// elsewhere -- ApplyFieldTo's convention is the one validated against
+// legacy by the MM/MM runs, so PotentialAt agreeing with it here
+// inherits that validation. Which is what a QM/MM site energy needs,
+// since its QM half arrives through PotentialAt and its polar half
+// through ApplyFieldTo, in the same job.
+BOOST_AUTO_TEST_CASE(potential_at_matches_apply_field_to_on_a_charged_foreground) {
+  const std::string file = "ewaldregion_test_crosscheck_charged.hdf5";
+  const double box_length = 24.0;
+  const double alpha = 0.35;
+
+  // Neutral background, as a converged background always is.
+  const std::vector<std::vector<std::pair<double, Eigen::Vector3d>>> background =
+      {{{-0.6, Eigen::Vector3d(0.0, 0.0, 0.0)},
+        {0.3, Eigen::Vector3d(1.4, 0.2, -0.3)},
+        {0.3, Eigen::Vector3d(-1.1, 0.9, 0.5)}},
+       {{-0.5, Eigen::Vector3d(7.0, 1.0, 2.0)},
+        {0.5, Eigen::Vector3d(8.3, 1.6, 2.4)}},
+       {{-0.4, Eigen::Vector3d(3.0, 6.5, -4.0)},
+        {0.4, Eigen::Vector3d(4.1, 7.2, -3.4)}}};
+
+  // The job's charge state for segment 0: same sites, same positions,
+  // charges summing to +1 rather than 0. Deliberately not a uniform
+  // shift of the neutral values, so no accidental symmetry can make the
+  // comparison pass for the wrong reason.
+  const std::vector<double> charged_q = {0.5, 0.2, 0.3};
+
+  const Index fg_id = 0;
+  BOOST_REQUIRE_EQUAL(charged_q.size(), background[fg_id].size());
+
+  double net_charge = 0.0;
+  for (double q : charged_q) {
+    net_charge += q;
+  }
+  // The case is about phi_0's weight. If this were zero it would silently
+  // become the neutral case again and test nothing new.
+  BOOST_REQUIRE_GT(std::abs(net_charge), 0.5);
+
+  Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
+  for (const auto& s : background[fg_id]) {
+    centroid += s.second;
+  }
+  centroid /= double(background[fg_id].size());
+
+  {
+    EwaldRegistry registry;
+    for (std::size_t s = 0; s < background.size(); ++s) {
+      PolarSegment seg("seg", Index(s));
+      for (std::size_t i = 0; i < background[s].size(); ++i) {
+        PolarSite site(Index(i), "C", background[s][i].second);
+        site.setpolarization(1e-6 * Eigen::Matrix3d::Identity());
+        site.setCharge(background[s][i].first);
+        site.setInduced_Dipole(Eigen::Vector3d::Zero());
+        seg.push_back(site);
+      }
+      registry.Register(Index(s), EwaldChargeState::Neutral, seg);
+    }
+
+    EwaldParameters params;
+    params.alpha = alpha;
+    params.k_max = 12.0 * alpha;
+    params.r_min = 12.0;
+    params.field_tol = 1e-12;
+    params.thole_a = 0.39;
+    params.screening_factor = 6.0;
+    params.shape = EwaldShape::Cube;
+    params.box = box_length * Eigen::Matrix3d::Identity();
+
+    CheckpointFile cpf(file, CheckpointAccessLevel::CREATE);
+    CheckpointWriter w = cpf.getWriter();
+    registry.WriteToCpt(w);
+    CheckpointWriter wp = w.openChild("ewald_parameters");
+    params.WriteToCpt(wp);
+  }
+
+  Logger log;
+  log.setReportLevel(Log::error);
+  EwaldRegion region(1, log);
+  tools::Property prop = RegionDefinition(file);
+  region.Initialize(prop.get("ewaldregion"));
+  region.RegisterForeground({{fg_id, centroid}});
+
+  std::vector<PolarSegment> foreground;
+  {
+    PolarSegment seg("seg", fg_id);
+    for (std::size_t i = 0; i < background[fg_id].size(); ++i) {
+      PolarSite site(Index(i), "C", background[fg_id][i].second);
+      site.setpolarization(1e-6 * Eigen::Matrix3d::Identity());
+      site.setCharge(charged_q[i]);
+      site.setInduced_Dipole(Eigen::Vector3d::Zero());
+      seg.push_back(site);
+    }
+    foreground.push_back(seg);
+  }
+
+  // ApplyFieldTo first, so PotentialAt reuses the very same sums.
+  const double energy_from_field_path = region.ApplyFieldTo(foreground);
+
+  std::vector<Eigen::Vector3d> points;
+  for (const auto& s : background[fg_id]) {
+    points.push_back(s.second);
+  }
+  const Eigen::VectorXd phi = region.PotentialAt(points);
+  std::remove(file.c_str());
+
+  BOOST_REQUIRE_EQUAL(phi.size(), Index(points.size()));
+  double energy_from_potential = 0.0;
+  for (std::size_t i = 0; i < charged_q.size(); ++i) {
+    energy_from_potential += charged_q[i] * phi[Index(i)];
+  }
+
+  BOOST_REQUIRE_GT(std::abs(energy_from_field_path), 1e-6);
+  BOOST_CHECK_CLOSE(energy_from_potential, energy_from_field_path, 1e-8);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

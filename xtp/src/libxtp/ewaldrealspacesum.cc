@@ -522,7 +522,15 @@ Eigen::VectorXd EwaldRealSpaceSum::PotentialAtMany(
         for (const PolarSite& source_site : source_segment) {
           acc += interactor_.CalcStaticEnergy<PolarSite, PolarSite>(
               source_site, probe, t);
-          acc += interactor_.CalcInducedSourceEnergy(source_site, probe, t);
+          // UNDAMPED: the target is a point in space, not a
+          // point-polarizable site, so there is no overlap for Thole to
+          // correct -- and the rest of the package already treats
+          // [induced dipole] x [QM density] undamped (AOMultipole and
+          // DFTEngine::ExternalRepulsion apply no Thole at all). See
+          // CalcInducedSourceEnergy's own declaration, including why
+          // this cannot be said by zeroing the probe's polarizability.
+          acc += interactor_.CalcInducedSourceEnergy(source_site, probe, t,
+                                                     /*damp=*/false);
         }
       }
     }

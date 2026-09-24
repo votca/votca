@@ -408,15 +408,18 @@ double EwaldRealSpaceInteractor::CalcInducedEnergy(
 
 double EwaldRealSpaceInteractor::CalcInducedSourceEnergy(
     const PolarSite& site1, const PolarSite& site2,
-    const Eigen::Vector3d& source_shift) const {
+    const Eigen::Vector3d& source_shift, bool damp) const {
   // See this method's own declaration for what this term is, why it
-  // needs a home of its own, and why it is damped.
+  // needs a home of its own, why it is damped by default, and why a
+  // field-evaluation point asks for damp = false rather than being
+  // handed a zero polarizability.
   const Eigen::Vector3d r_vec =
       site2.getPos() - (site1.getPos() + source_shift);
   const double r = r_vec.norm();
   const BFunctions b = ComputeB(r);
   const BFunctions berf = ComputeErfB(r);
-  const TholeFactors t = ComputeThole(r, site1, site2);
+  const TholeFactors t =
+      damp ? ComputeThole(r, site1, site2) : TholeFactors{1.0, 1.0};
 
   const Eigen::Vector3d mu1 = site1.getInducedDipole();
   const double mu_dot_r = mu1.dot(r_vec);

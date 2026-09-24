@@ -18,7 +18,9 @@
 #define BOOST_TEST_MODULE ewaldrealspacesum_test
 
 // Standard includes
+#include <cmath>
 #include <iostream>
+#include <vector>
 
 // Third party includes
 #include <boost/test/tools/floating_point_comparison.hpp>
@@ -364,6 +366,92 @@ BOOST_AUTO_TEST_CASE(static_energy_requires_an_existing_neighbour_list) {
   PolarSite probe = registry.Get(0, EwaldChargeState::Neutral)[0];
   BOOST_CHECK_THROW(sum.CalcStaticEnergyAt(probe, EwaldChargeState::Neutral),
                     std::exception);
+}
+
+// The unit probe PotentialAtMany evaluates phi at is a POINT, not a
+// point-polarizable site, so the induced-dipole source term must reach it
+// UNDAMPED.
+//
+// The probe nevertheless carries a polarizability, and cannot avoid one:
+// PolarSite's constructor looks the element up in tools::Elements and
+// calls setpolarization unconditionally. PotentialAtMany builds its probe
+// as PolarSite(0, "H", point), so before this was fixed the probe was
+// damped with hydrogen's 0.496 A^3 -- phi at a point in space depended on
+// a string literal, and would have changed had that "H" been a "C".
+//
+// Measured, at the separation below: l3 = 0.9991, phi low by 0.15%. Small,
+// and exponentially smaller further out (au3 goes as r^3), which is why
+// no job-level test could see it -- every foreground copy is suppressed,
+// so the nearest unsuppressed background site is far outside this range.
+//
+// It matters for consistency, not size. A QM region receives the
+// classical regions' induced dipoles through AOMultipole (getDipole() is
+// permanent + induced) and through DFTEngine::ExternalRepulsion ->
+// eeInteractor::CalcStaticEnergy_site, and NEITHER applies Thole -- in
+// eeInteractor, Thole lives only in FillTholeInteraction, which the QM
+// path never calls. Damping here gave a three-region job two conventions
+// for [induced dipole] x [QM density] in one Hamiltonian, decided by
+// which route the dipole took.
+//
+// NOTE for anyone tempted to express "no polarizability" instead of
+// passing damp = false: don't. ComputeThole would form au3 = 0, read it
+// as COMPLETE overlap, and damp maximally at every distance -- l3 = l5 =
+// 0 and c3 = -B1_erf, which at the separation below is -0.65x the right
+// answer rather than 0.9991x. The BOOST_REQUIRE below rejects that
+// candidate explicitly so it cannot be introduced silently.
+//
+// The assertion needs no judgement about the short-range convention: out
+// here no damping model acts at all, and a dipole's screened potential is
+// B1 * (mu . r_vec) and nothing else.
+BOOST_AUTO_TEST_CASE(probe_is_not_thole_damped_against_an_induced_dipole) {
+  const double alpha = 0.3;
+  const double thole = 0.39;
+  // Large enough that erfc(alpha*r) underflows for every nonzero
+  // translation, so exactly one source-probe pair contributes.
+  const Eigen::Matrix3d box = 1000.0 * Eigen::Matrix3d::Identity();
+
+  const Eigen::Vector3d source_pos = Eigen::Vector3d::Zero();
+  const Eigen::Vector3d mu(0.05, -0.02, 0.01);
+  const Eigen::Vector3d point(3.0, 1.0, -0.5);
+
+  EwaldRegistry registry;
+  {
+    PolarSegment seg("seg", 1);
+    PolarSite site(1, "H", source_pos);
+    // A real polarizability, so the SOURCE's own damp factor is nonzero
+    // and the zero in au3 can only have come from the probe.
+    site.setpolarization(Eigen::Matrix3d::Identity());
+    site.setMultipole(Vector9d::Zero(), 0);  // no permanent moments at all
+    site.setInduced_Dipole(mu);
+    seg.push_back(site);
+    registry.Register(1, EwaldChargeState::Neutral, seg);
+  }
+
+  // Probe segment id 2, deliberately not the source's id 1, so the
+  // zero-translation self-skip cannot fire and swallow the only pair.
+  EwaldRealSpaceSum sum(box, registry, alpha, thole, /*r_min=*/1.0,
+                        /*field_tol=*/1e-14);
+  const std::vector<Eigen::Vector3d> points{point};
+  const Eigen::VectorXd phi =
+      sum.PotentialAtMany(2, points, EwaldChargeState::Neutral);
+
+  BOOST_REQUIRE_EQUAL(phi.size(), Index(1));
+
+  // phi = c3 * (mu . r_vec) with r_vec = target - source, per
+  // CalcInducedSourceEnergy. Undamped means c3 = B1.
+  const Eigen::Vector3d r_vec = point - source_pos;
+  const double r = r_vec.norm();
+  EwaldRealSpaceInteractor interactor(alpha, thole);
+  const double mu_dot_r = mu.dot(r_vec);
+  const double undamped = interactor.ComputeB(r).B1 * mu_dot_r;
+  const double fully_damped = -interactor.ComputeErfB(r).B1 * mu_dot_r;
+
+  // Not a vacuous comparison: the two candidate answers are far apart,
+  // so passing this cannot be an accident of a small number.
+  BOOST_REQUIRE_GT(std::abs(undamped - fully_damped),
+                   0.1 * std::abs(undamped));
+
+  BOOST_CHECK_CLOSE(phi(0), undamped, 1e-8);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

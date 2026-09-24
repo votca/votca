@@ -144,7 +144,24 @@ PcgIndefinitenessResult SolveWithIndefinitenessCheck(
   const double threshold =
       std::max(tol * tol * rhs_norm2, std::numeric_limits<double>::min());
   double residual_norm2 = residual_vec.squaredNorm();
-  double tol_error = std::sqrt(residual_norm2 / rhs_norm2);
+  // rhs = 0 is a legitimate system, not a degenerate one: a background
+  // whose permanent moments are all zero has nothing to induce, and
+  // x = 0 solves it exactly. The convergence test just below already
+  // gets that right -- residual_norm2 = 0 is under threshold, which is
+  // max(tol^2 * 0, DBL_MIN) = DBL_MIN -- so the solve returns
+  // immediately with the correct answer and zero iterations.
+  //
+  // Only the REPORTED relative residual is 0/0. Reported as 0 rather
+  // than NaN because the absolute residual genuinely is zero, and a NaN
+  // here does more than look untidy: it reaches the log as "residual
+  // nan", and the !std::isnan guard downstream then suppresses the
+  // Lanczos eigenvalue line, so a perfectly correct solve reads like a
+  // failed one. Seen for real on a zeroed-multipole background.
+  //
+  // The in-loop recomputation needs no such guard: with rhs_norm2 = 0
+  // the loop below never runs.
+  double tol_error =
+      (rhs_norm2 > 0.0) ? std::sqrt(residual_norm2 / rhs_norm2) : 0.0;
   bool converged = (residual_norm2 < threshold);
   // Every alpha_k/beta_k this run computes, in order -- see
   // lanczos_min_eigenvalue's own documentation for what these build.
