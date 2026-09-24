@@ -895,4 +895,98 @@ BOOST_AUTO_TEST_CASE(unit_probe_potential_reproduces_the_static_energy) {
   }
 }
 
+// The batched potential must agree, point for point, with what a unit
+// test charge reports -- the oracle the case above pinned to the energy
+// convention. Same numbers by two routes: one rebuilding S(k) per point,
+// one paying for it once.
+//
+// AGAINST THE SUM OF BOTH CHANNELS. TotalStructureFactors builds its
+// moments from getStaticDipole() + getInducedDipole(), so PotentialAtMany
+// is the counterpart of AddFieldAtMany and already carries the permanent
+// and induced backgrounds together. Comparing it against
+// CalcStaticEnergyBetween alone is wrong by the induced term, and the
+// lattice below is built so that error would be tens of percent rather
+// than something a loose tolerance could absorb.
+BOOST_AUTO_TEST_CASE(batched_potential_matches_the_unit_probe) {
+  const double L = 20.0;
+  const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
+
+  EwaldRegistry registry;
+  const Index n = 3;
+  const double d = L / double(n);
+  Index id = 0;
+  for (Index a = 0; a < n; ++a) {
+    for (Index b = 0; b < n; ++b) {
+      for (Index c = 0; c < n; ++c) {
+        const Eigen::Vector3d centre(double(a) * d, double(b) * d,
+                                     double(c) * d);
+        PolarSegment seg("seg", id);
+        const double t = 0.63;
+        const Eigen::Vector3d offsets[3] = {
+            {0.0, 0.0, 0.0}, {t, t, t}, {-t, -t, t}};
+        const double charges[3] = {-0.4, 0.2, 0.2};
+        for (Index j = 0; j < 3; ++j) {
+          PolarSite site(j, (j == 0) ? "C" : "H", centre + offsets[j]);
+          site.setpolarization(3.0 * Eigen::Matrix3d::Identity());
+          site.setCharge(charges[j]);
+          // Static AND induced, neither symmetric across the cell, so
+          // neither channel can pass by cancelling to zero.
+          site.setStaticDipole(Eigen::Vector3d(0.15 * double(j + 1) +
+                                                   1e-2 * double(a),
+                                               -0.10 + 1e-2 * double(b),
+                                               0.05 * double(j) -
+                                                   1e-2 * double(c)));
+          site.setInduced_Dipole(Eigen::Vector3d(
+              1e-2 * double(j + 1) + 1e-3 * double(a),
+              -7e-3 + 2e-3 * double(b), 4e-3 * double(j) - 1e-3 * double(c)));
+          seg.push_back(site);
+        }
+        registry.Register(id, EwaldChargeState::Neutral, seg);
+        ++id;
+      }
+    }
+  }
+
+  // On a site, between segments, and off-lattice.
+  const std::vector<Eigen::Vector3d> points = {
+      {0.0, 0.0, 0.0},
+      {0.63, 0.63, 0.63},
+      {0.5 * d, 0.37 * d, 0.71 * d},
+      {1.5 * d, 0.5 * d, 2.5 * d},
+      {-0.4 * d, 1.2 * d, 0.1 * d}};
+
+  const double alpha = 0.25;
+  const double k_max = 14.0 * alpha;
+  EwaldReciprocalSpaceSum recip(box, registry, alpha, k_max);
+
+  const Eigen::VectorXd batched =
+      recip.PotentialAtMany(points, EwaldChargeState::Neutral);
+  BOOST_REQUIRE_EQUAL(batched.size(), Index(points.size()));
+
+  const std::vector<const PolarSite*> no_exclusions;
+  for (std::size_t p = 0; p < points.size(); ++p) {
+    PolarSite probe(0, "H", points[p]);
+    probe.Reset();
+    probe.setCharge(1.0);
+    probe.setStaticDipole(Eigen::Vector3d::Zero());
+    probe.setInduced_Dipole(Eigen::Vector3d::Zero());
+    const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> one{
+        {&probe, points[p]}};
+
+    const double oracle_static = recip.CalcStaticEnergyBetween(
+        one, no_exclusions, EwaldChargeState::Neutral);
+    const double oracle_induced = recip.CalcInducedSourceEnergyBetween(
+        one, no_exclusions, EwaldChargeState::Neutral);
+    const double oracle = oracle_static + oracle_induced;
+
+    // Not vacuous, and the induced half must be big enough that leaving
+    // it out would fail this case rather than slip under the tolerance.
+    BOOST_REQUIRE_GT(std::abs(oracle), 1e-12);
+    BOOST_REQUIRE_GT(std::abs(oracle_induced / oracle), 1e-6);
+
+    BOOST_CHECK_SMALL(std::abs(batched[Index(p)] - oracle) / std::abs(oracle),
+                      1e-10);
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

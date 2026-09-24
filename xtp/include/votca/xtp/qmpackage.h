@@ -104,6 +104,15 @@ class QMPackage {
 
   void setEwaldgrid( const Vxc_Grid& ewaldgrid ){ ewaldgrid_ = ewaldgrid; has_ewaldgrid_ = true;};
 
+  // sum_A Z_A phi(R_A): the nuclei's share of the periodic background's
+  // potential. The grid above carries only what the electron density
+  // feels, so without this the nuclei sit in vacuum while the electrons
+  // do not -- which for a charged region is a large, silent error.
+  void setEwaldNuclearEnergy(double energy) {
+    ewald_nuclear_energy_ = energy;
+    has_ewald_nuclear_energy_ = true;
+  }
+
 
 // =========== EWALD MOMENTS SETTER AND ACCESS ==========
 // +++++++++++ BACKGROUND +++++++++++++++++++++++++++++++
@@ -212,6 +221,8 @@ class QMPackage {
 
   Vxc_Grid ewaldgrid_; 
   bool has_ewaldgrid_ = false;
+  double ewald_nuclear_energy_ = 0.0;
+  bool has_ewald_nuclear_energy_ = false;
 
   ewaldcontainer::PotentialData* ewald_background_ = nullptr;
   bool has_ewaldbackground_ = false;

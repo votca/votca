@@ -61,7 +61,18 @@ class QMRegion : public Region {
 
   void ApplyQMFieldToPolarSegments(std::vector<PolarSegment>& segments) const;
 
-  void PrepareEwaldPotentialGrid(const tools::Property& prop);
+  // Builds the integration grid the background's potential is sampled on.
+  // Called lazily by InteractwithEwaldRegion rather than from Initialize,
+  // for two reasons. A job with no EwaldRegion must not pay for a grid it
+  // never uses -- and, less obviously, must not have ewald_grid_ready_ set,
+  // because Evaluate takes that flag as the signal to reject any qmpackage
+  // other than xtp. Building it eagerly would break every existing
+  // qmmm job that runs orca.
+  //
+  // Takes no options: the grid name and basis come from dftoptions_, which
+  // Initialize has already stored. They MUST be the ones DFTEngine uses --
+  // see the comment in the definition.
+  void PrepareEwaldPotentialGrid();
 
   Index size() const override { return size_; }
 
@@ -84,7 +95,7 @@ class QMRegion : public Region {
 // +++++++++++ BACKGROUND +++++++++++++++++++++++++++++++
  void setEwaldBackground(ewaldcontainer::PotentialData* bg) {
     ewald_background_ = bg;
-    is_qmewald_ = true;
+    ewald_moments_ready_ = true;
   }
 
   ewaldcontainer::PotentialData& ewaldBackground() {
@@ -182,8 +193,26 @@ class QMRegion : public Region {
   StateTracker statetracker_;
 
   // for QMEwald
+  //
+  // TWO INDEPENDENT ROUTES, TWO FLAGS. The periodic background can reach
+  // the Hamiltonian either as a potential sampled on this grid, which the
+  // DFT engine integrates against the density, or as multipoles and
+  // k-vectors the engine builds its own AO matrices from. They were
+  // sharing one is_qmewald_, so preparing the grid alone also sent
+  // Evaluate down the moments path and into ewaldBackground()'s
+  // assert(ewald_background_ != nullptr).
   Vxc_Grid ewaldgrid_;
-  bool is_qmewald_ = false;
+  bool ewald_grid_ready_ = false;
+  // Whether the background's potential has already been laid down on that
+  // grid. Separate from ewald_grid_ready_ because the grid is built once
+  // and the potential is evaluated once, but for different reasons: the
+  // grid because geometry and basis are fixed, the potential because the
+  // background is frozen. See InteractwithEwaldRegion.
+  bool ewald_potential_evaluated_ = false;
+  bool ewald_moments_ready_ = false;
+  // sum_A Z_A phi(R_A). The grid carries the potential the ELECTRONS
+  // feel; the nuclei sit in the same potential and have no other way in.
+  double ewald_nuclear_energy_ = 0.0;
   ewaldcontainer::PotentialData* ewald_background_ = nullptr;
   ewaldcontainer::PotentialData* ewald_foreground_correction_ = nullptr;
   ewaldcontainer::PotentialData* ewald_shape_correction_ = nullptr;

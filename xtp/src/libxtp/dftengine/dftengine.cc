@@ -1815,15 +1815,46 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
         << TimeStamp() << " Integrating external Ewald Potential" << std::flush;
     Vxc_Grid ewaldgrid;
     ewaldgrid.GridSetup(grid_name_, mol, dftbasis_);
+
+    // The potential was evaluated on a grid built elsewhere, and this one
+    // is rebuilt here from grid_name_, the molecule and the basis. They
+    // agree only if the caller used the same three. Checked, because
+    // pairing potential values with the wrong points is a wrong
+    // Hamiltonian that nothing downstream would flag.
+    if (ewaldgrid.getBoxesSize() != external_ewaldgrid_.getBoxesSize()) {
+      throw std::runtime_error(
+          "DFTEngine: the external Ewald potential grid has " +
+          std::to_string(external_ewaldgrid_.getBoxesSize()) +
+          " boxes but this molecule's own grid has " +
+          std::to_string(ewaldgrid.getBoxesSize()) +
+          ". The potential was evaluated on a different grid than the one "
+          "being integrated over.");
+    }
     // make sure the Potential values are copied from the external ewald grid to
     // this one
     for (Index i = 0; i < ewaldgrid.getBoxesSize(); ++i) {
       GridBox& box = ewaldgrid[i];
+      const std::vector<double>& source =
+          external_ewaldgrid_[i].getPotentialValues();
+      if (Index(source.size()) != box.size()) {
+        throw std::runtime_error(
+            "DFTEngine: box " + std::to_string(i) + " of the external Ewald "
+            "potential grid holds " + std::to_string(source.size()) +
+            " values for " + std::to_string(box.size()) + " grid points.");
+      }
       std::vector<double>& values = box.getPotentialValues();
-      values = external_ewaldgrid_[i].getPotentialValues();
+      values = source;
     }
     Ewald_Potential<Vxc_Grid> EwaldIntegration(ewaldgrid);
     H0 += EwaldIntegration.IntegrateEwald(dftbasis_.AOBasisSize()).matrix();
+
+    // The grid reaches the electron density only. The nuclei sit in the
+    // same potential, and their share arrives as a scalar -- the same
+    // pairing IntegrateExternalMultipoles has with ExternalRepulsion.
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Nuclei-external Ewald potential energy "
+        << std::setprecision(9) << ewald_nuclear_energy_ << std::flush;
+    E0 += ewald_nuclear_energy_;
   }
 
   if (has_ewaldbackground_) {
@@ -2689,7 +2720,46 @@ double DFTEngine::ExternalRepulsion(
                                     << std::flush;
         continue;
       }
-      E_ext += interactor.CalcStaticEnergy_site(*site, nucleus);
+      // The site as the NUCLEI must see it: permanent multipoles PLUS the
+      // induced dipole.
+      //
+      // Why this is not what happens by default. The electronic half of
+      // this same interaction is built by AOMultipole::FillBlock, which
+      // reads site_->getDipole() -- a VIRTUAL accessor that PolarSite
+      // overrides as Q_.segment<3>(1) + induced_dipole_, and it promotes
+      // rank to 1 on exactly the test repeated below, so the electrons
+      // see the induced dipoles deliberately. The nuclear half arrives
+      // here and goes through eeInteractor::CalcStaticEnergy_site, whose
+      // VSiteA reads the SOURCE's moments as siteB.Q().segment<3>(1) --
+      // and Q() is not virtual. It returns the raw permanent vector, so
+      // the nuclei never saw an induced dipole at all.
+      //
+      // For a neutral QM region the electronic and nuclear halves very
+      // nearly cancel, so dropping one of them leaves essentially the
+      // whole surviving half standing: measured on a methane QM/MM job
+      // with the permanent multipoles zeroed, the QM energy moved by
+      // -4.5e-3 Ha between inter-region iterations where the polar
+      // region's own 1/2 F^T P F was 2.7e-5 Ha, a factor of ~84. With
+      // zeroed permanent multipoles Q_ is identically zero, which is why
+      // "Nuclei-external site interaction energy" printed as exactly 0
+      // while H0 was plainly not.
+      //
+      // Fixed HERE rather than in VSiteA, whose use of Q() is correct and
+      // deliberate: the induction solver contracts permanent and induced
+      // moments through separate channels, and folding induced dipoles
+      // into the static one there would double-count them in every polar
+      // energy in the package. The counterparty here is a bare nucleus,
+      // so no such channel exists and the sum is unambiguous.
+      Vector9d Q = site->Q();
+      Q.segment<3>(1) += site->getInducedDipole();  // zero for a StaticSite
+      Index rank = site->getRank();
+      if (rank < 1 && Q.segment<3>(1).norm() > 1e-12) {
+        rank = 1;  // same promotion, same threshold, as AOMultipole
+      }
+      StaticSite effective(site->getId(), site->getElement(), site->getPos());
+      effective.setMultipole(Q, rank);
+
+      E_ext += interactor.CalcStaticEnergy_site(effective, nucleus);
     }
   }
   return E_ext;

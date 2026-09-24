@@ -1435,7 +1435,10 @@ void Ewald3DnD::Evaluate() {
     }
     // prepare the numerical integration grid for Ewald in QMRegion
     qmregion->Initialize(_qmregion_def);
-    qmregion->PrepareEwaldPotentialGrid(_qmregion_def);
+    // No argument: it reads the grid name and basis off the region's own
+    // dftoptions_, which the Initialize above has just stored from this
+    // same _qmregion_def. Same two keys, same source.
+    qmregion->PrepareEwaldPotentialGrid();
 
     // Access the constructed grid as a copy, is now in Bohr!
     Vxc_Grid &ewaldgrid = qmregion->getEwaldGrid();

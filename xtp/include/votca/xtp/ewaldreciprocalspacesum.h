@@ -201,6 +201,31 @@ class EwaldReciprocalSpaceSum {
                       EwaldChargeState source_state,
                       const ProgressCallback& progress = ProgressCallback()) const;
 
+  // POTENTIAL at arbitrary points, batched -- the exact counterpart of
+  // AddFieldAtMany, and like it carrying BOTH channels: the structure
+  // factor is built from getStaticDipole() + getInducedDipole(), so the
+  // permanent and induced backgrounds are already summed. It is what
+  // CalcStaticEnergyBetween and CalcInducedSourceEnergyBetween report
+  // ADDED TOGETHER, not either one alone.
+  //
+  // Setting q = 1, mu = 0 in CalcStaticEnergyBetween leaves
+  // conj(s_fg) = exp(+i k.r), so what a unit test charge at r reports as
+  // its own energy is
+  //
+  //   phi(r) = (4*pi/V) * sum_{k!=0} weight(k) * Re[ S(k) exp(i k.r) ]
+  //
+  // Consistent with AddFieldAtMany by construction: -grad of that
+  // expression is its Im[S exp(i k.r)] * k.
+  //
+  // Batched because S(k) is rebuilt on every call and costs
+  // O(N_k * N_sites) -- for a DFT grid, computing phi a point at a time
+  // would repeat that tens of thousands of times over. Here it is paid
+  // once and replayed against every point.
+  Eigen::VectorXd PotentialAtMany(
+      const std::vector<Eigen::Vector3d>& points,
+      EwaldChargeState source_state,
+      const ProgressCallback& progress = ProgressCallback()) const;
+
   // Reciprocal-space PERMANENT-multipole interaction energy between a
   // supplied set of sites (the foreground) and the rest of the periodic
   // cell (the background):

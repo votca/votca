@@ -27,6 +27,7 @@
 #include "votca/xtp/pmlocalization.h"
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmstate.h"
+#include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
 
@@ -105,13 +106,30 @@ std::vector<Eigen::Vector3d> QMRegion::copyEwaldGrid() {
   return dst;
 }
 
-void QMRegion::PrepareEwaldPotentialGrid(const tools::Property& prop) {
+void QMRegion::PrepareEwaldPotentialGrid() {
 
   // purpose: prepare a grid integration object that can
   // - hand over the grid to Ewald
   // - after Ewald calculates the potential at the grid points, be put into xtpdft
-  std::string dftbasis_name = prop.get("dftpackage.basisset").as<std::string>();
-  std::string grid_name = prop.get("dftpackage.xtpdft.integration_grid").as<std::string>();
+  //
+  // The grid name is xtpdft's own integration_grid, NOT grid_for_potential.
+  // That is a constraint, not a preference: what comes back from Ewald is a
+  // potential VALUE at each quadrature point, and DFTEngine forms <rho|phi>
+  // on the grid it rebuilds from grid_name_, which is this same key. A
+  // different quality here gives a different number of boxes and a
+  // different number of points per box, and the size checks on the
+  // DFTEngine side would throw. grid_for_potential governs the opposite
+  // direction -- the QM density's influence outward on classical regions,
+  // in ApplyQMFieldToPolarSegments -- and has no business here.
+  if (orb_.QMAtoms().size() == 0) {
+    throw std::runtime_error(
+        "QMRegion::PrepareEwaldPotentialGrid: the region holds no atoms. The "
+        "grid is built over the QM molecule, so this must run after the "
+        "region has been filled.");
+  }
+  std::string dftbasis_name = dftoptions_.get("basisset").as<std::string>();
+  std::string grid_name =
+      dftoptions_.get("xtpdft.integration_grid").as<std::string>();
   QMMolecule mol =  orb_.QMAtoms();
   BasisSet bs;
   bs.Load(dftbasis_name);
@@ -121,7 +139,7 @@ void QMRegion::PrepareEwaldPotentialGrid(const tools::Property& prop) {
   XTP_LOG(Log::error, log_) << TimeStamp()
       << " Constructed Grid for Integration of Ewald Potential" << std::flush;
   //Vxc_Potential<Vxc_Grid> vxc(grid);
-  is_qmewald_ = true;
+  ewald_grid_ready_ = true;
   return;
 }
 
@@ -181,17 +199,22 @@ for (const auto& dipole : dipoles) {
   qmpackage_->setRunDir(workdir_);
   qmpackage_->WriteInputFile(orb_);
 
-  // attach ewaldgrid to xtpdft
-  if (is_qmewald_){
-    if (qmpackage_->getPackageName() == "xtp" ) {
-      //qmpackage_->setEwaldgrid(ewaldgrid_);
+  // attach the periodic background to xtpdft, by whichever route was set
+  // up. The two are alternatives: the grid carries a potential the engine
+  // integrates, the moments let it build its own AO matrices.
+  if (ewald_grid_ready_ || ewald_moments_ready_) {
+    if (qmpackage_->getPackageName() != "xtp") {
+      throw std::runtime_error("QMEwald can only run with XTP as qmpackage.");
+    }
+    if (ewald_grid_ready_) {
+      qmpackage_->setEwaldgrid(ewaldgrid_);
+      qmpackage_->setEwaldNuclearEnergy(ewald_nuclear_energy_);
+    }
+    if (ewald_moments_ready_) {
       qmpackage_->setEwaldBackground(ewaldBackground());
       qmpackage_->setEwaldForegroundCorrection(ewaldForegroundCorrection());
       qmpackage_->setEwaldShapeCorrection(ewaldShapeCorrection());
       qmpackage_->setEwaldMM1(ewaldMM1());
-    } else {
-      throw std::runtime_error(
-          "QMEwald can only run with XTP as qmpackage.");
     }
   }
 
@@ -537,14 +560,84 @@ void QMRegion::ReadFromCpt(CheckpointReader& r) {
 }
 
 
-double QMRegion::InteractwithEwaldRegion(const EwaldRegion&) {
-  // Receiving the periodic background's field is the point of this
-  // override, and it is not written yet. Throwing rather than returning
-  // 0.0 on purpose: a silent zero here is indistinguishable from "the
-  // background contributes nothing", which would be a wrong answer that
-  // no test could catch.
-  throw std::runtime_error(
-      "QMRegion::InteractwithEwaldRegion is not implemented yet.");
+double QMRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
+  // First contact with an EwaldRegion is what decides this region takes its
+  // environment as a potential on a grid, so the grid is built here rather
+  // than in Initialize. See the declaration for why eagerly would be wrong.
+  if (!ewald_grid_ready_) {
+    PrepareEwaldPotentialGrid();
+  }
+
+  // ONCE PER JOB, not once per iteration. phi is the potential of a FROZEN
+  // background evaluated at FIXED points: the registry is converged before
+  // the job starts and nothing re-polarizes it, the foreground registration
+  // is made once by JobTopology, and the grid follows the QM geometry,
+  // which does not move inside the inter-region SCF loop. The QM density
+  // enters nowhere in it. So re-evaluating would give bit-identical numbers
+  // at the cost of a full lattice sum over every quadrature point, every
+  // iteration. The values stay where they were written -- in ewaldgrid_'s
+  // own boxes and in ewald_nuclear_energy_, both members of this region
+  // that Reset() does not touch.
+  //
+  // This stops being true the moment the background is allowed to respond
+  // to the foreground. If that ever changes, this is the guard to remove.
+  if (ewald_potential_evaluated_) {
+    return 0.0;
+  }
+
+  // ELECTRONS. The potential on the integration grid, which the DFT
+  // engine integrates against the density into H0.
+  const std::vector<Eigen::Vector3d> points = copyEwaldGrid();
+  const Eigen::VectorXd phi = region.PotentialAt(points);
+
+  // Vxc_Grid::getGridpoints() walks grid_boxes_ in order and each box's
+  // own points in order, so the flat vector maps back by giving each box
+  // its share in turn. Checked rather than assumed: a mispairing here is
+  // a wrong Hamiltonian with nothing to notice it by.
+  Index offset = 0;
+  for (Index i = 0; i < ewaldgrid_.getBoxesSize(); ++i) {
+    GridBox& box = ewaldgrid_[i];
+    const Index n_box = Index(box.getGridPoints().size());
+    std::vector<double>& values = box.getPotentialValues();
+    values.resize(std::size_t(n_box));
+    for (Index p = 0; p < n_box; ++p) {
+      values[std::size_t(p)] = phi[offset + p];
+    }
+    offset += n_box;
+  }
+  if (offset != phi.size()) {
+    throw std::runtime_error(
+        "QMRegion::InteractwithEwaldRegion: the grid holds " +
+        std::to_string(offset) + " points across its boxes but " +
+        std::to_string(phi.size()) +
+        " potential values were evaluated. getGridpoints() and the box "
+        "walk above disagree about the point ordering.");
+  }
+
+  // NUCLEI. The grid potential reaches the electron density only; the
+  // nuclei sit in the same potential and have no other route in. Handed
+  // to the engine as a scalar to add to E0, NOT returned from here --
+  // QMRegion::Evaluate accumulates the Interactwith* return values into
+  // e_ext, logs it, and drops it on the floor.
+  std::vector<Eigen::Vector3d> nuclei;
+  nuclei.reserve(std::size_t(orb_.QMAtoms().size()));
+  for (const QMAtom& atom : orb_.QMAtoms()) {
+    nuclei.push_back(atom.getPos());
+  }
+  const Eigen::VectorXd phi_nuclei = region.PotentialAt(nuclei);
+  ewald_nuclear_energy_ = 0.0;
+  Index a = 0;
+  for (const QMAtom& atom : orb_.QMAtoms()) {
+    ewald_nuclear_energy_ += double(atom.getNuccharge()) * phi_nuclei[a];
+    ++a;
+  }
+
+  ewald_potential_evaluated_ = true;
+
+  // 0.0, matching this class's own InteractwithPolarRegion and
+  // InteractwithStaticRegion: the environment enters the Hamiltonian, and
+  // its energy comes out in the DFT total rather than here.
+  return 0.0;
 }
 
 }  // namespace xtp

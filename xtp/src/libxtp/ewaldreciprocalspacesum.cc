@@ -408,6 +408,56 @@ void EwaldReciprocalSpaceSum::AddFieldAtMany(
   }
 }
 
+Eigen::VectorXd EwaldReciprocalSpaceSum::PotentialAtMany(
+    const std::vector<Eigen::Vector3d>& points, EwaldChargeState source_state,
+    const ProgressCallback& progress) const {
+  const std::vector<std::complex<double>> S =
+      TotalStructureFactors(source_state, progress);
+  const double prefactor = 4.0 * kPi / volume_;
+  const Index n_points = Index(points.size());
+  const std::size_t n_k = kvectors_.size();
+  Eigen::VectorXd phi = Eigen::VectorXd::Zero(n_points);
+
+  // Everything that depends on k alone, folded once. The Gaussian weight
+  // in particular is an exp() that does not vary over the points, so
+  // leaving it in the inner loop costs one transcendental per (point, k)
+  // pair -- on a DFT integration grid that is by far the most expensive
+  // thing in this routine, and none of it does any work.
+  //
+  // Kept as separate real and imaginary parts rather than std::complex so
+  // the inner loop is two multiplies against a cos/sin pair, with no
+  // complex multiply and no temporary.
+  std::vector<double> c_re(n_k);
+  std::vector<double> c_im(n_k);
+  const double inv_four_alpha2 = 1.0 / (4.0 * alpha_ * alpha_);
+  for (std::size_t idx = 0; idx < n_k; ++idx) {
+    const double weight = prefactor *
+                          std::exp(-kvectors_[idx].k2 * inv_four_alpha2) /
+                          kvectors_[idx].k2;
+    c_re[idx] = weight * S[idx].real();
+    c_im[idx] = weight * S[idx].imag();
+  }
+
+  // Parallel over points rather than over k, the opposite of
+  // TotalStructureFactors above: S is read-only here and each iteration
+  // owns its own accumulator, and a DFT grid has far more points than
+  // this class has k-vectors.
+#pragma omp parallel for schedule(static)
+  for (Index p = 0; p < n_points; ++p) {
+    const Eigen::Vector3d& r = points[std::size_t(p)];
+    double acc = 0.0;
+    for (std::size_t idx = 0; idx < n_k; ++idx) {
+      // Re[(c_re + i c_im) e^{i theta}] = c_re cos(theta) - c_im sin(theta).
+      // Written out rather than through std::polar and a complex multiply,
+      // which compute the same two trig calls plus four multiplies.
+      const double theta = kvectors_[idx].k.dot(r);
+      acc += c_re[idx] * std::cos(theta) - c_im[idx] * std::sin(theta);
+    }
+    phi[p] = acc;
+  }
+  return phi;
+}
+
 template void EwaldReciprocalSpaceSum::AddFieldAt<Estatic::V>(
     PolarSite&, EwaldChargeState) const;
 template void EwaldReciprocalSpaceSum::AddFieldAt<Estatic::noE_V>(

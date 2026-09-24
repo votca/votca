@@ -62,6 +62,9 @@ bool XTPDFT::RunDFT() {
   }
   if (has_ewaldgrid_){
     xtpdft.setEwaldgrid(ewaldgrid_);
+    if (has_ewald_nuclear_energy_) {
+      xtpdft.setEwaldNuclearEnergy(ewald_nuclear_energy_);
+    }
   }
 
   if (has_ewaldbackground_){

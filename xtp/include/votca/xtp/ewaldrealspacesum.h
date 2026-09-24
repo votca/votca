@@ -224,6 +224,38 @@ class EwaldRealSpaceSum {
   //
   // Same cache requirement as CalcStaticEnergyAt, and for the same
   // reason.
+  // POTENTIAL at arbitrary points, batched. Total of both channels, to
+  // match EwaldReciprocalSpaceSum::PotentialAtMany and the field
+  // AddFieldAt delivers: permanent moments through CalcStaticEnergy,
+  // background induced dipoles through CalcInducedSourceEnergy.
+  //
+  // NO NEIGHBOUR CACHE, deliberately. AddFieldAt keys its cache on the
+  // target's ADDRESS and writes an entry on first use, which is right
+  // for a fixed set of sites queried repeatedly and wrong for a DFT
+  // grid: one entry per point would run to gigabytes, and reusing one
+  // probe object across positions would silently hand every later point
+  // the first one's neighbour list. Points here are just coordinates, so
+  // nothing is keyed and nothing is kept.
+  //
+  // Its traversal therefore duplicates AddFieldAt's distance cull,
+  // foreground suppression and zero-translation self-skip rather than
+  // sharing them -- those rules are interleaved with a field-based
+  // convergence check there, which has no meaning for a potential.
+  // Duplicated rules drift, so this is held to AddFieldAt's own answer
+  // by unit_probe_potential_reproduces_the_static_energy and the
+  // EwaldRegion case that compares against a direct lattice sum. The
+  // shell-convergence early exit is dropped in favour of the geometric
+  // cutoff alone, which visits a superset of what the shell search
+  // reaches.
+  //
+  // target_segment_id decides only whether the zero-translation
+  // self-pair is skipped, and that skip is disabled for any source with
+  // a foreground copy. Pass a foreground segment's id: a point that is
+  // not a site of its own wants no self-skip.
+  Eigen::VectorXd PotentialAtMany(
+      Index target_segment_id, const std::vector<Eigen::Vector3d>& points,
+      EwaldChargeState source_state) const;
+
   double CalcInducedSourceEnergyAt(const PolarSite& target,
                                    EwaldChargeState source_state) const;
 

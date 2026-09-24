@@ -171,6 +171,28 @@ class EwaldRegion : public Region {
   void RegisterForeground(
       const std::vector<std::pair<Index, Eigen::Vector3d>>& foreground);
 
+  // The background's electrostatic POTENTIAL at arbitrary points, for a
+  // QM region that takes its environment as a potential on a grid rather
+  // than as a field on sites.
+  //
+  // The same four terms ApplyFieldTo assembles -- real space with the
+  // foreground copies suppressed, reciprocal space, shape, minus the erf
+  // half of the suppressed copies -- and both channels of each, so what
+  // comes back is the potential of the permanent background TOGETHER
+  // WITH its converged induced dipoles.
+  //
+  // GAUGE. phi carries an arbitrary additive constant: the k = 0 term is
+  // omitted, i.e. the uniform neutralising background. Every term here
+  // is evaluated through the same energy routines the classical channels
+  // use, with a unit test charge, so the constant is the one every
+  // validated number in this code was computed with. A charged region
+  // embedded in phi shifts by q * phi_0, so this is not a free choice --
+  // see unit_probe_potential_reproduces_the_static_energy, which pins it.
+  //
+  // Requires a declared foreground (RegisterForeground): a point is not
+  // a segment, so there is nothing to fall back on.
+  Eigen::VectorXd PotentialAt(const std::vector<Eigen::Vector3d>& points) const;
+
  private:
   // Built once, on first use, from the calling region's geometry. The
   // foreground's positions are fixed for the whole job even though its

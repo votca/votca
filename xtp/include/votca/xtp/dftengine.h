@@ -89,6 +89,13 @@ class DFTEngine {
 
   void setEwaldgrid(const Vxc_Grid& ewaldgrid) { external_ewaldgrid_ = ewaldgrid; has_ewaldgrid_ = true; }
 
+  // The nuclei's share of the external Ewald potential, sum_A Z_A
+  // phi(R_A). Added to E0 alongside the grid's contribution to H0 -- the
+  // grid integrates against the DENSITY and so reaches the electrons
+  // only, exactly as IntegrateExternalMultipoles pairs its AO matrix with
+  // ExternalRepulsion for the multipole route.
+  void setEwaldNuclearEnergy(double energy) { ewald_nuclear_energy_ = energy; }
+
   /// Run a full ground-state DFT calculation and store the results in the
   /// orbital container.
   bool Evaluate(Orbitals& orb);
@@ -669,6 +676,7 @@ Mat_p_Energy IntegrateShapeCorrection(const ewaldcontainer::PotentialData& data)
   //QMEwald
   Vxc_Grid external_ewaldgrid_;
   bool has_ewaldgrid_ = false;
+  double ewald_nuclear_energy_ = 0.0;
 
   ewaldcontainer::PotentialData* ewald_background_ = nullptr;
   bool has_ewaldbackground_ = false;

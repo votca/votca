@@ -564,4 +564,130 @@ BOOST_AUTO_TEST_CASE(foreground_segment_sees_its_own_periodic_images) {
   }
 }
 
+// PotentialAt against a direct lattice sum.
+//
+// A charge-only cluster alone in the cell: phi at each of its sites is
+// the potential of every periodic image of itself, its own coincident
+// copy suppressed. So sum_i q_i phi(r_i) IS the cluster's interaction
+// with its own images -- the same quantity the direct sum above
+// computes, and an independent reference rather than another route
+// through the same code.
+//
+// Charges only on purpose: with dipoles the energy would need the field
+// as well, and this case is about phi.
+BOOST_AUTO_TEST_CASE(potential_at_reproduces_the_own_image_lattice_sum) {
+  const std::string file = "ewaldregion_test_potential.hdf5";
+  const double box_length = 20.0;
+  const double q = 0.5;
+  const double d = 4.0;
+
+  const std::vector<std::pair<double, Eigen::Vector3d>> cluster = {
+      {q, Eigen::Vector3d(-d, 0.0, 0.0)},
+      {-2.0 * q, Eigen::Vector3d::Zero()},
+      {q, Eigen::Vector3d(d, 0.0, 0.0)}};
+
+  Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
+  for (const auto& entry : cluster) {
+    centroid += entry.second;
+  }
+  centroid /= double(cluster.size());
+
+  auto potential_energy_at = [&](double alpha) {
+    {
+      EwaldRegistry registry;
+      PolarSegment seg("quad", 0);
+      for (std::size_t i = 0; i < cluster.size(); ++i) {
+        PolarSite site(Index(i), "C", cluster[i].second);
+        site.setpolarization(1e-6 * Eigen::Matrix3d::Identity());
+        site.setCharge(cluster[i].first);
+        site.setInduced_Dipole(Eigen::Vector3d::Zero());
+        seg.push_back(site);
+      }
+      registry.Register(0, EwaldChargeState::Neutral, seg);
+
+      EwaldParameters params;
+      params.alpha = alpha;
+      params.k_max = 12.0 * alpha;
+      params.r_min = 12.0;
+      params.field_tol = 1e-12;
+      params.thole_a = 0.39;
+      params.screening_factor = 6.0;
+      params.shape = EwaldShape::Cube;
+      params.box = box_length * Eigen::Matrix3d::Identity();
+
+      CheckpointFile cpf(file, CheckpointAccessLevel::CREATE);
+      CheckpointWriter w = cpf.getWriter();
+      registry.WriteToCpt(w);
+      CheckpointWriter wp = w.openChild("ewald_parameters");
+      params.WriteToCpt(wp);
+    }
+
+    Logger log;
+    log.setReportLevel(Log::error);
+    EwaldRegion region(1, log);
+    tools::Property prop = RegionDefinition(file);
+    region.Initialize(prop.get("ewaldregion"));
+
+    // A point carries no segment identity, so the foreground has to be
+    // declared rather than inferred from a call argument.
+    region.RegisterForeground({{0, centroid}});
+
+    std::vector<Eigen::Vector3d> points;
+    for (const auto& entry : cluster) {
+      points.push_back(entry.second);
+    }
+    const Eigen::VectorXd phi = region.PotentialAt(points);
+    std::remove(file.c_str());
+
+    BOOST_REQUIRE_EQUAL(phi.size(), Index(cluster.size()));
+    double energy = 0.0;
+    for (std::size_t i = 0; i < cluster.size(); ++i) {
+      energy += cluster[i].first * phi[Index(i)];
+    }
+    return energy;
+  };
+
+  auto lattice_sum = [&](Index n_max) {
+    double total = 0.0;
+    for (Index na = -n_max; na <= n_max; ++na) {
+      for (Index nb = -n_max; nb <= n_max; ++nb) {
+        for (Index nc = -n_max; nc <= n_max; ++nc) {
+          if (na == 0 && nb == 0 && nc == 0) {
+            continue;
+          }
+          const Eigen::Vector3d L =
+              box_length * Eigen::Vector3d(double(na), double(nb), double(nc));
+          for (const auto& a : cluster) {
+            for (const auto& b : cluster) {
+              total += a.first * b.first / (a.second - (b.second + L)).norm();
+            }
+          }
+        }
+      }
+    }
+    return total;
+  };
+
+  const double reference_20 = lattice_sum(20);
+  const double reference_30 = lattice_sum(30);
+  const double tail = std::abs(reference_30 - reference_20);
+  const double tolerance =
+      std::max(20.0 * tail, 1e-3 * std::abs(reference_30));
+
+  BOOST_REQUIRE_GT(std::abs(reference_30), 1e-6);
+  std::cout << "PotentialAt own-image energy: direct lattice sum = "
+            << reference_30 << " hrt, tolerance = " << tolerance << std::endl;
+
+  // Scanned, for the same reason the field case is: alpha moves weight
+  // between the real and reciprocal halves of phi, and only the total is
+  // meaningful.
+  for (double alpha : {0.12, 0.20, 0.50}) {
+    const double energy = potential_energy_at(alpha);
+    std::cout << "  alpha = " << alpha << "  from PotentialAt = " << energy
+              << " hrt" << std::endl;
+    BOOST_CHECK_SMALL(std::abs(energy - reference_30), tolerance);
+    BOOST_CHECK_GT(std::abs(energy), 0.5 * std::abs(reference_30));
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

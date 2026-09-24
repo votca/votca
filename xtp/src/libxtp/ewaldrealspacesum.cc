@@ -409,6 +409,128 @@ double EwaldRealSpaceSum::CalcStaticEnergyAt(
   return energy;
 }
 
+Eigen::VectorXd EwaldRealSpaceSum::PotentialAtMany(
+    Index target_segment_id, const std::vector<Eigen::Vector3d>& points,
+    EwaldChargeState source_state) const {
+  // Sources flattened once: AllIds() returns by value and the centroids
+  // are fixed, so recomputing either per point would cost more than the
+  // sum itself on a grid.
+  std::vector<const PolarSegment*> segments;
+  std::vector<Index> segment_ids;
+  std::vector<Eigen::Vector3d> centroids;
+  for (Index source_id : registry_.AllIds()) {
+    if (!registry_.Has(source_id, source_state)) {
+      continue;
+    }
+    const PolarSegment& segment = registry_.Get(source_id, source_state);
+    segments.push_back(&segment);
+    segment_ids.push_back(source_id);
+    centroids.push_back(UnweightedCentroid(segment));
+  }
+
+  const double cutoff_with_margin = real_space_cutoff_ + 2.0 * segment_radius_;
+  const Index n_points = Index(points.size());
+  const Index n_sources = Index(segments.size());
+  Eigen::VectorXd phi = Eigen::VectorXd::Zero(n_points);
+
+  // Hoisted out of both loops below: the box is fixed for this object's
+  // lifetime, and inverting it per (point, source) is n_points * n_sources
+  // 3x3 inversions for one matrix.
+  const Eigen::Matrix3d box_inv = box_.inverse();
+
+#pragma omp parallel for schedule(dynamic, 8)
+  for (Index p = 0; p < n_points; ++p) {
+    const Eigen::Vector3d& point = points[std::size_t(p)];
+
+    // Unit test charge: every energy routine here reduces to
+    // q*phi - mu.E, so with q = 1 and mu = 0 what comes back is phi.
+    // Built per point on the stack, which is safe only because nothing
+    // below keys anything on its address.
+    PolarSite probe(0, "H", point);
+    probe.Reset();
+    probe.setCharge(1.0);
+    probe.setStaticDipole(Eigen::Vector3d::Zero());
+    probe.setInduced_Dipole(Eigen::Vector3d::Zero());
+
+    double acc = 0.0;
+    for (Index s_i = 0; s_i < n_sources; ++s_i) {
+      const PolarSegment& source_segment = *segments[std::size_t(s_i)];
+      const Index source_id = segment_ids[std::size_t(s_i)];
+      const Eigen::Vector3d& source_centroid = centroids[std::size_t(s_i)];
+
+      // Minimum image first, shell search on top of it -- see AddFieldAt's
+      // own account of why the raw separation cannot be handed to a
+      // search bounded by |t|.
+      const Eigen::Vector3d raw_offset = point - source_centroid;
+      const Eigen::Vector3d frac = box_inv * raw_offset;
+      const Eigen::Vector3d wrapped_frac =
+          frac - frac.array().round().matrix();
+      const Eigen::Vector3d min_image_offset = box_ * wrapped_frac;
+      const Eigen::Vector3d baseline_shift = raw_offset - min_image_offset;
+
+      const auto fg = foreground_.find(source_id);
+      const bool source_has_foreground = fg != foreground_.end();
+
+      // STOP, don't skip. translations_ is sorted by |t| ascending, and
+      // |min_image_offset - t| >= |t| - |min_image_offset|, so once |t|
+      // passes this limit every remaining translation is culled as well.
+      // The bound is exact, not a heuristic: nothing inside the cutoff can
+      // sit beyond it.
+      //
+      // This matters far more here than in the site-based paths above,
+      // which never walk the whole list -- their shell-convergence search
+      // hands them a [shell_start, shell_end) window. Without the break
+      // this loop runs (2*n_max+1)^3 translations, 29791 at the default
+      // n_max of 15, for EVERY (point, source) pair. On a DFT integration
+      // grid against a 1000-segment registry that is of order 1e12
+      // distance evaluations and hours of wall time; with it the surviving
+      // range is a couple of lattice shells.
+      const double t_limit = cutoff_with_margin + min_image_offset.norm();
+
+      for (std::size_t idx = 0; idx < translations_.size(); ++idx) {
+        if (translations_[idx].r > t_limit) {
+          break;
+        }
+        const double pair_distance =
+            (min_image_offset - translations_[idx].t).norm();
+        if (pair_distance > cutoff_with_margin) {
+          continue;
+        }
+        const Eigen::Vector3d t = baseline_shift + translations_[idx].t;
+
+        // Foreground suppression: this one periodic copy is handled
+        // explicitly elsewhere, so it must not also appear here.
+        if (source_has_foreground) {
+          const Eigen::Vector3d shifted_centroid = source_centroid + t;
+          bool suppressed = false;
+          for (const Eigen::Vector3d& fg_pos : fg->second) {
+            if ((shifted_centroid - fg_pos).norm() < kForegroundMatchTol) {
+              suppressed = true;
+              break;
+            }
+          }
+          if (suppressed) {
+            continue;
+          }
+        }
+
+        if (!source_has_foreground && source_id == target_segment_id &&
+            t.squaredNorm() < kSelfTranslationTol * kSelfTranslationTol) {
+          continue;
+        }
+
+        for (const PolarSite& source_site : source_segment) {
+          acc += interactor_.CalcStaticEnergy<PolarSite, PolarSite>(
+              source_site, probe, t);
+          acc += interactor_.CalcInducedSourceEnergy(source_site, probe, t);
+        }
+      }
+    }
+    phi[p] = acc;
+  }
+  return phi;
+}
+
 double EwaldRealSpaceSum::CalcInducedSourceEnergyAt(
     const PolarSite& target, EwaldChargeState source_state) const {
   // Deliberately a near-copy of CalcStaticEnergyAt above rather than a
