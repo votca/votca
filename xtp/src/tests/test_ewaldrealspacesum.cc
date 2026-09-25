@@ -153,8 +153,7 @@ BOOST_AUTO_TEST_CASE(periodic_images_match_manual_sum) {
         Eigen::Vector3d t(double(na) * L, double(nb) * L, double(nc) * L);
         PolarSite source(1, "H", t);
         source.setMultipole(mpoles, 0);
-        interactor.ApplyStaticField<PolarSite, Estatic::V>(source,
-                                                            target_ref);
+        interactor.ApplyStaticField<PolarSite, Estatic::V>(source, target_ref);
       }
     }
   }
@@ -165,7 +164,6 @@ BOOST_AUTO_TEST_CASE(periodic_images_match_manual_sum) {
     std::cout << "manual sum: " << target_ref.V().transpose() << std::endl;
   }
 }
-
 
 // Declaring a foreground copy must remove EXACTLY that copy's
 // contribution from the periodic background -- the "carving out" an
@@ -193,11 +191,8 @@ BOOST_AUTO_TEST_CASE(foreground_suppression_removes_exactly_one_copy) {
                                      double(c) * d);
         PolarSegment seg("seg", id);
         const double t = 0.63;
-        const Eigen::Vector3d offsets[5] = {{0.0, 0.0, 0.0},
-                                            {t, t, t},
-                                            {t, -t, -t},
-                                            {-t, t, -t},
-                                            {-t, -t, t}};
+        const Eigen::Vector3d offsets[5] = {
+            {0.0, 0.0, 0.0}, {t, t, t}, {t, -t, -t}, {-t, t, -t}, {-t, -t, t}};
         for (Index j = 0; j < 5; ++j) {
           PolarSite site(j, (j == 0) ? "C" : "H", centre + offsets[j]);
           site.setpolarization(((j == 0) ? 8.0 : 3.0) *
@@ -236,8 +231,7 @@ BOOST_AUTO_TEST_CASE(foreground_suppression_removes_exactly_one_copy) {
                            6.0, foreground);
   PolarSite t_carved = registry.Get(target_id, EwaldChargeState::Neutral)[0];
   t_carved.Reset();
-  carved.AddFieldAt<Estatic::V>(target_id, t_carved,
-                                EwaldChargeState::Neutral);
+  carved.AddFieldAt<Estatic::V>(target_id, t_carved, EwaldChargeState::Neutral);
 
   // The contribution of exactly that copy, computed directly.
   EwaldRealSpaceInteractor interactor(alpha, thole);
@@ -258,7 +252,6 @@ BOOST_AUTO_TEST_CASE(foreground_suppression_removes_exactly_one_copy) {
   // One copy suppressed, and nothing else gained or lost with it.
   BOOST_CHECK_EQUAL(s_plain.entries - s_carved.entries, s_carved.foreground);
 }
-
 
 // The accumulated Q-Q energy must use exactly the neighbour set the
 // field used: same foreground suppression, same distance cull. Checked
@@ -288,11 +281,8 @@ BOOST_AUTO_TEST_CASE(static_energy_uses_the_same_suppressed_neighbour_set) {
                                      double(c) * d);
         PolarSegment seg("seg", id);
         const double t = 0.63;
-        const Eigen::Vector3d offsets[5] = {{0.0, 0.0, 0.0},
-                                            {t, t, t},
-                                            {t, -t, -t},
-                                            {-t, t, -t},
-                                            {-t, -t, t}};
+        const Eigen::Vector3d offsets[5] = {
+            {0.0, 0.0, 0.0}, {t, t, t}, {t, -t, -t}, {-t, t, -t}, {-t, -t, t}};
         for (Index j = 0; j < 5; ++j) {
           PolarSite site(j, (j == 0) ? "C" : "H", centre + offsets[j]);
           site.setpolarization(((j == 0) ? 8.0 : 3.0) *
@@ -332,8 +322,7 @@ BOOST_AUTO_TEST_CASE(static_energy_uses_the_same_suppressed_neighbour_set) {
                            6.0, foreground);
   PolarSite t_carved = registry.Get(target_id, EwaldChargeState::Neutral)[0];
   t_carved.Reset();
-  carved.AddFieldAt<Estatic::V>(target_id, t_carved,
-                                EwaldChargeState::Neutral);
+  carved.AddFieldAt<Estatic::V>(target_id, t_carved, EwaldChargeState::Neutral);
   const double e_carved =
       carved.CalcStaticEnergyAt(t_carved, EwaldChargeState::Neutral);
 
@@ -448,8 +437,7 @@ BOOST_AUTO_TEST_CASE(probe_is_not_thole_damped_against_an_induced_dipole) {
 
   // Not a vacuous comparison: the two candidate answers are far apart,
   // so passing this cannot be an accident of a small number.
-  BOOST_REQUIRE_GT(std::abs(undamped - fully_damped),
-                   0.1 * std::abs(undamped));
+  BOOST_REQUIRE_GT(std::abs(undamped - fully_damped), 0.1 * std::abs(undamped));
 
   BOOST_CHECK_CLOSE(phi(0), undamped, 1e-8);
 }

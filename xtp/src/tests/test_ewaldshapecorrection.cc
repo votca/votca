@@ -102,14 +102,13 @@ BOOST_AUTO_TEST_CASE(slab_shape_only_z_component_nonzero) {
   shape.AddFieldAt<Estatic::V>(target, EwaldChargeState::Neutral);
 
   const double kPi = 3.14159265358979323846;
-  double expected_z =
-      -(4.0 * kPi / volume) * ExpectedTotalDipoleMoment().z();
+  double expected_z = -(4.0 * kPi / volume) * ExpectedTotalDipoleMoment().z();
 
   BOOST_CHECK_EQUAL(target.V().x(), 0.0);
   BOOST_CHECK_EQUAL(target.V().y(), 0.0);
   BOOST_CHECK_CLOSE(target.V().z(), expected_z, 1e-9);
   BOOST_CHECK(std::abs(target.V().z()) > 1e-6);  // sanity: not vacuously
-                                                  // zero
+                                                 // zero
 }
 
 // The shape correction is a uniform (position-independent) field -- the
@@ -192,8 +191,8 @@ RefMoments MomentsOf(const PolarSegment& seg, const Eigen::Vector3d& shift) {
 }
 
 std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> AsForeground(
-    const PolarSegment& seg, const Eigen::Vector3d& shift =
-                                 Eigen::Vector3d::Zero()) {
+    const PolarSegment& seg,
+    const Eigen::Vector3d& shift = Eigen::Vector3d::Zero()) {
   std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> sites;
   for (const PolarSite& site : seg) {
     sites.push_back({&site, site.getPos() + shift});
@@ -271,16 +270,15 @@ BOOST_AUTO_TEST_CASE(cube_shape_energy_matches_bracket_form) {
 
   RefMoments m_bg;
   for (Index id : {Index(1), Index(2)}) {
-    const RefMoments part =
-        MomentsOf(registry.Get(id, EwaldChargeState::Neutral),
-                  Eigen::Vector3d::Zero());
+    const RefMoments part = MomentsOf(
+        registry.Get(id, EwaldChargeState::Neutral), Eigen::Vector3d::Zero());
     m_bg.q0 += part.q0;
     m_bg.q1 += part.q1;
     m_bg.q2 += part.q2;
   }
 
-  const double bracket = m_fg.q0 * m_bg.q2.trace() +
-                         m_bg.q0 * m_fg.q2.trace() - m_fg.q1.dot(m_bg.q1);
+  const double bracket = m_fg.q0 * m_bg.q2.trace() + m_bg.q0 * m_fg.q2.trace() -
+                         m_fg.q1.dot(m_bg.q1);
   const double expected = -(4.0 * kPiLocal / (3.0 * volume)) * bracket;
 
   BOOST_CHECK_CLOSE(shape.CalcStaticEnergyBetween(AsForeground(fg), {},
@@ -306,9 +304,8 @@ BOOST_AUTO_TEST_CASE(slab_shape_energy_matches_bracket_form) {
 
   RefMoments m_bg;
   for (Index id : {Index(1), Index(2)}) {
-    const RefMoments part =
-        MomentsOf(registry.Get(id, EwaldChargeState::Neutral),
-                  Eigen::Vector3d::Zero());
+    const RefMoments part = MomentsOf(
+        registry.Get(id, EwaldChargeState::Neutral), Eigen::Vector3d::Zero());
     m_bg.q0 += part.q0;
     m_bg.q1 += part.q1;
     m_bg.q2 += part.q2;
@@ -417,12 +414,12 @@ BOOST_AUTO_TEST_CASE(shape_energy_excludes_listed_background_sites) {
       AsForeground(fg), excl, EwaldChargeState::Neutral);
 
   const RefMoments m_fg = MomentsOf(fg, Eigen::Vector3d::Zero());
-  const RefMoments m_bg = MomentsOf(
-      registry.Get(1, EwaldChargeState::Neutral), Eigen::Vector3d::Zero());
-  const double bracket = m_fg.q0 * m_bg.q2.trace() +
-                         m_bg.q0 * m_fg.q2.trace() - m_fg.q1.dot(m_bg.q1);
-  BOOST_CHECK_CLOSE(e_excluded,
-                    -(4.0 * kPiLocal / (3.0 * volume)) * bracket, 1e-9);
+  const RefMoments m_bg = MomentsOf(registry.Get(1, EwaldChargeState::Neutral),
+                                    Eigen::Vector3d::Zero());
+  const double bracket = m_fg.q0 * m_bg.q2.trace() + m_bg.q0 * m_fg.q2.trace() -
+                         m_fg.q1.dot(m_bg.q1);
+  BOOST_CHECK_CLOSE(e_excluded, -(4.0 * kPiLocal / (3.0 * volume)) * bracket,
+                    1e-9);
 
   // And excluding something genuinely changes the answer.
   const double e_full = shape.CalcStaticEnergyBetween(

@@ -67,7 +67,7 @@ std::string GroupName(Index id, EwaldChargeState state) {
 }  // namespace
 
 void EwaldRegistry::Register(Index id, EwaldChargeState state,
-                              PolarSegment segment) {
+                             PolarSegment segment) {
   // RANK GUARD. Every Ewald kernel reads getCharge() and
   // getStaticDipole() and nothing else, so a rank-2 site's quadrupole is
   // parsed, stored, and then silently dropped: a wrong energy with no
@@ -101,8 +101,8 @@ const PolarSegment& EwaldRegistry::Get(Index id, EwaldChargeState state) const {
   auto it = store_.find(Key(id, state));
   if (it == store_.end()) {
     std::stringstream message;
-    message << "EwaldRegistry: no entry for segment id " << id
-            << " in state '" << StateTag(state) << "'";
+    message << "EwaldRegistry: no entry for segment id " << id << " in state '"
+            << StateTag(state) << "'";
     throw std::out_of_range(message.str());
   }
   return it->second;
@@ -112,8 +112,8 @@ PolarSegment& EwaldRegistry::Get(Index id, EwaldChargeState state) {
   auto it = store_.find(Key(id, state));
   if (it == store_.end()) {
     std::stringstream message;
-    message << "EwaldRegistry: no entry for segment id " << id
-            << " in state '" << StateTag(state) << "'";
+    message << "EwaldRegistry: no entry for segment id " << id << " in state '"
+            << StateTag(state) << "'";
     throw std::out_of_range(message.str());
   }
   return it->second;
@@ -181,9 +181,9 @@ void EwaldRegistry::ReadFromCpt(CheckpointReader& r) {
     std::string tag = name.substr(split + 1);
     EwaldChargeState state;
     if (!TagToState(tag, state)) {
-      throw std::runtime_error(
-          "EwaldRegistry: unknown charge state tag '" + tag +
-          "' in checkpoint group name '" + name + "'");
+      throw std::runtime_error("EwaldRegistry: unknown charge state tag '" +
+                               tag + "' in checkpoint group name '" + name +
+                               "'");
     }
     CheckpointReader rrr = rr.openChild(name);
     store_.insert_or_assign(Key(id, state), PolarSegment(rrr));

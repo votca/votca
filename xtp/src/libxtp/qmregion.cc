@@ -23,11 +23,11 @@
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/pmlocalization.h"
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmstate.h"
-#include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
 
@@ -42,7 +42,6 @@ void QMRegion::Initialize(const tools::Property& prop) {
         this->identify() +
         " must always be region 0. Currently only one qm region is possible.");
   }
-
 
   initstate_ = prop.get("state").as<QMState>();
   /*if (initstate_.Type() == QMStateType::Hole ||
@@ -99,10 +98,10 @@ void QMRegion::Initialize(const tools::Property& prop) {
 // helper function to hand the grid changable over to Ewald
 std::vector<Eigen::Vector3d> QMRegion::copyEwaldGrid() {
 
-  std::vector<const Eigen::Vector3d*> src = ewaldgrid_.getGridpoints(); 
+  std::vector<const Eigen::Vector3d*> src = ewaldgrid_.getGridpoints();
   std::vector<Eigen::Vector3d> dst(src.size());
   std::transform(src.begin(), src.end(), dst.begin(),
-               [](const Eigen::Vector3d* v) { return *v; });
+                 [](const Eigen::Vector3d* v) { return *v; });
   return dst;
 }
 
@@ -110,7 +109,8 @@ void QMRegion::PrepareEwaldPotentialGrid() {
 
   // purpose: prepare a grid integration object that can
   // - hand over the grid to Ewald
-  // - after Ewald calculates the potential at the grid points, be put into xtpdft
+  // - after Ewald calculates the potential at the grid points, be put into
+  // xtpdft
   //
   // The grid name is xtpdft's own integration_grid, NOT grid_for_potential.
   // That is a constraint, not a preference: what comes back from Ewald is a
@@ -130,15 +130,16 @@ void QMRegion::PrepareEwaldPotentialGrid() {
   std::string dftbasis_name = dftoptions_.get("basisset").as<std::string>();
   std::string grid_name =
       dftoptions_.get("xtpdft.integration_grid").as<std::string>();
-  QMMolecule mol =  orb_.QMAtoms();
+  QMMolecule mol = orb_.QMAtoms();
   BasisSet bs;
   bs.Load(dftbasis_name);
   AOBasis dftbasis;
   dftbasis.Fill(bs, mol);
   ewaldgrid_.GridSetup(grid_name, mol, dftbasis);
-  XTP_LOG(Log::error, log_) << TimeStamp()
-      << " Constructed Grid for Integration of Ewald Potential" << std::flush;
-  //Vxc_Potential<Vxc_Grid> vxc(grid);
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Constructed Grid for Integration of Ewald Potential"
+      << std::flush;
+  // Vxc_Potential<Vxc_Grid> vxc(grid);
   ewald_grid_ready_ = true;
   return;
 }
@@ -167,18 +168,16 @@ bool QMRegion::Converged() const {
 
 void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
-// some funny checks
-/*const std::vector<ewaldcontainer::PointCharge>& charges = ewald_background_->charges();
-for (const auto& charge : charges) {
-    std::cout << charge.charge << " " << charge.position << std::endl;
-}
+  // some funny checks
+  /*const std::vector<ewaldcontainer::PointCharge>& charges =
+  ewald_background_->charges(); for (const auto& charge : charges) { std::cout
+  << charge.charge << " " << charge.position << std::endl;
+  }
 
-const std::vector<ewaldcontainer::PointDipole>& dipoles = ewald_background_->dipoles();
-for (const auto& dipole : dipoles) {
-    std::cout << dipole.dipole << " " << dipole.position << std::endl;
-}*/
-
-
+  const std::vector<ewaldcontainer::PointDipole>& dipoles =
+  ewald_background_->dipoles(); for (const auto& dipole : dipoles) { std::cout
+  << dipole.dipole << " " << dipole.position << std::endl;
+  }*/
 
   std::vector<double> interact_energies = ApplyInfluenceOfOtherRegions(regions);
   double e_ext =
@@ -558,7 +557,6 @@ void QMRegion::ReadFromCpt(CheckpointReader& r) {
     statetracker_.ReadFromCpt(rr4);
   }
 }
-
 
 double QMRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
   // First contact with an EwaldRegion is what decides this region takes its

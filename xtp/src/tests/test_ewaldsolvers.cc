@@ -31,8 +31,8 @@
 // Local VOTCA includes
 #include "votca/xtp/ewaldblockjacobipreconditioner.h"
 #include "votca/xtp/ewaldperiodicdipoleoperator.h"
-#include "votca/xtp/ewaldreciprocalspacesum.h"
 #include "votca/xtp/ewaldrealspacesum.h"
+#include "votca/xtp/ewaldreciprocalspacesum.h"
 #include "votca/xtp/ewaldregistry.h"
 #include "votca/xtp/ewaldshapecorrection.h"
 #include "votca/xtp/ewaldsolvers.h"
@@ -75,18 +75,15 @@ EwaldRegistry MakeSystem(double box_length, Index n_per_side) {
         PolarSegment seg("seg", id);
         // Tetrahedral, methane-like: four satellites around a centre.
         const double t = 0.63;
-        const Eigen::Vector3d offsets[5] = {{0.0, 0.0, 0.0},
-                                            {t, t, t},
-                                            {t, -t, -t},
-                                            {-t, t, -t},
-                                            {-t, -t, t}};
+        const Eigen::Vector3d offsets[5] = {
+            {0.0, 0.0, 0.0}, {t, t, t}, {t, -t, -t}, {-t, t, -t}, {-t, -t, t}};
         for (Index s = 0; s < 5; ++s) {
           PolarSite site(s, (s == 0) ? "C" : "H", centre + offsets[s]);
           site.setpolarization(((s == 0) ? 8.0 : 3.0) *
                                Eigen::Matrix3d::Identity());
           site.setCharge((s == 0) ? -0.4 : 0.1);
-          site.setStaticDipole(Eigen::Vector3d(0.01 * double(s + 1), -0.005,
-                                               0.002 * double(s)));
+          site.setStaticDipole(
+              Eigen::Vector3d(0.01 * double(s + 1), -0.005, 0.002 * double(s)));
           seg.push_back(site);
         }
         registry.Register(id, EwaldChargeState::Neutral, seg);
@@ -167,12 +164,10 @@ BOOST_AUTO_TEST_CASE(operator_is_symmetric_positive_definite) {
   const double asymmetry = (A - A.transpose()).norm() / A.norm();
   BOOST_CHECK_SMALL(asymmetry, 1e-12);
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
-      0.5 * (A + A.transpose()));
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(0.5 * (A + A.transpose()));
   BOOST_REQUIRE(es.info() == Eigen::Success);
   const double lambda_min = es.eigenvalues().minCoeff();
-  std::cout << "asymmetry = " << asymmetry
-            << "  lambda_min = " << lambda_min
+  std::cout << "asymmetry = " << asymmetry << "  lambda_min = " << lambda_min
             << "  lambda_max = " << es.eigenvalues().maxCoeff() << std::endl;
   BOOST_CHECK_GT(lambda_min, 0.0);
 }
@@ -199,9 +194,9 @@ BOOST_AUTO_TEST_CASE(pcg_solution_satisfies_the_system) {
   const Eigen::VectorXd b = MakeRhs(op.rows());
 
   EwaldBlockJacobiPreconditioner precond(registry, ids, alpha, 0.39);
-  auto result = SolveWithIndefinitenessCheck(
-      op, precond, b, /*max_iter=*/200, /*tol=*/1e-12, log,
-      std::chrono::steady_clock::now());
+  auto result = SolveWithIndefinitenessCheck(op, precond, b, /*max_iter=*/200,
+                                             /*tol=*/1e-12, log,
+                                             std::chrono::steady_clock::now());
 
   BOOST_REQUIRE(result.converged);
   // Never found indefinite: a direct certificate, not an inference.
@@ -298,8 +293,7 @@ BOOST_AUTO_TEST_CASE(preconditioner_improves_conditioning) {
     M.col(i) = precond.solve(e);
   }
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> esA(
-      0.5 * (A + A.transpose()));
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> esA(0.5 * (A + A.transpose()));
   BOOST_REQUIRE(esA.info() == Eigen::Success);
   const double cond_A =
       esA.eigenvalues().maxCoeff() / esA.eigenvalues().minCoeff();

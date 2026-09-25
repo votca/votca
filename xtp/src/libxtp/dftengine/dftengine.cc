@@ -1837,10 +1837,12 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
       const std::vector<double>& source =
           external_ewaldgrid_[i].getPotentialValues();
       if (Index(source.size()) != box.size()) {
-        throw std::runtime_error(
-            "DFTEngine: box " + std::to_string(i) + " of the external Ewald "
-            "potential grid holds " + std::to_string(source.size()) +
-            " values for " + std::to_string(box.size()) + " grid points.");
+        throw std::runtime_error("DFTEngine: box " + std::to_string(i) +
+                                 " of the external Ewald "
+                                 "potential grid holds " +
+                                 std::to_string(source.size()) +
+                                 " values for " + std::to_string(box.size()) +
+                                 " grid points.");
       }
       std::vector<double>& values = box.getPotentialValues();
       values = source;
@@ -1874,15 +1876,13 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
         IntegrateShapeCorrection(ewaldShapeCorrection());
     H0 += Ewald_ShapeC_result.matrix();
 
-  
-        XTP_LOG(Log::error, *pLog_)
-            << TimeStamp() << " ... RECIPROCAL SPACE BACKGROUND MOMENTS"
-            << std::flush;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " ... RECIPROCAL SPACE BACKGROUND MOMENTS"
+        << std::flush;
 
-Mat_p_Energy Ewald_KSBG_result =
+    Mat_p_Energy Ewald_KSBG_result =
         IntegrateEwaldReciprocalSpace(ewaldBackground());
-        H0 += Ewald_KSBG_result.matrix();
-
+    H0 += Ewald_KSBG_result.matrix();
 
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " ... FOREGROUND CORRECTION MOMENTS" << std::flush;
@@ -1922,14 +1922,12 @@ Mat_p_Energy Ewald_KSBG_result =
       site->setMultipole(mp, rank);
       multipoles.push_back(std::move(site));
     }
-   Mat_p_Energy EwaldMM1Region =
-        IntegrateExternalMultipoles(mol, multipoles);
+    Mat_p_Energy EwaldMM1Region = IntegrateExternalMultipoles(mol, multipoles);
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Nuclei-external site interaction energy "
         << std::setprecision(9) << EwaldMM1Region.energy() << std::flush;
-    //E0 += EwaldMM1Region.energy();
+    // E0 += EwaldMM1Region.energy();
     H0 += EwaldMM1Region.matrix();
-
   }
   return Mat_p_Energy(E0, H0);
 }
@@ -2778,15 +2776,15 @@ Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {
   return result;
 }
 
-
-Mat_p_Energy DFTEngine::IntegrateEwaldReciprocalSpace( const ewaldcontainer::PotentialData& bg) const {
+Mat_p_Energy DFTEngine::IntegrateEwaldReciprocalSpace(
+    const ewaldcontainer::PotentialData& bg) const {
 
   Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
   AOPlanewave dftAOEwaldKSP;
-  dftAOEwaldKSP.FillPotential(dftbasis_,bg.reciprocalTerms());
+  dftAOEwaldKSP.FillPotential(dftbasis_, bg.reciprocalTerms());
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Norm of complex part (should be practically zero!) " << dftAOEwaldKSP.Matrix().imag().norm()
-      << std::flush;
+      << TimeStamp() << " Norm of complex part (should be practically zero!) "
+      << dftAOEwaldKSP.Matrix().imag().norm() << std::flush;
   result.matrix() = dftAOEwaldKSP.Matrix().real();
   result.energy() = 0.0;
   return result;

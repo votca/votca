@@ -708,20 +708,20 @@ void AOPlanewave::FillPotential(const AOBasis& aobasis,
   return;
 }
 
-void AOPlanewave::FillPotential(const AOBasis& aobasis,
-                     const std::vector<ewaldcontainer::ReciprocalTerm>& reciprocal_terms) {
+void AOPlanewave::FillPotential(
+    const AOBasis& aobasis,
+    const std::vector<ewaldcontainer::ReciprocalTerm>& reciprocal_terms) {
 
-                        aopotential_ =
+  aopotential_ =
       Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
+  for (const auto& reciprocal_term : reciprocal_terms) {
+    setkVector(reciprocal_term.G);
+    aopotential_ += reciprocal_term.coefficient * Fill(aobasis);
+  }
 
-for (const auto& reciprocal_term : reciprocal_terms)  {
-  setkVector(reciprocal_term.G);
-  aopotential_ += reciprocal_term.coefficient * Fill(aobasis);
+  return;
 }
-
-                        return;
-                     }
 
 }  // namespace xtp
 }  // namespace votca

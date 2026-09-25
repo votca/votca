@@ -29,20 +29,18 @@
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
-#include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/ewald_potential.h"
+#include "votca/xtp/vxc_grid.h"
 
 namespace votca {
 namespace xtp {
 template <class Grid>
 Ewald_Potential<Grid>::~Ewald_Potential() {}
 
-
-
 template <class Grid>
 Mat_p_Energy Ewald_Potential<Grid>::IntegrateEwald(Index basissize) const {
 
-  Mat_p_Energy vewald = Mat_p_Energy(basissize,basissize);
+  Mat_p_Energy vewald = Mat_p_Energy(basissize, basissize);
 
 #pragma omp parallel for schedule(guided) reduction(+ : vewald)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
@@ -53,7 +51,7 @@ Mat_p_Energy Ewald_Potential<Grid>::IntegrateEwald(Index basissize) const {
     double Eewald_box = 0.0;
 
     Eigen::MatrixXd Vewald_here =
-        Eigen::MatrixXd::Zero(box.Matrixsize(),box.Matrixsize());
+        Eigen::MatrixXd::Zero(box.Matrixsize(), box.Matrixsize());
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
     const std::vector<double>& pot = box.getPotentialValues();

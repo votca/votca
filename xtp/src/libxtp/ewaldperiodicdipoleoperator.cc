@@ -19,8 +19,8 @@
 
 // Standard includes
 #include <algorithm>
-#include <chrono>
 #include <array>
+#include <chrono>
 #include <fstream>
 #include <stdexcept>
 
@@ -32,9 +32,8 @@ namespace xtp {
 
 EwaldPeriodicDipoleOperator::EwaldPeriodicDipoleOperator(
     EwaldRegistry& registry, const EwaldRealSpaceSum& real_sum,
-    const EwaldReciprocalSpaceSum& recip_sum,
-    const EwaldShapeCorrection& shape, std::vector<Index> ids,
-    double alpha_ewald, double thole_a)
+    const EwaldReciprocalSpaceSum& recip_sum, const EwaldShapeCorrection& shape,
+    std::vector<Index> ids, double alpha_ewald, double thole_a)
     : registry_(registry),
       real_sum_(real_sum),
       recip_sum_(recip_sum),
@@ -80,8 +79,7 @@ EwaldPeriodicDipoleOperator::EwaldPeriodicDipoleOperator(
     std::vector<std::pair<Index, PolarSite*>> cache_targets;
     cache_targets.reserve(std::size_t(size_ / 3));
     for (std::size_t n = 0; n < ids_.size(); ++n) {
-      PolarSegment& segment =
-          registry_.Get(ids_[n], EwaldChargeState::Neutral);
+      PolarSegment& segment = registry_.Get(ids_[n], EwaldChargeState::Neutral);
       for (Index s = 0; s < segment.size(); ++s) {
         cache_targets.push_back({ids_[n], &segment[s]});
       }
@@ -92,8 +90,7 @@ EwaldPeriodicDipoleOperator::EwaldPeriodicDipoleOperator(
   baseline_ = RawMultiply(Eigen::VectorXd::Zero(size_));
 }
 
-std::pair<Index, Index> EwaldPeriodicDipoleOperator::LocateSite(
-    Index i) const {
+std::pair<Index, Index> EwaldPeriodicDipoleOperator::LocateSite(Index i) const {
   // upper_bound finds the first offset strictly greater than i; the
   // segment i belongs to is the one just before that.
   auto it = std::upper_bound(offsets_.begin(), offsets_.end(), i);
@@ -138,8 +135,7 @@ Eigen::VectorXd EwaldPeriodicDipoleOperator::RawMultiply(
   targets.reserve(std::size_t(size_ / 3));
 
   for (std::size_t n = 0; n < ids_.size(); ++n) {
-    PolarSegment& segment =
-        registry_.Get(ids_[n], EwaldChargeState::Neutral);
+    PolarSegment& segment = registry_.Get(ids_[n], EwaldChargeState::Neutral);
     Index base = offsets_[n];
     for (Index s = 0; s < segment.size(); ++s) {
       PolarSite& site = segment[s];
@@ -374,11 +370,6 @@ Eigen::VectorXd EwaldPeriodicDipoleOperator::multiply(
     const Eigen::VectorXd& v) const {
   return RawMultiply(v) - baseline_;
 }
-
-
-
-
-
 
 }  // namespace xtp
 }  // namespace votca

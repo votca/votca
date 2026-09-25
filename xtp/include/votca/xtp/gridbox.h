@@ -48,8 +48,10 @@ class GridBox {
   const std::vector<Eigen::Vector3d>& getGridPoints() const { return grid_pos; }
 
   const std::vector<double>& getGridWeights() const { return weights; }
-  std::vector<double>& getPotentialValues()  { return potential_values; }
-  const std::vector<double>& getPotentialValues() const { return potential_values; }
+  std::vector<double>& getPotentialValues() { return potential_values; }
+  const std::vector<double>& getPotentialValues() const {
+    return potential_values;
+  }
 
   const std::vector<Index>& getOwnerAtoms() const { return owner_atoms; }
 
@@ -68,7 +70,9 @@ class GridBox {
   void addGridBox(const GridBox& box) {
     grid_pos.insert(grid_pos.end(), box.grid_pos.begin(), box.grid_pos.end());
     weights.insert(weights.end(), box.weights.begin(), box.weights.end());
-    potential_values.insert(potential_values.end(), box.potential_values.begin(), box.potential_values.end());
+    potential_values.insert(potential_values.end(),
+                            box.potential_values.begin(),
+                            box.potential_values.end());
     owner_atoms.insert(owner_atoms.end(), box.owner_atoms.begin(),
                        box.owner_atoms.end());
     return;

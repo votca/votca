@@ -79,8 +79,8 @@ Index Md2QmEngine::DetermineAtomNumOffset(
   std::cout << "First loop done..." << std::endl;
   std::sort(IDs.begin(), IDs.end());
 
-      std::cout << IDs[0] << std::endl;
-    std::cout << atom_ids_map[0] << std::endl;
+  std::cout << IDs[0] << std::endl;
+  std::cout << atom_ids_map[0] << std::endl;
 
   Index offset = IDs[0] - atom_ids_map[0];
   std::cout << offset << std::endl;
@@ -91,7 +91,7 @@ Index Md2QmEngine::DetermineAtomNumOffset(
           "your mapping file have wrong Atom ids");
     }
   }
-  std::cout << offset << std::endl; 
+  std::cout << offset << std::endl;
   return offset;
 }
 
@@ -163,10 +163,10 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
       // get the name of this segment and add to segnames vector
       std::string segname = seg->get("name").as<std::string>();
       segnames.push_back(segname);
-          if (votca::Log::verbose()) {
-            std::cout << "... ... processing mapping information for segment "
-                      << segname << std::endl;
-          }
+      if (votca::Log::verbose()) {
+        std::cout << "... ... processing mapping information for segment "
+                  << segname << std::endl;
+      }
       std::string fragkey = "fragments.fragment";
       // get all fragement mapping info
       std::vector<tools::Property*> fragments = seg->Select(fragkey);
@@ -274,7 +274,8 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     }
 
     std::vector<Segment>& topology_segments = xtptop.Segments();
-    //std::cout << mol.getName() << " " << MolToAtomIds[mol.getName()] << std::endl;
+    // std::cout << mol.getName() << " " << MolToAtomIds[mol.getName()] <<
+    // std::endl;
     Index IdOffset = DetermineAtomNumOffset(&mol, MolToAtomIds[mol.getName()]);
 
     if (votca::Log::verbose()) {

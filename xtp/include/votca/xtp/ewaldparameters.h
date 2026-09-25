@@ -55,9 +55,9 @@ namespace xtp {
  * re-derive and hope matches.
  */
 struct EwaldParameters {
-  double alpha = 0.0;             // bohr^-1
-  double k_max = 0.0;             // bohr^-1
-  double r_min = 0.0;             // bohr
+  double alpha = 0.0;  // bohr^-1
+  double k_max = 0.0;  // bohr^-1
+  double r_min = 0.0;  // bohr
   double field_tol = 0.0;
   double thole_a = 0.0;
   double screening_factor = 0.0;  // dimensionless

@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(intramolecular_coupling_matches_direct_solve) {
 
   const double alpha_ewald = 0.3;
   EwaldRealSpaceSum real_sum(box, registry, alpha_ewald, thole_a,
-                            /*r_min=*/12.0, /*field_tol=*/1e-12);
+                             /*r_min=*/12.0, /*field_tol=*/1e-12);
   EwaldReciprocalSpaceSum recip_sum(box, registry, alpha_ewald,
                                     /*k_max=*/20.0);
   const double volume = box.determinant();
@@ -351,8 +351,7 @@ BOOST_AUTO_TEST_CASE(intramolecular_coupling_matches_direct_solve) {
   A_dense.block<3, 3>(3, 3) =
       mseg[1].getPInv() - recip_b_b - self_field - shape_block;
   A_dense.block<3, 3>(0, 3) = -erfc_block - recip_a_b - shape_block;
-  A_dense.block<3, 3>(3, 0) =
-      -erfc_block.transpose() - recip_b_a - shape_block;
+  A_dense.block<3, 3>(3, 0) = -erfc_block.transpose() - recip_b_a - shape_block;
   Eigen::VectorXd x_reference = A_dense.fullPivLu().solve(b);
 
   EwaldPeriodicDipoleOperator op(registry, real_sum, recip_sum, shape,
@@ -382,8 +381,7 @@ BOOST_AUTO_TEST_CASE(intramolecular_coupling_matches_direct_solve) {
   std::cout << "A_dense =\n" << A_dense << std::endl;
   std::cout << "b (rhs) = " << b.transpose() << std::endl;
   std::cout << "x (operator/PCG)  = " << x.transpose() << std::endl;
-  std::cout << "x_reference (dense) = " << x_reference.transpose()
-            << std::endl;
+  std::cout << "x_reference (dense) = " << x_reference.transpose() << std::endl;
   std::cout << "difference norm = " << (x - x_reference).norm() << std::endl;
   std::cout << "cg iterations = " << cg.iterations()
             << "  cg error = " << cg.error() << std::endl;
@@ -448,8 +446,9 @@ BOOST_AUTO_TEST_CASE(converged_dipoles_are_independent_of_the_splitting) {
     const double r_ab = (m[0].getPos() - m[1].getPos()).norm();
     EwaldRealSpaceInteractor::TholeFactors probe_t =
         probe.ComputeThole(r_ab, m[1], m[0]);
-    std::cout << "intramolecular r = " << r_ab << " bohr, thole l3 = "
-              << probe_t.l3 << ", l5 = " << probe_t.l5 << std::endl;
+    std::cout << "intramolecular r = " << r_ab
+              << " bohr, thole l3 = " << probe_t.l3 << ", l5 = " << probe_t.l5
+              << std::endl;
     // Guard against the test quietly going vacuous.
     BOOST_REQUIRE(probe_t.l3 < 0.999);
   }
@@ -501,8 +500,7 @@ BOOST_AUTO_TEST_CASE(converged_dipoles_are_independent_of_the_splitting) {
     }
 
     EwaldPeriodicDipoleOperator op(registry, real_sum, recip_sum, shape,
-                                   std::vector<Index>{2}, alpha_ewald,
-                                   thole_a);
+                                   std::vector<Index>{2}, alpha_ewald, thole_a);
 
     Eigen::ConjugateGradient<EwaldPeriodicDipoleOperator,
                              Eigen::Lower | Eigen::Upper,

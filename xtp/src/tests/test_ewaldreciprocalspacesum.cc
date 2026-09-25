@@ -27,9 +27,9 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
-#include "votca/xtp/ewaldreciprocalspacesum.h"
 #include "votca/xtp/ewaldrealspaceinteractor.h"
 #include "votca/xtp/ewaldrealspacesum.h"
+#include "votca/xtp/ewaldreciprocalspacesum.h"
 #include "votca/xtp/ewaldshapecorrection.h"
 
 using namespace votca::xtp;
@@ -182,8 +182,7 @@ BOOST_AUTO_TEST_CASE(intramolecular_contribution_included) {
   EwaldRegistry registry_external_only;
   PolarSegment seg_a_only("seg", 1);
   seg_a_only.push_back(site_a);
-  registry_external_only.Register(1, EwaldChargeState::Neutral,
-                                  seg_a_only);
+  registry_external_only.Register(1, EwaldChargeState::Neutral, seg_a_only);
   PolarSite target_external = site_b;
   target_external.Reset();
   EwaldReciprocalSpaceSum recip_external(box, registry_external_only, 0.35,
@@ -193,7 +192,6 @@ BOOST_AUTO_TEST_CASE(intramolecular_contribution_included) {
 
   BOOST_CHECK(target.V().isApprox(target_external.V(), 1e-12));
 }
-
 
 // THE INVARIANT THAT VALIDATES THE WHOLE SPLITTING.
 //
@@ -265,8 +263,8 @@ BOOST_AUTO_TEST_CASE(static_energy_is_independent_of_the_splitting) {
     const double k_max = 14.0 * alpha;
     const double r_min = 6.0 / alpha;
 
-    EwaldRealSpaceSum real_sum(box, registry, alpha, thole, r_min, 1e-14,
-                               0.945, 25, 6.0, foreground);
+    EwaldRealSpaceSum real_sum(box, registry, alpha, thole, r_min, 1e-14, 0.945,
+                               25, 6.0, foreground);
     EwaldReciprocalSpaceSum recip_sum(box, registry, alpha, k_max);
 
     double e_real = 0.0;
@@ -274,8 +272,7 @@ BOOST_AUTO_TEST_CASE(static_energy_is_independent_of_the_splitting) {
     for (const PolarSite& site : fg_seg) {
       PolarSite probe = site;
       probe.Reset();
-      real_sum.AddFieldAt<Estatic::V>(fg_id, probe,
-                                      EwaldChargeState::Neutral);
+      real_sum.AddFieldAt<Estatic::V>(fg_id, probe, EwaldChargeState::Neutral);
       e_real += real_sum.CalcStaticEnergyAt(probe, EwaldChargeState::Neutral);
       fg_sites.push_back({&site, site.getPos()});
     }
@@ -343,8 +340,8 @@ EwaldRegistry BuildInducedTestRegistry(double L) {
           // index, so the background's total induced moment does not
           // vanish by symmetry.
           site.setInduced_Dipole(Eigen::Vector3d(
-              1e-2 * double(j + 1) + 1e-3 * double(a),
-              -7e-3 + 2e-3 * double(b), 4e-3 * double(j) - 1e-3 * double(c)));
+              1e-2 * double(j + 1) + 1e-3 * double(a), -7e-3 + 2e-3 * double(b),
+              4e-3 * double(j) - 1e-3 * double(c)));
           seg.push_back(site);
         }
         registry.Register(id, EwaldChargeState::Neutral, seg);
@@ -411,8 +408,8 @@ BOOST_AUTO_TEST_CASE(induced_source_energy_is_independent_of_the_splitting) {
       PolarSite probe = site;
       probe.Reset();
       real_sum.AddFieldAt<Estatic::V>(fg_id, probe, EwaldChargeState::Neutral);
-      e_real += real_sum.CalcInducedSourceEnergyAt(probe,
-                                                   EwaldChargeState::Neutral);
+      e_real +=
+          real_sum.CalcInducedSourceEnergyAt(probe, EwaldChargeState::Neutral);
       fg_sites.push_back({&site, site.getPos()});
     }
     // Nothing held out of S_bg; the coincident copy comes off via its
@@ -481,8 +478,8 @@ BOOST_AUTO_TEST_CASE(damping_is_inactive_at_intermolecular_range) {
   auto total_at = [&](double alpha, double thole) {
     const double k_max = 14.0 * alpha;
     const double r_min = 6.0 / alpha;
-    EwaldRealSpaceSum real_sum(box, registry, alpha, thole, r_min, 1e-14,
-                               0.945, 25, 6.0, foreground);
+    EwaldRealSpaceSum real_sum(box, registry, alpha, thole, r_min, 1e-14, 0.945,
+                               25, 6.0, foreground);
     EwaldReciprocalSpaceSum recip_sum(box, registry, alpha, k_max);
 
     double e_real = 0.0;
@@ -516,8 +513,7 @@ BOOST_AUTO_TEST_CASE(damping_is_inactive_at_intermolecular_range) {
   const double undamped = total_at(0.25, 1e6);
   const double realistic = total_at(0.25, 0.39);
   BOOST_REQUIRE_GT(std::abs(undamped), 1e-12);
-  BOOST_CHECK_SMALL(std::abs(realistic - undamped) / std::abs(undamped),
-                    1e-8);
+  BOOST_CHECK_SMALL(std::abs(realistic - undamped) / std::abs(undamped), 1e-8);
 
   // And the split stays alpha-independent with damping switched on.
   const double lo = total_at(0.20, 0.39);
@@ -547,8 +543,8 @@ BOOST_AUTO_TEST_CASE(damping_is_applied_when_it_is_active) {
 
   auto real_part_at = [&](double thole) {
     const double alpha = 0.25;
-    EwaldRealSpaceSum real_sum(box, registry, alpha, thole, 6.0 / alpha,
-                               1e-14, 0.945, 25, 6.0, foreground);
+    EwaldRealSpaceSum real_sum(box, registry, alpha, thole, 6.0 / alpha, 1e-14,
+                               0.945, 25, 6.0, foreground);
     double e_real = 0.0;
     for (const PolarSite& site : fg_seg) {
       PolarSite probe = site;
@@ -635,7 +631,8 @@ BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
 
     std::vector<std::pair<Index, Eigen::Vector3d>> foreground;
     for (const PolarSegment& f : fg) {
-      const PolarSegment& bg = registry.Get(f.getId(), EwaldChargeState::Neutral);
+      const PolarSegment& bg =
+          registry.Get(f.getId(), EwaldChargeState::Neutral);
       Eigen::Vector3d ctr = Eigen::Vector3d::Zero();
       Index n = 0;
       for (const PolarSite& s : bg) {
@@ -666,8 +663,8 @@ BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
           probe.Reset();
           real_sum.AddFieldAt<Estatic::V>(f.getId(), probe,
                                           EwaldChargeState::Neutral);
-          total += real_sum.CalcStaticEnergyAt(probe,
-                                               EwaldChargeState::Neutral);
+          total +=
+              real_sum.CalcStaticEnergyAt(probe, EwaldChargeState::Neutral);
         }
       }
       // Nothing held out of S_bg; every foreground copy, the target's own
@@ -763,11 +760,9 @@ BOOST_AUTO_TEST_CASE(unit_probe_potential_reproduces_the_static_energy) {
           PolarSite site(j, (j == 0) ? "C" : "H", centre + offsets[j]);
           site.setpolarization(3.0 * Eigen::Matrix3d::Identity());
           site.setCharge(charges[j]);
-          site.setStaticDipole(Eigen::Vector3d(0.15 * double(j + 1) +
-                                                   1e-2 * double(a),
-                                               -0.10 + 1e-2 * double(b),
-                                               0.05 * double(j) -
-                                                   1e-2 * double(c)));
+          site.setStaticDipole(Eigen::Vector3d(
+              0.15 * double(j + 1) + 1e-2 * double(a), -0.10 + 1e-2 * double(b),
+              0.05 * double(j) - 1e-2 * double(c)));
           seg.push_back(site);
         }
         registry.Register(id, EwaldChargeState::Neutral, seg);
@@ -798,8 +793,8 @@ BOOST_AUTO_TEST_CASE(unit_probe_potential_reproduces_the_static_energy) {
     const double k_max = 14.0 * alpha;
     const double r_min = 6.0 / alpha;
 
-    EwaldRealSpaceSum real_sum(box, registry, alpha, thole, r_min, 1e-14,
-                               0.945, 25, 6.0, foreground);
+    EwaldRealSpaceSum real_sum(box, registry, alpha, thole, r_min, 1e-14, 0.945,
+                               25, 6.0, foreground);
     EwaldReciprocalSpaceSum recip_sum(box, registry, alpha, k_max);
     EwaldRealSpaceInteractor inter(alpha, thole);
     const std::vector<const PolarSite*> no_exclusions;
@@ -931,14 +926,12 @@ BOOST_AUTO_TEST_CASE(batched_potential_matches_the_unit_probe) {
           site.setCharge(charges[j]);
           // Static AND induced, neither symmetric across the cell, so
           // neither channel can pass by cancelling to zero.
-          site.setStaticDipole(Eigen::Vector3d(0.15 * double(j + 1) +
-                                                   1e-2 * double(a),
-                                               -0.10 + 1e-2 * double(b),
-                                               0.05 * double(j) -
-                                                   1e-2 * double(c)));
+          site.setStaticDipole(Eigen::Vector3d(
+              0.15 * double(j + 1) + 1e-2 * double(a), -0.10 + 1e-2 * double(b),
+              0.05 * double(j) - 1e-2 * double(c)));
           site.setInduced_Dipole(Eigen::Vector3d(
-              1e-2 * double(j + 1) + 1e-3 * double(a),
-              -7e-3 + 2e-3 * double(b), 4e-3 * double(j) - 1e-3 * double(c)));
+              1e-2 * double(j + 1) + 1e-3 * double(a), -7e-3 + 2e-3 * double(b),
+              4e-3 * double(j) - 1e-3 * double(c)));
           seg.push_back(site);
         }
         registry.Register(id, EwaldChargeState::Neutral, seg);
@@ -948,12 +941,11 @@ BOOST_AUTO_TEST_CASE(batched_potential_matches_the_unit_probe) {
   }
 
   // On a site, between segments, and off-lattice.
-  const std::vector<Eigen::Vector3d> points = {
-      {0.0, 0.0, 0.0},
-      {0.63, 0.63, 0.63},
-      {0.5 * d, 0.37 * d, 0.71 * d},
-      {1.5 * d, 0.5 * d, 2.5 * d},
-      {-0.4 * d, 1.2 * d, 0.1 * d}};
+  const std::vector<Eigen::Vector3d> points = {{0.0, 0.0, 0.0},
+                                               {0.63, 0.63, 0.63},
+                                               {0.5 * d, 0.37 * d, 0.71 * d},
+                                               {1.5 * d, 0.5 * d, 2.5 * d},
+                                               {-0.4 * d, 1.2 * d, 0.1 * d}};
 
   const double alpha = 0.25;
   const double k_max = 14.0 * alpha;

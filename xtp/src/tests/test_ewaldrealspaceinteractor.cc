@@ -227,16 +227,15 @@ BOOST_AUTO_TEST_CASE(induced_thole_damping_short_vs_long_range) {
   double rf = Rf.norm();
   Eigen::Vector3d mu1f = far1.getInducedDipole();
   Eigen::Vector3d mu2f = far2.getInducedDipole();
-  double e_undamped_far = (rf * rf * mu1f.dot(mu2f) -
-                           3 * mu1f.dot(Rf) * mu2f.dot(Rf)) /
-                          std::pow(rf, 5);
+  double e_undamped_far =
+      (rf * rf * mu1f.dot(mu2f) - 3 * mu1f.dot(Rf) * mu2f.dot(Rf)) /
+      std::pow(rf, 5);
 
   // Long range: Thole damping factors must have saturated to 1, so the
   // screened (tiny alpha) energy must match the undamped point-dipole
   // formula closely.
   BOOST_CHECK_CLOSE(e_far, e_undamped_far, 1e-3);
 }
-
 
 // The erf- and erfc-screened B-functions are complements by construction:
 // together they must reconstruct the bare Coulomb derivatives. Asserted
@@ -249,12 +248,10 @@ BOOST_AUTO_TEST_CASE(erf_and_erfc_bfunctions_are_complementary) {
     const auto bc = interactor.ComputeB(r);
     const auto be = interactor.ComputeErfB(r);
     worst = std::max(worst, std::abs(bc.B0 + be.B0 - 1.0 / r) * r);
-    worst = std::max(worst,
-                     std::abs(bc.B1 + be.B1 - 1.0 / std::pow(r, 3)) *
-                         std::pow(r, 3));
-    worst = std::max(worst,
-                     std::abs(bc.B2 + be.B2 - 3.0 / std::pow(r, 5)) *
-                         std::pow(r, 5) / 3.0);
+    worst = std::max(
+        worst, std::abs(bc.B1 + be.B1 - 1.0 / std::pow(r, 3)) * std::pow(r, 3));
+    worst = std::max(worst, std::abs(bc.B2 + be.B2 - 3.0 / std::pow(r, 5)) *
+                                std::pow(r, 5) / 3.0);
   }
   BOOST_CHECK_SMALL(worst, 1e-12);
 }
@@ -295,8 +292,7 @@ BOOST_AUTO_TEST_CASE(erf_correction_completes_the_bare_induced_field) {
   interactor.ApplyErfInducedFieldCorrection<Estatic::V>(source, correction);
 
   const double r = target_pos.norm();
-  const double au3 = thole * std::pow(r, 3) *
-                     source.getSqrtInvEigenDamp() *
+  const double au3 = thole * std::pow(r, 3) * source.getSqrtInvEigenDamp() *
                      screened.getSqrtInvEigenDamp();
   BOOST_REQUIRE_GT(au3, 40.0);  // Thole must be inactive for this identity
 
@@ -339,7 +335,6 @@ BOOST_AUTO_TEST_CASE(erf_correction_shift_matches_moving_the_source) {
   BOOST_CHECK_SMALL((a.V() - b.V()).norm() / a.V().norm(), 1e-14);
 }
 
-
 // The energy counterpart of erf_correction_completes_the_bare_induced_field:
 // the erfc- and erf-screened permanent-multipole energies must sum to the
 // bare Coulomb energy. The reference is derived here from the multipole
@@ -357,8 +352,8 @@ BOOST_AUTO_TEST_CASE(erfc_and_erf_static_energies_sum_to_bare) {
     return site;
   };
 
-  PolarSite a = make(Eigen::Vector3d::Zero(), 0.35,
-                     Eigen::Vector3d(2e-2, -1e-2, 5e-3));
+  PolarSite a =
+      make(Eigen::Vector3d::Zero(), 0.35, Eigen::Vector3d(2e-2, -1e-2, 5e-3));
   PolarSite b = make(Eigen::Vector3d(4.0, 1.5, -2.0), -0.22,
                      Eigen::Vector3d(-8e-3, 4e-3, 1e-2));
 
@@ -613,8 +608,8 @@ BOOST_AUTO_TEST_CASE(damped_real_and_erf_halves_reassemble_to_damped_bare) {
     interactor.ApplyErfInducedFieldCorrection<Estatic::V>(source, target_erf);
 
     const Eigen::Vector3d total = target_real.V() - target_erf.V();
-    std::cout << "  alpha = " << alpha << "  reassembled = "
-              << total.transpose() << std::endl;
+    std::cout << "  alpha = " << alpha
+              << "  reassembled = " << total.transpose() << std::endl;
     assembled.push_back(total);
 
     BOOST_CHECK_SMALL((total - reference).norm() / reference.norm(), 1e-12);

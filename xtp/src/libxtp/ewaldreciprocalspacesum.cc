@@ -83,7 +83,7 @@ Eigen::Matrix3d EwaldReciprocalSpaceSum::SelfFieldMatrix() const {
 }
 
 std::vector<EwaldReciprocalSpaceSum::KVector>
-EwaldReciprocalSpaceSum::GenerateKVectors() const {
+    EwaldReciprocalSpaceSum::GenerateKVectors() const {
   // Reciprocal lattice vectors: columns of 2*pi*(box^-1)^T, the standard
   // dual basis (b_i . a_j = 2*pi*delta_ij).
   const Eigen::Matrix3d recip = 2.0 * kPi * box_.inverse().transpose();
@@ -117,8 +117,8 @@ EwaldReciprocalSpaceSum::GenerateKVectors() const {
 }
 
 std::vector<std::complex<double>>
-EwaldReciprocalSpaceSum::TotalStructureFactors(
-    EwaldChargeState source_state, const ProgressCallback& progress) const {
+    EwaldReciprocalSpaceSum::TotalStructureFactors(
+        EwaldChargeState source_state, const ProgressCallback& progress) const {
   std::vector<std::complex<double>> S(kvectors_.size(),
                                       std::complex<double>(0.0, 0.0));
 
@@ -183,8 +183,7 @@ EwaldReciprocalSpaceSum::TotalStructureFactors(
 }
 
 double EwaldReciprocalSpaceSum::CalcStaticEnergyBetween(
-    const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>>&
-        foreground,
+    const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>>& foreground,
     const std::vector<const PolarSite*>& background_exclusions,
     EwaldChargeState source_state) const {
   // See this method's own declaration for the formula, for why the two

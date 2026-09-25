@@ -10,8 +10,8 @@
 #include <Eigen/IterativeLinearSolvers>
 
 // Local VOTCA includes
-#include "ewaldregistry.h"
 #include "ewaldrealspaceinteractor.h"
+#include "ewaldregistry.h"
 
 namespace votca {
 namespace xtp {
@@ -34,12 +34,10 @@ namespace xtp {
  * (0 iterations to machine precision, since the preconditioner exactly
  * matched the operator there):
  *
- *   Eigen::ConjugateGradient<Op, Lower|Upper, EwaldBlockJacobiPreconditioner> cg;
- *   cg.compute(op);
- *   cg.preconditioner() = EwaldBlockJacobiPreconditioner(registry, ids,
- *                                                        alpha_ewald,
- *                                                        thole_a);
- *   x = cg.solveWithGuess(b, x0);
+ *   Eigen::ConjugateGradient<Op, Lower|Upper, EwaldBlockJacobiPreconditioner>
+ * cg; cg.compute(op); cg.preconditioner() =
+ * EwaldBlockJacobiPreconditioner(registry, ids, alpha_ewald, thole_a); x =
+ * cg.solveWithGuess(b, x0);
  *
  * i.e. assign the real, already-built preconditioner via
  * IterativeSolverBase<>::preconditioner()'s own public, non-const
@@ -115,7 +113,10 @@ class EwaldBlockJacobiPreconditioner {
 
  public:
   using StorageIndex = votca::Index;
-  enum { ColsAtCompileTime = Eigen::Dynamic, MaxColsAtCompileTime = Eigen::Dynamic };
+  enum {
+    ColsAtCompileTime = Eigen::Dynamic,
+    MaxColsAtCompileTime = Eigen::Dynamic
+  };
 
   EwaldBlockJacobiPreconditioner() : is_initialized_(false) {}
 
@@ -174,10 +175,10 @@ class EwaldBlockJacobiPreconditioner {
   inline const Eigen::Solve<EwaldBlockJacobiPreconditioner, Rhs> solve(
       const Eigen::MatrixBase<Rhs>& b) const {
     eigen_assert(is_initialized_ &&
-                "EwaldBlockJacobiPreconditioner is not initialized.");
+                 "EwaldBlockJacobiPreconditioner is not initialized.");
     eigen_assert(size_ == b.rows() &&
-                "EwaldBlockJacobiPreconditioner::solve(): invalid number "
-                "of rows of the right hand side matrix b");
+                 "EwaldBlockJacobiPreconditioner::solve(): invalid number "
+                 "of rows of the right hand side matrix b");
     return Eigen::Solve<EwaldBlockJacobiPreconditioner, Rhs>(*this,
                                                              b.derived());
   }

@@ -176,10 +176,9 @@ PcgIndefinitenessResult SolveWithIndefinitenessCheck(
     while (i < max_iter) {
       tmp.noalias() = op * p;
       const double curvature = p.dot(tmp);
-      XTP_LOG(Log::info, log)
-          << TimeStamp() << "   PCG iter " << (i + 1)
-          << ": curvature p.A.p=" << curvature << " (" << elapsed_s() << "s)"
-          << std::flush;
+      XTP_LOG(Log::info, log) << TimeStamp() << "   PCG iter " << (i + 1)
+                              << ": curvature p.A.p=" << curvature << " ("
+                              << elapsed_s() << "s)" << std::flush;
       if (curvature <= 0.0) {
         result.indefinite_at_iteration = i + 1;
         result.indefinite_curvature = curvature;
@@ -271,8 +270,7 @@ class EwaldSitePolarizabilityBlocks {
   EwaldSitePolarizabilityBlocks(const EwaldRegistry& registry,
                                 const std::vector<Index>& ids) {
     for (Index id : ids) {
-      const PolarSegment& segment =
-          registry.Get(id, EwaldChargeState::Neutral);
+      const PolarSegment& segment = registry.Get(id, EwaldChargeState::Neutral);
       for (const PolarSite& site : segment) {
         // getPInv() is this codebase's own stored quantity (see
         // EwaldPeriodicDipoleOperator's own diagonal); P itself is not
@@ -299,8 +297,7 @@ class EwaldSitePolarizabilityBlocks {
   Eigen::VectorXd Apply(const Eigen::VectorXd& v) const {
     Eigen::VectorXd result(size());
     for (std::size_t n = 0; n < blocks_.size(); ++n) {
-      result.segment<3>(3 * Index(n)) =
-          blocks_[n] * v.segment<3>(3 * Index(n));
+      result.segment<3>(3 * Index(n)) = blocks_[n] * v.segment<3>(3 * Index(n));
     }
     return result;
   }
@@ -400,8 +397,8 @@ double SiteRelativeDipoleChange(const Eigen::Vector3d& U0,
 // or unverified operator decomposition.
 JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
                        const EwaldSitePolarizabilityBlocks& site_p,
-                       const Eigen::VectorXd& b, Index max_iter,
-                       double omega, Logger& log,
+                       const Eigen::VectorXd& b, Index max_iter, double omega,
+                       Logger& log,
                        std::chrono::steady_clock::time_point t_start,
                        bool match_legacy_first_step) {
   auto elapsed_s = [&]() {
@@ -425,8 +422,6 @@ JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
     const double this_step_omega =
         (i == 0 && match_legacy_first_step) ? 1.0 : omega;
     x = x_old + this_step_omega * site_p.Apply(residual_vec);
-
-
 
     double max_dU = -1.0;
     double avg_dU = 0.0;

@@ -87,7 +87,10 @@ class DFTEngine {
     externalsites_ = externalsites;
   }
 
-  void setEwaldgrid(const Vxc_Grid& ewaldgrid) { external_ewaldgrid_ = ewaldgrid; has_ewaldgrid_ = true; }
+  void setEwaldgrid(const Vxc_Grid& ewaldgrid) {
+    external_ewaldgrid_ = ewaldgrid;
+    has_ewaldgrid_ = true;
+  }
 
   // The nuclei's share of the external Ewald potential, sum_A Z_A
   // phi(R_A). Added to E0 alongside the grid's contribution to H0 -- the
@@ -142,9 +145,9 @@ class DFTEngine {
   /// Return the configured AO basis-set name for the DFT calculation.
   std::string getDFTBasisName() const { return dftbasis_name_; };
 
-// =========== EWALD MOMENTS SETTER AND ACCESS ==========
-// +++++++++++ BACKGROUND +++++++++++++++++++++++++++++++
- void setEwaldBackground(ewaldcontainer::PotentialData& bg) {
+  // =========== EWALD MOMENTS SETTER AND ACCESS ==========
+  // +++++++++++ BACKGROUND +++++++++++++++++++++++++++++++
+  void setEwaldBackground(ewaldcontainer::PotentialData& bg) {
     ewald_background_ = &bg;
     has_ewaldbackground_ = true;
   }
@@ -159,8 +162,8 @@ class DFTEngine {
     return *ewald_background_;
   }
 
-// +++++++++++ FOREGROUND CORRECTION ++++++++++++++++++++++
- void setEwaldForegroundCorrection(ewaldcontainer::PotentialData& fg_corr) {
+  // +++++++++++ FOREGROUND CORRECTION ++++++++++++++++++++++
+  void setEwaldForegroundCorrection(ewaldcontainer::PotentialData& fg_corr) {
     ewald_foreground_correction_ = &fg_corr;
   }
 
@@ -174,8 +177,8 @@ class DFTEngine {
     return *ewald_foreground_correction_;
   }
 
-// +++++++++++ SHAPE CORRECTION +++++++++++++++++++++++++++
- void setEwaldShapeCorrection(ewaldcontainer::PotentialData& shape_corr) {
+  // +++++++++++ SHAPE CORRECTION +++++++++++++++++++++++++++
+  void setEwaldShapeCorrection(ewaldcontainer::PotentialData& shape_corr) {
     ewald_shape_correction_ = &shape_corr;
   }
 
@@ -190,9 +193,7 @@ class DFTEngine {
   }
 
   // +++++++++++ MM1 REGION +++++++++++++++++++++++++++
- void setEwaldMM1(ewaldcontainer::PotentialData& mm1) {
-    ewald_mm1_ = &mm1;
-  }
+  void setEwaldMM1(ewaldcontainer::PotentialData& mm1) { ewald_mm1_ = &mm1; }
 
   ewaldcontainer::PotentialData& ewaldMM1() {
     assert(ewald_mm1_ != nullptr);
@@ -291,14 +292,16 @@ class DFTEngine {
   Mat_p_Energy IntegrateExternalDensity(const QMMolecule& mol,
                                         const Orbitals& extdensity) const;
 
-Mat_p_Energy IntegrateEwaldRealSpaceMultipoles(
-    const ewaldcontainer::PotentialData& bg) const;
+  Mat_p_Energy IntegrateEwaldRealSpaceMultipoles(
+      const ewaldcontainer::PotentialData& bg) const;
 
-    Mat_p_Energy IntegrateEwaldReciprocalSpace(
-    const ewaldcontainer::PotentialData& bg) const;
+  Mat_p_Energy IntegrateEwaldReciprocalSpace(
+      const ewaldcontainer::PotentialData& bg) const;
 
-Mat_p_Energy IntegrateForegroundCorrectionMultipoles(const ewaldcontainer::PotentialData& fgc) const;
-Mat_p_Energy IntegrateShapeCorrection(const ewaldcontainer::PotentialData& data) const;
+  Mat_p_Energy IntegrateForegroundCorrectionMultipoles(
+      const ewaldcontainer::PotentialData& fgc) const;
+  Mat_p_Energy IntegrateShapeCorrection(
+      const ewaldcontainer::PotentialData& data) const;
 
   /// Integrate a homogeneous external electric field into the AO basis.
   Eigen::MatrixXd IntegrateExternalField(const QMMolecule& mol) const;
@@ -673,7 +676,7 @@ Mat_p_Energy IntegrateShapeCorrection(const ewaldcontainer::PotentialData& data)
   std::vector<Index> active_and_border_atoms_;
   std::vector<Index> numfuncpatom_;
 
-  //QMEwald
+  // QMEwald
   Vxc_Grid external_ewaldgrid_;
   bool has_ewaldgrid_ = false;
   double ewald_nuclear_energy_ = 0.0;

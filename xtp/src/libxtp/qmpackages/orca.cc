@@ -243,9 +243,9 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   for (const QMAtom& atom : orbitals.QMAtoms()) {
     Znuc += atom.getNuccharge();
   }
-  if ((charge_ == 0 ) && (Znuc%2 != 0)) {
+  if ((charge_ == 0) && (Znuc % 2 != 0)) {
     spin_ = 2;
-  } 
+  }
   // header
   inp_file << "* xyz  " << charge_ << " " << spin_ << endl;
   // put coordinates

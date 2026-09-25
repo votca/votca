@@ -37,11 +37,11 @@
 #include "votca/tools/constants.h"
 #include "votca/xtp/checkpoint.h"
 #include "votca/xtp/ewaldblockjacobipreconditioner.h"
+#include "votca/xtp/ewaldparameters.h"
 #include "votca/xtp/ewaldperiodicdipoleoperator.h"
 #include "votca/xtp/ewaldrealspacesum.h"
 #include "votca/xtp/ewaldreciprocalspacesum.h"
 #include "votca/xtp/ewaldregistry.h"
-#include "votca/xtp/ewaldparameters.h"
 #include "votca/xtp/ewaldshapecorrection.h"
 #include "votca/xtp/ewaldsolvers.h"
 #include "votca/xtp/qmcalculator.h"
@@ -105,26 +105,26 @@ class EwaldBackground final : public QMCalculator {
   std::string mapping_file_;
   std::string checkpoint_file_;
 
-  double alpha_ = 0.5;      // bohr^-1 (internal). User-facing XML value
-                            // for coulombmethod.alpha is nm^-1, converted
-                            // in ParseOptions; only used as-is if the
-                            // user explicitly sets it, otherwise
-                            // overwritten in Evaluate() with a value
-                            // derived from the box (see there, already
-                            // in bohr^-1 at that point).
+  double alpha_ = 0.5;  // bohr^-1 (internal). User-facing XML value
+                        // for coulombmethod.alpha is nm^-1, converted
+                        // in ParseOptions; only used as-is if the
+                        // user explicitly sets it, otherwise
+                        // overwritten in Evaluate() with a value
+                        // derived from the box (see there, already
+                        // in bohr^-1 at that point).
   bool alpha_explicit_ = false;
-  double k_max_ = 3.0;      // bohr^-1 (internal); same nm^-1-in-XML
-                            // pattern as alpha_ -- derived in Evaluate()
-                            // from the (possibly also derived) alpha_,
-                            // unless explicitly set.
+  double k_max_ = 3.0;  // bohr^-1 (internal); same nm^-1-in-XML
+                        // pattern as alpha_ -- derived in Evaluate()
+                        // from the (possibly also derived) alpha_,
+                        // unless explicitly set.
   bool k_max_explicit_ = false;
   double thole_a_ = 0.39;
   double r_min_ = 18.897259886;  // bohr (internal) = 1.0 nm, the actual
-                            // default applied in ParseOptions. User-
-                            // facing XML value for realspace.r_min is
-                            // nm, converted in ParseOptions; this member
-                            // initializer only matters if ParseOptions
-                            // somehow never runs.
+                                 // default applied in ParseOptions. User-
+                                 // facing XML value for realspace.r_min is
+                                 // nm, converted in ParseOptions; this member
+                                 // initializer only matters if ParseOptions
+                                 // somehow never runs.
   double field_tol_ = 1e-8;
   // Dimensionless: the real-space distance cutoff is
   // screening_factor_/alpha. See EwaldRealSpaceSum's own constructor for
@@ -222,15 +222,15 @@ inline void EwaldBackground::ParseOptions(const tools::Property& opt) {
         "'slab'");
   }
 
-  thole_a_ = opt.ifExistsReturnElseReturnDefault<double>(
-      "polarmethod.thole_a", thole_a_);
+  thole_a_ = opt.ifExistsReturnElseReturnDefault<double>("polarmethod.thole_a",
+                                                         thole_a_);
   // realspace.r_min is user-facing nm; r_min_ is stored internally in
   // bohr. r_min is a plain length (not an inverse length like alpha_/
   // k_max_ above), so this conversion goes the more familiar direction:
   // bohr = nm * nm2bohr. 1.0 nm is the default here (~18.9 bohr,
   // replacing the old bare-bohr literal default of 20.0).
-  double r_min_nm = opt.ifExistsReturnElseReturnDefault<double>(
-      "realspace.r_min", 1.0);
+  double r_min_nm =
+      opt.ifExistsReturnElseReturnDefault<double>("realspace.r_min", 1.0);
   r_min_ = r_min_nm * tools::conv::nm2bohr;
   field_tol_ = opt.ifExistsReturnElseReturnDefault<double>(
       "realspace.field_tol", field_tol_);
@@ -241,12 +241,12 @@ inline void EwaldBackground::ParseOptions(const tools::Property& opt) {
         "EwaldBackground: realspace.screening_factor must be positive");
   }
 
-  max_iter_ = opt.ifExistsReturnElseReturnDefault<Index>(
-      "polarmethod.max_iter", max_iter_);
+  max_iter_ = opt.ifExistsReturnElseReturnDefault<Index>("polarmethod.max_iter",
+                                                         max_iter_);
   pcg_tolerance_ = opt.ifExistsReturnElseReturnDefault<double>(
       "polarmethod.tolerance", pcg_tolerance_);
-  induce_ = opt.ifExistsReturnElseReturnDefault<bool>("polarmethod.induce",
-                                                       induce_);
+  induce_ =
+      opt.ifExistsReturnElseReturnDefault<bool>("polarmethod.induce", induce_);
   // Debug-only, undocumented on purpose (no legacy counterpart to give
   // it a natural home in the schema) -- see this member's own
   // declaration for what it's for.
@@ -261,8 +261,8 @@ inline void EwaldBackground::ParseOptions(const tools::Property& opt) {
       "polarmethod.use_block_jacobi_preconditioner",
       use_block_jacobi_preconditioner_);
   // Debug/experimental, see use_jor_'s own declaration.
-  use_jor_ = opt.ifExistsReturnElseReturnDefault<bool>(
-      "polarmethod.use_jor", use_jor_);
+  use_jor_ = opt.ifExistsReturnElseReturnDefault<bool>("polarmethod.use_jor",
+                                                       use_jor_);
   jor_omega_ = opt.ifExistsReturnElseReturnDefault<double>(
       "polarmethod.jor_omega", jor_omega_);
   match_legacy_first_step_ = opt.ifExistsReturnElseReturnDefault<bool>(
@@ -289,9 +289,9 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
         .count();
   };
 
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Starting Ewald background calculation"
-      << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp()
+                          << " Starting Ewald background calculation"
+                          << std::flush;
 
   PolarMapper polmap(log);
   polmap.LoadMappingFile(mapping_file_);
@@ -307,18 +307,17 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   offsets.reserve(top.Segments().size() + 1);
   offsets.push_back(0);
   for (const Segment& seg : top.Segments()) {
-    PolarSegment mol =
-        polmap.map(seg, SegId(seg.getId(), std::string("n")));
+    PolarSegment mol = polmap.map(seg, SegId(seg.getId(), std::string("n")));
     registry.Register(seg.getId(), EwaldChargeState::Neutral, mol);
     ids.push_back(seg.getId());
     offsets.push_back(offsets.back() + 3 * mol.size());
   }
   const Index total_size = offsets.back();
 
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Mapped " << ids.size() << " segments, "
-      << (total_size / 3) << " polarizable sites total ("
-      << elapsed_s(t_start) << "s)" << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp() << " Mapped " << ids.size()
+                          << " segments, " << (total_size / 3)
+                          << " polarizable sites total (" << elapsed_s(t_start)
+                          << "s)" << std::flush;
 
   const Eigen::Matrix3d& box = top.getBox();
   const double volume = box.col(0).dot(box.col(1).cross(box.col(2)));
@@ -336,8 +335,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   // large box pushes cost into reciprocal space (where it's cubic in
   // k_max, hence in alpha) for no numerical benefit.
   if (!alpha_explicit_) {
-    const double L_min = std::min(
-        {box.col(0).norm(), box.col(1).norm(), box.col(2).norm()});
+    const double L_min =
+        std::min({box.col(0).norm(), box.col(1).norm(), box.col(2).norm()});
     alpha_ = 3.0 / L_min;
   }
   if (!k_max_explicit_) {
@@ -345,44 +344,47 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   }
 
   EwaldRealSpaceSum real_sum(box, registry, alpha_, thole_a_, r_min_,
-                            field_tol_, /*shell_width=*/0.945,
-                            /*n_max=*/15, screening_factor_);
+                             field_tol_, /*shell_width=*/0.945,
+                             /*n_max=*/15, screening_factor_);
   EwaldReciprocalSpaceSum recip_sum(box, registry, alpha_, k_max_);
   EwaldShapeCorrection shape(volume, registry, shape_);
 
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Real/reciprocal-space sums constructed ("
-      << elapsed_s(t_start) << "s)" << std::flush;
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Ewald split: alpha=" << alpha_ << " bohr^-1 ("
-      << alpha_ * tools::conv::nm2bohr << " nm^-1), k_max=" << k_max_
-      << " bohr^-1 (" << k_max_ * tools::conv::nm2bohr << " nm^-1, "
-      << recip_sum.NumKVectors() << " k-vectors), real-space cutoff "
-      << screening_factor_ / alpha_ << " bohr (screening_factor="
-      << screening_factor_ << ")" << std::flush;
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Cell: volume=" << volume << " bohr^3, shape="
-      << (shape_ == EwaldShape::Cube ? "cube" : "slab")
-      << ", r_min=" << r_min_ << " bohr (" << r_min_ * tools::conv::bohr2nm
-      << " nm), field_tol=" << field_tol_ << ", thole_a=" << thole_a_
-      << std::flush;
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Induction: induce="
-      << (induce_ ? "true" : "false") << ", max_iter=" << max_iter_
-      << ", tolerance=" << pcg_tolerance_ << ", solver="
-      << (use_jor_ ? "JOR" : "PCG")
-      << (use_jor_ ? "" : (use_block_jacobi_preconditioner_
-                               ? " (block-Jacobi)"
-                               : " (unpreconditioned)"))
-      << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp()
+                          << " Real/reciprocal-space sums constructed ("
+                          << elapsed_s(t_start) << "s)" << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp() << " Ewald split: alpha=" << alpha_
+                          << " bohr^-1 (" << alpha_ * tools::conv::nm2bohr
+                          << " nm^-1), k_max=" << k_max_ << " bohr^-1 ("
+                          << k_max_ * tools::conv::nm2bohr << " nm^-1, "
+                          << recip_sum.NumKVectors()
+                          << " k-vectors), real-space cutoff "
+                          << screening_factor_ / alpha_
+                          << " bohr (screening_factor=" << screening_factor_
+                          << ")" << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp() << " Cell: volume=" << volume
+                          << " bohr^3, shape="
+                          << (shape_ == EwaldShape::Cube ? "cube" : "slab")
+                          << ", r_min=" << r_min_ << " bohr ("
+                          << r_min_ * tools::conv::bohr2nm
+                          << " nm), field_tol=" << field_tol_
+                          << ", thole_a=" << thole_a_ << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp() << " Induction: induce="
+                          << (induce_ ? "true" : "false")
+                          << ", max_iter=" << max_iter_
+                          << ", tolerance=" << pcg_tolerance_
+                          << ", solver=" << (use_jor_ ? "JOR" : "PCG")
+                          << (use_jor_ ? ""
+                                       : (use_block_jacobi_preconditioner_
+                                              ? " (block-Jacobi)"
+                                              : " (unpreconditioned)"))
+                          << std::flush;
   if (use_jor_) {
     XTP_LOG(Log::info, log)
         << TimeStamp() << " JOR omega=" << jor_omega_ << std::flush;
   }
   if (match_legacy_first_step_) {
     XTP_LOG(Log::info, log)
-        << TimeStamp() << " debug_match_legacy_first_step is ON"
-        << std::flush;
+        << TimeStamp() << " debug_match_legacy_first_step is ON" << std::flush;
   }
 
   // Permanent field only (every induced dipole is still zero at this
@@ -406,9 +408,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
     real_sum.AddFieldAt<Estatic::V>(entry.first, *entry.second,
                                     EwaldChargeState::Neutral);
   }
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Real-space permanent field done ("
-      << elapsed_s(t_field) << "s)" << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp() << " Real-space permanent field done ("
+                          << elapsed_s(t_field) << "s)" << std::flush;
 
   auto t_recip = std::chrono::steady_clock::now();
   // EwaldReciprocalSpaceSum no longer takes a segment id (it never
@@ -425,20 +426,18 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
         // Debug, not info: twenty of these per run drown the lines that
         // matter, and the total is already on the split line above.
         XTP_LOG(Log::debug, log)
-            << TimeStamp() << "   k-space progress: " << done << "/"
-            << total << " k-vectors (" << elapsed_s(t_recip) << "s)"
-            << std::flush;
+            << TimeStamp() << "   k-space progress: " << done << "/" << total
+            << " k-vectors (" << elapsed_s(t_recip) << "s)" << std::flush;
       });
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Reciprocal-space permanent field done ("
-      << elapsed_s(t_recip) << "s)" << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp()
+                          << " Reciprocal-space permanent field done ("
+                          << elapsed_s(t_recip) << "s)" << std::flush;
 
   for (const auto& entry : targets) {
     shape.AddFieldAt<Estatic::V>(*entry.second, EwaldChargeState::Neutral);
   }
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Permanent field total (" << elapsed_s(t_field)
-      << "s)" << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp() << " Permanent field total ("
+                          << elapsed_s(t_field) << "s)" << std::flush;
 
   // Intramolecular static-static compensation: EwaldReciprocalSpaceSum's
   // own structure factor never excludes anything (see that class's own
@@ -477,15 +476,14 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
     Index n_sites = segment.size();
     for (Index i = 0; i < n_sites; ++i) {
       for (Index j = 0; j < n_sites; ++j) {
-        erf_interactor
-            .ApplyErfStaticFieldCorrection<PolarSite, Estatic::V>(
-                segment[j], segment[i]);
+        erf_interactor.ApplyErfStaticFieldCorrection<PolarSite, Estatic::V>(
+            segment[j], segment[i]);
       }
     }
   }
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Intramolecular static compensation applied ("
-      << elapsed_s(t_field) << "s)" << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp()
+                          << " Intramolecular static compensation applied ("
+                          << elapsed_s(t_field) << "s)" << std::flush;
 
   Eigen::VectorXd b(total_size);
   {
@@ -523,14 +521,14 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
     // different algorithms (see SolveWithJOR's own documentation for
     // why JOR is the one actually chosen once the operator was directly
     // confirmed indefinite), not two variants of the same solve -- JOR
-    // has no preconditioner-type branching of its own (EwaldSitePolarizabilityBlocks
-    // is the one and only D^-1 it uses, matching legacy exactly), so it
-    // never enters the PCG-specific branches below at all.
+    // has no preconditioner-type branching of its own
+    // (EwaldSitePolarizabilityBlocks is the one and only D^-1 it uses, matching
+    // legacy exactly), so it never enters the PCG-specific branches below at
+    // all.
     if (use_jor_) {
       EwaldSitePolarizabilityBlocks site_p(registry, ids);
-      auto result =
-          SolveWithJOR(op, site_p, b, max_iter_, jor_omega_, log, t_pcg,
-                      match_legacy_first_step_);
+      auto result = SolveWithJOR(op, site_p, b, max_iter_, jor_omega_, log,
+                                 t_pcg, match_legacy_first_step_);
       x = result.x;
       iterations = result.iterations;
       residual = result.residual;
@@ -547,128 +545,126 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
       }
     } else {
 
-    // The preconditioner type is a compile-time choice here too (see
-    // SolveWithIndefinitenessCheck's own documentation for why that
-    // function is templated on it) -- these two branches genuinely
-    // instantiate two different specializations, they cannot share one
-    // call. EwaldBlockJacobiPreconditioner builds itself fully in its
-    // own constructor (see its own class documentation); Eigen's own
-    // DiagonalPreconditioner does not -- it needs an explicit compute(op)
-    // call first, unlike the constructor-based pattern
-    // EwaldBlockJacobiPreconditioner itself uses. Getting this backwards
-    // (assuming both work the same way) would be a real, silent
-    // correctness bug -- solve() on an uncompute()'d DiagonalPreconditioner
-    // does not throw, it just returns nonsense -- so this is deliberately
-    // NOT written as a single shared code path that "just" swaps the
-    // preconditioner type.
-    if (use_block_jacobi_preconditioner_) {
-      EwaldBlockJacobiPreconditioner precond(registry, ids, alpha_, thole_a_);
-      auto result = SolveWithIndefinitenessCheck(op, precond, b, max_iter_,
-                                                 pcg_tolerance_, log, t_pcg);
-      x = result.x;
-      iterations = result.iterations;
-      residual = result.residual;
-      converged = result.converged;
-      indefinite_at_iteration = result.indefinite_at_iteration;
-      indefinite_curvature = result.indefinite_curvature;
-      lanczos_min_eigenvalue = result.lanczos_min_eigenvalue;
-    } else {
-      Eigen::DiagonalPreconditioner<double> precond;
-      precond.compute(op);
-      auto result = SolveWithIndefinitenessCheck(op, precond, b, max_iter_,
-                                                 pcg_tolerance_, log, t_pcg);
-      x = result.x;
-      iterations = result.iterations;
-      residual = result.residual;
-      converged = result.converged;
-      indefinite_at_iteration = result.indefinite_at_iteration;
-      indefinite_curvature = result.indefinite_curvature;
-      lanczos_min_eigenvalue = result.lanczos_min_eigenvalue;
-    }
+      // The preconditioner type is a compile-time choice here too (see
+      // SolveWithIndefinitenessCheck's own documentation for why that
+      // function is templated on it) -- these two branches genuinely
+      // instantiate two different specializations, they cannot share one
+      // call. EwaldBlockJacobiPreconditioner builds itself fully in its
+      // own constructor (see its own class documentation); Eigen's own
+      // DiagonalPreconditioner does not -- it needs an explicit compute(op)
+      // call first, unlike the constructor-based pattern
+      // EwaldBlockJacobiPreconditioner itself uses. Getting this backwards
+      // (assuming both work the same way) would be a real, silent
+      // correctness bug -- solve() on an uncompute()'d DiagonalPreconditioner
+      // does not throw, it just returns nonsense -- so this is deliberately
+      // NOT written as a single shared code path that "just" swaps the
+      // preconditioner type.
+      if (use_block_jacobi_preconditioner_) {
+        EwaldBlockJacobiPreconditioner precond(registry, ids, alpha_, thole_a_);
+        auto result = SolveWithIndefinitenessCheck(op, precond, b, max_iter_,
+                                                   pcg_tolerance_, log, t_pcg);
+        x = result.x;
+        iterations = result.iterations;
+        residual = result.residual;
+        converged = result.converged;
+        indefinite_at_iteration = result.indefinite_at_iteration;
+        indefinite_curvature = result.indefinite_curvature;
+        lanczos_min_eigenvalue = result.lanczos_min_eigenvalue;
+      } else {
+        Eigen::DiagonalPreconditioner<double> precond;
+        precond.compute(op);
+        auto result = SolveWithIndefinitenessCheck(op, precond, b, max_iter_,
+                                                   pcg_tolerance_, log, t_pcg);
+        x = result.x;
+        iterations = result.iterations;
+        residual = result.residual;
+        converged = result.converged;
+        indefinite_at_iteration = result.indefinite_at_iteration;
+        indefinite_curvature = result.indefinite_curvature;
+        lanczos_min_eigenvalue = result.lanczos_min_eigenvalue;
+      }
 
-    XTP_LOG(Log::info, log)
-        << TimeStamp() << " PCG finished after " << iterations
-        << " iterations, residual " << residual << " (" << elapsed_s(t_pcg)
-        << "s)" << std::flush;
-    {
-      // Phase breakdown of the matvec -- see
-      // EwaldPeriodicDipoleOperator::RawMultiplyTimings' own
-      // declaration. n_calls exceeds the reported iteration count by
-      // one, since baseline_ = RawMultiply(0) is built in the operator's
-      // own constructor. The first call also builds the real-space
-      // neighbour cache, so it is much more expensive than the rest and
-      // inflates the real_space per-call average; read the per-call
-      // figures as an upper bound on steady-state cost.
-      const auto& tm = op.Timings();
-      const double n = double(std::max<Index>(tm.n_calls, 1));
       XTP_LOG(Log::info, log)
-          << TimeStamp() << " RawMultiply phase breakdown over "
-          << tm.n_calls << " calls (total " << tm.total() << "s):"
-          << std::flush;
-      auto line = [&](const char* nm, double t) {
+          << TimeStamp() << " PCG finished after " << iterations
+          << " iterations, residual " << residual << " (" << elapsed_s(t_pcg)
+          << "s)" << std::flush;
+      {
+        // Phase breakdown of the matvec -- see
+        // EwaldPeriodicDipoleOperator::RawMultiplyTimings' own
+        // declaration. n_calls exceeds the reported iteration count by
+        // one, since baseline_ = RawMultiply(0) is built in the operator's
+        // own constructor. The first call also builds the real-space
+        // neighbour cache, so it is much more expensive than the rest and
+        // inflates the real_space per-call average; read the per-call
+        // figures as an upper bound on steady-state cost.
+        const auto& tm = op.Timings();
+        const double n = double(std::max<Index>(tm.n_calls, 1));
         XTP_LOG(Log::info, log)
-            << TimeStamp() << (boost::format("   %1$-12s %2$8.3fs total  "
-                                             "%3$7.3fs/call  %4$5.1f%%") %
-                               nm % t % (t / n) %
-                               (tm.total() > 0 ? 100.0 * t / tm.total() : 0.0))
-                                  .str()
-            << std::flush;
-      };
-      line("setup", tm.setup);
-      line("real_space", tm.real_space);
-      line("reciprocal", tm.reciprocal);
-      line("shape", tm.shape);
-      line("assemble", tm.assemble);
-      line("intra", tm.intra);
+            << TimeStamp() << " RawMultiply phase breakdown over " << tm.n_calls
+            << " calls (total " << tm.total() << "s):" << std::flush;
+        auto line = [&](const char* nm, double t) {
+          XTP_LOG(Log::info, log)
+              << TimeStamp()
+              << (boost::format("   %1$-12s %2$8.3fs total  "
+                                "%3$7.3fs/call  %4$5.1f%%") %
+                  nm % t % (t / n) %
+                  (tm.total() > 0 ? 100.0 * t / tm.total() : 0.0))
+                     .str()
+              << std::flush;
+        };
+        line("setup", tm.setup);
+        line("real_space", tm.real_space);
+        line("reciprocal", tm.reciprocal);
+        line("shape", tm.shape);
+        line("assemble", tm.assemble);
+        line("intra", tm.intra);
 
-      // Neighbour-list size -- the real cost driver behind the
-      // real_space line above. See EwaldRealSpaceSum::NeighborStats.
-      const auto ns = real_sum.GetNeighborStats();
-      XTP_LOG(Log::info, log)
-          << TimeStamp()
-          << (boost::format(
-                  "   neighbours: %1$.1f entries/target over %2$d targets "
-                  "(%3$d kept, %4$d culled beyond %5$.1f bohr = %6$.1f%%)") %
-              ns.entries_per_target() % ns.targets % ns.entries % ns.culled %
-              real_sum.RealSpaceCutoff() % (100.0 * ns.culled_fraction()))
-                 .str()
-          << std::flush;
-    }
-    if (!std::isnan(lanczos_min_eigenvalue)) {
-      XTP_LOG(Log::info, log)
-          << TimeStamp() << " Lanczos min eigenvalue: "
-          << lanczos_min_eigenvalue << std::flush;
-      if (lanczos_min_eigenvalue < 0.0) {
+        // Neighbour-list size -- the real cost driver behind the
+        // real_space line above. See EwaldRealSpaceSum::NeighborStats.
+        const auto ns = real_sum.GetNeighborStats();
         XTP_LOG(Log::info, log)
             << TimeStamp()
-            << " NEGATIVE -- strong evidence the operator is not "
-               "positive-definite (see "
-               "PcgIndefinitenessResult::lanczos_min_eigenvalue for what "
-               "this does and does not guarantee)."
+            << (boost::format(
+                    "   neighbours: %1$.1f entries/target over %2$d targets "
+                    "(%3$d kept, %4$d culled beyond %5$.1f bohr = %6$.1f%%)") %
+                ns.entries_per_target() % ns.targets % ns.entries % ns.culled %
+                real_sum.RealSpaceCutoff() % (100.0 * ns.culled_fraction()))
+                   .str()
             << std::flush;
+      }
+      if (!std::isnan(lanczos_min_eigenvalue)) {
+        XTP_LOG(Log::info, log) << TimeStamp() << " Lanczos min eigenvalue: "
+                                << lanczos_min_eigenvalue << std::flush;
+        if (lanczos_min_eigenvalue < 0.0) {
+          XTP_LOG(Log::info, log)
+              << TimeStamp()
+              << " NEGATIVE -- strong evidence the operator is not "
+                 "positive-definite (see "
+                 "PcgIndefinitenessResult::lanczos_min_eigenvalue for what "
+                 "this does and does not guarantee)."
+              << std::flush;
+        }
+      }
+
+      if (indefinite_at_iteration >= 0) {
+        throw std::runtime_error(
+            "EwaldBackground: PCG's own operator was found to be NOT "
+            "positive-definite at iteration " +
+            std::to_string(indefinite_at_iteration) +
+            " (p.A.p = " + std::to_string(indefinite_curvature) +
+            " <= 0) -- this is a direct algebraic certificate, not an "
+            "inference from residual behavior.");
+      }
+
+      if (!converged) {
+        throw std::runtime_error(
+            "EwaldBackground: PCG did not converge (max_iter reached, "
+            "operator was never found indefinite along the way)");
       }
     }
 
-    if (indefinite_at_iteration >= 0) {
-      throw std::runtime_error(
-          "EwaldBackground: PCG's own operator was found to be NOT "
-          "positive-definite at iteration " +
-          std::to_string(indefinite_at_iteration) + " (p.A.p = " +
-          std::to_string(indefinite_curvature) +
-          " <= 0) -- this is a direct algebraic certificate, not an "
-          "inference from residual behavior.");
-    }
-
-    if (!converged) {
-      throw std::runtime_error(
-          "EwaldBackground: PCG did not converge (max_iter reached, "
-          "operator was never found indefinite along the way)");
-    }
-    }
-
     for (std::size_t n = 0; n < ids.size(); ++n) {
-      PolarSegment& segment =
-          registry.Get(ids[n], EwaldChargeState::Neutral);
+      PolarSegment& segment = registry.Get(ids[n], EwaldChargeState::Neutral);
       Index base = offsets[n];
       for (Index s = 0; s < segment.size(); ++s) {
         segment[s].setInduced_Dipole(x.segment<3>(base + 3 * s));
@@ -735,12 +731,12 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
     params.WriteToCpt(wp);
   }
 
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Checkpoint written to " << checkpoint_file_
-      << " (" << elapsed_s(t_cpt) << "s)" << std::flush;
-  XTP_LOG(Log::info, log)
-      << TimeStamp() << " Ewald background calculation done, total "
-      << elapsed_s(t_start) << "s" << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp() << " Checkpoint written to "
+                          << checkpoint_file_ << " (" << elapsed_s(t_cpt)
+                          << "s)" << std::flush;
+  XTP_LOG(Log::info, log) << TimeStamp()
+                          << " Ewald background calculation done, total "
+                          << elapsed_s(t_start) << "s" << std::flush;
 
   return true;
 }

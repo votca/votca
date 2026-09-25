@@ -87,8 +87,8 @@ struct ScreenedPotentialField {
 };
 
 ScreenedPotentialField EvaluateSource(
-    double q, const Eigen::Vector3d& mu, const Eigen::Vector3d& r_vec,
-    double r, const EwaldRealSpaceInteractor::BFunctions& b) {
+    double q, const Eigen::Vector3d& mu, const Eigen::Vector3d& r_vec, double r,
+    const EwaldRealSpaceInteractor::BFunctions& b) {
   ScreenedPotentialField result;
   const double mu_dot_r = mu.dot(r_vec);
 
@@ -154,8 +154,8 @@ void EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection(
   // A charge contributes no field to itself (no direction), so only the
   // dipole term survives.
   if (r < kCoincidenceTol) {
-    const double self_coeff =
-        (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / std::sqrt(votca::tools::conv::Pi);
+    const double self_coeff = (4.0 / 3.0) * alpha_ * alpha_ * alpha_ /
+                              std::sqrt(votca::tools::conv::Pi);
     // SIGN: this branch must be the r -> 0 limit of src.field below, so
     // that the "-=" means the same on both sides of kCoincidenceTol.
     // That limit is NEGATIVE -- EvaluateSource's dipole term is -B1*mu
@@ -210,8 +210,8 @@ void EwaldRealSpaceInteractor::ApplyErfInducedFieldCorrection(
   // A charge contributes no field to itself (no direction), so only the
   // dipole term survives.
   if (r < kCoincidenceTol) {
-    const double self_coeff =
-        (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / std::sqrt(votca::tools::conv::Pi);
+    const double self_coeff = (4.0 / 3.0) * alpha_ * alpha_ * alpha_ /
+                              std::sqrt(votca::tools::conv::Pi);
     // SIGN: negative, as in ApplyErfStaticFieldCorrection's branch.
     //
     // This is the one of the four coincidence branches that is live for
@@ -331,8 +331,7 @@ double EwaldRealSpaceInteractor::CalcErfStaticEnergy(
   if (r < kCoincidenceTol) {
     const double sqrt_pi = std::sqrt(votca::tools::conv::Pi);
     const double phi_self = 2.0 * alpha_ / sqrt_pi;
-    const double dip_self =
-        (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / sqrt_pi;
+    const double dip_self = (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / sqrt_pi;
     // Charge-charge through the self-potential, dipole-dipole through
     // the self-field. The cross terms vanish: a charge produces no field
     // at its own position, and a dipole no potential.
@@ -366,8 +365,7 @@ double EwaldRealSpaceInteractor::CalcErfInducedSourceEnergy(
 
   if (r < kCoincidenceTol) {
     const double sqrt_pi = std::sqrt(votca::tools::conv::Pi);
-    const double dip_self =
-        (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / sqrt_pi;
+    const double dip_self = (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / sqrt_pi;
     // A dipole produces no potential at its own position, so the
     // charge-dipole cross term drops; only dipole-dipole survives.
     //
@@ -444,73 +442,67 @@ double EwaldRealSpaceInteractor::CalcInducedSourceEnergy(
 }
 
 // Explicit instantiations for the source types actually used.
-template double EwaldRealSpaceInteractor::ApplyStaticField<StaticSite,
-                                                            Estatic::V>(
-    const StaticSite&, PolarSite&, const Eigen::Vector3d&) const;
-template double EwaldRealSpaceInteractor::ApplyStaticField<StaticSite,
-                                                            Estatic::noE_V>(
-    const StaticSite&, PolarSite&, const Eigen::Vector3d&) const;
-template double EwaldRealSpaceInteractor::ApplyStaticField<PolarSite,
-                                                            Estatic::V>(
-    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
-template double EwaldRealSpaceInteractor::ApplyStaticField<PolarSite,
-                                                            Estatic::noE_V>(
-    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::ApplyStaticField<StaticSite, Estatic::V>(
+        const StaticSite&, PolarSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::ApplyStaticField<StaticSite, Estatic::noE_V>(
+        const StaticSite&, PolarSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::ApplyStaticField<PolarSite, Estatic::V>(
+        const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::ApplyStaticField<PolarSite, Estatic::noE_V>(
+        const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 
-template void
-EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<StaticSite,
-                                                        Estatic::V>(
-    const StaticSite&, PolarSite&, const Eigen::Vector3d&) const;
-template void
-EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<
+template void EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<
+    StaticSite, Estatic::V>(const StaticSite&, PolarSite&,
+                            const Eigen::Vector3d&) const;
+template void EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<
     StaticSite, Estatic::noE_V>(const StaticSite&, PolarSite&,
                                 const Eigen::Vector3d&) const;
-template void
-EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<PolarSite,
-                                                        Estatic::V>(
-    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
-template void
-EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<
+template void EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<
+    PolarSite, Estatic::V>(const PolarSite&, PolarSite&,
+                           const Eigen::Vector3d&) const;
+template void EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<
     PolarSite, Estatic::noE_V>(const PolarSite&, PolarSite&,
                                const Eigen::Vector3d&) const;
 
-template void
-EwaldRealSpaceInteractor::ApplyErfInducedFieldCorrection<Estatic::V>(
-    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
-template void
-EwaldRealSpaceInteractor::ApplyErfInducedFieldCorrection<Estatic::noE_V>(
-    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
+template void EwaldRealSpaceInteractor::ApplyErfInducedFieldCorrection<
+    Estatic::V>(const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
+template void EwaldRealSpaceInteractor::ApplyErfInducedFieldCorrection<
+    Estatic::noE_V>(const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 
 template double EwaldRealSpaceInteractor::ApplyInducedField<Estatic::V>(
     const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 template double EwaldRealSpaceInteractor::ApplyInducedField<Estatic::noE_V>(
     const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 
-template double EwaldRealSpaceInteractor::CalcStaticEnergy<StaticSite,
-                                                            StaticSite>(
-    const StaticSite&, const StaticSite&, const Eigen::Vector3d&) const;
-template double EwaldRealSpaceInteractor::CalcStaticEnergy<StaticSite,
-                                                            PolarSite>(
-    const StaticSite&, const PolarSite&, const Eigen::Vector3d&) const;
-template double EwaldRealSpaceInteractor::CalcStaticEnergy<PolarSite,
-                                                            StaticSite>(
-    const PolarSite&, const StaticSite&, const Eigen::Vector3d&) const;
-template double EwaldRealSpaceInteractor::CalcStaticEnergy<PolarSite,
-                                                            PolarSite>(
-    const PolarSite&, const PolarSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::CalcStaticEnergy<StaticSite, StaticSite>(
+        const StaticSite&, const StaticSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::CalcStaticEnergy<StaticSite, PolarSite>(
+        const StaticSite&, const PolarSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::CalcStaticEnergy<PolarSite, StaticSite>(
+        const PolarSite&, const StaticSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::CalcStaticEnergy<PolarSite, PolarSite>(
+        const PolarSite&, const PolarSite&, const Eigen::Vector3d&) const;
 
-template double EwaldRealSpaceInteractor::CalcErfStaticEnergy<StaticSite,
-                                                              StaticSite>(
-    const StaticSite&, const StaticSite&, const Eigen::Vector3d&) const;
-template double EwaldRealSpaceInteractor::CalcErfStaticEnergy<StaticSite,
-                                                              PolarSite>(
-    const StaticSite&, const PolarSite&, const Eigen::Vector3d&) const;
-template double EwaldRealSpaceInteractor::CalcErfStaticEnergy<PolarSite,
-                                                              StaticSite>(
-    const PolarSite&, const StaticSite&, const Eigen::Vector3d&) const;
-template double EwaldRealSpaceInteractor::CalcErfStaticEnergy<PolarSite,
-                                                              PolarSite>(
-    const PolarSite&, const PolarSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::CalcErfStaticEnergy<StaticSite, StaticSite>(
+        const StaticSite&, const StaticSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::CalcErfStaticEnergy<StaticSite, PolarSite>(
+        const StaticSite&, const PolarSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::CalcErfStaticEnergy<PolarSite, StaticSite>(
+        const PolarSite&, const StaticSite&, const Eigen::Vector3d&) const;
+template double
+    EwaldRealSpaceInteractor::CalcErfStaticEnergy<PolarSite, PolarSite>(
+        const PolarSite&, const PolarSite&, const Eigen::Vector3d&) const;
 
 }  // namespace xtp
 }  // namespace votca

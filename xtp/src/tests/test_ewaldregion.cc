@@ -56,14 +56,14 @@ void WriteBackground(const std::string& file, const EwaldParameters& params,
   for (Index id = 0; id < n_segments; ++id) {
     PolarSegment seg("seg", id);
     for (Index j = 0; j < 3; ++j) {
-      PolarSite site(j, (j == 0) ? "C" : "H",
-                     Eigen::Vector3d(double(id) * 3.0, double(j) * 0.7,
-                                     0.2 * double(j)));
+      PolarSite site(
+          j, (j == 0) ? "C" : "H",
+          Eigen::Vector3d(double(id) * 3.0, double(j) * 0.7, 0.2 * double(j)));
       site.setpolarization(((j == 0) ? 8.0 : 3.0) *
                            Eigen::Matrix3d::Identity());
       site.setCharge((j == 0) ? -0.4 : 0.2);
-      site.setInduced_Dipole(
-          Eigen::Vector3d(1e-3, -2e-3, 5e-4) * (1.0 + 0.1 * double(id)));
+      site.setInduced_Dipole(Eigen::Vector3d(1e-3, -2e-3, 5e-4) *
+                             (1.0 + 0.1 * double(id)));
       seg.push_back(site);
     }
     registry.Register(id, EwaldChargeState::Neutral, seg);
@@ -101,8 +101,7 @@ tools::Property RegionDefinition(const std::string& file) {
 // builds neutral multi-site segments, which is right for the load tests
 // but useless for pinning a sign.
 void WriteSingleCharge(const std::string& file, double charge,
-                       const Eigen::Vector3d& position,
-                       Index probe_id,
+                       const Eigen::Vector3d& position, Index probe_id,
                        const Eigen::Vector3d& probe_position) {
   EwaldRegistry registry;
   // +q at `position` and -q mirrored through the probe. Two reasons, both
@@ -200,8 +199,7 @@ BOOST_AUTO_TEST_CASE(loads_background_and_parameters_from_checkpoint) {
   // The converged induced dipoles are the whole reason the checkpoint
   // exists; losing them would leave a background that looks structurally
   // fine and is physically empty.
-  const PolarSegment& seg =
-      region.Registry().Get(2, EwaldChargeState::Neutral);
+  const PolarSegment& seg = region.Registry().Get(2, EwaldChargeState::Neutral);
   const Eigen::Vector3d expected =
       Eigen::Vector3d(1e-3, -2e-3, 5e-4) * (1.0 + 0.1 * 2.0);
   BOOST_CHECK_SMALL((seg[0].getInducedDipole() - expected).norm(), 1e-14);
@@ -228,13 +226,11 @@ BOOST_AUTO_TEST_CASE(region_is_frozen_and_always_converged) {
   // state to clear, and clearing the dipoles would silently empty the
   // background.
   const Eigen::Vector3d before =
-      region.Registry().Get(1, EwaldChargeState::Neutral)[0]
-          .getInducedDipole();
+      region.Registry().Get(1, EwaldChargeState::Neutral)[0].getInducedDipole();
   region.Reset();
   BOOST_CHECK(region.Converged());
   const Eigen::Vector3d after =
-      region.Registry().Get(1, EwaldChargeState::Neutral)[0]
-          .getInducedDipole();
+      region.Registry().Get(1, EwaldChargeState::Neutral)[0].getInducedDipole();
   BOOST_CHECK_SMALL((before - after).norm(), 1e-16);
   BOOST_CHECK_GT(before.norm(), 0.0);
 
@@ -264,8 +260,7 @@ BOOST_AUTO_TEST_CASE(rejects_checkpoint_without_parameters) {
   log.setReportLevel(Log::error);
   EwaldRegion region(0, log);
   tools::Property prop = RegionDefinition(file);
-  BOOST_CHECK_THROW(region.Initialize(prop.get("ewaldregion")),
-                    std::exception);
+  BOOST_CHECK_THROW(region.Initialize(prop.get("ewaldregion")), std::exception);
 
   std::remove(file.c_str());
 }
@@ -284,12 +279,10 @@ BOOST_AUTO_TEST_CASE(rejects_implausible_parameters) {
   log.setReportLevel(Log::error);
   EwaldRegion region(0, log);
   tools::Property prop = RegionDefinition(file);
-  BOOST_CHECK_THROW(region.Initialize(prop.get("ewaldregion")),
-                    std::exception);
+  BOOST_CHECK_THROW(region.Initialize(prop.get("ewaldregion")), std::exception);
 
   std::remove(file.c_str());
 }
-
 
 // THE SIGN AT THE REGION BOUNDARY.
 //
@@ -426,9 +419,7 @@ BOOST_AUTO_TEST_CASE(foreground_segment_sees_its_own_periodic_images) {
   const std::vector<std::pair<std::string, std::vector<OwnImageSite>>>
       configurations = {
           {"charges only",
-           {{q, p0, no_dipole},
-            {-2.0 * q, p1, no_dipole},
-            {q, p2, no_dipole}}},
+           {{q, p0, no_dipole}, {-2.0 * q, p1, no_dipole}, {q, p2, no_dipole}}},
           {"dipoles only", {{0.0, p0, m0}, {0.0, p1, m1}, {0.0, p2, m2}}},
           {"charges and dipoles",
            {{q, p0, m0}, {-2.0 * q, p1, m1}, {q, p2, m2}}}};
@@ -517,9 +508,9 @@ BOOST_AUTO_TEST_CASE(foreground_segment_sees_its_own_periodic_images) {
               const double rn = r.norm();
               const double r3 = rn * rn * rn;
               total += a.charge * b.charge / rn;
-              total += (a.charge * b.dipole.dot(r) -
-                        b.charge * a.dipole.dot(r)) /
-                       r3;
+              total +=
+                  (a.charge * b.dipole.dot(r) - b.charge * a.dipole.dot(r)) /
+                  r3;
               total += a.dipole.dot(b.dipole) / r3 -
                        3.0 * a.dipole.dot(r) * b.dipole.dot(r) / (r3 * rn * rn);
             }
@@ -671,8 +662,7 @@ BOOST_AUTO_TEST_CASE(potential_at_reproduces_the_own_image_lattice_sum) {
   const double reference_20 = lattice_sum(20);
   const double reference_30 = lattice_sum(30);
   const double tail = std::abs(reference_30 - reference_20);
-  const double tolerance =
-      std::max(20.0 * tail, 1e-3 * std::abs(reference_30));
+  const double tolerance = std::max(20.0 * tail, 1e-3 * std::abs(reference_30));
 
   BOOST_REQUIRE_GT(std::abs(reference_30), 1e-6);
   std::cout << "PotentialAt own-image energy: direct lattice sum = "
@@ -717,30 +707,31 @@ BOOST_AUTO_TEST_CASE(potential_at_reproduces_the_own_image_lattice_sum) {
 // test_ewaldrealspacesum). Letting that in would make any disagreement
 // here ambiguous. This case is about the permanent channel, where the
 // two have no freedom to differ at all.
-BOOST_AUTO_TEST_CASE(potential_at_matches_apply_field_to_on_a_rank0_foreground) {
+BOOST_AUTO_TEST_CASE(
+    potential_at_matches_apply_field_to_on_a_rank0_foreground) {
   const std::string file = "ewaldregion_test_crosscheck.hdf5";
   const double box_length = 24.0;
   const double alpha = 0.35;
 
   // Three neutral rank-0 segments, one of which becomes the foreground.
   // Neutral per segment so the k = 0 omission carries no net charge.
-  const std::vector<std::vector<std::pair<double, Eigen::Vector3d>>> segments = {
-      {{-0.6, Eigen::Vector3d(0.0, 0.0, 0.0)},
-       {0.3, Eigen::Vector3d(1.4, 0.2, -0.3)},
-       {0.3, Eigen::Vector3d(-1.1, 0.9, 0.5)}},
-      {{-0.5, Eigen::Vector3d(7.0, 1.0, 2.0)},
-       {0.5, Eigen::Vector3d(8.3, 1.6, 2.4)}},
-      {{-0.4, Eigen::Vector3d(3.0, 6.5, -4.0)},
-       {0.4, Eigen::Vector3d(4.1, 7.2, -3.4)}}};
+  const std::vector<std::vector<std::pair<double, Eigen::Vector3d>>> segments =
+      {{{-0.6, Eigen::Vector3d(0.0, 0.0, 0.0)},
+        {0.3, Eigen::Vector3d(1.4, 0.2, -0.3)},
+        {0.3, Eigen::Vector3d(-1.1, 0.9, 0.5)}},
+       {{-0.5, Eigen::Vector3d(7.0, 1.0, 2.0)},
+        {0.5, Eigen::Vector3d(8.3, 1.6, 2.4)}},
+       {{-0.4, Eigen::Vector3d(3.0, 6.5, -4.0)},
+        {0.4, Eigen::Vector3d(4.1, 7.2, -3.4)}}};
 
-  auto centroid_of = [](const std::vector<std::pair<double, Eigen::Vector3d>>&
-                            sites) {
-    Eigen::Vector3d c = Eigen::Vector3d::Zero();
-    for (const auto& s : sites) {
-      c += s.second;
-    }
-    return Eigen::Vector3d(c / double(sites.size()));
-  };
+  auto centroid_of =
+      [](const std::vector<std::pair<double, Eigen::Vector3d>>& sites) {
+        Eigen::Vector3d c = Eigen::Vector3d::Zero();
+        for (const auto& s : sites) {
+          c += s.second;
+        }
+        return Eigen::Vector3d(c / double(sites.size()));
+      };
 
   {
     EwaldRegistry registry;
@@ -853,20 +844,21 @@ BOOST_AUTO_TEST_CASE(potential_at_matches_apply_field_to_on_a_rank0_foreground) 
 // inherits that validation. Which is what a QM/MM site energy needs,
 // since its QM half arrives through PotentialAt and its polar half
 // through ApplyFieldTo, in the same job.
-BOOST_AUTO_TEST_CASE(potential_at_matches_apply_field_to_on_a_charged_foreground) {
+BOOST_AUTO_TEST_CASE(
+    potential_at_matches_apply_field_to_on_a_charged_foreground) {
   const std::string file = "ewaldregion_test_crosscheck_charged.hdf5";
   const double box_length = 24.0;
   const double alpha = 0.35;
 
   // Neutral background, as a converged background always is.
-  const std::vector<std::vector<std::pair<double, Eigen::Vector3d>>> background =
-      {{{-0.6, Eigen::Vector3d(0.0, 0.0, 0.0)},
-        {0.3, Eigen::Vector3d(1.4, 0.2, -0.3)},
-        {0.3, Eigen::Vector3d(-1.1, 0.9, 0.5)}},
-       {{-0.5, Eigen::Vector3d(7.0, 1.0, 2.0)},
-        {0.5, Eigen::Vector3d(8.3, 1.6, 2.4)}},
-       {{-0.4, Eigen::Vector3d(3.0, 6.5, -4.0)},
-        {0.4, Eigen::Vector3d(4.1, 7.2, -3.4)}}};
+  const std::vector<std::vector<std::pair<double, Eigen::Vector3d>>>
+      background = {{{-0.6, Eigen::Vector3d(0.0, 0.0, 0.0)},
+                     {0.3, Eigen::Vector3d(1.4, 0.2, -0.3)},
+                     {0.3, Eigen::Vector3d(-1.1, 0.9, 0.5)}},
+                    {{-0.5, Eigen::Vector3d(7.0, 1.0, 2.0)},
+                     {0.5, Eigen::Vector3d(8.3, 1.6, 2.4)}},
+                    {{-0.4, Eigen::Vector3d(3.0, 6.5, -4.0)},
+                     {0.4, Eigen::Vector3d(4.1, 7.2, -3.4)}}};
 
   // The job's charge state for segment 0: same sites, same positions,
   // charges summing to +1 rather than 0. Deliberately not a uniform

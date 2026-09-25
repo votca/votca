@@ -360,7 +360,6 @@ void PolarRegion::ReadFromCpt(CheckpointReader& r) {
   MMRegion<PolarSegment>::ReadFromCpt(r);
 }
 
-
 double PolarRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
   // Delegated: the background owns the periodic sums, the foreground
   // bookkeeping and the parameters they must all share, so assembling

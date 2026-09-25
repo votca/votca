@@ -86,7 +86,7 @@ class EwaldRegion : public Region {
   // job fails to converge. See this class's own documentation.
   bool Converged() const override { return true; }
 
-  void Evaluate(std::vector<std::unique_ptr<Region> >& regions) override;
+  void Evaluate(std::vector<std::unique_ptr<Region>>& regions) override;
 
   // No-op: there is no per-iteration state to clear.
   void Reset() override {}

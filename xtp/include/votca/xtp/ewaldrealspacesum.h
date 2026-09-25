@@ -24,9 +24,9 @@
 // Standard includes
 #include <map>
 #include <string>
-#include <utility>
 #include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 // Local VOTCA includes
@@ -252,9 +252,9 @@ class EwaldRealSpaceSum {
   // self-pair is skipped, and that skip is disabled for any source with
   // a foreground copy. Pass a foreground segment's id: a point that is
   // not a site of its own wants no self-skip.
-  Eigen::VectorXd PotentialAtMany(
-      Index target_segment_id, const std::vector<Eigen::Vector3d>& points,
-      EwaldChargeState source_state) const;
+  Eigen::VectorXd PotentialAtMany(Index target_segment_id,
+                                  const std::vector<Eigen::Vector3d>& points,
+                                  EwaldChargeState source_state) const;
 
   double CalcInducedSourceEnergyAt(const PolarSite& target,
                                    EwaldChargeState source_state) const;
@@ -311,7 +311,7 @@ class EwaldRealSpaceSum {
     std::size_t operator()(
         const std::pair<const PolarSite*, EwaldChargeState>& key) const {
       return std::hash<const PolarSite*>()(key.first) ^
-            (std::hash<EwaldChargeState>()(key.second) << 1);
+             (std::hash<EwaldChargeState>()(key.second) << 1);
     }
   };
 

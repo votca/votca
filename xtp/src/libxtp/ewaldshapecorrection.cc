@@ -112,12 +112,12 @@ double EwaldShapeCorrection::CalcStaticEnergyBetween(
   const Moments bg = BackgroundMoments(source_state, background_exclusions);
 
   if (shape_ == EwaldShape::Cube) {
-    const double bracket = fg.q0 * bg.q2.trace() + bg.q0 * fg.q2.trace() -
-                           fg.q1.dot(bg.q1);
+    const double bracket =
+        fg.q0 * bg.q2.trace() + bg.q0 * fg.q2.trace() - fg.q1.dot(bg.q1);
     return -(4.0 * kPi / (3.0 * volume_)) * bracket;
   }
-  const double bracket = fg.q0 * bg.q2(2, 2) + bg.q0 * fg.q2(2, 2) -
-                         fg.q1.z() * bg.q1.z();
+  const double bracket =
+      fg.q0 * bg.q2(2, 2) + bg.q0 * fg.q2(2, 2) - fg.q1.z() * bg.q1.z();
   return -(4.0 * kPi / volume_) * bracket;
 }
 

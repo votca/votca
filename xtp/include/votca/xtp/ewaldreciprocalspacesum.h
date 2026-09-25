@@ -197,9 +197,9 @@ class EwaldReciprocalSpaceSum {
   // non-empty, is called periodically during the k-vector loop (see
   // ProgressCallback).
   template <enum Estatic CE>
-  void AddFieldAtMany(const std::vector<PolarSite*>& targets,
-                      EwaldChargeState source_state,
-                      const ProgressCallback& progress = ProgressCallback()) const;
+  void AddFieldAtMany(
+      const std::vector<PolarSite*>& targets, EwaldChargeState source_state,
+      const ProgressCallback& progress = ProgressCallback()) const;
 
   // POTENTIAL at arbitrary points, batched -- the exact counterpart of
   // AddFieldAtMany, and like it carrying BOTH channels: the structure
@@ -222,8 +222,7 @@ class EwaldReciprocalSpaceSum {
   // would repeat that tens of thousands of times over. Here it is paid
   // once and replayed against every point.
   Eigen::VectorXd PotentialAtMany(
-      const std::vector<Eigen::Vector3d>& points,
-      EwaldChargeState source_state,
+      const std::vector<Eigen::Vector3d>& points, EwaldChargeState source_state,
       const ProgressCallback& progress = ProgressCallback()) const;
 
   // Reciprocal-space PERMANENT-multipole interaction energy between a

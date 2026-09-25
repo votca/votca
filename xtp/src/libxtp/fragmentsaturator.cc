@@ -255,7 +255,7 @@ QMMolecule FragmentSaturator::RelaxNewAtoms(const QMMolecule& mol,
             << " conjugate-gradient steps ("
             << (converged ? "converged early"
                           : (still_running ? "exhausted full budget"
-                                            : "OpenBabel itself stopped"))
+                                           : "OpenBabel itself stopped"))
             << ")" << std::endl;
   pFF->GetCoordinates(obmol);
 

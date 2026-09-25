@@ -150,7 +150,6 @@ std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers>
   return result;
 }
 
-
 template <libint2::Operator obtype,
           typename OperatorParams =
               typename libint2::operator_traits<obtype>::oper_params_type>
@@ -292,7 +291,7 @@ void AOEwaldShapeCorrection::Fill(const AOBasis& aobasis) {
 
   for (Index i = 0; i < 4; i++) {
     aomatrix_[i] = results[i];  // emultipole1 returns: overlap, x-dipole,
-                                    // y-dipole, z-dipole
+                                // y-dipole, z-dipole
   }
 }
 
@@ -307,23 +306,24 @@ void AOEwaldRealSpaceCharges::Fill(const AOBasis& aobasis) {
   using scalar_t = libint2::Shell::real_t;
   constexpr auto oper_t = libint2::Operator::erfc_nuclear;
 
-  using charge_oper_params_t =
-      typename libint2::operator_traits<libint2::Operator::nuclear>::oper_params_type;
+  using charge_oper_params_t = typename libint2::operator_traits<
+      libint2::Operator::nuclear>::oper_params_type;
   using oper_params_t =
       typename libint2::operator_traits<oper_t>::oper_params_type;
-
 
   charge_oper_params_t qparams;
   qparams.reserve(charges_.size());
 
   for (const auto& site : charges_) {
-    std::array<scalar_t, 3> xyz = {site.position[0], site.position[1], site.position[2]};
+    std::array<scalar_t, 3> xyz = {site.position[0], site.position[1],
+                                   site.position[2]};
     qparams.emplace_back(site.charge, xyz);
   }
 
   oper_params_t params = std::make_tuple(static_cast<scalar_t>(eta_), qparams);
 
-  aomatrix_ = computeOneBodyIntegrals<oper_t, oper_params_t>(aobasis, params)[0];
+  aomatrix_ =
+      computeOneBodyIntegrals<oper_t, oper_params_t>(aobasis, params)[0];
 }
 
 /***************************************
@@ -337,23 +337,24 @@ void AOEwaldForegroundCharges::Fill(const AOBasis& aobasis) {
   using scalar_t = libint2::Shell::real_t;
   constexpr auto oper_t = libint2::Operator::erf_nuclear;
 
-  using charge_oper_params_t =
-      typename libint2::operator_traits<libint2::Operator::nuclear>::oper_params_type;
+  using charge_oper_params_t = typename libint2::operator_traits<
+      libint2::Operator::nuclear>::oper_params_type;
   using oper_params_t =
       typename libint2::operator_traits<oper_t>::oper_params_type;
-
 
   charge_oper_params_t qparams;
   qparams.reserve(charges_.size());
 
   for (const auto& site : charges_) {
-    std::array<scalar_t, 3> xyz = {site.position[0], site.position[1], site.position[2]};
+    std::array<scalar_t, 3> xyz = {site.position[0], site.position[1],
+                                   site.position[2]};
     qparams.emplace_back(site.charge, xyz);
   }
 
   oper_params_t params = std::make_tuple(static_cast<scalar_t>(eta_), qparams);
 
-  aomatrix_ = computeOneBodyIntegrals<oper_t, oper_params_t>(aobasis, params)[0];
+  aomatrix_ =
+      computeOneBodyIntegrals<oper_t, oper_params_t>(aobasis, params)[0];
 }
 
 /***********************************
@@ -372,10 +373,10 @@ void AOEwaldRealSpaceDipoles::Fill([[maybe_unused]] const AOBasis& aobasis) {
       "AOEwaldRealSpaceDipoles requires LIBINT 1-body derivative support");
 #else
   using scalar_t = libint2::Shell::real_t;
-  using charge_oper_params_t =
-      typename libint2::operator_traits<libint2::Operator::nuclear>::oper_params_type;
-  using oper_params_t =
-      typename libint2::operator_traits<libint2::Operator::erfc_nuclear>::oper_params_type;
+  using charge_oper_params_t = typename libint2::operator_traits<
+      libint2::Operator::nuclear>::oper_params_type;
+  using oper_params_t = typename libint2::operator_traits<
+      libint2::Operator::erfc_nuclear>::oper_params_type;
 
   const Index nao = aobasis.AOBasisSize();
   aomatrix_ = Eigen::MatrixXd::Zero(nao, nao);
@@ -392,25 +393,23 @@ void AOEwaldRealSpaceDipoles::Fill([[maybe_unused]] const AOBasis& aobasis) {
     qparams.emplace_back(1.0, xyz);
   }
 
-  oper_params_t params =
-      std::make_tuple(static_cast<scalar_t>(eta_), qparams);
+  oper_params_t params = std::make_tuple(static_cast<scalar_t>(eta_), qparams);
 
   auto deriv_blocks =
       computeOneBodyIntegralsDeriv1<libint2::Operator::erfc_nuclear,
                                     oper_params_t>(aobasis, params);
 
-  // For first derivatives of a 2-center one-body operator with N operator centers:
-  // 0..2   : d/dA_x, d/dA_y, d/dA_z
-  // 3..5   : d/dB_x, d/dB_y, d/dB_z
+  // For first derivatives of a 2-center one-body operator with N operator
+  // centers: 0..2   : d/dA_x, d/dA_y, d/dA_z 3..5   : d/dB_x, d/dB_y, d/dB_z
   // 6..8   : d/dR_0x, d/dR_0y, d/dR_0z
   // 9..11  : d/dR_1x, d/dR_1y, d/dR_1z
   // etc.
   const size_t expected_shellsets = 6 + 3 * dipoles_.size();
   if (deriv_blocks.size() != expected_shellsets) {
     std::ostringstream oss;
-    oss << "AOEwaldRealSpaceDipoles: unexpected number of derivative shellsets. "
-        << "Got " << deriv_blocks.size() << ", expected "
-        << expected_shellsets;
+    oss << "AOEwaldRealSpaceDipoles: unexpected number of derivative "
+           "shellsets. "
+        << "Got " << deriv_blocks.size() << ", expected " << expected_shellsets;
     throw std::runtime_error(oss.str());
   }
 

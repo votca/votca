@@ -106,14 +106,14 @@ BOOST_AUTO_TEST_CASE(constant_potential_gives_minus_the_overlap_matrix) {
   grid.GridSetup("medium", mol, aobasis);
 
   FillPotential(grid, 1.0);
-  const Eigen::MatrixXd plus =
-      Ewald_Potential<Vxc_Grid>(grid).IntegrateEwald(aobasis.AOBasisSize())
-          .matrix();
+  const Eigen::MatrixXd plus = Ewald_Potential<Vxc_Grid>(grid)
+                                   .IntegrateEwald(aobasis.AOBasisSize())
+                                   .matrix();
 
   FillPotential(grid, -1.0);
-  const Eigen::MatrixXd minus =
-      Ewald_Potential<Vxc_Grid>(grid).IntegrateEwald(aobasis.AOBasisSize())
-          .matrix();
+  const Eigen::MatrixXd minus = Ewald_Potential<Vxc_Grid>(grid)
+                                    .IntegrateEwald(aobasis.AOBasisSize())
+                                    .matrix();
 
   BOOST_REQUIRE_EQUAL(plus.rows(), S.rows());
   BOOST_REQUIRE_GT(plus.cwiseAbs().maxCoeff(), 1e-6);
@@ -165,14 +165,14 @@ BOOST_AUTO_TEST_CASE(sign_changing_potential_is_antisymmetric) {
   };
 
   fill_with_z(1.0);
-  const Eigen::MatrixXd plus =
-      Ewald_Potential<Vxc_Grid>(grid).IntegrateEwald(aobasis.AOBasisSize())
-          .matrix();
+  const Eigen::MatrixXd plus = Ewald_Potential<Vxc_Grid>(grid)
+                                   .IntegrateEwald(aobasis.AOBasisSize())
+                                   .matrix();
 
   fill_with_z(-1.0);
-  const Eigen::MatrixXd minus =
-      Ewald_Potential<Vxc_Grid>(grid).IntegrateEwald(aobasis.AOBasisSize())
-          .matrix();
+  const Eigen::MatrixXd minus = Ewald_Potential<Vxc_Grid>(grid)
+                                    .IntegrateEwald(aobasis.AOBasisSize())
+                                    .matrix();
 
   BOOST_REQUIRE_GT(plus.cwiseAbs().maxCoeff(), 1e-6);
   BOOST_CHECK_SMALL((minus + plus).cwiseAbs().maxCoeff(),

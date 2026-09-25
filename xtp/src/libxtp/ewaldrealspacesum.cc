@@ -64,15 +64,11 @@ Eigen::Vector3d UnweightedCentroid(const PolarSegment& seg) {
 }
 }  // namespace
 
-EwaldRealSpaceSum::EwaldRealSpaceSum(const Eigen::Matrix3d& box,
-                                     const EwaldRegistry& registry,
-                                     double alpha, double thole_a,
-                                     double r_min, double field_tol,
-                                     double shell_width, Index n_max,
-                                     double screening_factor,
-                                     const std::vector<
-                                         std::pair<Index, Eigen::Vector3d>>&
-                                         foreground)
+EwaldRealSpaceSum::EwaldRealSpaceSum(
+    const Eigen::Matrix3d& box, const EwaldRegistry& registry, double alpha,
+    double thole_a, double r_min, double field_tol, double shell_width,
+    Index n_max, double screening_factor,
+    const std::vector<std::pair<Index, Eigen::Vector3d>>& foreground)
     : real_space_cutoff_(screening_factor / alpha),
       segment_radius_(0.0),
       box_(box),
@@ -111,7 +107,7 @@ EwaldRealSpaceSum::EwaldRealSpaceSum(const Eigen::Matrix3d& box,
 }
 
 std::vector<EwaldRealSpaceSum::Translation>
-EwaldRealSpaceSum::GenerateSortedTranslations() const {
+    EwaldRealSpaceSum::GenerateSortedTranslations() const {
   std::vector<Translation> translations;
   const Eigen::Vector3d a = box_.col(0);
   const Eigen::Vector3d b = box_.col(1);
@@ -126,10 +122,9 @@ EwaldRealSpaceSum::GenerateSortedTranslations() const {
     }
   }
 
-  std::sort(translations.begin(), translations.end(),
-           [](const Translation& x, const Translation& y) {
-             return x.r < y.r;
-           });
+  std::sort(
+      translations.begin(), translations.end(),
+      [](const Translation& x, const Translation& y) { return x.r < y.r; });
   return translations;
 }
 
@@ -179,8 +174,7 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
       visited_pairs;
 
   // See the cull inside the shell loop below for what this is and why.
-  const double cutoff_with_margin =
-      real_space_cutoff_ + 2.0 * segment_radius_;
+  const double cutoff_with_margin = real_space_cutoff_ + 2.0 * segment_radius_;
 
   Index shell_start = 0;
   double shell_edge = 0.0;
@@ -191,11 +185,12 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
     // not-yet-processed translation, then collect every translation up to
     // that edge into this shell. Since translations_ is sorted by
     // distance, this always yields a contiguous, radially-ordered shell.
-    shell_edge = translations_[shell_start].r +
-                (shell_edge > translations_[shell_start].r ? 0.0 : shell_width_);
+    shell_edge =
+        translations_[shell_start].r +
+        (shell_edge > translations_[shell_start].r ? 0.0 : shell_width_);
     Index shell_end = shell_start;
     while (shell_end < Index(translations_.size()) &&
-          translations_[shell_end].r <= shell_edge) {
+           translations_[shell_end].r <= shell_edge) {
       ++shell_end;
     }
 
@@ -258,11 +253,9 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
           UnweightedCentroid(source_segment);
       const Eigen::Vector3d raw_offset = target.getPos() - source_centroid;
       const Eigen::Vector3d frac = box_.inverse() * raw_offset;
-      const Eigen::Vector3d wrapped_frac =
-          frac - frac.array().round().matrix();
+      const Eigen::Vector3d wrapped_frac = frac - frac.array().round().matrix();
       const Eigen::Vector3d min_image_offset = box_ * wrapped_frac;
-      const Eigen::Vector3d baseline_shift =
-          raw_offset - min_image_offset;
+      const Eigen::Vector3d baseline_shift = raw_offset - min_image_offset;
 
       for (Index idx = shell_start; idx < shell_end; ++idx) {
         // Distance cull. The erfc(alpha*r) screening means a pair's
@@ -356,8 +349,7 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
     const Eigen::Vector3d shell_field = after_shell - before_shell;
 
     const double shell_radius =
-        translations_[shell_end > shell_start ? shell_end - 1 : shell_start]
-            .r;
+        translations_[shell_end > shell_start ? shell_end - 1 : shell_start].r;
     if (shell_radius >= r_min_ && shell_field.norm() < field_tol_) {
       converged = true;
       break;
@@ -384,7 +376,7 @@ double EwaldRealSpaceSum::CalcStaticEnergyAt(
     const PolarSite& target, EwaldChargeState source_state) const {
   // See this method's own declaration for what is and is not included.
   const std::pair<const PolarSite*, EwaldChargeState> cache_key(&target,
-                                                                 source_state);
+                                                                source_state);
   auto cached = neighbor_cache_.find(cache_key);
   if (cached == neighbor_cache_.end()) {
     throw std::runtime_error(
@@ -399,11 +391,10 @@ double EwaldRealSpaceSum::CalcStaticEnergyAt(
     const PolarSegment& source_segment = *std::get<0>(entry);
     const Index translation_idx = std::get<1>(entry);
     const Eigen::Vector3d& baseline_shift = std::get<2>(entry);
-    const Eigen::Vector3d t =
-        baseline_shift + translations_[translation_idx].t;
+    const Eigen::Vector3d t = baseline_shift + translations_[translation_idx].t;
     for (const PolarSite& source_site : source_segment) {
-      energy += interactor_.CalcStaticEnergy<PolarSite, PolarSite>(
-          source_site, target, t);
+      energy += interactor_.CalcStaticEnergy<PolarSite, PolarSite>(source_site,
+                                                                   target, t);
     }
   }
   return energy;
@@ -463,8 +454,7 @@ Eigen::VectorXd EwaldRealSpaceSum::PotentialAtMany(
       // search bounded by |t|.
       const Eigen::Vector3d raw_offset = point - source_centroid;
       const Eigen::Vector3d frac = box_inv * raw_offset;
-      const Eigen::Vector3d wrapped_frac =
-          frac - frac.array().round().matrix();
+      const Eigen::Vector3d wrapped_frac = frac - frac.array().round().matrix();
       const Eigen::Vector3d min_image_offset = box_ * wrapped_frac;
       const Eigen::Vector3d baseline_shift = raw_offset - min_image_offset;
 
@@ -520,8 +510,8 @@ Eigen::VectorXd EwaldRealSpaceSum::PotentialAtMany(
         }
 
         for (const PolarSite& source_site : source_segment) {
-          acc += interactor_.CalcStaticEnergy<PolarSite, PolarSite>(
-              source_site, probe, t);
+          acc += interactor_.CalcStaticEnergy<PolarSite, PolarSite>(source_site,
+                                                                    probe, t);
           // UNDAMPED: the target is a point in space, not a
           // point-polarizable site, so there is no overlap for Thole to
           // correct -- and the rest of the package already treats
@@ -547,7 +537,7 @@ double EwaldRealSpaceSum::CalcInducedSourceEnergyAt(
   // against different legacy channels (_pp and half of _pu), and a
   // shared body would let a change to one silently move the other.
   const std::pair<const PolarSite*, EwaldChargeState> cache_key(&target,
-                                                                 source_state);
+                                                                source_state);
   auto cached = neighbor_cache_.find(cache_key);
   if (cached == neighbor_cache_.end()) {
     throw std::runtime_error(
@@ -562,8 +552,7 @@ double EwaldRealSpaceSum::CalcInducedSourceEnergyAt(
     const PolarSegment& source_segment = *std::get<0>(entry);
     const Index translation_idx = std::get<1>(entry);
     const Eigen::Vector3d& baseline_shift = std::get<2>(entry);
-    const Eigen::Vector3d t =
-        baseline_shift + translations_[translation_idx].t;
+    const Eigen::Vector3d t = baseline_shift + translations_[translation_idx].t;
     for (const PolarSite& source_site : source_segment) {
       energy += interactor_.CalcInducedSourceEnergy(source_site, target, t);
     }
@@ -589,13 +578,12 @@ void EwaldRealSpaceSum::PrepareNeighborCache(
   }
 }
 
-template void EwaldRealSpaceSum::AddFieldAt<Estatic::V>(
-    Index, PolarSite&, EwaldChargeState, bool) const;
-template void EwaldRealSpaceSum::AddFieldAt<Estatic::noE_V>(
-    Index, PolarSite&, EwaldChargeState, bool) const;
-
-
-
+template void EwaldRealSpaceSum::AddFieldAt<Estatic::V>(Index, PolarSite&,
+                                                        EwaldChargeState,
+                                                        bool) const;
+template void EwaldRealSpaceSum::AddFieldAt<Estatic::noE_V>(Index, PolarSite&,
+                                                            EwaldChargeState,
+                                                            bool) const;
 
 }  // namespace xtp
 }  // namespace votca

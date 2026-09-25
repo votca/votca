@@ -26,8 +26,8 @@
 
 // Local VOTCA includes
 #include "votca/xtp/checkpoint.h"
-#include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/ewaldrealspaceinteractor.h"
+#include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmregion.h"
 #include "votca/xtp/staticregion.h"
@@ -57,15 +57,16 @@ void EwaldRegion::Initialize(const tools::Property& prop) {
   params_.ReadFromCpt(rp);
   loaded_ = true;
 
-  XTP_LOG(Log::info, log_)
-      << TimeStamp() << " Ewald background read from " << checkpoint_file_
-      << ": " << size() << " segments, alpha=" << params_.alpha
-      << " bohr^-1, k_max=" << params_.k_max
-      << " bohr^-1, box volume=" << params_.box.determinant() << " bohr^3"
-      << std::flush;
+  XTP_LOG(Log::info, log_) << TimeStamp() << " Ewald background read from "
+                           << checkpoint_file_ << ": " << size()
+                           << " segments, alpha=" << params_.alpha
+                           << " bohr^-1, k_max=" << params_.k_max
+                           << " bohr^-1, box volume="
+                           << params_.box.determinant() << " bohr^3"
+                           << std::flush;
 }
 
-void EwaldRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
+void EwaldRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
   // Nothing polarizes this region, so all this does is record that the
   // other regions had no effect on it -- the energies are all zero by
   // construction (see the Interactwith* overrides). It is kept rather
@@ -88,8 +89,7 @@ double EwaldRegion::charge() const {
     if (!registry_.Has(id, EwaldChargeState::Neutral)) {
       continue;
     }
-    for (const PolarSite& site :
-         registry_.Get(id, EwaldChargeState::Neutral)) {
+    for (const PolarSite& site : registry_.Get(id, EwaldChargeState::Neutral)) {
       q += site.getCharge();
     }
   }
@@ -154,7 +154,6 @@ void EwaldRegion::AppendResult(tools::Property& prop) const {
   prop.add("segments", std::to_string(size()));
   prop.add("checkpoint", checkpoint_file_);
 }
-
 
 namespace {
 Eigen::Vector3d Centroid(const PolarSegment& seg) {
@@ -285,7 +284,8 @@ void EwaldRegion::BuildSums(const std::vector<PolarSegment>& fallback) const {
     const Eigen::Vector3d bg_centroid = Centroid(bg_copy);
     const Eigen::Vector3d delta = entry.second - bg_centroid;
     const Eigen::Vector3d fractional = params_.box.inverse() * delta;
-    const Eigen::Vector3d image = params_.box * fractional.array().round().matrix();
+    const Eigen::Vector3d image =
+        params_.box * fractional.array().round().matrix();
     const Eigen::Vector3d residual = delta - image;
 
     // A residual much larger than a molecule means the foreground
@@ -313,8 +313,8 @@ void EwaldRegion::BuildSums(const std::vector<PolarSegment>& fallback) const {
       foreground_copies_);
   recip_sum_ = std::make_unique<EwaldReciprocalSpaceSum>(
       params_.box, registry_, params_.alpha, params_.k_max);
-  shape_ = std::make_unique<EwaldShapeCorrection>(
-      params_.box.determinant(), registry_, params_.shape);
+  shape_ = std::make_unique<EwaldShapeCorrection>(params_.box.determinant(),
+                                                  registry_, params_.shape);
   interactor_ = std::make_unique<EwaldRealSpaceInteractor>(params_.alpha,
                                                            params_.thole_a);
 }
@@ -342,9 +342,8 @@ Eigen::VectorXd EwaldRegion::PotentialAt(
   // not a site of its own wants.
   const Index probe_segment_id = built_foreground_.front().first;
 
-  Eigen::VectorXd phi =
-      real_sum_->PotentialAtMany(probe_segment_id, points,
-                                 EwaldChargeState::Neutral);
+  Eigen::VectorXd phi = real_sum_->PotentialAtMany(probe_segment_id, points,
+                                                   EwaldChargeState::Neutral);
   phi += recip_sum_->PotentialAtMany(points, EwaldChargeState::Neutral);
 
   // Shape and the erf removal share a unit probe per point. Neither
@@ -506,7 +505,7 @@ double EwaldRegion::ApplyFieldTo(std::vector<PolarSegment>& foreground) const {
         interactor_->ApplyErfStaticFieldCorrection<PolarSite, Estatic::V>(
             source, target, shift);
         interactor_->ApplyErfInducedFieldCorrection<Estatic::V>(source, target,
-                                                                 shift);
+                                                                shift);
       }
     }
   }
@@ -600,10 +599,9 @@ double EwaldRegion::ApplyFieldTo(std::vector<PolarSegment>& foreground) const {
     const double h2ev = tools::conv::hrt2ev;
     XTP_LOG(Log::error, log_)
         << TimeStamp()
-        << " Ewald energy [eV], permanent x permanent: real = "
-        << e_real * h2ev << "  recip = " << e_recip * h2ev
-        << "  shape = " << e_shape * h2ev << "  erf = " << e_erf * h2ev
-        << std::flush;
+        << " Ewald energy [eV], permanent x permanent: real = " << e_real * h2ev
+        << "  recip = " << e_recip * h2ev << "  shape = " << e_shape * h2ev
+        << "  erf = " << e_erf * h2ev << std::flush;
     XTP_LOG(Log::error, log_)
         << TimeStamp()
         << " Ewald energy [eV], fg permanent x bg induced: real = "
@@ -618,9 +616,9 @@ double EwaldRegion::ApplyFieldTo(std::vector<PolarSegment>& foreground) const {
         << " 1/bohr (" << params_.alpha * 18.8972612 << " 1/nm)"
         << ", k_max = " << params_.k_max << " 1/bohr ("
         << params_.k_max * 18.8972612 << " 1/nm)"
-        << ", r_min = " << params_.r_min << " bohr, V = "
-        << params_.box.determinant() << " bohr^3, thole_a = "
-        << params_.thole_a << std::flush;
+        << ", r_min = " << params_.r_min
+        << " bohr, V = " << params_.box.determinant()
+        << " bohr^3, thole_a = " << params_.thole_a << std::flush;
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " Foreground: " << foreground_copies_.size()
         << " segments, " << targets.size() << " sites, carved from "
@@ -635,8 +633,8 @@ double EwaldRegion::ApplyFieldTo(std::vector<PolarSegment>& foreground) const {
     const Index expected =
         Index(targets.size()) * Index(foreground_copies_.size());
     XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Foreground copies suppressed: "
-        << stats.foreground << " of " << expected
+        << TimeStamp() << " Foreground copies suppressed: " << stats.foreground
+        << " of " << expected
         << ((stats.foreground == expected) ? " (ok)" : "  <-- MISMATCH")
         << std::flush;
   }

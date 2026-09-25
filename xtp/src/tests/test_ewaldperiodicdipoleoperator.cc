@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(induced_dipole_aligns_with_external_field) {
 
   const double alpha_ewald = 0.3;
   EwaldRealSpaceSum real_sum(box, registry, alpha_ewald, /*thole_a=*/0.39,
-                            /*r_min=*/12.0, /*field_tol=*/1e-12);
+                             /*r_min=*/12.0, /*field_tol=*/1e-12);
   EwaldReciprocalSpaceSum recip_sum(box, registry, alpha_ewald,
                                     /*k_max=*/20.0);
   const double volume = box.determinant();

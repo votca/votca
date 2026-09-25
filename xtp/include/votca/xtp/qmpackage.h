@@ -31,8 +31,8 @@
 #include "classicalsegment.h"
 #include "logger.h"
 #include "staticsite.h"
-#include "vxc_grid.h"
 #include "votca/xtp/orbreorder.h"
+#include "vxc_grid.h"
 #include <votca/xtp/ewaldcontainer.h>
 
 namespace votca {
@@ -103,7 +103,10 @@ class QMPackage {
 
   std::string getMOFile() const { return mo_file_name_; };
 
-  void setEwaldgrid( const Vxc_Grid& ewaldgrid ){ ewaldgrid_ = ewaldgrid; has_ewaldgrid_ = true;};
+  void setEwaldgrid(const Vxc_Grid& ewaldgrid) {
+    ewaldgrid_ = ewaldgrid;
+    has_ewaldgrid_ = true;
+  };
 
   // sum_A Z_A phi(R_A): the nuclei's share of the periodic background's
   // potential. The grid above carries only what the electron density
@@ -114,10 +117,9 @@ class QMPackage {
     has_ewald_nuclear_energy_ = true;
   }
 
-
-// =========== EWALD MOMENTS SETTER AND ACCESS ==========
-// +++++++++++ BACKGROUND +++++++++++++++++++++++++++++++
- void setEwaldBackground(ewaldcontainer::PotentialData& bg) {
+  // =========== EWALD MOMENTS SETTER AND ACCESS ==========
+  // +++++++++++ BACKGROUND +++++++++++++++++++++++++++++++
+  void setEwaldBackground(ewaldcontainer::PotentialData& bg) {
     ewald_background_ = &bg;
     has_ewaldbackground_ = true;
   }
@@ -132,8 +134,8 @@ class QMPackage {
     return *ewald_background_;
   }
 
-// +++++++++++ FOREGROUND CORRECTION ++++++++++++++++++++++
- void setEwaldForegroundCorrection(ewaldcontainer::PotentialData& fg_corr) {
+  // +++++++++++ FOREGROUND CORRECTION ++++++++++++++++++++++
+  void setEwaldForegroundCorrection(ewaldcontainer::PotentialData& fg_corr) {
     ewald_foreground_correction_ = &fg_corr;
   }
 
@@ -147,8 +149,8 @@ class QMPackage {
     return *ewald_foreground_correction_;
   }
 
-// +++++++++++ SHAPE CORRECTION +++++++++++++++++++++++++++
- void setEwaldShapeCorrection(ewaldcontainer::PotentialData& shape_corr) {
+  // +++++++++++ SHAPE CORRECTION +++++++++++++++++++++++++++
+  void setEwaldShapeCorrection(ewaldcontainer::PotentialData& shape_corr) {
     ewald_shape_correction_ = &shape_corr;
   }
 
@@ -163,9 +165,7 @@ class QMPackage {
   }
 
   // +++++++++++ MM1 REGION +++++++++++++++++++++++++++
- void setEwaldMM1(ewaldcontainer::PotentialData& mm1) {
-    ewald_mm1_ = &mm1;
-  }
+  void setEwaldMM1(ewaldcontainer::PotentialData& mm1) { ewald_mm1_ = &mm1; }
 
   ewaldcontainer::PotentialData& ewaldMM1() {
     assert(ewald_mm1_ != nullptr);
@@ -176,7 +176,6 @@ class QMPackage {
     assert(ewald_mm1_ != nullptr);
     return *ewald_mm1_;
   }
-
 
  protected:
   virtual void ParseSpecificOptions(const tools::Property& options) = 0;
@@ -220,7 +219,7 @@ class QMPackage {
 
   std::vector<std::unique_ptr<StaticSite> > externalsites_;
 
-  Vxc_Grid ewaldgrid_; 
+  Vxc_Grid ewaldgrid_;
   bool has_ewaldgrid_ = false;
   double ewald_nuclear_energy_ = 0.0;
   bool has_ewald_nuclear_energy_ = false;

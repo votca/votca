@@ -88,9 +88,8 @@ int main(int argc, char** argv) {
       const Eigen::Vector3d& fp = site.V();
       const Eigen::Vector3d& u1 = site.getInducedDipole();
       out << id << "," << site.getId() << "," << pos.x() << "," << pos.y()
-          << "," << pos.z() << "," << fp.x() << "," << fp.y() << ","
-          << fp.z() << "," << u1.x() << "," << u1.y() << "," << u1.z()
-          << "\n";
+          << "," << pos.z() << "," << fp.x() << "," << fp.y() << "," << fp.z()
+          << "," << u1.x() << "," << u1.y() << "," << u1.z() << "\n";
       ++n_sites;
     }
   }

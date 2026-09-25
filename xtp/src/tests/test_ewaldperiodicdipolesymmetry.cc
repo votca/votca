@@ -25,8 +25,8 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
-#include "votca/xtp/ewaldreciprocalspacesum.h"
 #include "votca/xtp/ewaldrealspacesum.h"
+#include "votca/xtp/ewaldreciprocalspacesum.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -65,11 +65,10 @@ PolarSegment MakeSegment(Index id, const Eigen::Vector3d& pos) {
 // periodic field from every *other* segment, and reads the result back
 // out into a flat 3N vector -- i.e. this computes A*v for the periodic
 // dipole-dipole operator A implied by real_sum/recip_sum.
-Eigen::VectorXd Apply(EwaldRegistry& registry,
-                     const std::vector<Index>& ids,
-                     const EwaldRealSpaceSum& real_sum,
-                     const EwaldReciprocalSpaceSum& recip_sum,
-                     const Eigen::VectorXd& v) {
+Eigen::VectorXd Apply(EwaldRegistry& registry, const std::vector<Index>& ids,
+                      const EwaldRealSpaceSum& real_sum,
+                      const EwaldReciprocalSpaceSum& recip_sum,
+                      const Eigen::VectorXd& v) {
   // Write v into the registry's induced dipoles, and collect (id, site*)
   // pairs for the batched reciprocal-space call.
   std::vector<std::pair<Index, PolarSite*>> targets;
@@ -122,7 +121,7 @@ BOOST_AUTO_TEST_CASE(periodic_dipole_operator_is_symmetric) {
                     MakeSegment(3, Eigen::Vector3d(-2.0, 2.5, 1.5)));
 
   EwaldRealSpaceSum real_sum(box, registry, /*alpha=*/0.35, /*thole_a=*/0.39,
-                            /*r_min=*/6.0, /*field_tol=*/1e-12);
+                             /*r_min=*/6.0, /*field_tol=*/1e-12);
   EwaldReciprocalSpaceSum recip_sum(box, registry, /*alpha=*/0.35,
                                     /*k_max=*/20.0);
 

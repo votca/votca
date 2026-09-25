@@ -103,8 +103,8 @@ class AODipole : public AOMatrix {
   std::array<libint2::Shell::real_t, 3> r_ = {0, 0, 0};
 };
 
-/* derived class for atomic orbital overlap and electrical dipole matrices, required for
- * Ewald Shape Correction
+/* derived class for atomic orbital overlap and electrical dipole matrices,
+ * required for Ewald Shape Correction
  */
 class AOEwaldShapeCorrection : public AOMatrix {
  public:
@@ -123,10 +123,10 @@ class AOEwaldShapeCorrection : public AOMatrix {
   std::array<libint2::Shell::real_t, 3> r_ = {0, 0, 0};
 };
 
-// derived class for atomic orbital real-space Ewald potential from point charges
+// derived class for atomic orbital real-space Ewald potential from point
+// charges
 class AOEwaldRealSpaceCharges : public AOMatrix {
  public:
-
   void Fill(const AOBasis& aobasis) final;
   Index Dimension() final { return aomatrix_.rows(); }
   const Eigen::MatrixXd& Matrix() const { return aomatrix_; }
@@ -134,11 +134,15 @@ class AOEwaldRealSpaceCharges : public AOMatrix {
   void setEta(double eta) { eta_ = eta; }
   double getEta() const { return eta_; }
 
-  void setCharges(const std::vector<ewaldcontainer::PointCharge>& charges) { charges_ = charges; }
+  void setCharges(const std::vector<ewaldcontainer::PointCharge>& charges) {
+    charges_ = charges;
+  }
   void addCharge(double charge, const Eigen::Vector3d& pos) {
     charges_.push_back({charge, pos});
   }
-  const std::vector<ewaldcontainer::PointCharge>& Charges() const { return charges_; }
+  const std::vector<ewaldcontainer::PointCharge>& Charges() const {
+    return charges_;
+  }
 
  private:
   double eta_ = 0.0;
@@ -146,10 +150,10 @@ class AOEwaldRealSpaceCharges : public AOMatrix {
   std::vector<ewaldcontainer::PointCharge> charges_;
 };
 
-// derived class for atomic orbital real-space Ewald Foreground Correction from point charges
+// derived class for atomic orbital real-space Ewald Foreground Correction from
+// point charges
 class AOEwaldForegroundCharges : public AOMatrix {
  public:
-
   void Fill(const AOBasis& aobasis) final;
   Index Dimension() final { return aomatrix_.rows(); }
   const Eigen::MatrixXd& Matrix() const { return aomatrix_; }
@@ -157,11 +161,15 @@ class AOEwaldForegroundCharges : public AOMatrix {
   void setEta(double eta) { eta_ = eta; }
   double getEta() const { return eta_; }
 
-  void setCharges(const std::vector<ewaldcontainer::PointCharge>& charges) { charges_ = charges; }
+  void setCharges(const std::vector<ewaldcontainer::PointCharge>& charges) {
+    charges_ = charges;
+  }
   void addCharge(double charge, const Eigen::Vector3d& pos) {
     charges_.push_back({charge, pos});
   }
-  const std::vector<ewaldcontainer::PointCharge>& Charges() const { return charges_; }
+  const std::vector<ewaldcontainer::PointCharge>& Charges() const {
+    return charges_;
+  }
 
  private:
   double eta_ = 0.0;
@@ -169,7 +177,8 @@ class AOEwaldForegroundCharges : public AOMatrix {
   std::vector<ewaldcontainer::PointCharge> charges_;
 };
 
-// derived class for atomic orbital real-space Ewald potential from point dipoles
+// derived class for atomic orbital real-space Ewald potential from point
+// dipoles
 class AOEwaldRealSpaceDipoles : public AOMatrix {
  public:
   struct PointDipole {
@@ -182,7 +191,9 @@ class AOEwaldRealSpaceDipoles : public AOMatrix {
   const Eigen::MatrixXd& Matrix() const { return aomatrix_; }
 
   void setEta(double eta) { eta_ = eta; }
-  void setDipoles(const std::vector<PointDipole>& dipoles) { dipoles_ = dipoles; }
+  void setDipoles(const std::vector<PointDipole>& dipoles) {
+    dipoles_ = dipoles;
+  }
   void addDipole(const Eigen::Vector3d& dipole, const Eigen::Vector3d& pos) {
     dipoles_.push_back({dipole, pos});
   }
@@ -212,8 +223,8 @@ class AOEwaldRealSpaceDipoles : public AOMatrix {
   void setDelta(double delta) { delta_ = delta; }
   double getDelta() const { return delta_; }
 
-  void setDipoles(const std::vector<PointDipole>& dipoles) { dipoles_ = dipoles; }
-  void addDipole(const Eigen::Vector3d& dipole, const Eigen::Vector3d& pos) {
+  void setDipoles(const std::vector<PointDipole>& dipoles) { dipoles_ = dipoles;
+} void addDipole(const Eigen::Vector3d& dipole, const Eigen::Vector3d& pos) {
     dipoles_.push_back({dipole, pos});
   }
   const std::vector<PointDipole>& Dipoles() const { return dipoles_; }

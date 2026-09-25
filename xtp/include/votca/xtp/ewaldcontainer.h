@@ -22,8 +22,8 @@
 
 #include <Eigen/Core>
 #include <complex>
-#include <vector>
 #include <stdexcept>
+#include <vector>
 #include <votca/tools/constants.h>
 
 namespace votca {
@@ -66,7 +66,7 @@ class PotentialData {
   /* ---------- charges ---------- */
 
   void addCharge(double q, const Eigen::Vector3d& pos) {
-    charges_.push_back({q, pos*tools::conv::nm2bohr});
+    charges_.push_back({q, pos * tools::conv::nm2bohr});
   }
 
   const std::vector<PointCharge>& charges() const { return charges_; }
@@ -77,7 +77,7 @@ class PotentialData {
   /* ---------- dipoles ---------- */
 
   void addDipole(const Eigen::Vector3d& mu, const Eigen::Vector3d& pos) {
-    dipoles_.push_back({mu*tools::conv::nm2bohr, pos*tools::conv::nm2bohr});
+    dipoles_.push_back({mu * tools::conv::nm2bohr, pos * tools::conv::nm2bohr});
   }
 
   const std::vector<PointDipole>& dipoles() const { return dipoles_; }
@@ -89,25 +89,22 @@ class PotentialData {
 
   void addReciprocalTerm(const Eigen::Vector3d& G,
                          const std::complex<double>& coeff) {
-    reciprocal_terms_.push_back({G* nm_inv_to_bohr_inv, coeff * nm_inv_to_bohr_inv});
+    reciprocal_terms_.push_back(
+        {G * nm_inv_to_bohr_inv, coeff * nm_inv_to_bohr_inv});
   }
 
   const std::vector<ReciprocalTerm>& reciprocalTerms() const {
     return reciprocal_terms_;
   }
 
-  std::vector<ReciprocalTerm>& reciprocalTerms() {
-    return reciprocal_terms_;
-  }
+  std::vector<ReciprocalTerm>& reciprocalTerms() { return reciprocal_terms_; }
 
   size_t numReciprocalTerms() const { return reciprocal_terms_.size(); }
 
   /* ---------- utilities ---------- */
 
   bool empty() const {
-    return charges_.empty() &&
-           dipoles_.empty() &&
-           reciprocal_terms_.empty();
+    return charges_.empty() && dipoles_.empty() && reciprocal_terms_.empty();
   }
 
   void clear() {
@@ -126,29 +123,22 @@ class PotentialData {
     return q;
   }
 
-  void setShapeFactors(Eigen::Vector4d vector){
-    shape_factors_ = vector *tools::conv::bohr2nm ;
-  } 
+  void setShapeFactors(Eigen::Vector4d vector) {
+    shape_factors_ = vector * tools::conv::bohr2nm;
+  }
 
-  Eigen::Vector4d& shapeFactors(){
-    return shape_factors_;
-  } 
+  Eigen::Vector4d& shapeFactors() { return shape_factors_; }
 
-  const Eigen::Vector4d& shapeFactors() const {
-    return shape_factors_;
-  } 
+  const Eigen::Vector4d& shapeFactors() const { return shape_factors_; }
 
  private:
   double eta_ = 0.0;
   const double nm_inv_to_bohr_inv = tools::conv::bohr2nm;
 
-
   std::vector<PointCharge> charges_;
   std::vector<PointDipole> dipoles_;
   std::vector<ReciprocalTerm> reciprocal_terms_;
   Eigen::Vector4d shape_factors_ = Eigen::VectorXd::Zero(4);
-
-
 };
 
 }  // namespace ewaldcontainer

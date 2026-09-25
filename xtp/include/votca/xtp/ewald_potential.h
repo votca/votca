@@ -39,7 +39,6 @@ class Ewald_Potential {
   Mat_p_Energy IntegrateEwald(Index basissize) const;
 
  private:
-
   const Grid grid_;
 };
 

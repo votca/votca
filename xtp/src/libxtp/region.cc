@@ -21,8 +21,8 @@
 #include <vector>
 
 // Local VOTCA includes
-#include "votca/xtp/polarregion.h"
 #include "votca/xtp/ewaldregion.h"
+#include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmregion.h"
 #include "votca/xtp/region.h"
 #include "votca/xtp/staticregion.h"

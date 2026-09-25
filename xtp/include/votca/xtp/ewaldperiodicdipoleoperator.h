@@ -28,8 +28,8 @@
 // Local VOTCA includes
 #include "eeinteractor.h"
 #include "eigen.h"
-#include "ewaldreciprocalspacesum.h"
 #include "ewaldrealspacesum.h"
+#include "ewaldreciprocalspacesum.h"
 #include "ewaldregistry.h"
 #include "ewaldshapecorrection.h"
 
@@ -363,11 +363,11 @@ class EwaldPeriodicDipoleOperator
   //   itself (see there for why this is genuinely linear in v and does
   //   not disturb baseline_'s own established v=0 subtraction pattern).
   EwaldPeriodicDipoleOperator(EwaldRegistry& registry,
-                             const EwaldRealSpaceSum& real_sum,
-                             const EwaldReciprocalSpaceSum& recip_sum,
-                             const EwaldShapeCorrection& shape,
-                             std::vector<Index> ids, double alpha_ewald,
-                             double thole_a);
+                              const EwaldRealSpaceSum& real_sum,
+                              const EwaldReciprocalSpaceSum& recip_sum,
+                              const EwaldShapeCorrection& shape,
+                              std::vector<Index> ids, double alpha_ewald,
+                              double thole_a);
 
   // Debug/experimental. Accumulated wall-clock spent inside RawMultiply,
   // split by phase, across every call for the lifetime of this object.
@@ -419,7 +419,7 @@ class EwaldPeriodicDipoleOperator
 
   template <typename Vtype>
   Eigen::Product<EwaldPeriodicDipoleOperator, Vtype, Eigen::AliasFreeProduct>
-  operator*(const Eigen::MatrixBase<Vtype>& x) const {
+      operator*(const Eigen::MatrixBase<Vtype>& x) const {
     return Eigen::Product<EwaldPeriodicDipoleOperator, Vtype,
                           Eigen::AliasFreeProduct>(*this, x.derived());
   }
@@ -448,7 +448,7 @@ class EwaldPeriodicDipoleOperator
   // into RawMultiply's own result rather than needing any separate
   // baseline_ handling.
   void AddIntraSegmentCoupling(const Eigen::VectorXd& v,
-                              Eigen::VectorXd& result) const;
+                               Eigen::VectorXd& result) const;
 
   // Global vector index i's (segment index within ids_, site index
   // within that segment) -- the reverse of the offset table below,
