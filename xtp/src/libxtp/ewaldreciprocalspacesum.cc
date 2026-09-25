@@ -371,7 +371,6 @@ void EwaldReciprocalSpaceSum::AddFieldAtMany(
     const ProgressCallback& progress) const {
   const std::vector<std::complex<double>> S =
       TotalStructureFactors(source_state, progress);
-  const std::complex<double> i(0.0, 1.0);
   const double prefactor = 4.0 * kPi / volume_;
 
   // Parallel over targets. The structure factors S were reduced over
