@@ -42,6 +42,54 @@ Mat_p_Energy Ewald_Potential<Grid>::IntegrateEwald(Index basissize) const {
 
   Mat_p_Energy vewald = Mat_p_Energy(basissize, basissize);
 
+  // Checked HERE, serially, before the parallel region -- not inside it,
+  // where this check used to live.
+  //
+  // OpenMP requires that an exception thrown inside a structured block be
+  // caught inside that same block, by the same thread (OpenMP 5.2,
+  // "Exception Handling"). Throwing out of a `parallel for` body is
+  // undefined behaviour, whatever gcc and clang happen to do with it in
+  // practice. Intel's icpx does something else: it crashes outright, with
+  // a segfault inside its own OpenMP region outliner --
+  //
+  //   Running pass "vpo-paropt" on module ".../ewald_potential.cc"
+  //   llvm::vpo::VPOParoptUtils::genOutlineFunction(...)
+  //   llvm::vpo::VPOParoptTransform::genMultiThreadedCode(...)
+  //   icpx: error: clang frontend command failed with exit code 139
+  //
+  // -- observed directly, on Intel oneAPI DPC++/C++ 2026.1.1 with
+  // -fiopenmp, in the ubuntu:intel CI job. That crash is a compiler bug
+  // and should be reported as one; the throw it chokes on is still ours
+  // to fix, and hoisting it is the fix rather than the workaround. This
+  // loop's body is otherwise structurally identical to
+  // Vxc_Potential::IntegrateVXC's (same template, same schedule(guided),
+  // same user-defined Mat_p_Energy reduction from eigen.h), which icpx
+  // compiles -- and the throw is the one thing that differs.
+  //
+  // Validating up front is better regardless: it is O(number of boxes),
+  // it costs nothing next to the integration, and it fails before any
+  // work is done instead of midway through a partly-accumulated matrix.
+  // The `!box.Matrixsize()` skip is kept identical to the one below so
+  // that exactly the same set of boxes is checked as before.
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+    // The potential values are copied in from another grid, so a
+    // mismatch in box structure would otherwise read past the end of a
+    // vector rather than fail.
+    const std::vector<double>& pot = box.getPotentialValues();
+    if (Index(pot.size()) != box.size()) {
+      throw std::runtime_error(
+          "Ewald_Potential::IntegrateEwald: box " + std::to_string(i) +
+          " has " + std::to_string(box.size()) + " grid points but " +
+          std::to_string(pot.size()) +
+          " potential values. The grid the potential was evaluated on is "
+          "not the grid being integrated over.");
+    }
+  }
+
 #pragma omp parallel for schedule(guided) reduction(+ : vewald)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
     const GridBox& box = grid_[i];
@@ -55,18 +103,8 @@ Mat_p_Energy Ewald_Potential<Grid>::IntegrateEwald(Index basissize) const {
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
     const std::vector<double>& pot = box.getPotentialValues();
-
-    // The potential values are copied in from another grid, so a
-    // mismatch in box structure would otherwise read past the end of a
-    // vector rather than fail.
-    if (Index(pot.size()) != box.size()) {
-      throw std::runtime_error(
-          "Ewald_Potential::IntegrateEwald: box " + std::to_string(i) +
-          " has " + std::to_string(box.size()) + " grid points but " +
-          std::to_string(pot.size()) +
-          " potential values. The grid the potential was evaluated on is "
-          "not the grid being integrated over.");
-    }
+    // Size agreement between pot and the box was established serially
+    // above, before this region was entered.
 
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
