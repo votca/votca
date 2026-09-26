@@ -55,6 +55,8 @@ class PolarSite final : public StaticSite {
 
   // MULTIPOLES DEFINITION
   Eigen::Vector3d getDipole() const final;
+  Eigen::Vector3d getStaticDipole() const final;
+  Eigen::Vector3d getInducedDipole() const final;
 
   double getSqrtInvEigenDamp() const { return eigendamp_invsqrt_; }
 
@@ -74,6 +76,11 @@ class PolarSite final : public StaticSite {
   void Reset() {
     V_.setZero();
     V_noE_.setZero();
+  }
+
+  void Depolarize() {
+    this->Reset();
+    this->setInduced_Dipole(Eigen::Vector3d::Zero());
   }
 
   double deltaQ_V_ext() const { return induced_dipole_.dot(V_); }

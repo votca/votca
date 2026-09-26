@@ -40,6 +40,7 @@
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/dftgradient.h"
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/ewald_potential.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
@@ -1809,6 +1810,125 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
     H0 += IntegrateExternalField(mol);
   }
 
+  if (has_ewaldgrid_) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Integrating external Ewald Potential" << std::flush;
+    Vxc_Grid ewaldgrid;
+    ewaldgrid.GridSetup(grid_name_, mol, dftbasis_);
+
+    // The potential was evaluated on a grid built elsewhere, and this one
+    // is rebuilt here from grid_name_, the molecule and the basis. They
+    // agree only if the caller used the same three. Checked, because
+    // pairing potential values with the wrong points is a wrong
+    // Hamiltonian that nothing downstream would flag.
+    if (ewaldgrid.getBoxesSize() != external_ewaldgrid_.getBoxesSize()) {
+      throw std::runtime_error(
+          "DFTEngine: the external Ewald potential grid has " +
+          std::to_string(external_ewaldgrid_.getBoxesSize()) +
+          " boxes but this molecule's own grid has " +
+          std::to_string(ewaldgrid.getBoxesSize()) +
+          ". The potential was evaluated on a different grid than the one "
+          "being integrated over.");
+    }
+    // make sure the Potential values are copied from the external ewald grid to
+    // this one
+    for (Index i = 0; i < ewaldgrid.getBoxesSize(); ++i) {
+      GridBox& box = ewaldgrid[i];
+      const std::vector<double>& source =
+          external_ewaldgrid_[i].getPotentialValues();
+      if (Index(source.size()) != box.size()) {
+        throw std::runtime_error("DFTEngine: box " + std::to_string(i) +
+                                 " of the external Ewald "
+                                 "potential grid holds " +
+                                 std::to_string(source.size()) +
+                                 " values for " + std::to_string(box.size()) +
+                                 " grid points.");
+      }
+      std::vector<double>& values = box.getPotentialValues();
+      values = source;
+    }
+    Ewald_Potential<Vxc_Grid> EwaldIntegration(ewaldgrid);
+    H0 += EwaldIntegration.IntegrateEwald(dftbasis_.AOBasisSize()).matrix();
+
+    // The grid reaches the electron density only. The nuclei sit in the
+    // same potential, and their share arrives as a scalar -- the same
+    // pairing IntegrateExternalMultipoles has with ExternalRepulsion.
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Nuclei-external Ewald potential energy "
+        << std::setprecision(9) << ewald_nuclear_energy_ << std::flush;
+    E0 += ewald_nuclear_energy_;
+  }
+
+  if (has_ewaldbackground_) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Integrating external Ewald Potential via MOMENTS"
+        << std::flush;
+
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " ... REAL SPACE BACKGROUND MOMENTS" << std::flush;
+    Mat_p_Energy Ewald_RSBG_result =
+        IntegrateEwaldRealSpaceMultipoles(ewaldBackground());
+    H0 += Ewald_RSBG_result.matrix();
+
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " ... SHAPE CORRECTION MOMENTS" << std::flush;
+    Mat_p_Energy Ewald_ShapeC_result =
+        IntegrateShapeCorrection(ewaldShapeCorrection());
+    H0 += Ewald_ShapeC_result.matrix();
+
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " ... RECIPROCAL SPACE BACKGROUND MOMENTS"
+        << std::flush;
+
+    Mat_p_Energy Ewald_KSBG_result =
+        IntegrateEwaldReciprocalSpace(ewaldBackground());
+    H0 += Ewald_KSBG_result.matrix();
+
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " ... FOREGROUND CORRECTION MOMENTS" << std::flush;
+    Mat_p_Energy Ewald_FGC_result =
+        IntegrateForegroundCorrectionMultipoles(ewaldForegroundCorrection());
+    // std::cout << Ewald_FGC_result.matrix() << std::endl;
+    H0 -= Ewald_FGC_result.matrix();
+
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " ... MM1 REGION MOMENTS" << std::flush;
+
+    // convert elements in ewald container to list of staticsites
+    std::vector<std::unique_ptr<StaticSite>> multipoles;
+    assert(ewaldMM1().numCharges() == ewaldMM1().numDipoles());
+    multipoles.reserve(ewaldMM1().numCharges());
+    for (std::size_t i = 0; i < ewaldMM1().numCharges(); ++i) {
+      const Eigen::Vector3d& pos = ewaldMM1().charges()[i].position;
+      const double q = ewaldMM1().charges()[i].charge;
+      const Eigen::Vector3d& mu = ewaldMM1().dipoles()[i].dipole;
+
+      auto site = std::make_unique<StaticSite>(static_cast<Index>(i), "X", pos);
+
+      Vector9d mp = Vector9d::Zero();
+      mp(0) = q;       // Q00
+      mp(1) = mu.x();  // Q11c
+      mp(2) = mu.y();  // Q11s
+      mp(3) = mu.z();  // Q10
+
+      Index rank = 0;
+      if (mu.norm() > 0.0) {
+        rank = 1;
+      }
+      if (std::abs(q) > 0.0 && rank == 0) {
+        rank = 0;
+      }
+
+      site->setMultipole(mp, rank);
+      multipoles.push_back(std::move(site));
+    }
+    Mat_p_Energy EwaldMM1Region = IntegrateExternalMultipoles(mol, multipoles);
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Nuclei-external site interaction energy "
+        << std::setprecision(9) << EwaldMM1Region.energy() << std::flush;
+    // E0 += EwaldMM1Region.energy();
+    H0 += EwaldMM1Region.matrix();
+  }
   return Mat_p_Energy(E0, H0);
 }
 
@@ -2590,7 +2710,7 @@ double DFTEngine::ExternalRepulsion(
   eeInteractor interactor;
   for (const QMAtom& atom : mol) {
     StaticSite nucleus = StaticSite(atom, double(atom.getNuccharge()));
-    for (const std::unique_ptr<StaticSite>& site : *externalsites_) {
+    for (const std::unique_ptr<StaticSite>& site : multipoles) {
       if ((site->getPos() - nucleus.getPos()).norm() < 1e-7) {
         XTP_LOG(Log::error, *pLog_) << TimeStamp()
                                     << " External site sits on nucleus, "
@@ -2598,7 +2718,46 @@ double DFTEngine::ExternalRepulsion(
                                     << std::flush;
         continue;
       }
-      E_ext += interactor.CalcStaticEnergy_site(*site, nucleus);
+      // The site as the NUCLEI must see it: permanent multipoles PLUS the
+      // induced dipole.
+      //
+      // Why this is not what happens by default. The electronic half of
+      // this same interaction is built by AOMultipole::FillBlock, which
+      // reads site_->getDipole() -- a VIRTUAL accessor that PolarSite
+      // overrides as Q_.segment<3>(1) + induced_dipole_, and it promotes
+      // rank to 1 on exactly the test repeated below, so the electrons
+      // see the induced dipoles deliberately. The nuclear half arrives
+      // here and goes through eeInteractor::CalcStaticEnergy_site, whose
+      // VSiteA reads the SOURCE's moments as siteB.Q().segment<3>(1) --
+      // and Q() is not virtual. It returns the raw permanent vector, so
+      // the nuclei never saw an induced dipole at all.
+      //
+      // For a neutral QM region the electronic and nuclear halves very
+      // nearly cancel, so dropping one of them leaves essentially the
+      // whole surviving half standing: measured on a methane QM/MM job
+      // with the permanent multipoles zeroed, the QM energy moved by
+      // -4.5e-3 Ha between inter-region iterations where the polar
+      // region's own 1/2 F^T P F was 2.7e-5 Ha, a factor of ~84. With
+      // zeroed permanent multipoles Q_ is identically zero, which is why
+      // "Nuclei-external site interaction energy" printed as exactly 0
+      // while H0 was plainly not.
+      //
+      // Fixed HERE rather than in VSiteA, whose use of Q() is correct and
+      // deliberate: the induction solver contracts permanent and induced
+      // moments through separate channels, and folding induced dipoles
+      // into the static one there would double-count them in every polar
+      // energy in the package. The counterparty here is a bare nucleus,
+      // so no such channel exists and the sum is unambiguous.
+      Vector9d Q = site->Q();
+      Q.segment<3>(1) += site->getInducedDipole();  // zero for a StaticSite
+      Index rank = site->getRank();
+      if (rank < 1 && Q.segment<3>(1).norm() > 1e-12) {
+        rank = 1;  // same promotion, same threshold, as AOMultipole
+      }
+      StaticSite effective(site->getId(), site->getElement(), site->getPos());
+      effective.setMultipole(Q, rank);
+
+      E_ext += interactor.CalcStaticEnergy_site(effective, nucleus);
     }
   }
   return E_ext;
@@ -2617,6 +2776,20 @@ Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {
   return result;
 }
 
+Mat_p_Energy DFTEngine::IntegrateEwaldReciprocalSpace(
+    const ewaldcontainer::PotentialData& bg) const {
+
+  Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
+  AOPlanewave dftAOEwaldKSP;
+  dftAOEwaldKSP.FillPotential(dftbasis_, bg.reciprocalTerms());
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Norm of complex part (should be practically zero!) "
+      << dftAOEwaldKSP.Matrix().imag().norm() << std::flush;
+  result.matrix() = dftAOEwaldKSP.Matrix().real();
+  result.energy() = 0.0;
+  return result;
+}
+
 Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
     const QMMolecule& mol,
     const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
@@ -2630,6 +2803,93 @@ Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
       << std::flush;
   result.matrix() = dftAOESP.Matrix();
   result.energy() = ExternalRepulsion(mol, multipoles);
+
+  return result;
+}
+
+Mat_p_Energy DFTEngine::IntegrateEwaldRealSpaceMultipoles(
+    const ewaldcontainer::PotentialData& bg) const {
+
+  Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
+  AOEwaldRealSpaceCharges dftAOEwaldRealSpace;
+  // hand over eta
+  dftAOEwaldRealSpace.setEta(bg.eta());
+  // hand over charges
+  dftAOEwaldRealSpace.setCharges(bg.charges());
+  // add split dipoles
+  for (const auto& d : bg.dipoles()) {
+    const double mu = d.dipole.norm();
+    if (mu == 0.0) {
+      continue;
+    }
+    const double delta = 0.01;  // split dipole in bohr
+    const Eigen::Vector3d e = d.dipole / mu;
+    const Eigen::Vector3d shift = 0.5 * delta * e;
+    const double qeff = mu / delta;
+    dftAOEwaldRealSpace.addCharge(+qeff, d.position + shift);
+    dftAOEwaldRealSpace.addCharge(-qeff, d.position - shift);
+  }
+
+  dftAOEwaldRealSpace.Fill(dftbasis_);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp()
+      << " Filled DFT Ewald Real Space Multipole potential matrix"
+      << std::flush;
+  result.matrix() = dftAOEwaldRealSpace.Matrix();
+  result.energy() = 0.0;
+
+  return result;
+}
+
+Mat_p_Energy DFTEngine::IntegrateForegroundCorrectionMultipoles(
+    const ewaldcontainer::PotentialData& fgc) const {
+
+  Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
+  AOEwaldForegroundCharges dftAOEwaldForeGround;
+  // hand over eta
+  dftAOEwaldForeGround.setEta(fgc.eta());
+  // hand over charges
+  dftAOEwaldForeGround.setCharges(fgc.charges());
+  // add split dipoles
+  for (const auto& d : fgc.dipoles()) {
+    const double mu = d.dipole.norm();
+    if (mu == 0.0) {
+      continue;
+    }
+    const double delta = 0.01;  // split dipole in bohr
+    const Eigen::Vector3d e = d.dipole / mu;
+    const Eigen::Vector3d shift = 0.5 * delta * e;
+    const double qeff = mu / delta;
+    dftAOEwaldForeGround.addCharge(+qeff, d.position + shift);
+    dftAOEwaldForeGround.addCharge(-qeff, d.position - shift);
+  }
+
+  dftAOEwaldForeGround.Fill(dftbasis_);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp()
+      << " Filled DFT Ewald Foreground Correction Multipole potential matrix"
+      << std::flush;
+  result.matrix() = dftAOEwaldForeGround.Matrix();
+  result.energy() = 0.0;
+
+  return result;
+}
+
+Mat_p_Energy DFTEngine::IntegrateShapeCorrection(
+    const ewaldcontainer::PotentialData& shapec) const {
+  Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
+  AOEwaldShapeCorrection dftAOEwaldShapeCorrection;
+  dftAOEwaldShapeCorrection.Fill(dftbasis_);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Filled DFT Ewald Shape Correction potential matrix"
+      << std::flush;
+  const Eigen::Vector4d coefs = shapec.shapeFactors();
+  for (Index i = 0; i < 4; i++) {
+    result.matrix() +=
+        coefs(i) *
+        dftAOEwaldShapeCorrection.Matrix()[i];  // emultipole1 returns: overlap,
+                                                // x-dipole, y-dipole, z-dipole
+  }
 
   return result;
 }

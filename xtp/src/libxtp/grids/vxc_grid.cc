@@ -186,6 +186,7 @@ GridContainers::Cartesian_gridpoint Vxc_Grid::CreateCartesianGridpoint(
   gridpoint.grid_pos = atomA_pos + r * s;
   gridpoint.grid_weight =
       radial_grid.weight[i_rad] * spherical_grid.weight[i_sph];
+  gridpoint.grid_potential = 0.0;
   return gridpoint;
 }
 

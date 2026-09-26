@@ -174,9 +174,8 @@ BOOST_AUTO_TEST_CASE(check_j_values_present_and_agree_with_reference) {
     // (--signflip-attr j) -- this C++ rewrite had dropped that
     // handling entirely. Fixed the same way here: compare against
     // whichever of the direct or sign-flipped deviation is smaller.
-    double deviation_eV =
-        std::min(std::abs(j_actual - j_reference),
-                 std::abs(j_actual + j_reference));
+    double deviation_eV = std::min(std::abs(j_actual - j_reference),
+                                   std::abs(j_actual + j_reference));
     BOOST_CHECK_MESSAGE(
         deviation_eV <= tolerance_eV,
         "coupling (levelA=" << levelA << ", levelB=" << levelB

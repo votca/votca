@@ -23,6 +23,7 @@
 // Local private VOTCA includes
 #include "calculators/eanalyze.h"
 #include "calculators/einternal.h"
+#include "calculators/ewaldbackground.h"
 #include "calculators/ianalyze.h"
 #include "calculators/kmclifetime.h"
 #include "calculators/kmcmultiple.h"
@@ -42,6 +43,7 @@ void Calculatorfactory::RegisterAll() {
   this->Register<KMCLifetime>("kmclifetime");
   this->Register<KMCMultiple>("kmcmultiple");
   this->Register<VAverage>("vaverage");
+  this->Register<EwaldBackground>("ewaldbackground");
 }
 }  // namespace xtp
 }  // namespace votca

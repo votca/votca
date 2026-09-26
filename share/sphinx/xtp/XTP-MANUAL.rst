@@ -17,6 +17,7 @@ software and manual versions match.
    implementation_notes
    transfer_theory
    transport_theory
+   ewald_embedding
    pyxtp
    workflows_and_calculators
    reference

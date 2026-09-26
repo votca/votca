@@ -166,6 +166,18 @@ Eigen::Vector3d ClassicalSegment<T>::CalcDipole() const {
 }
 
 template <class T>
+Eigen::Vector3d ClassicalSegment<T>::CalcStaticDipole() const {
+  Eigen::Vector3d dipole = Eigen::Vector3d::Zero();
+
+  Eigen::Vector3d CoM = this->getPos();
+  for (const T& site : this->atomlist_) {
+    dipole += (site.getPos() - CoM) * site.getCharge();
+    dipole += site.getStaticDipole();
+  }
+  return dipole;
+}
+
+template <class T>
 void ClassicalSegment<T>::WriteMPS(std::string filename,
                                    std::string header) const {
 
@@ -198,6 +210,39 @@ std::string ClassicalSegment<PolarSite>::identify() const {
 template <>
 std::string ClassicalSegment<StaticSite>::identify() const {
   return "StaticSegment";
+}
+
+// additional access functions and methods for Ewald
+template <class T>
+bool ClassicalSegment<T>::IsCharged() const {
+  for (const T& site : this->atomlist_) {
+    if (std::abs(site.getCharge()) > 1e-4) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template <class T>
+bool ClassicalSegment<T>::IsPolarizable() const {
+  return false;
+}
+
+template <>
+bool ClassicalSegment<PolarSite>::IsPolarizable() const {
+  for (const PolarSite& site : this->atomlist_) {
+
+    (site.getpolarization().array().abs() > 1e-4).any();
+    if ((site.getpolarization().array().abs() > 1e-4).any()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template <>
+bool ClassicalSegment<StaticSite>::IsPolarizable() const {
+  return false;
 }
 
 template class ClassicalSegment<PolarSite>;
