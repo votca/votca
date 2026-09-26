@@ -122,8 +122,11 @@ BOOST_AUTO_TEST_CASE(periodic_dipole_operator_is_symmetric) {
 
   EwaldRealSpaceSum real_sum(box, registry, /*alpha=*/0.35, /*thole_a=*/0.39,
                              /*r_min=*/6.0, /*field_tol=*/1e-12);
+  // 12*alpha = 4.2, same convergence rule as the other Ewald tests:
+  // neglected weight exp(-36) = 2.3e-16. 2,108 k-vectors in this 12
+  // bohr box instead of 233,576 at a flat k_max = 20.0.
   EwaldReciprocalSpaceSum recip_sum(box, registry, /*alpha=*/0.35,
-                                    /*k_max=*/20.0);
+                                    /*k_max=*/12.0 * 0.35);
 
   std::mt19937 rng(42);
   std::uniform_real_distribution<double> dist(-1.0, 1.0);

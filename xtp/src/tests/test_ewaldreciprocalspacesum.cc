@@ -70,10 +70,18 @@ BOOST_AUTO_TEST_CASE(alpha_independence_of_combined_field) {
 
     PolarSite target(2, "H", Eigen::Vector3d(2.5, 1.0, -0.7));
 
-    // k_max must be generous enough for the larger alpha value tested
-    // below (larger alpha means a slower-decaying Gaussian weight in
-    // k-space, i.e. more k-vectors needed for convergence).
-    EwaldReciprocalSpaceSum recip(box, registry, alpha, /*k_max=*/25.0);
+    // k_max must scale with alpha, because a larger alpha means a
+    // slower-decaying Gaussian weight in k-space. Tying it to alpha as
+    // 12*alpha rather than picking one flat literal generous enough for
+    // the largest alpha keeps the truncation error FIXED across the
+    // scan -- exp(-(12*alpha)^2/(4*alpha^2)) = exp(-36) = 2.3e-16,
+    // against a 1e-4 comparison below -- which is what this test needs:
+    // an alpha-dependent truncation error would imitate the failure it
+    // is looking for. It is also far cheaper, cubically so: 98,384
+    // k-vectors at alpha = 0.5 in this 30 bohr box, against 7,123,810
+    // at the flat k_max = 25.0 this used to pass.
+    EwaldReciprocalSpaceSum recip(box, registry, alpha,
+                                  /*k_max=*/12.0 * alpha);
     recip.AddFieldAt<Estatic::V>(target, EwaldChargeState::Neutral);
 
     EwaldRealSpaceSum real(box, registry, alpha, 0.39, /*r_min=*/8.0,

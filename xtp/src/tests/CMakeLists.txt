@@ -185,6 +185,23 @@ endforeach(PROG)
 # calculation is genuinely running for real.
 set_tests_properties(unit_test_dftengine_cdft PROPERTIES TIMEOUT 3600)
 
+# Same reason, same remedy, different test. unit_test_podcoupling runs a
+# real B3LYP/def2-svp SCF on an ethene dimer (96 basis functions, 32
+# electrons) as one of six test cases, and on a Debug build that single
+# SCF does not fit inside CTest's default 1500 sec: confirmed directly
+# from a real CI Debug run, where the SCF alone ran from 7:25:13 to
+# 7:43:56 -- 1123 sec, 75% of the whole budget -- converging cleanly in
+# 14 iterations to a Final Single Point Energy of -157.061707611 Ha
+# before the remaining cases pushed the test past the wall. So this is
+# a budget problem, not a hang: nothing is stuck and nothing is wrong
+# with the calculation, it simply needs more than 25 minutes at -O0.
+#
+# Note that DART_TESTING_TIMEOUT (top-level CMakeLists.txt) is raised to
+# 7200 only for ENABLE_COVERAGE_BUILD, so every other build type --
+# including the Debug build in the CI matrix -- gets CTest's 1500 sec
+# default and is the binding case here.
+set_tests_properties(unit_test_podcoupling PROPERTIES TIMEOUT 3600)
+
 # Real, direct new external-bond/H-saturation support fields, added
 # this same session to both QMAtom::WriteToCpt (/QMdata/qmmolecule/
 # qmatoms) and MD-level Atom::WriteToCpt (/frame_N/segments/*/atoms)

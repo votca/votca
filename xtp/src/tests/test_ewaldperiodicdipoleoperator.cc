@@ -86,8 +86,12 @@ BOOST_AUTO_TEST_CASE(induced_dipole_aligns_with_external_field) {
   const double alpha_ewald = 0.3;
   EwaldRealSpaceSum real_sum(box, registry, alpha_ewald, /*thole_a=*/0.39,
                              /*r_min=*/12.0, /*field_tol=*/1e-12);
+  // 12*alpha, the convergence rule used across the Ewald tests: the
+  // largest neglected Gaussian weight is exp(-36) = 2.3e-16 at any
+  // alpha. In this 40 bohr box that is 50,540 k-vectors instead of the
+  // 8,647,082 a flat k_max = 20.0 generates, for the same answer.
   EwaldReciprocalSpaceSum recip_sum(box, registry, alpha_ewald,
-                                    /*k_max=*/20.0);
+                                    /*k_max=*/12.0 * alpha_ewald);
   const double volume = box.determinant();
   EwaldShapeCorrection shape(volume, registry, EwaldShape::Cube);
 

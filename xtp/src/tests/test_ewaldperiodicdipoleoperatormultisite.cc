@@ -137,8 +137,11 @@ BOOST_AUTO_TEST_CASE(intramolecular_coupling_matches_direct_solve) {
   const double alpha_ewald = 0.3;
   EwaldRealSpaceSum real_sum(box, registry, alpha_ewald, thole_a,
                              /*r_min=*/12.0, /*field_tol=*/1e-12);
+  // See the k_max comment in
+  // converged_dipoles_are_independent_of_the_splitting below: 12*alpha,
+  // not a flat literal.
   EwaldReciprocalSpaceSum recip_sum(box, registry, alpha_ewald,
-                                    /*k_max=*/20.0);
+                                    /*k_max=*/12.0 * alpha_ewald);
   const double volume = box.determinant();
   EwaldShapeCorrection shape(volume, registry, EwaldShape::Cube);
 
@@ -471,8 +474,26 @@ BOOST_AUTO_TEST_CASE(converged_dipoles_are_independent_of_the_splitting) {
 
     EwaldRealSpaceSum real_sum(box, registry, alpha_ewald, thole_a,
                                /*r_min=*/12.0, /*field_tol=*/1e-12);
+    // k_max = 12*alpha, the same convergence rule test_ewaldregion.cc
+    // already uses (params.k_max = 12.0 * alpha), rather than a flat
+    // literal. The reciprocal sum's Gaussian weight is
+    // exp(-k^2/(4*alpha^2)), so the largest neglected term is
+    // exp(-(12*alpha)^2/(4*alpha^2)) = exp(-36) = 2.3e-16 at EVERY
+    // alpha -- eight orders of magnitude below this file's tightest
+    // assertion (1e-8) and independent of alpha, which is what an
+    // alpha-independence test needs: a truncation error that tracks
+    // alpha would imitate the very failure being looked for.
+    //
+    // A flat k_max = 20.0 was converged too, just absurdly so, and the
+    // cost is cubic in k_max: in this 40 bohr box the cutoff sphere
+    // holds 8,647,082 k-vectors at k_max = 20, against 50,540 /
+    // 119,512 / 233,576 at 12*alpha for alpha = 0.30 / 0.40 / 0.50.
+    // That is what made unit_test_ewaldperiodicdipoleoperatormultisite
+    // take 1452 sec of CTest's 1500 sec default in a Debug CI run --
+    // passing with 48 sec to spare, i.e. one slower runner away from a
+    // spurious timeout.
     EwaldReciprocalSpaceSum recip_sum(box, registry, alpha_ewald,
-                                      /*k_max=*/20.0);
+                                      /*k_max=*/12.0 * alpha_ewald);
     const double volume = box.determinant();
     EwaldShapeCorrection shape(volume, registry, EwaldShape::Cube);
 
