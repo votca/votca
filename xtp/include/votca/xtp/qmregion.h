@@ -28,7 +28,6 @@
 #include "region.h"
 #include "statetracker.h"
 #include "vxc_grid.h"
-#include <votca/xtp/ewaldcontainer.h>
 
 /**
  * \brief defines a qm region and runs dft and gwbse calculations
@@ -47,7 +46,7 @@ class QMRegion : public Region {
 
  public:
   QMRegion(Index id, Logger& log, std::string workdir)
-      : Region(id, log), workdir_(workdir) {};
+      : Region(id, log), workdir_(workdir){};
   ~QMRegion() override = default;
 
   void Initialize(const tools::Property& prop) override;
@@ -88,69 +87,10 @@ class QMRegion : public Region {
   double charge() const override;
   double Etotal() const override { return E_hist_.back(); }
 
+  // Coordinates only, by value. That is not a convenience -- see
+  // ewaldgrid_ below for why the grid object itself must not leave this
+  // class.
   std::vector<Eigen::Vector3d> copyEwaldGrid();
-
-  Vxc_Grid& getEwaldGrid() { return ewaldgrid_; };
-
-  // =========== EWALD MOMENTS SETTER AND ACCESS ==========
-  // +++++++++++ BACKGROUND +++++++++++++++++++++++++++++++
-  void setEwaldBackground(ewaldcontainer::PotentialData* bg) {
-    ewald_background_ = bg;
-    ewald_moments_ready_ = true;
-  }
-
-  ewaldcontainer::PotentialData& ewaldBackground() {
-    assert(ewald_background_ != nullptr);
-    return *ewald_background_;
-  }
-
-  const ewaldcontainer::PotentialData& ewaldBackground() const {
-    assert(ewald_background_ != nullptr);
-    return *ewald_background_;
-  }
-
-  // +++++++++++ FOREGROUND CORRECTION ++++++++++++++++++++++
-  void setEwaldForegroundCorrection(ewaldcontainer::PotentialData* fg_corr) {
-    ewald_foreground_correction_ = fg_corr;
-  }
-
-  ewaldcontainer::PotentialData& ewaldForegroundCorrection() {
-    assert(ewald_foreground_correction_ != nullptr);
-    return *ewald_foreground_correction_;
-  }
-
-  const ewaldcontainer::PotentialData& ewaldForegroundCorrection() const {
-    assert(ewald_foreground_correction_ != nullptr);
-    return *ewald_foreground_correction_;
-  }
-
-  // +++++++++++ SHAPE CORRECTION +++++++++++++++++++++++++++
-  void setEwaldShapeCorrection(ewaldcontainer::PotentialData* shape_corr) {
-    ewald_shape_correction_ = shape_corr;
-  }
-
-  ewaldcontainer::PotentialData& ewaldShapeCorrection() {
-    assert(ewald_shape_correction_ != nullptr);
-    return *ewald_shape_correction_;
-  }
-
-  const ewaldcontainer::PotentialData& ewaldShapeCorrection() const {
-    assert(ewald_shape_correction_ != nullptr);
-    return *ewald_shape_correction_;
-  }
-
-  // +++++++++++ MM1 REGION +++++++++++++++++++++++++++
-  void setEwaldMM1(ewaldcontainer::PotentialData* mm1) { ewald_mm1_ = mm1; }
-
-  ewaldcontainer::PotentialData& ewaldMM1() {
-    assert(ewald_mm1_ != nullptr);
-    return *ewald_mm1_;
-  }
-
-  const ewaldcontainer::PotentialData& ewaldMM1() const {
-    assert(ewald_mm1_ != nullptr);
-    return *ewald_mm1_;
-  }
 
  protected:
   void AppendResult(tools::Property& prop) const override;
@@ -190,15 +130,54 @@ class QMRegion : public Region {
 
   StateTracker statetracker_;
 
-  // for QMEwald
+  // for QMEwald. The periodic background reaches the Hamiltonian as a
+  // potential sampled on this grid, which the DFT engine integrates
+  // against the density.
   //
-  // TWO INDEPENDENT ROUTES, TWO FLAGS. The periodic background can reach
-  // the Hamiltonian either as a potential sampled on this grid, which the
-  // DFT engine integrates against the density, or as multipoles and
-  // k-vectors the engine builds its own AO matrices from. They were
-  // sharing one is_qmewald_, so preparing the grid alone also sent
-  // Evaluate down the moments path and into ewaldBackground()'s
-  // assert(ewald_background_ != nullptr).
+  // There used to be a second route, handing the engine multipole
+  // moments and k-vectors to build its own AO matrices from, gated by a
+  // second flag. Nothing ever set it up -- the legacy jobcalculator that
+  // once did was removed -- so it has been deleted along with the
+  // machinery behind it (DFTEngine's IntegrateEwald* helpers, the
+  // AOEwald* matrices, the ewaldcontainer types). Two things are worth
+  // recording about that, since the decision was to remove code that had
+  // been deliberately kept:
+  //
+  //  - It was blocked anyway. A rank-1 (induced dipole) source needs
+  //    operator-centre derivatives from libint2, which is why
+  //    AOEwaldRealSpaceDipoles was never instantiated even from the dead
+  //    path -- the real-space route split every dipole into a pair of
+  //    point charges instead.
+  //  - It would not have been the faster route in any case. It replaces
+  //    a loop over grid points (linear in QM size) with one over shell
+  //    pairs (quadratic), so it wins only for small QM regions -- the
+  //    opposite of what it was being kept for.
+  //
+  // Recoverable from the git history if either of those ever changes.
+  //
+  // ONLY ITS POINTS AND VALUES ARE VALID. PrepareEwaldPotentialGrid
+  // builds this grid against a BasisSet, an AOBasis and a QMMolecule
+  // that are all locals of that function, and GridBox::
+  // FindSignificantShells stores raw `const AOShell*` into the basis it
+  // is handed (gridbox.cc, addShell(&store)). Those shells die with the
+  // function, so from the moment PrepareEwaldPotentialGrid returns this
+  // object holds dangling pointers.
+  //
+  // What remains safe is everything that does not follow them:
+  // getGridpoints, getPotentialValues, getBoxesSize, GridBox::size.
+  // CalcAOValues, Matrixsize, AddtoBigMatrix and anything else touching
+  // significant_shells is undefined behaviour. That is why the grid is
+  // never integrated on here or in QMPackage, and why DFTEngine rebuilds
+  // its own from grid_name_ and copies only the values across -- see
+  // dftengine.cc.
+  //
+  // Nothing dereferences them today. The public Vxc_Grid& accessor that
+  // used to sit next to copyEwaldGrid() was removed because it handed
+  // this object out with no way to know that, and had no callers.
+  // Giving the basis a longer life would remove the hazard, but it buys
+  // nothing on its own: the transport is by value either way, and
+  // DFTEngine has to integrate against the AO ordering of its own
+  // dftbasis_ regardless.
   Vxc_Grid ewaldgrid_;
   bool ewald_grid_ready_ = false;
   // Whether the background's potential has already been laid down on that
@@ -207,32 +186,9 @@ class QMRegion : public Region {
   // grid because geometry and basis are fixed, the potential because the
   // background is frozen. See InteractwithEwaldRegion.
   bool ewald_potential_evaluated_ = false;
-  // ORPHANED, deliberately kept. Set only by setEwaldBackground, whose
-  // only remaining caller is XTPDFT's own pass-through -- the code that
-  // originally drove it was the legacy xtp/ewald/ jobcalculator, which
-  // has been removed. So nothing in a current job can make this true,
-  // and the analytic QM-coupling machinery it gates (DFTEngine's
-  // IntegrateEwaldRealSpaceMultipoles / IntegrateEwaldReciprocalSpace,
-  // the foreground and shape corrections, the AOEwald* matrices and
-  // aoplanewave) compiles but is unreachable.
-  //
-  // Kept because that machinery is most of an analytic alternative to
-  // the grid route -- see EwaldRegion::PotentialAt -- which is worth
-  // having once libint2 can do the operator-centre derivatives a rank-1
-  // source needs. Reviving it means feeding these moments from
-  // EwaldRegion rather than from the calculator that used to.
-  //
-  // Said here explicitly so nobody has to work out from scratch why a
-  // whole code path never fires.
-  bool ewald_moments_ready_ = false;
   // sum_A Z_A phi(R_A). The grid carries the potential the ELECTRONS
   // feel; the nuclei sit in the same potential and have no other way in.
   double ewald_nuclear_energy_ = 0.0;
-  ewaldcontainer::PotentialData* ewald_background_ = nullptr;
-  ewaldcontainer::PotentialData* ewald_foreground_correction_ = nullptr;
-  ewaldcontainer::PotentialData* ewald_shape_correction_ = nullptr;
-  ewaldcontainer::PotentialData* ewald_mm1_ = nullptr;
-  // ewaldcontainer::PotentialData* ewald_qm0_ = nullptr;
 };
 
 }  // namespace xtp

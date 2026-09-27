@@ -322,25 +322,88 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   const Eigen::Matrix3d& box = top.getBox();
   const double volume = box.col(0).dot(box.col(1).cross(box.col(2)));
 
-  // Standard Ewald rule of thumb: alpha ~ 3/L_min, where L_min is the
-  // box's shortest lattice vector length -- chosen so erfc(alpha*r) has
-  // decayed to a small value (erfc(3.0) ~ 2.2e-5) by roughly the point a
-  // traditional minimum-image cutoff would sit at. EwaldRealSpaceSum's
-  // own adaptive shell walk isn't actually bound by that minimum-image
-  // constraint (it will walk past L_min/2 if field_tol demands it), so
-  // this is a starting point rather than a hard requirement -- but it's
-  // still the right scale to default to, since a fixed alpha_ literal
-  // disconnected from box size is exactly the same class of mistake the
-  // k_max_ default already was (see above): too large an alpha for a
-  // large box pushes cost into reciprocal space (where it's cubic in
-  // k_max, hence in alpha) for no numerical benefit.
-  if (!alpha_explicit_) {
-    const double L_min =
-        std::min({box.col(0).norm(), box.col(1).norm(), box.col(2).norm()});
-    alpha_ = 3.0 / L_min;
-  }
-  if (!k_max_explicit_) {
-    k_max_ = 6.0 * alpha_;
+  // alpha and k_max are derived TOGETHER, from the cost of the two sums
+  // they divide the work between. alpha is free -- it cancels out of the
+  // total, which is what the alpha-independence tests pin -- so the only
+  // thing left to choose it by is how much work each half does.
+  //
+  // Both cutoffs are fixed multiples of alpha, which is what makes the
+  // accuracy alpha-independent in the first place:
+  //
+  //   real space  EwaldRealSpaceSum truncates at screening_factor/alpha,
+  //               leaving a tail of order erfc(screening_factor).
+  //   reciprocal  the Gaussian weight is exp(-k^2/4 alpha^2), so a cutoff
+  //               at s_k*alpha leaves exp(-s_k^2/4).
+  //
+  // so with N sites in a cell of volume V the work at ONE target is
+  //
+  //   N_real = (N/V)(4pi/3)(s_r/alpha)^3      falling as alpha^-3
+  //   N_k    = (4pi/3)(s_k alpha)^3 V/(8pi^3)   rising as alpha^3
+  //
+  // and d/dalpha [A alpha^-3 + B alpha^3] = 0 gives alpha^6 = A/B, i.e.
+  //
+  //   alpha = sqrt(2 pi) (N^(1/6) / V^(1/3)) sqrt(s_r/s_k)
+  //
+  // the standard Ewald result, whose N^(1/6) is what makes the method
+  // O(N^(3/2)) rather than O(N^2).
+  //
+  // THE PREVIOUS DEFAULTS WERE alpha = 3/L_min AND k_max = 6*alpha, and
+  // between them they switched the splitting off. With those two, and a
+  // cubic cell, k_max/(2pi/L) = (18/L)(L/2pi) = 9/pi ~ 2.86 NO MATTER HOW
+  // BIG THE CELL IS: the reciprocal half is a fixed ~98 k-vectors for
+  // every system ever run, while the real-space cutoff sits at 6/alpha =
+  // 2L -- twice the box -- so the real half grows linearly with the site
+  // count and carries everything. That is a direct lattice sum with an
+  // erfc in it. Measured per target, on thiophene at experimental
+  // density: 301,691 terms at 1000 segments and 1,508,063 at 5000, of
+  // which 98 were reciprocal in both cases.
+  //
+  // The two defaults were also inconsistent with each other about
+  // accuracy, and expensively so: screening_factor = 6 truncates real
+  // space at erfc(6) = 2e-17 while k_max = 6*alpha truncates reciprocal
+  // space at exp(-9) = 1.2e-4, thirteen orders apart, with the money
+  // spent on the side that needed it less.
+  //
+  // So screening_factor is now the single accuracy knob and k_max
+  // follows it: eps = erfc(s_r), then s_k = 2*sqrt(-ln eps) makes the
+  // reciprocal tail match. At the unchanged default s_r = 6 that is
+  // s_k = 12.39, so nothing about real-space accuracy moves and the
+  // reciprocal side improves by thirteen orders -- while the balanced
+  // alpha makes the whole thing 3x faster on a 216-molecule methane box,
+  // 9x on 1000 thiophenes, 21x on 5000, and 62x on a 400,000-site cell.
+  // Cheaper AND stricter, which is only possible because the starting
+  // point was so badly out of balance.
+  //
+  // Setting <alpha> or <k_max> explicitly still overrides either half.
+  if (!alpha_explicit_ || !k_max_explicit_) {
+    const double s_r = screening_factor_;
+    // erfc underflows to 0 for s_r beyond ~27; the clamp keeps the log
+    // finite there rather than producing an infinite s_k. Well outside
+    // any sane setting -- erfc(9) is already 4e-37 -- but this is a
+    // user-settable option, so it is not left to chance.
+    const double eps = std::max(std::erfc(s_r), 1e-300);
+    const double s_k = 2.0 * std::sqrt(-std::log(eps));
+
+    if (!alpha_explicit_) {
+      const double n_sites = double(total_size / 3);
+      alpha_ = std::sqrt(2.0 * tools::conv::Pi) * std::pow(n_sites, 1.0 / 6.0) /
+               std::cbrt(volume) * std::sqrt(s_r / s_k);
+
+      // NOT clamped against r_min_. An earlier version of this capped
+      // alpha at s_r/r_min_, on the theory that a real-space cutoff
+      // inside r_min_ would overrule it. It does not: r_min_ bounds the
+      // shell search by TRANSLATION magnitude |t| and says only that
+      // convergence may not be declared before that radius, while
+      // real_space_cutoff_ culls by actual PAIR SEPARATION. Accuracy is
+      // erfc(s_r) either way. What a large r_min_ costs is time -- the
+      // search walks shells whose pairs are all culled, contributing
+      // exactly nothing -- so clamping alpha to avoid that would trade a
+      // real cost for an imagined risk, and would do so hardest for the
+      // users who raised r_min_ deliberately. Reported below instead.
+    }
+    if (!k_max_explicit_) {
+      k_max_ = s_k * alpha_;
+    }
   }
 
   EwaldRealSpaceSum real_sum(box, registry, alpha_, thole_a_, r_min_,
@@ -361,6 +424,39 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
                           << screening_factor_ / alpha_
                           << " bohr (screening_factor=" << screening_factor_
                           << ")" << std::flush;
+  // The two halves printed side by side, because the whole point of the
+  // derived alpha is that they should come out comparable. A run where
+  // these differ by orders of magnitude is one where alpha was set by
+  // hand, or where the derivation was given a cell it does not suit --
+  // either way it is the number to look at first when the background
+  // solve is slower than expected.
+  {
+    const double n_sites = double(total_size / 3);
+    const double n_real_est = (n_sites / volume) *
+                              (4.0 * tools::conv::Pi / 3.0) *
+                              std::pow(screening_factor_ / alpha_, 3);
+    XTP_LOG(Log::info, log)
+        << TimeStamp()
+        << " Ewald balance (terms per target, estimated): " << "real "
+        << n_real_est << " vs reciprocal " << recip_sum.NumKVectors()
+        << std::flush;
+
+    // r_min_ past the cutoff means the shell search is required to walk
+    // out to a radius where every pair is already culled: those shells
+    // contribute exactly zero and then let it stop. Harmless, and pure
+    // cost, so say so rather than silently absorbing it.
+    const double cutoff = screening_factor_ / alpha_;
+    if (r_min_ > cutoff) {
+      XTP_LOG(Log::info, log)
+          << TimeStamp() << " NOTE: r_min (" << r_min_
+          << " bohr) lies beyond the real-space cutoff (" << cutoff
+          << " bohr). The shell search will walk shells that contribute "
+             "nothing before it is allowed to stop. Accuracy is unaffected "
+             "-- it is erfc(screening_factor) either way -- but lowering "
+             "r_min to at most the cutoff would save that work."
+          << std::flush;
+    }
+  }
   XTP_LOG(Log::info, log) << TimeStamp() << " Cell: volume=" << volume
                           << " bohr^3, shape="
                           << (shape_ == EwaldShape::Cube ? "cube" : "slab")
