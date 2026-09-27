@@ -116,6 +116,12 @@ void QMRegion::Initialize(const tools::Property& prop) {
           "quasiparticle level instead: state pqpN (or dqpN) with N the "
           "HOMO or LUMO index.");
     }
+    if (initstate_.Type() == QMStateType::ExcitonUKS) {
+      throw std::runtime_error(
+          "environment_screening is implemented for closed-shell GW-BSE "
+          "only; the unrestricted exciton state " +
+          initstate_.ToString() + " is not supported.");
+    }
     if (!do_gwbse_) {
       throw std::runtime_error(
           "environment_screening needs a GW-BSE state (an exciton or a "
