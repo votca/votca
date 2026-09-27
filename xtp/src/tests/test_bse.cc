@@ -376,4 +376,173 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   libint2::finalize();
 }
 
+namespace {
+// Methane as in bse_hamiltonian, with an environment reaction field R in
+// the auxiliary metric. The BSE runs on its own freshly filled integrals.
+struct EnvBSE {
+  Orbitals orbitals;
+  BasisSet basis;
+  AOBasis aobasis;
+  Eigen::MatrixXd Hqp;
+  Logger log;
+  TCMatrix_gwbse Mmn;
+  BSE::options opt;
+
+  EnvBSE() {
+    orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                    "/bse/molecule.xyz");
+    basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/bse/3-21G.xml");
+    orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                           "/bse/3-21G.xml");
+    aobasis.Fill(basis, orbitals.QMAtoms());
+    orbitals.setNumberOfOccupiedLevels(4);
+    orbitals.MOs().eigenvectors() =
+        votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+            std::string(XTP_TEST_DATA_FOLDER) + "/bse/MOs.mm");
+    orbitals.MOs().eigenvalues() =
+        votca::tools::EigenIO_MatrixMarket::ReadVector(
+            std::string(XTP_TEST_DATA_FOLDER) + "/bse/MO_energies.mm");
+    Hqp = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+        std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp.mm");
+    orbitals.RPAInputEnergies() = Hqp.diagonal();
+    orbitals.setBSEindices(0, 16);
+    Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
+    Mmn.Fill(aobasis, aobasis, orbitals.MOs().eigenvectors());
+
+    opt.cmax = 16;
+    opt.rpamax = 16;
+    opt.rpamin = 0;
+    opt.vmin = 0;
+    opt.nmax = 5;
+    opt.min_print_weight = 0.1;
+    opt.useTDA = true;
+    opt.homo = 4;
+    opt.qpmin = 0;
+    opt.qpmax = 16;
+    opt.max_dyn_iter = 10;
+    opt.dyn_tolerance = 1e-5;
+    opt.davidson_correction = "DPR";
+    opt.davidson_tolerance = "lapack";
+    opt.davidson_update = "safe";
+    opt.davidson_maxiter = 50;
+    opt.use_Hqp_offdiag = false;
+  }
+
+  // A symmetric, negative semidefinite stand-in for a reaction field.
+  Eigen::MatrixXd SomeR(double scale) const {
+    const votca::Index n = Mmn.auxsize();
+    std::srand(42);
+    const Eigen::MatrixXd G = Eigen::MatrixXd::Random(n, n);
+    return -scale * G * G.transpose() / double(n);
+  }
+};
+
+struct Result {
+  Eigen::VectorXd singlets;
+  Eigen::VectorXd triplets;
+  Eigen::VectorXd kreac;  // first order, from the singlets of this run
+};
+
+Result RunBSE(bool tda, const Eigen::MatrixXd* R, bool include_kreac) {
+  EnvBSE sys;
+  sys.opt.useTDA = tda;
+  BSE bse(sys.log, sys.Mmn);
+  if (R != nullptr) {
+    bse.setReactionField(*R, include_kreac);
+  }
+  bse.configure(sys.opt, sys.orbitals.RPAInputEnergies(), sys.Hqp);
+  Result r;
+  bse.Solve_singlets(sys.orbitals);
+  r.singlets = sys.orbitals.BSESinglets().eigenvalues();
+  if (R != nullptr) {
+    r.kreac = bse.ReactionFieldExchange(sys.orbitals.BSESinglets(), tda);
+  }
+  bse.Solve_triplets(sys.orbitals);
+  r.triplets = sys.orbitals.BSETriplets().eigenvalues();
+  return r;
+}
+}  // namespace
+
+// Step 6. With R = 0 both routes -- dressed integrals, and bare integrals
+// with W_tot diagonalized in place of eps -- are the plain BSE.
+BOOST_AUTO_TEST_CASE(bse_zero_reaction_field_changes_nothing) {
+  if (!libint2::initialized()) libint2::initialize();
+  const Eigen::MatrixXd R0 =
+      Eigen::MatrixXd::Zero(EnvBSE().Mmn.auxsize(), EnvBSE().Mmn.auxsize());
+  for (bool tda : {true, false}) {
+    const Result plain = RunBSE(tda, nullptr, true);
+    for (bool kreac : {true, false}) {
+      const Result zero = RunBSE(tda, &R0, kreac);
+      BOOST_CHECK_SMALL((zero.singlets - plain.singlets).cwiseAbs().maxCoeff(),
+                        1e-9);
+      if (tda) {  // see bse_triplets_agree_between_routes
+        BOOST_CHECK_SMALL(
+            (zero.triplets - plain.triplets).cwiseAbs().maxCoeff(), 1e-9);
+      }
+      BOOST_CHECK_SMALL(zero.kreac.cwiseAbs().maxCoeff(), 1e-14);
+    }
+  }
+  libint2::finalize();
+}
+
+// Triplets have no Kx, and so no K_reac: the two routes build the same
+// W_tot in two different ways -- from dressed integrals, and explicitly as
+// [(1 + R)^-1 + eps - 1]^-1 on bare ones -- and must agree. And the
+// environment must actually do something.
+//
+// TDA only: with this test data the full-BSE triplet problem has an
+// instability (a zero eigenvalue in the plain run), where the solutions
+// depend on round-off and any two routes may legitimately differ.
+BOOST_AUTO_TEST_CASE(bse_triplets_agree_between_routes) {
+  if (!libint2::initialized()) libint2::initialize();
+  const Eigen::MatrixXd R = EnvBSE().SomeR(0.05);
+  for (bool tda : {true}) {
+    const Result plain = RunBSE(tda, nullptr, true);
+    const Result dressed = RunBSE(tda, &R, true);
+    const Result bare = RunBSE(tda, &R, false);
+    BOOST_CHECK_SMALL((dressed.triplets - bare.triplets).cwiseAbs().maxCoeff(),
+                      1e-8);
+    BOOST_CHECK_GT((dressed.triplets - plain.triplets).cwiseAbs().maxCoeff(),
+                   1e-4);
+  }
+  libint2::finalize();
+}
+
+// Singlets differ between the routes by K_reac exactly. Its first-order
+// estimate, 2 (X+Y)^T K_reac (X+Y), must account for the difference up to
+// second order, and it is never positive: R screens, so the
+// linear-response part can only lower an excitation. Methane's lowest
+// singlets are threefold degenerate, and the environment splits them
+// (the bare route already, by ~1e-4 through Kd), so the comparison is per
+// group of formerly degenerate states: the trace of first-order shifts
+// over a group is basis independent.
+BOOST_AUTO_TEST_CASE(bse_singlets_differ_by_kreac) {
+  if (!libint2::initialized()) libint2::initialize();
+  const Eigen::MatrixXd R = EnvBSE().SomeR(0.01);
+  for (bool tda : {true, false}) {
+    const Result dressed = RunBSE(tda, &R, true);
+    const Result bare = RunBSE(tda, &R, false);
+    BOOST_CHECK_LE(bare.kreac.maxCoeff(), 1e-14);
+    const votca::Index n = bare.singlets.size() - 1;  // last may be split
+    votca::Index start = 0;
+    while (start < n) {
+      votca::Index end = start + 1;
+      while (end < n && bare.singlets(end) - bare.singlets(start) < 2e-3) {
+        ++end;
+      }
+      const double shift = (dressed.singlets.segment(start, end - start) -
+                            bare.singlets.segment(start, end - start))
+                               .sum();
+      const double first_order = bare.kreac.segment(start, end - start).sum();
+      BOOST_TEST_MESSAGE("tda " << tda << " S" << start + 1 << "-S" << end
+                                << " dOmega " << shift << "  <K_reac> "
+                                << first_order);
+      BOOST_CHECK_SMALL(shift - first_order,
+                        0.01 * std::abs(first_order) + 1e-8);
+      start = end;
+    }
+  }
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

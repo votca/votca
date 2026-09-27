@@ -68,6 +68,7 @@ list(APPEND test_cases test_ewaldreciprocalspacesum)
 list(APPEND test_cases test_ewaldregion)
 list(APPEND test_cases test_ewaldsolvers)
 list(APPEND test_cases test_ewaldshapecorrection)
+list(APPEND test_cases test_environmentscreening)
 list(APPEND test_cases test_extended_hueckel)
 list(APPEND test_cases test_fragmentsaturator)
 list(APPEND test_cases test_gaussian_quadratures)
@@ -316,6 +317,29 @@ if(RUN_XTP_INTEGRATIONTESTS)
     set_tests_properties(integration_Compare_xtp_parallel_qmmm_run_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_run)
   else()
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_run (votca_compare_xml not found)")
+  endif()
+
+  # xtp_parallel -e qmmm, embedded GW-BSE: ground-state QM/MM loop, then one
+  # GW-BSE run screened by an explicit Thole region and an alpha/epsilon
+  # shell (environment_screening). The tolerance on E_total/E_tot covers
+  # the BSE eigenvalue scatter across platforms (as in the dftgwbse tests)
+  # and is still 20x below the environment's K_reac contribution to S1.
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_qmmm_screened)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_einternal.hdf5 ${RUNPATH}/state.hdf5)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/qmmm_screened.jobs ${RUNPATH}/qmmm_screened.jobs)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/qmmm_screened.xml ${RUNPATH}/qmmm_screened.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
+  add_test(NAME integration_Run_xtp_parallel_qmmm_screened COMMAND xtp_parallel -e qmmm -o qmmm_screened.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_parallel_qmmm_screened PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  if(HAS_XML_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_qmmm_screened_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_screened_run.jobs ${RUNPATH}/qmmm_screened.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_qmmm_screened_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_screened)
+  else()
+    message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_screened (votca_compare_xml not found)")
   endif()
 
   # xtp_parallel -e qmmm (MM only) -j read

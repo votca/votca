@@ -100,6 +100,79 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix);
 
+  // The metric that was folded into the stored integrals at Fill time:
+  // T = Pseudo_InvSqrt_GWBSE, with T T^T = V^-1 (pseudo-inverse) and
+  // T^T V T the projector onto the retained auxiliary functions. After
+  // Fill, operator[] holds M = (mn|Q) T, so the bare Coulomb operator
+  // exists only implicitly, as M M^T.
+  //
+  // Kept because anything that must act on the Coulomb interaction in
+  // the same space as M needs it. The environment reaction field is the
+  // case in point: a kernel B between auxiliary functions, taken as charge
+  // densities, enters as M (T^T B T) M^T -- see EnvironmentScreening.
+  //
+  // IN THE FILL-TIME AUXILIARY BASIS. MultiplyRightWithAuxMatrix, which the
+  // PPM and the BSE both call with an eigenvector matrix U, rotates the
+  // auxiliary index of M. This matrix is not rotated with it: a kernel
+  // built from it has to be brought into the current frame with
+  // ToCurrentAuxFrame before it meets operator[]. Refilled, and so reset,
+  // by every Fill and Rebuild.
+  const Eigen::MatrixXd& InvSqrt() const { return inv_sqrt_; }
+
+  // The auxiliary frame operator[] is currently in. Every
+  // MultiplyRightWithAuxMatrix since the last Fill or Rebuild is recorded
+  // here, so that operator[] holds M_fill * AuxFrame() with M_fill the
+  // integrals as Fill left them. Empty means the identity: nothing has
+  // rotated them yet.
+  //
+  // The bare Coulomb interaction does not care -- it is the identity in
+  // every orthonormal frame, which is why nothing tracked this before. A
+  // kernel K between the columns of M_fill does care: M_fill K M_fill^T is
+  // M K' M^T only with K' = ToCurrentAuxFrame(K).
+  const Eigen::MatrixXd& AuxFrame() const { return aux_frame_; }
+
+  // For code that snapshots slices through operator[] and later writes
+  // them back, which bypasses the bookkeeping above: restore the frame
+  // that was current when the snapshot was taken, alongside the slices.
+  void RestoreAuxFrame(const Eigen::MatrixXd& frame) {
+    aux_frame_ = frame;
+    aux_frame_known_ = true;
+  }
+
+  // K, a kernel between the columns of M_fill, as it must be applied to
+  // operator[] now: F^-1 K F^-T with F = AuxFrame(), which is F^T K F for
+  // the orthogonal eigenvector matrices the PPM and the BSE rotate with.
+  // Throws if the frame is not known -- after a non-square
+  // MultiplyRightWithAuxMatrix, which is not a change of frame.
+  Eigen::MatrixXd ToCurrentAuxFrame(const Eigen::MatrixXd& K) const;
+
+  // Whether AuxFrame() is orthogonal, so that the bare interaction M M^T is
+  // what it was at Fill time. False once the index has been dressed.
+  bool AuxFrameIsOrthogonal() const;
+
+  /**
+   * \brief Dress the auxiliary index with S: M_fill -> M_fill S.
+   *
+   * For a static environment the QM electrons interact through
+   * u = v + v_reac, which is 1 + R in the metric of M, and the screened
+   * interaction is W = [u^-1 - chi0]^-1. With S = (1 + R)^(1/2), that is
+   * exactly the ordinary RPA and correlation self-energy built from M S
+   * in place of M: every place that pairs two M's through the bare
+   * interaction pairs them through u instead.
+   *
+   * S is in the fill-time frame, and is applied in whatever frame the
+   * integrals are in now; AuxFrame() records it, so ToCurrentAuxFrame
+   * still maps fill-time kernels correctly. Exchange-type sums that must
+   * keep the bare v take ToCurrentAuxFrame(identity) as their kernel once
+   * the frame is no longer orthogonal (see AuxFrameIsOrthogonal).
+   *
+   * Throws if already dressed. Fill and Rebuild undress.
+   */
+  void DressAuxIndex(const Eigen::MatrixXd& S);
+  // Back to M_fill (times whatever rotations happened since), bare v.
+  void UndressAuxIndex();
+  bool Dressed() const { return dressing_.size() > 0; }
+
   /**
    * \brief Rotate the n-index (construction rows) of Mmn for QSGW.
    *
@@ -132,6 +205,13 @@ class TCMatrix_gwbse final : public TCMatrix {
   Index ntotal_;
   Index mtotal_;
   Index auxbasissize_;
+
+  Eigen::MatrixXd aux_frame_;  // empty: identity
+  bool aux_frame_known_ = true;
+  Eigen::MatrixXd dressing_;  // S of DressAuxIndex; empty: bare
+
+  // M_fill -> M_fill A, whatever frame the integrals are in.
+  void MultiplyInFillFrame(const Eigen::MatrixXd& A);
 
   const AOBasis* auxbasis_ = nullptr;
   const AOBasis* dftbasis_ = nullptr;

@@ -31,6 +31,9 @@
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
 
+#include <algorithm>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 
 namespace votca {
@@ -93,6 +96,168 @@ void QMRegion::Initialize(const tools::Property& prop) {
     do_localize_ = true;
     do_dft_in_dft_ = true;
   }
+
+  if (prop.exists("environment_screening")) {
+    const tools::Property env = prop.get("environment_screening");
+    screening_ = env.ifExistsReturnElseReturnDefault<bool>("enabled", true);
+  }
+  if (screening_) {
+    const tools::Property env = prop.get("environment_screening");
+    // Excitations are what the screening is for. A charged DFT run would
+    // put the extra charge's polarization into the ground-state loop and
+    // again into W; a plain ground-state or KS-level run has no GW-BSE to
+    // screen.
+    if (initstate_.Type() == QMStateType::Electron ||
+        initstate_.Type() == QMStateType::Hole) {
+      throw std::runtime_error(
+          "environment_screening with state " + initstate_.ToString() +
+          ": the charged DFT state would be polarized in the QM/MM loop and "
+          "screened again in GW. Run the neutral molecule and ask for the "
+          "quasiparticle level instead: state pqpN (or dqpN) with N the "
+          "HOMO or LUMO index.");
+    }
+    if (!do_gwbse_) {
+      throw std::runtime_error(
+          "environment_screening needs a GW-BSE state (an exciton or a "
+          "quasiparticle level); " +
+          initstate_.ToString() + " has no GW-BSE calculation to screen.");
+    }
+    screening_include_kreac_ =
+        env.ifExistsReturnElseReturnDefault<bool>("include_kreac", true);
+    screening_shell_dielectric_ =
+        env.ifExistsReturnElseReturnDefault<double>("shell_dielectric", 4.0);
+    std::string shells =
+        env.ifExistsReturnElseReturnDefault<std::string>("shell_regions", "");
+    std::replace(shells.begin(), shells.end(), ',', ' ');
+    std::istringstream in(shells);
+    Index id;
+    while (in >> id) {
+      screening_shell_regions_.push_back(id);
+    }
+    XTP_LOG(Log::error, log_)
+        << " Environment screening on: ground-state QM/MM loop, then one "
+           "screened GW-BSE run. K_reac "
+        << (screening_include_kreac_ ? "included" : "excluded")
+        << ", shell dielectric " << screening_shell_dielectric_ << std::flush;
+  }
+}
+
+void QMRegion::PrepareOrbitalsForGWBSE() {
+  if (orb_.isOpenShell()) {
+    throw std::runtime_error("GWBSE not implemented for open-shell systems");
+  }
+  if (do_dft_in_dft_) {
+    Index active_electrons = orb_.getNumOfActiveElectrons();
+
+    if (active_electrons % 2 != 0) {
+      throw std::runtime_error(
+          "DFT-in-DFT embedded GWBSE currently supports only closed-shell "
+          "active spaces with an even number of electrons");
+    }
+
+    orb_.MOs() = orb_.getEmbeddedMOs();
+
+    const Index active_occ = active_electrons / 2;
+
+    // Restricted closed-shell rewrite of the embedded orbital object
+    orb_.setNumberOfOccupiedLevels(active_occ);
+    orb_.setNumberOfOccupiedLevelsBeta(active_occ);
+    orb_.setNumberOfAlphaElectrons(active_occ);
+    orb_.setNumberOfBetaElectrons(active_occ);
+    orb_.setChargeAndSpin(orb_.getCharge(), 1);
+  }
+}
+
+double QMRegion::StateEnergy(const QMState& state) const {
+  if (state.Type().isExciton()) {
+    return orb_.getExcitedStateEnergy(state);
+  }
+  // quasiparticle: adding an electron to an unoccupied level, removing one
+  // from an occupied level
+  if (state.StateIdx() > orb_.getHomo()) {
+    return orb_.getExcitedStateEnergy(state);
+  }
+  return -orb_.getExcitedStateEnergy(state);
+}
+
+void QMRegion::EvaluateScreenedGWBSE(
+    std::vector<std::unique_ptr<Region> >& regions) {
+  if (!screening_) {
+    return;
+  }
+  if (orb_.getCalculationType() == "Truncated") {
+    throw std::runtime_error(
+        "environment_screening is not implemented for truncated active "
+        "regions.");
+  }
+
+  ScreeningEnvironment env;
+  env.shell_dielectric = screening_shell_dielectric_;
+  env.include_kreac = screening_include_kreac_;
+  bool have_damp = false;
+  PolarRegion Polardummy(0, log_);
+  for (const std::unique_ptr<Region>& reg : regions) {
+    if (reg->identify() != Polardummy.identify()) {
+      continue;
+    }
+    const PolarRegion& polar = dynamic_cast<const PolarRegion&>(*reg);
+    const bool shell =
+        std::find(screening_shell_regions_.begin(),
+                  screening_shell_regions_.end(),
+                  polar.getId()) != screening_shell_regions_.end();
+    if (shell) {
+      env.shell_segments.insert(env.shell_segments.end(), polar.begin(),
+                                polar.end());
+      continue;
+    }
+    if (have_damp && polar.ExpDamp() != env.exp_damp) {
+      throw std::runtime_error(
+          "environment_screening: the explicit polar regions respond as one "
+          "coupled Thole system and must share exp_damp; found " +
+          std::to_string(env.exp_damp) + " and " +
+          std::to_string(polar.ExpDamp()) + ".");
+    }
+    env.exp_damp = polar.ExpDamp();
+    have_damp = true;
+    env.explicit_segments.insert(env.explicit_segments.end(), polar.begin(),
+                                 polar.end());
+  }
+  for (Index id : screening_shell_regions_) {
+    const bool is_polar = std::any_of(
+        regions.begin(), regions.end(),
+        [&](const std::unique_ptr<Region>& reg) {
+          return reg->getId() == id && reg->identify() == Polardummy.identify();
+        });
+    if (!is_polar) {
+      throw std::runtime_error("environment_screening: shell region " +
+                               std::to_string(id) +
+                               " is not a polar region of this job.");
+    }
+  }
+  if (env.empty()) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp()
+        << " WARNING: environment_screening is on but there is no polar "
+           "region; GW-BSE runs unscreened."
+        << std::flush;
+  }
+
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Running environment-screened GW-BSE" << std::flush;
+  const double e_dft = orb_.getDFTTotalEnergy();
+  PrepareOrbitalsForGWBSE();
+  GWBSE gwbse(orb_);
+  gwbse.setLogger(&log_);
+  gwbse.Initialize(gwbseoptions_);
+  gwbse.setScreeningEnvironment(env);
+  gwbse.Evaluate();
+  const QMState state = statetracker_.CalcStateAndUpdate(orb_);
+  const double energy = e_dft + StateEnergy(state);
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Screened state " << state.ToString() << ": "
+      << std::setprecision(10) << StateEnergy(state) * tools::conv::hrt2ev
+      << " eV, region energy " << energy << " Hartree" << std::flush;
+  E_hist_.push_back(energy);
 }
 
 // helper function to hand the grid changable over to Ewald
@@ -307,46 +472,16 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     }
   }
 
-  if (do_gwbse_) {
-    if (orb_.isOpenShell()) {
-      throw std::runtime_error("GWBSE not implemented for open-shell systems");
-    }
-    if (do_dft_in_dft_) {
-      Index active_electrons = orb_.getNumOfActiveElectrons();
-
-      if (active_electrons % 2 != 0) {
-        throw std::runtime_error(
-            "DFT-in-DFT embedded GWBSE currently supports only closed-shell "
-            "active spaces with an even number of electrons");
-      }
-
-      orb_.MOs() = orb_.getEmbeddedMOs();
-
-      const Index active_occ = active_electrons / 2;
-
-      // Restricted closed-shell rewrite of the embedded orbital object
-      orb_.setNumberOfOccupiedLevels(active_occ);
-      orb_.setNumberOfOccupiedLevelsBeta(active_occ);
-      orb_.setNumberOfAlphaElectrons(active_occ);
-      orb_.setNumberOfBetaElectrons(active_occ);
-      orb_.setChargeAndSpin(orb_.getCharge(), 1);
-    }
+  // With environment screening the loop converges the ground state only;
+  // GW-BSE runs once afterwards (EvaluateScreenedGWBSE).
+  if (do_gwbse_ && !screening_) {
+    PrepareOrbitalsForGWBSE();
     GWBSE gwbse(orb_);
     gwbse.setLogger(&log_);
     gwbse.Initialize(gwbseoptions_);
     gwbse.Evaluate();
     state = statetracker_.CalcStateAndUpdate(orb_);
-    if (state.Type().isExciton()) {
-      energy += orb_.getExcitedStateEnergy(state);
-    } else {
-      // if unoccupied, add QP level energy
-      if (state.StateIdx() > orb_.getHomo()) {
-        energy += orb_.getExcitedStateEnergy(state);
-      } else {
-        // if unoccupied, subtract QP level energy
-        energy -= orb_.getExcitedStateEnergy(state);
-      }
-    }
+    energy += StateEnergy(state);
   }
   // If truncation was enabled then rewrite full basis/aux-basis, MOs in full
   // basis and full QMAtoms
@@ -464,8 +599,10 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   grid.GridSetup(grid_accuracy_for_ext_interaction_, orb_.QMAtoms(), basis);
   DensityIntegration<Vxc_Grid> numint(grid);
 
+  // With environment screening the environment is polarized by the
+  // ground state only: the excitation's own polarization is in W.
   QMState state = QMState("groundstate");
-  if (do_gwbse_ || initstate_.Type().isKSState()) {
+  if ((do_gwbse_ && !screening_) || initstate_.Type().isKSState()) {
     state = statetracker_.CalcState(orb_);
   }
   Eigen::MatrixXd dmat = orb_.DensityMatrixFull(state);

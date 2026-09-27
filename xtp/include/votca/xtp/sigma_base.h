@@ -32,7 +32,7 @@ class RPA;
 
 class Sigma_base {
  public:
-  Sigma_base(TCMatrix_gwbse& Mmn, const RPA& rpa) : Mmn_(Mmn), rpa_(rpa) {};
+  Sigma_base(TCMatrix_gwbse& Mmn, const RPA& rpa) : Mmn_(Mmn), rpa_(rpa){};
 
   virtual ~Sigma_base() = default;
 
@@ -65,6 +65,36 @@ class Sigma_base {
 
   // Calculates full exchange matrix
   Eigen::MatrixXd CalcExchangeMatrix() const;
+
+  /**
+   * \brief Static self-energy of an environment reaction field: the
+   * COH+SEX pair for v_reac, in the QP window.
+   *
+   * With the reaction field v_reac = v_12 chi^(2) v_21 of a static
+   * environment folded into the screened interaction, W = W_dyn + v_reac,
+   * and the frequency-independent part contributes
+   *
+   *   Sigma^SEX_nn' = - sum_{i occ} (ni|v_reac|n'i)
+   *   Sigma^COH_nn' = 1/2 sum_{m}   (nm|v_reac|n'm)
+   *
+   *   Sigma^reac_nn' = 1/2 sum_m s_m (nm|v_reac|n'm),  s_m = -1 occ, +1 virt,
+   *
+   * with (nm|v_reac|n'm) = M_nm R M_n'm^T. SEX alone would move the HOMO by
+   * twice the polarization energy and leave the LUMO where it is; with COH
+   * a level of density psi_n^2 moves by -+ 1/2 (nn|v_reac|nn): occupied
+   * levels up, virtual ones down, which is the familiar P_h + P_e gap
+   * closing of a polarizable environment.
+   *
+   * The m-sum runs over the RPA window. COH needs it complete -- it is a
+   * closure relation -- so with rpamax below the last MO the result is
+   * truncated. v_reac is smooth over the molecule, so that converges fast,
+   * but it is not exact.
+   *
+   * R must be in the FILL-TIME auxiliary frame, R = T^T B T as
+   * EnvironmentScreening::SymmetrizedReactionField returns it; it is
+   * brought into the frame of the integrals here.
+   */
+  Eigen::MatrixXd CalcReactionFieldMatrix(const Eigen::MatrixXd& R) const;
   // Calculates correlation diagonal
   Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies) const;
   // Calculates correlation off-diagonal

@@ -42,7 +42,7 @@ class BSE {
  public:
   //  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp_in)
   //    :  log_(log),  Mmn_(Mmn),  Hqp_in_(Hqp_in){};
-  BSE(Logger& log, TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn) {};
+  BSE(Logger& log, TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn){};
 
   struct options {
     bool useTDA;
@@ -66,6 +66,37 @@ class BSE {
 
   void configure(const options& opt, const Eigen::VectorXd& RPAEnergies,
                  const Eigen::MatrixXd& Hqp_in);
+
+  /**
+   * \brief Screen by a static polarizable environment (embedded BSE).
+   *
+   * R as for GW::setReactionField. Call before configure, which sets up
+   * the screened interaction. The kernel becomes
+   *
+   *   K = Kx[v] + K_reac[v_reac] + Kd[W_tot],
+   *   W_tot = [(1 + R)^-1 + eps - 1]^-1  (in the metric of M),
+   *
+   * Kd with the environment-screened W: the environment's response to the
+   * charge an excitation rearranges (state-specific in solvation terms).
+   * K_reac = (ia|v_reac|jb) has the index structure of Kx: the
+   * environment's response to the transition density, i.e. its Hartree
+   * part, which moves bright singlets (linear response in solvation
+   * terms). Triplets have no Kx and so no K_reac.
+   *
+   * include_kreac = true runs the whole kernel on integrals dressed with
+   * (1 + R)^(1/2) (TCMatrix_gwbse::DressAuxIndex), where Kx + K_reac and
+   * Kd[W_tot] come out of the unchanged operators. false keeps them bare
+   * and diagonalizes W_tot itself instead of eps, so Kx stays v. Either
+   * way the first-order K_reac of each singlet is logged after solving.
+   * An empty R (the default) leaves everything as it was.
+   */
+  void setReactionField(const Eigen::MatrixXd& R, bool include_kreac);
+
+  // <K_reac> of each singlet in es to first order, 2 (X+Y)^T K_reac (X+Y):
+  // its linear-response environment shift, whether or not K_reac is in the
+  // kernel. Needs a reaction field.
+  Eigen::VectorXd ReactionFieldExchange(const tools::EigenSystem& es,
+                                        bool tda) const;
 
   void configure_with_precomputed_screening(
       const options& opt, const Eigen::VectorXd& RPAEnergies,
@@ -114,6 +145,10 @@ class BSE {
 
   TCMatrix_gwbse& Mmn_;
   Eigen::MatrixXd Hqp_;
+
+  Eigen::MatrixXd reaction_field_;  // R, fill-time aux frame; empty: off
+  Eigen::MatrixXd dressing_;        // (1 + R)^(1/2)
+  bool include_kreac_ = true;
 
   tools::EigenSystem Solve_singlets_TDA() const;
   tools::EigenSystem Solve_singlets_BTDA() const;

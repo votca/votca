@@ -30,6 +30,7 @@
 #include "votca/xtp/bse_operator.h"
 #include "votca/xtp/bseoperator_btda.h"
 #include "votca/xtp/davidsonsolver.h"
+#include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/populationanalysis.h"
 #include "votca/xtp/qmfragment.h"
 #include "votca/xtp/rpa.h"
@@ -185,14 +186,50 @@ Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::MatrixXd& Hqp,
   return Hqp_BSE;
 }
 
+void BSE::setReactionField(const Eigen::MatrixXd& R, bool include_kreac) {
+  reaction_field_ = R;
+  include_kreac_ = include_kreac;
+  dressing_ = (R.size() > 0) ? EnvironmentScreening::DressingMatrix(R)
+                             : Eigen::MatrixXd();
+}
+
 void BSE::SetupDirectInteractionOperator(
     const Eigen::VectorXd& RPAInputEnergies, double energy) {
+  const bool environment = reaction_field_.size() > 0;
+  const bool dressed_route = environment && include_kreac_;
+  // Dressed: every pairing of two M's is through u = v + v_reac, so eps
+  // below is the environment-screened one and Kx carries K_reac. Bare:
+  // Kx stays v, and W_tot is assembled explicitly below. GW may have left
+  // the integrals either way.
+  if (dressed_route && !Mmn_.Dressed()) {
+    Mmn_.DressAuxIndex(dressing_);
+  } else if (!dressed_route && Mmn_.Dressed()) {
+    Mmn_.UndressAuxIndex();
+  }
+
   RPA rpa = RPA(log_, Mmn_);
   rpa.configure(opt_.homo, opt_.rpamin, opt_.rpamax);
   rpa.setRPAInputEnergies(RPAInputEnergies);
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
-      rpa.calculate_epsilon_r(energy));
+  Eigen::MatrixXd screening = rpa.calculate_epsilon_r(energy);
+  if (environment && !include_kreac_) {
+    // Operators expect M U with U orthogonal and diag(epsilon_0_inv_) the
+    // screened interaction in that frame: Kd = M U d U^T M^T and
+    // Kx = M U U^T M^T = M M^T = v. So diagonalize W_tot, not eps, and
+    // hand its eigenvalues over as epsilon_0_inv_.
+    const Index n = screening.rows();
+    const Eigen::MatrixXd I = Eigen::MatrixXd::Identity(n, n);
+    const Eigen::MatrixXd u_inv =
+        (I + Mmn_.ToCurrentAuxFrame(reaction_field_)).inverse();
+    Eigen::MatrixXd W = (u_inv + screening - I).inverse();
+    W = 0.5 * (W + W.transpose()).eval();
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(W);
+    Mmn_.MultiplyRightWithAuxMatrix(es.eigenvectors());
+    epsilon_0_inv_ = es.eigenvalues();
+    return;
+  }
+
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(screening);
   Mmn_.MultiplyRightWithAuxMatrix(es.eigenvectors());
 
   epsilon_0_inv_ = Eigen::VectorXd::Zero(es.eigenvalues().size());
@@ -229,6 +266,54 @@ void BSE::Solve_singlets(Orbitals& orb) const {
     orb.BSESinglets() = Solve_singlets_BTDA();
   }
   orb.CalcCoupledTransition_Dipoles();
+
+  if (reaction_field_.size() > 0) {
+    const Eigen::VectorXd kreac =
+        ReactionFieldExchange(orb.BSESinglets(), opt_.useTDA);
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Environment K_reac (linear-response part), "
+        << (include_kreac_ ? "included" : "NOT included, estimate only")
+        << ", first order [eV]:" << flush;
+    for (Index i = 0; i < kreac.size(); ++i) {
+      XTP_LOG(Log::error, log_)
+          << (boost::format("  S = %1$4d Omega = %2$+1.4f eV  <K_reac> = "
+                            "%3$+1.4f eV") %
+              (i + 1) %
+              (orb.BSESinglets().eigenvalues()(i) * tools::conv::hrt2ev) %
+              (kreac(i) * tools::conv::hrt2ev))
+                 .str()
+          << flush;
+    }
+  }
+}
+
+Eigen::VectorXd BSE::ReactionFieldExchange(const tools::EigenSystem& es,
+                                           bool tda) const {
+  // The transition density of each state in the auxiliary basis,
+  // d = sum_vc (X+Y)_vc M_v,c, and <K_reac> = 2 d^T R d: the singlet
+  // spin factor of Kx, which K_reac shares, times the first-order change
+  // (X+Y)^T dK (X+Y) that a perturbation entering A and B alike produces.
+  const Eigen::MatrixXd Rc = Mmn_.ToCurrentAuxFrame(reaction_field_);
+  const Index vmin = opt_.vmin - opt_.rpamin;
+  const Index cmin = bse_cmin_ - opt_.rpamin;
+  const Index nstates = es.eigenvalues().size();
+  Eigen::VectorXd result = Eigen::VectorXd::Zero(nstates);
+#pragma omp parallel for schedule(dynamic)
+  for (Index s = 0; s < nstates; ++s) {
+    Eigen::VectorXd coeffs = es.eigenvectors().col(s);
+    if (!tda) {
+      coeffs += es.eigenvectors2().col(s);
+    }
+    const Eigen::Map<const Eigen::MatrixXd> mat(coeffs.data(), bse_ctotal_,
+                                                bse_vtotal_);
+    Eigen::VectorXd d = Eigen::VectorXd::Zero(Mmn_.auxsize());
+    for (Index v = 0; v < bse_vtotal_; ++v) {
+      d +=
+          Mmn_[v + vmin].middleRows(cmin, bse_ctotal_).transpose() * mat.col(v);
+    }
+    result(s) = 2.0 * d.dot(Rc * d);
+  }
+  return result;
 }
 
 void BSE::Solve_triplets(Orbitals& orb) const {

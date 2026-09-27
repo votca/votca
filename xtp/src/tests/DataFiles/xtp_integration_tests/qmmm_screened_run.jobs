@@ -1,0 +1,43 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag>Methane_0:s1</tag>
+		<input>
+			<site_energies>0:s1</site_energies>
+			<regions>
+				<qmregion>
+					<id>0</id>
+					<state>s1</state>
+					<segments>0:n</segments>
+				</qmregion>
+			</regions>
+		</input>
+		<status>COMPLETE</status>
+		<host>vm:382</host>
+		<time>19:25:42</time>
+		<output>
+			<regions>
+				<region Tot_charge="0.000000e+00" id="0" size="1" type="qmregion">
+					<E_total>-1081.199725</E_total>
+					<Initial_State>s1</Initial_State>
+					<Final_State>s1</Final_State>
+				</region>
+				<region Tot_charge="-8.743006e-16" id="1" size="16" type="polarregion">
+					<E_static>-0.099167</E_static>
+					<E_polar>-0.002140</E_polar>
+					<E_total>-0.101306</E_total>
+				</region>
+				<region Tot_charge="-6.536438e-15" id="3" size="118" type="staticregion"/>
+				<region Tot_charge="-2.040035e-15" id="2" size="37" type="polarregion">
+					<E_static>0.001264</E_static>
+					<E_polar>-0.004402</E_polar>
+					<E_total>-0.003137</E_total>
+				</region>
+			</regions>
+			<E_tot>-1081.304168</E_tot>
+			<Compute_Time>15</Compute_Time>
+			<Total_Charge>-0.000000</Total_Charge>
+			<Iterations>4</Iterations>
+		</output>
+	</job>
+</jobs>

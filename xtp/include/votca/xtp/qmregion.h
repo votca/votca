@@ -92,6 +92,22 @@ class QMRegion : public Region {
   // class.
   std::vector<Eigen::Vector3d> copyEwaldGrid();
 
+  /**
+   * \brief Embedded GW-BSE, screened by the polar regions (see
+   * EnvironmentScreening, GWBSE::setScreeningEnvironment).
+   *
+   * With environment_screening on, the inter-region loop converges the
+   * GROUND state: the QM density polarizes the polar regions, and their
+   * induced dipoles act back on it -- the embedding H0. The excitation's
+   * own polarization of the environment is not iterated; it enters the
+   * screened interaction of one GW-BSE run instead, which this does, once
+   * the loop has converged. The polar regions respond through their Thole
+   * operator; those listed as shell regions through alpha/epsilon without
+   * coupling. Updates the region energy with the state energy found.
+   */
+  bool EnvironmentScreeningEnabled() const { return screening_; }
+  void EvaluateScreenedGWBSE(std::vector<std::unique_ptr<Region> >& regions);
+
  protected:
   void AppendResult(tools::Property& prop) const override;
   double InteractwithQMRegion(const QMRegion& region) override;
@@ -121,6 +137,16 @@ class QMRegion : public Region {
   double DeltaDmax_ = 5e-5;
 
   bool do_gwbse_ = false;
+
+  // environment screening (embedded GW-BSE)
+  bool screening_ = false;
+  bool screening_include_kreac_ = true;
+  std::vector<Index> screening_shell_regions_;
+  double screening_shell_dielectric_ = 4.0;
+  // DFT-in-DFT rewrite of orb_ and closed-shell check, before any GW-BSE
+  void PrepareOrbitalsForGWBSE();
+  // state energy of the tracked state, added to the DFT total energy
+  double StateEnergy(const QMState& state) const;
   bool do_localize_ = false;
   bool do_dft_in_dft_ = false;
 

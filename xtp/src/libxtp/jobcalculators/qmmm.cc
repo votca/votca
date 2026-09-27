@@ -181,6 +181,32 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     }
   }
 
+  // Embedded GW-BSE: the loop above converged the ground state; the
+  // excitation is screened by the polar regions in one GW-BSE run.
+  if (jres.getStatus() == Job::JobStatus::COMPLETE) {
+    QMRegion* qmregion = dynamic_cast<QMRegion*>(jobtop.Regions()[0].get());
+    if (qmregion != nullptr && qmregion->EnvironmentScreeningEnabled()) {
+      try {
+        qmregion->EvaluateScreenedGWBSE(jobtop.Regions());
+      } catch (std::exception& e) {
+        XTP_LOG(Log::error, pLog)
+            << TimeStamp() << " Screened GW-BSE failed: " << e.what()
+            << std::flush;
+        jres.setStatus(Job::JobStatus::FAILED);
+        jres.setError(std::string("Screened GW-BSE failed: ") + e.what());
+        return jres;
+      }
+      try {
+        jobtop.WriteToHdf5(workdir + "/checkpoint_screened.hdf5");
+      } catch (std::exception& e) {
+        XTP_LOG(Log::error, pLog)
+            << TimeStamp()
+            << " Could not write checkpoint file due to exception: " << e.what()
+            << std::flush;
+      }
+    }
+  }
+
   tools::Property results;
   tools::Property& jobresult = results.add("output", "");
   tools::Property& regionsresults = jobresult.add("regions", "");
@@ -275,8 +301,11 @@ Job QMMM::createJob(const Segment& seg, const QMState& state,
   if (hasQMRegion()) {
     region.add("state", state.ToString());
   }
-  if (use_gs_for_ex_ && (state.Type() == QMStateType::Singlet ||
-                         state.Type() == QMStateType::Triplet)) {
+  // Quasiparticle levels are levels of the neutral molecule: its geometry,
+  // there being no qmcoords_pqp to look up.
+  if ((use_gs_for_ex_ && (state.Type() == QMStateType::Singlet ||
+                          state.Type() == QMStateType::Triplet)) ||
+      state.Type().isGWState()) {
     region.add("segments", std::to_string(seg.getId()) + ":n");
   } else {
     region.add("segments", marker);

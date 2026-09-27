@@ -18,10 +18,14 @@
  */
 
 // Local VOTCA includes
-#include "votca/xtp/threecenter.h"
+// Standard includes
+#include <stdexcept>
+#include <string>
+
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/symmetric_matrix.h"
+#include "votca/xtp/threecenter.h"
 
 namespace votca {
 namespace xtp {
@@ -62,6 +66,98 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
       gemm.MultiplyRight(matrix_[i], threadid);
     }
   }
+  if (matrix.rows() != matrix.cols()) {
+    aux_frame_known_ = false;  // a projection, not a change of frame
+    aux_frame_.resize(0, 0);
+  } else if (aux_frame_known_) {
+    aux_frame_ = (aux_frame_.size() == 0) ? matrix : aux_frame_ * matrix;
+  }
+}
+
+bool TCMatrix_gwbse::AuxFrameIsOrthogonal() const {
+  if (!aux_frame_known_) {
+    return false;
+  }
+  if (aux_frame_.size() == 0) {
+    return true;
+  }
+  const Index n = aux_frame_.rows();
+  return (aux_frame_.transpose() * aux_frame_ - Eigen::MatrixXd::Identity(n, n))
+             .cwiseAbs()
+             .maxCoeff() < 1e-10;
+}
+
+void TCMatrix_gwbse::MultiplyInFillFrame(const Eigen::MatrixXd& A) {
+  if (!aux_frame_known_) {
+    throw std::runtime_error(
+        "TCMatrix_gwbse: cannot dress the auxiliary index after a non-square "
+        "MultiplyRightWithAuxMatrix. Rebuild first.");
+  }
+  if (aux_frame_.size() == 0) {
+    MultiplyRightWithAuxMatrix(A);
+    return;
+  }
+  // M_fill F X = M_fill A F  =>  X = F^-1 A F. The frame becomes A F.
+  const Eigen::PartialPivLU<Eigen::MatrixXd> lu(aux_frame_);
+  MultiplyRightWithAuxMatrix(lu.solve(A * aux_frame_));
+}
+
+void TCMatrix_gwbse::DressAuxIndex(const Eigen::MatrixXd& S) {
+  if (Dressed()) {
+    throw std::runtime_error(
+        "TCMatrix_gwbse::DressAuxIndex: already dressed. Undress first.");
+  }
+  if (S.rows() != auxbasissize_ || S.cols() != auxbasissize_) {
+    throw std::runtime_error(
+        "TCMatrix_gwbse::DressAuxIndex: S is " + std::to_string(S.rows()) +
+        "x" + std::to_string(S.cols()) + ", auxiliary basis has " +
+        std::to_string(auxbasissize_) + " functions.");
+  }
+  MultiplyInFillFrame(S);
+  dressing_ = S;
+}
+
+void TCMatrix_gwbse::UndressAuxIndex() {
+  if (!Dressed()) {
+    return;
+  }
+  MultiplyInFillFrame(dressing_.inverse());
+  dressing_.resize(0, 0);
+}
+
+Eigen::MatrixXd TCMatrix_gwbse::ToCurrentAuxFrame(
+    const Eigen::MatrixXd& K) const {
+  if (!aux_frame_known_) {
+    throw std::runtime_error(
+        "TCMatrix_gwbse::ToCurrentAuxFrame: the auxiliary index of the "
+        "three-centre integrals was multiplied by a non-square matrix, so "
+        "there is no frame to bring the kernel into. Apply it before that, "
+        "or Rebuild.");
+  }
+  if (aux_frame_.size() == 0) {
+    return K;
+  }
+  if (K.rows() != aux_frame_.rows() || K.cols() != aux_frame_.rows()) {
+    throw std::runtime_error(
+        "TCMatrix_gwbse::ToCurrentAuxFrame: kernel is " +
+        std::to_string(K.rows()) + "x" + std::to_string(K.cols()) +
+        ", auxiliary frame is " + std::to_string(aux_frame_.rows()) + "x" +
+        std::to_string(aux_frame_.cols()) + ".");
+  }
+  const Index n = aux_frame_.rows();
+  const double off_orthogonal =
+      (aux_frame_.transpose() * aux_frame_ - Eigen::MatrixXd::Identity(n, n))
+          .cwiseAbs()
+          .maxCoeff();
+  Eigen::MatrixXd result;
+  if (off_orthogonal < 1e-10) {
+    result = aux_frame_.transpose() * K * aux_frame_;
+  } else {
+    const Eigen::PartialPivLU<Eigen::MatrixXd> lu(aux_frame_);
+    const Eigen::MatrixXd X = lu.solve(K);  // F^-1 K
+    result = lu.solve(Eigen::MatrixXd(X.transpose())).transpose();
+  }
+  return result;
 }
 /*
  * Fill the 3-center object by looping over shells of GW basis set and
@@ -82,9 +178,13 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
   auxoverlap.Fill(auxbasis);
   AOCoulomb auxcoulomb;
   auxcoulomb.Fill(auxbasis);
-  Eigen::MatrixXd inv_sqrt = auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap, 5e-7);
+  inv_sqrt_ = auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap, 5e-7);
   removedfunctions_ = auxcoulomb.Removedfunctions();
-  MultiplyRightWithAuxMatrix(inv_sqrt);
+  MultiplyRightWithAuxMatrix(inv_sqrt_);
+  // What Fill leaves behind is the reference frame by definition.
+  aux_frame_.resize(0, 0);
+  aux_frame_known_ = true;
+  dressing_.resize(0, 0);
 
   return;
 }

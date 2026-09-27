@@ -26,6 +26,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/threecenter.h"
 #include "xtp_libint2.h"
@@ -121,6 +122,52 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   }
 
   BOOST_CHECK_EQUAL(check4_after, true);
+
+  libint2::finalize();
+}
+
+// InvSqrt() must be the metric that was actually folded into the stored
+// integrals, not merely some inverse square root of V. What everything
+// downstream relies on is that M M^T reproduces the RI Coulomb interaction,
+// which holds exactly when T^T V T is the projector onto the retained
+// auxiliary functions: the identity if nothing was removed, and in general
+// symmetric, idempotent, with trace = size - Removedfunctions().
+//
+// Checked against a V filled independently here, so the test cannot pass
+// by comparing the stored matrix with itself.
+BOOST_AUTO_TEST_CASE(stored_metric_is_the_one_folded_into_the_integrals) {
+  libint2::initialize();
+  QMMolecule mol(" ", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/threecenter_gwbse/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) +
+             "/threecenter_gwbse/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, mol);
+  Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/MOs.mm");
+
+  TCMatrix_gwbse tc;
+  tc.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7);
+  tc.Fill(aobasis, aobasis, MOs);
+
+  const Eigen::MatrixXd& T = tc.InvSqrt();
+  const votca::Index n = aobasis.AOBasisSize();
+  BOOST_REQUIRE_EQUAL(T.rows(), n);
+  BOOST_REQUIRE_EQUAL(T.cols(), n);
+
+  AOCoulomb V;
+  V.Fill(aobasis);
+  const Eigen::MatrixXd P = T.transpose() * V.Matrix() * T;
+
+  BOOST_CHECK_SMALL((P - P.transpose()).cwiseAbs().maxCoeff(), 1e-10);
+  BOOST_CHECK_SMALL((P * P - P).cwiseAbs().maxCoeff(), 1e-8);
+  BOOST_CHECK_CLOSE(P.trace(), double(n - tc.Removedfunctions()), 1e-8);
+  if (tc.Removedfunctions() == 0) {
+    BOOST_CHECK_SMALL(
+        (P - Eigen::MatrixXd::Identity(n, n)).cwiseAbs().maxCoeff(), 1e-8);
+  }
 
   libint2::finalize();
 }

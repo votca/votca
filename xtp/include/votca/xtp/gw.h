@@ -48,7 +48,7 @@ class GW {
         Mmn_(Mmn),
         vxc_(vxc),
         dft_energies_(dft_energies),
-        rpa_(log, Mmn) {};
+        rpa_(log, Mmn){};
 
   struct options {
     Index homo;
@@ -121,6 +121,36 @@ class GW {
   void configure(const options& opt);
 
   Eigen::VectorXd getGWAResults() const;
+
+  /**
+   * \brief Screen by a static polarizable environment (embedded GW).
+   *
+   * R is the environment reaction field in the fill-time auxiliary frame
+   * of the three-centre integrals, as
+   * EnvironmentScreening::SymmetrizedReactionField returns it. Set before
+   * CalculateGWPerturbation; an empty matrix (the default) switches it off.
+   *
+   * It enters twice, splitting W = u + (W - u) with u = v + v_reac:
+   *
+   *  - u: v gives the exchange as always, and nothing else; v_reac gives
+   *    a static COH+SEX self-energy (Sigma_base::CalcReactionFieldMatrix).
+   *    By its physics that is correlation -- it is part of W - v -- and it
+   *    is kept as the frequency-independent part of Sigma_c, apart from
+   *    the dynamic part, and added wherever Sigma_c is: getHQP, the QP
+   *    equation, evGW, QSGW. getSigmaReac() returns it; zero without an
+   *    environment. It is printed as S-R next to S-X and S-C.
+   *  - W - u: the correlation of the QM electrons, now interacting through
+   *    u and screened by the environment as well,
+   *      W = [u^-1 - chi0]^-1 = S [1 - S chi0 S]^-1 S,  S = (1 + R)^(1/2).
+   *    That is the unchanged RPA and correlation machinery run on M S, so
+   *    the integrals are dressed (TCMatrix_gwbse::DressAuxIndex) after the
+   *    static terms are formed and before the first screening. They stay
+   *    dressed when GW is done; the caller undresses them if it needs the
+   *    bare ones.
+   */
+  void setReactionField(const Eigen::MatrixXd& R);
+  const Eigen::MatrixXd& getSigmaReac() const { return Sigma_reac_; }
+
   // Calculates the diagonal elements up to self consistency
   void CalculateGWPerturbation();
 
@@ -193,8 +223,13 @@ class GW {
  private:
   Index qptotal_;
 
-  Eigen::MatrixXd Sigma_x_;
-  Eigen::MatrixXd Sigma_c_;
+  Eigen::MatrixXd Sigma_x_;         // Fock exchange with the bare v, only
+  Eigen::MatrixXd Sigma_c_;         // dynamic correlation
+  Eigen::MatrixXd reaction_field_;  // R, fill-time aux frame; empty: off
+  Eigen::MatrixXd dressing_;        // (1 + R)^(1/2), fill-time aux frame
+  void DressForEnvironment();
+  Eigen::MatrixXd Sigma_reac_;  // static correlation from v_reac (COH+SEX)
+  void PrintReactionFieldShifts() const;
   Eigen::MatrixXd qsgw_rotation_;       // accumulated U: DFT MOs -> QSGW QP
                                         // wavefunctions
   Eigen::VectorXd qsgw_seed_energies_;  // evGW/G0W0 energies used as QSGW seed

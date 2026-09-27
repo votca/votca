@@ -24,6 +24,7 @@
 // Local VOTCA includes
 #include "votca/xtp/IndexParser.h"
 #include "votca/xtp/anderson_mixing.h"
+#include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/gw.h"
 #include "votca/xtp/newton_rapson.h"
 #include "votca/xtp/rpa.h"
@@ -55,6 +56,57 @@ void GW::configure(const options& opt) {
   sigma_->configure(sigma_opt);
   Sigma_x_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
   Sigma_c_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
+  Sigma_reac_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
+}
+
+void GW::setReactionField(const Eigen::MatrixXd& R) {
+  reaction_field_ = R;
+  dressing_ = (R.size() > 0) ? EnvironmentScreening::DressingMatrix(R)
+                             : Eigen::MatrixXd();
+}
+
+void GW::DressForEnvironment() {
+  if (dressing_.size() > 0 && !Mmn_.Dressed()) {
+    Mmn_.DressAuxIndex(dressing_);
+    XTP_LOG(Log::info, log_)
+        << TimeStamp()
+        << " Dressed 3c integrals with (1+R)^1/2 for environment screening"
+        << std::flush;
+  }
+}
+
+void GW::PrintReactionFieldShifts() const {
+  const Index homo_rel = opt_.homo - opt_.qpmin;
+  XTP_LOG(Log::error, log_)
+      << TimeStamp()
+      << " Environment reaction field, static COH+SEX, diagonal [eV]:"
+      << std::flush;
+  for (Index i = 0; i < qptotal_; i++) {
+    std::string level = "  Level";
+    if (i == homo_rel) {
+      level = "  HOMO ";
+    } else if (i == homo_rel + 1) {
+      level = "  LUMO ";
+    }
+    XTP_LOG(Log::info, log_)
+        << level
+        << (boost::format(" = %1$4d Sigma_reac = %2$+1.6f") % (i + opt_.qpmin) %
+            (Sigma_reac_(i, i) * tools::conv::hrt2ev))
+               .str()
+        << std::flush;
+  }
+  if (homo_rel >= 0 && homo_rel + 1 < qptotal_) {
+    XTP_LOG(Log::error, log_)
+        << (boost::format("  HOMO %1$+1.4f eV, LUMO %2$+1.4f eV, gap %3$+1.4f "
+                          "eV") %
+            (Sigma_reac_(homo_rel, homo_rel) * tools::conv::hrt2ev) %
+            (Sigma_reac_(homo_rel + 1, homo_rel + 1) * tools::conv::hrt2ev) %
+            ((Sigma_reac_(homo_rel + 1, homo_rel + 1) -
+              Sigma_reac_(homo_rel, homo_rel)) *
+             tools::conv::hrt2ev))
+               .str()
+        << std::flush;
+  }
 }
 
 double GW::CalcHomoLumoShift(Eigen::VectorXd frequencies) const {
@@ -65,7 +117,7 @@ double GW::CalcHomoLumoShift(Eigen::VectorXd frequencies) const {
 }
 
 Eigen::MatrixXd GW::getHQP() const {
-  return Sigma_x_ + Sigma_c_ - vxc_ +
+  return Sigma_x_ + Sigma_c_ + Sigma_reac_ - vxc_ +
          Eigen::MatrixXd(
              dft_energies_.segment(opt_.qpmin, qptotal_).asDiagonal());
 }
@@ -98,13 +150,20 @@ void GW::PrintGWA_Energies() const {
       level = "  LUMO ";
     }
 
+    // With an environment, its static part of the correlation gets a
+    // column of its own, S-R; S-C stays the dynamic correlation.
+    const std::string env =
+        (reaction_field_.size() > 0)
+            ? (boost::format(" S-R = %1$+1.4f") % Sigma_reac_(i, i)).str()
+            : std::string();
     XTP_LOG(Log::error, log_)
         << level
         << (boost::format(" = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
-                          "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
+                          "%4$+1.4f S-C = %5$+1.4f") %
             (i + opt_.qpmin) % dft_energies_(i + opt_.qpmin) % vxc_(i, i) %
-            Sigma_x_(i, i) % Sigma_c_(i, i) % gwa_energies(i))
+            Sigma_x_(i, i) % Sigma_c_(i, i))
                .str()
+        << env << (boost::format(" GWA = %1$+1.4f") % gwa_energies(i)).str()
         << std::flush;
   }
   return;
@@ -221,6 +280,16 @@ void GW::CalculateGWPerturbation() {
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Calculated Hartree exchange contribution"
       << std::flush;
+  // The environment's static correlation, W - v restricted to v_reac:
+  // part of Sigma_c by its physics, held apart because it is frequency
+  // independent. Not scaled by ScaHFX: the DFT starting point has no
+  // reaction field to double count.
+  if (reaction_field_.size() > 0) {
+    Sigma_reac_ = sigma_->CalcReactionFieldMatrix(reaction_field_);
+    PrintReactionFieldShifts();
+  }
+  // From here on the RPA and Sigma_c see u = v + v_reac.
+  DressForEnvironment();
   // dftenergies has size aobasissize
   // rpaenergies/Mmn have size rpatotal
   // gwaenergies/frequencies have size qptotal
@@ -243,6 +312,7 @@ void GW::CalculateGWPerturbation() {
       Mmn_.Rebuild();
       XTP_LOG(Log::info, log_)
           << TimeStamp() << " Rebuilding 3c integrals" << std::flush;
+      DressForEnvironment();  // Rebuild leaves them bare
     }
     sigma_->PrepareScreening();
     XTP_LOG(Log::info, log_)
@@ -316,8 +386,8 @@ Eigen::VectorXd GW::getGWAResults() const {
   if (qsgw_final_energies_.size() > 0) {
     return qsgw_final_energies_;
   }
-  return Sigma_x_.diagonal() + Sigma_c_.diagonal() - vxc_.diagonal() +
-         dft_energies_.segment(opt_.qpmin, qptotal_);
+  return Sigma_x_.diagonal() + Sigma_c_.diagonal() + Sigma_reac_.diagonal() -
+         vxc_.diagonal() + dft_energies_.segment(opt_.qpmin, qptotal_);
 }
 
 Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
@@ -325,8 +395,8 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
   Eigen::VectorXd env = Eigen::VectorXd::Zero(qptotal_);
 
   const Eigen::VectorXd intercepts =
-      dft_energies_.segment(opt_.qpmin, qptotal_) + Sigma_x_.diagonal() -
-      vxc_.diagonal();
+      dft_energies_.segment(opt_.qpmin, qptotal_) + Sigma_x_.diagonal() +
+      Sigma_reac_.diagonal() - vxc_.diagonal();
 
   Eigen::VectorXd frequencies_new = frequencies;
   Eigen::Array<bool, Eigen::Dynamic, 1> converged =
@@ -370,9 +440,7 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     }
 
 #pragma omp critical
-    {
-      total_stats.Add(local_stats);
-    }
+    { total_stats.Add(local_stats); }
   }
 
   if (!converged.all()) {
@@ -393,8 +461,8 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
                            << " Sigma diagonal evaluations in SolveQP: "
                            << sigma_->GetDiagEvalCounter() << std::flush;
 
-  XTP_LOG(Log::info, log_) << TimeStamp() << " QP diagnostics: "
-                           << "scan=" << total_stats.sigma_scan_calls
+  XTP_LOG(Log::info, log_) << TimeStamp() << " QP diagnostics: " << "scan="
+                           << total_stats.sigma_scan_calls
                            << " refine=" << total_stats.sigma_refine_calls
                            << " deriv_sigma="
                            << total_stats.sigma_derivative_calls
@@ -909,11 +977,19 @@ void GW::CalculateQSGW() {
   // core level when qpmin > rpamin). If we only restore QP-window slices,
   // out-of-window slices accumulate PPM-basis corruption across iterations,
   // causing the persistent oscillation seen when qpmin > rpamin.
+  // Dressed for the correlation part, as in CalculateGWPerturbation --
+  // the caller may have refilled the integrals since. Exchange and the
+  // reaction-field self-energy are computed with kernels that undo it.
+  DressForEnvironment();
   const Index mtotal = Mmn_.msize();
   std::vector<Eigen::MatrixXd> Mmn_orig(mtotal);
   for (Index m = 0; m < mtotal; m++) {
     Mmn_orig[m] = Mmn_[m];
   }
+  // The auxiliary frame the snapshot is in (PrepareScreening of the seed
+  // run may have rotated it), restored with it below. The bare Coulomb
+  // terms are blind to it; an environment reaction field is not.
+  const Eigen::MatrixXd aux_frame_orig = Mmn_.AuxFrame();
 
   // Anderson/DIIS mixer for tilde_Sigma.
   // Reuses gw_mixing_order and gw_mixing_alpha options.
@@ -938,8 +1014,17 @@ void GW::CalculateQSGW() {
     for (Index m = 0; m < mtotal; m++) {
       Mmn_[m] = Mmn_orig[m];
     }
+    Mmn_.RestoreAuxFrame(aux_frame_orig);
     if (iter > 0) {
       Mmn_.Rotate(qsgw_rotation_, opt_.qpmin, qsgw_qpmax);
+    }
+
+    // Environment reaction field in the current QP basis: it depends on
+    // the wavefunctions, not on the energies, so it is recomputed with the
+    // rotation, like the exchange.
+    Eigen::MatrixXd sigma_reac;
+    if (reaction_field_.size() > 0) {
+      sigma_reac = sigma_->CalcReactionFieldMatrix(reaction_field_);
     }
 
     // Recompute screening W and Sigma in current QP basis.
@@ -952,6 +1037,9 @@ void GW::CalculateQSGW() {
     Eigen::MatrixXd Sc_row = sigma_->CalcCorrelationOffDiag(e_qp);
     Eigen::MatrixXd Sc_col = Sc_row.transpose();
     Eigen::MatrixXd tilde_Sigma = Sigma_x_ + 0.5 * (Sc_row + Sc_col);
+    if (sigma_reac.size() > 0) {
+      tilde_Sigma += sigma_reac;  // static, symmetric: no symmetrization
+    }
     tilde_Sigma.diagonal() += sigma_->CalcCorrelationDiag(e_qp);
 
     // ── Step 2: mix tilde_Sigma with Anderson/DIIS ───────────────────────────
@@ -1150,8 +1238,8 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   const Index num_states = state_inds.size();
 
   const Eigen::VectorXd intercept =
-      dft_energies_.segment(opt_.qpmin, qptotal_) + Sigma_x_.diagonal() -
-      vxc_.diagonal();
+      dft_energies_.segment(opt_.qpmin, qptotal_) + Sigma_x_.diagonal() +
+      Sigma_reac_.diagonal() - vxc_.diagonal();
   Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(steps, 2 * num_states);
 #pragma omp parallel for schedule(dynamic)
   for (Index grid_point = 0; grid_point < steps; grid_point++) {

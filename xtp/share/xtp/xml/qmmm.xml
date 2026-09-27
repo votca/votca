@@ -17,6 +17,18 @@
         <dftpackage link="dftpackage.xml"/>
         <localize link="localize.xml"/>
         <statetracker link="statetracker.xml" default="OPTIONAL" />
+        <!-- Embedded GW-BSE after Li, D'Avino, Duchemin, Beljonne, Blase,
+             Phys. Rev. B (2018), arXiv:1801.01755, and Amblard, Blase, Duchemin, JCP 160,
+             154104 (2024). The QM/MM loop converges the ground state; the
+             polar regions then screen one GW-BSE run through their static
+             reaction field instead of being iterated against the excited
+             or charged state. Needs an exciton or quasiparticle state, not
+             e or h. Its presence switches it on. -->
+        <environment_screening default="OPTIONAL" help="screen GW-BSE by the polar regions instead of iterating them against the excitation">
+          <include_kreac help="include the reaction field of the transition density in the BSE (linear-response part, moves bright singlets)" default="true" choices="bool" />
+          <shell_regions help="ids of polar regions that respond as an uncoupled shell with polarizability alpha/shell_dielectric (legacy radial_dielectric) instead of as a coupled Thole system; empty for none" default="" />
+          <shell_dielectric help="dielectric constant that stands in for the mutual induction the shell leaves out" default="4.0" choices="float+" />
+        </environment_screening>
         <grid_for_potential help="Grid to integrate influence of qm density om other regions" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
         <extgrid help="grid on which the interaction with classical regions is compute" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
         <tolerance_energy help="if energy difference for this region is below this value it is considered converged" unit="Hartree" default="5e-5" choices="float+" />

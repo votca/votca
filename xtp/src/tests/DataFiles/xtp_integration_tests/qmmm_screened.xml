@@ -1,0 +1,54 @@
+<options>
+<qmmm>
+	<print_regions_pdb>false</print_regions_pdb>
+	<max_iterations>30</max_iterations>
+	<map_file>system.xml</map_file>
+	<job_file>qmmm_screened.jobs</job_file>
+	<regions>
+		<qmregion>
+			<id>0</id>
+			<segments>jobfile</segments>
+			<state>jobfile</state>
+			<dftpackage>
+				<basisset>3-21G</basisset>
+				<auxbasisset>aux-def2-svp</auxbasisset>
+				<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>
+			</dftpackage>
+			<gwbse>
+				<gw>
+					<mode>G0W0</mode>
+				</gw>
+			</gwbse>
+			<statetracker>
+				<oscillatorstrength>0.0001</oscillatorstrength>
+			</statetracker>
+			<environment_screening>
+				<include_kreac>true</include_kreac>
+				<shell_regions>2</shell_regions>
+				<shell_dielectric>4.0</shell_dielectric>
+			</environment_screening>
+		</qmregion>
+		<polarregion>
+			<id>1</id>
+			<cutoff>
+				<radius>0.5</radius>
+				<region>0</region>
+			</cutoff>
+		</polarregion>
+		<polarregion>
+			<id>2</id>
+			<cutoff>
+				<radius>0.8</radius>
+				<region>0</region>
+			</cutoff>
+		</polarregion>
+		<staticregion>
+			<id>3</id>
+			<cutoff>
+				<radius>1.2</radius>
+				<region>0</region>
+			</cutoff>
+		</staticregion>
+	</regions>
+</qmmm>
+</options>
