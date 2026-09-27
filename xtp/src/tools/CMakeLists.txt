@@ -30,3 +30,10 @@ if(SPHINX_FOUND)
   add_custom_target(xtp-tools-rst DEPENDS ${XTP_RST_FILES})
   add_dependencies(sphinx-deps xtp-tools-rst)
 endif()
+
+# Dev/debug tool for inspecting the Ewald machinery's checkpoints --
+# deliberately NOT part of the PROG loop above (no --help/manpage/
+# sphinx-doc infrastructure; not installed). Its sibling ptop_dump went
+# with the legacy xtp/ewald/ code it existed to read.
+add_executable(hdf5_dump hdf5_dump.cc)
+target_link_libraries(hdf5_dump votca_xtp)

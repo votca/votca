@@ -1,0 +1,82 @@
+<options>
+        <ewaldbackground help="Converges the self-consistent polarized background of a periodic system, using the new (non-legacy) Ewald machinery" section="sec:ewaldbackground">
+                <multipoles>system.xml</multipoles>
+                <output>
+                        <checkpoint>ewaldbackground.hdf5</checkpoint>
+                </output>
+                <coulombmethod>
+                        <!-- alpha and k_max are optional: both are
+                             derived at runtime from the box size (alpha,
+                             nm^-1) and from alpha itself (k_max, nm^-1)
+                             unless explicitly set. default="OPTIONAL" is
+                             VOTCA's own mechanism for this, not simply
+                             omitting the tag: OptionsHandler::
+                             CheckUserInput requires every key a user
+                             might override to already exist in this
+                             default file's own schema (an unrecognized
+                             key throws "Votca has no option: ...", a
+                             real, confirmed failure mode this comment
+                             replaces, not a hypothetical one), so the
+                             keys must be present here. default="OPTIONAL"
+                             marks them present for that check while
+                             still letting OptionsHandler::RemoveOptional
+                             strip them from the final options tree
+                             entirely when the user doesn't set them.
+                             This is what makes ParseOptions's own
+                             opt.exists(...) check correctly distinguish
+                             "user set this" from "using the derived
+                             default" in the first place. Do not revert
+                             this to a plain omitted tag or a hardcoded
+                             value; either breaks one of these two
+                             things. -->
+                        <alpha default="OPTIONAL"/>
+                        <k_max default="OPTIONAL"/>
+                        <shape>cube</shape>
+                </coulombmethod>
+                <realspace>
+                        <r_min>1.0</r_min>  <!-- nm (user-facing); converted
+                                                 to bohr in ParseOptions -->
+                        <field_tol>1e-8</field_tol>
+                        <!-- Dimensionless. Sets the real-space distance
+                             cutoff to screening_factor/alpha: a pair
+                             farther apart than that contributes at most
+                             about erfc(screening_factor) of the local
+                             field, so the default 6.0 truncates at
+                             ~2e-17 per pair. This is purely a cost
+                             control - the surviving pair count grows as
+                             its cube, and on a 1000-segment box the
+                             default discards 78.7% of pairs for a 4.5x
+                             saving in real-space time with the converged
+                             dipoles unchanged in every printed digit.
+                             Lower it only deliberately, and check the
+                             result against a reference. -->
+                        <screening_factor>6.0</screening_factor>
+                </realspace>
+                <polarmethod>
+                        <thole_a>0.39</thole_a>
+                        <induce>true</induce>
+                        <max_iter>200</max_iter>
+                        <tolerance>1e-8</tolerance>
+                        <!-- Induction solver. Jacobi over-relaxation
+                             (use_jor=true, with jor_omega) reproduces
+                             legacy's own SOR scheme and is kept for
+                             direct comparison against it; preconditioned
+                             conjugate gradient (the default) converges
+                             the same system in far fewer iterations. -->
+                        <use_jor>false</use_jor>
+                        <jor_omega>0.35</jor_omega>
+                        <!-- Block-Jacobi preconditioner for the PCG
+                             solve: each segment's own local block
+                             (P^-1 minus its intramolecular coupling),
+                             factorized once, applied every iteration.
+                             Ignored when use_jor is true. -->
+                        <use_block_jacobi_preconditioner>false</use_block_jacobi_preconditioner>
+                        <!-- Debug/experimental: see
+                             match_legacy_first_step_'s own declaration.
+                             Replicates legacy's own two-phase
+                             unrelaxed-then-relaxed first step, for
+                             iteration-by-iteration comparison. -->
+                        <debug_match_legacy_first_step>false</debug_match_legacy_first_step>
+                </polarmethod>
+        </ewaldbackground>
+</options>

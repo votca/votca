@@ -21,6 +21,7 @@ Version 2026-dev
 -  reduced memory in analytic forces (#1248)
 -  implemented POD2 electronic coupling method and standalone podcoupling tool (#1249)
 -  POD2 coupling for morphology with automated H saturation (#1250)
+-  Ewald embedding in QMMM (#1251)
 
 Version 2026 (released 09.03.26)
 ================================

@@ -25,6 +25,18 @@
       </qmregion>
       <polarregion default="OPTIONAL" help="polar region with polarisation dipoles and thole damping" link="region.xml polar.xml"/>w
       <staticregion default="OPTIONAL" link="region.xml"/>
+      <!-- The periodic Ewald background, as converged beforehand by the
+           ewaldbackground calculator. Deliberately does NOT link
+           region.xml: it takes no segments from this job's topology and
+           has no cutoff, because it represents the whole periodic cell
+           read from the checkpoint. Its Ewald parameters (alpha, k_max,
+           shape, box) are read from that same checkpoint rather than
+           specified here, so a foreground cannot be embedded with a
+           different splitting than the background was converged at. -->
+      <ewaldregion default="OPTIONAL" help="periodic Ewald background read from an ewaldbackground checkpoint">
+        <id help="id of the region, first region has to have id 0, ids must be consecutive" default="REQUIRED" choices="int" />
+        <checkpoint help="checkpoint file written by the ewaldbackground calculator" default="ewaldbackground.hdf5" />
+      </ewaldregion>
     </regions>
   </qmmm>
 </options>

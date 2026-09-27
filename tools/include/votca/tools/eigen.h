@@ -55,6 +55,12 @@
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
+
+// #ifndef EIGEN_CONFIG_H_
+// #define EIGEN_CONFIG_H_
+
+// #define EIGEN_DENSEBASE_PLUGIN "EigenDenseBaseAddons.h"
+
 #include <Eigen/Eigen>
 #include <unsupported/Eigen/CXX11/Tensor>
 #include <unsupported/Eigen/FFT>

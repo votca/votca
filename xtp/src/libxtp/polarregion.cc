@@ -24,9 +24,12 @@
 // Local VOTCA includes
 #include "votca/xtp/dipoledipoleinteraction.h"
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmregion.h"
 #include "votca/xtp/staticregion.h"
+
+#include <stdexcept>
 
 namespace votca {
 namespace xtp {
@@ -355,6 +358,13 @@ void PolarRegion::WriteToCpt(CheckpointWriter& w) const {
 
 void PolarRegion::ReadFromCpt(CheckpointReader& r) {
   MMRegion<PolarSegment>::ReadFromCpt(r);
+}
+
+double PolarRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
+  // Delegated: the background owns the periodic sums, the foreground
+  // bookkeeping and the parameters they must all share, so assembling
+  // them here would mean reaching into it for all three.
+  return region.ApplyFieldTo(segments_);
 }
 
 }  // namespace xtp

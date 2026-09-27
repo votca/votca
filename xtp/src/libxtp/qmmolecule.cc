@@ -48,5 +48,6 @@ void QMMolecule::LoadFromFile(std::string filename) {
   reader.ReadFile<QMMolecule>(*this);
   reader.Close();
 }
+
 }  // namespace xtp
 }  // namespace votca

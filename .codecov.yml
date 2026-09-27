@@ -2,6 +2,57 @@ coverage:
   precision: 1
   round: down
   range: "70...100"
+  status:
+    # Neither target below comes from this file today. The patch status
+    # reports "target 60.0%", which is not the base commit's coverage
+    # (59.6%) and so is not the "auto" default either -- it is set in the
+    # organisation-level Global YAML, in Codecov's own settings rather
+    # than in git. A repository YAML like this one is merged OVER the
+    # Global YAML and wins on every key it sets, so what is written here
+    # is what applies.
+    #
+    # Project coverage stays a real gate, with room for dilution.
+    #
+    # A large, additive feature branch lowers the project average
+    # arithmetically even when it removes no coverage from anything that
+    # already existed. Measured on the Ewald branch: ~2169 new lines at
+    # 51.3%, added to ~36k lines at 60.1%, gives 59.6% -- a 0.5% drop
+    # that is entirely dilution, with no existing line losing its
+    # coverage. At the default threshold of 0% that fails, which teaches
+    # people to ignore the check rather than to write tests.
+    #
+    # 1% absorbs that while still catching what this status is for: a
+    # change that actually makes existing code less tested.
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    # The patch status reports, but does not gate.
+    #
+    # Patch coverage measures only the lines a PR touches, and in this
+    # codebase it fails for reasons that have nothing to do with how well
+    # a change is tested:
+    #
+    #  - A calculator or jobcalculator is driven through xtp_run on a
+    #    real topology, so it is reachable only from an integration
+    #    test. Coverage is collected in exactly one matrix entry
+    #    (fedora:latest, gnu, Debug, coverage: true) while an integration
+    #    test runs in every one of them, so covering that code costs
+    #    roughly twenty-four times what it measures.
+    #  - Standalone tools under */src/tools/ are separate binaries that
+    #    no test links, and always count as entirely uncovered.
+    #  - Code kept deliberately but not yet reachable -- an alternative
+    #    path waiting on an upstream feature, say -- is dead by
+    #    construction, and no test can cover it. Reporting it as
+    #    uncovered is correct; failing a PR for it is not.
+    #
+    # informational: true keeps the number and the per-file breakdown in
+    # the PR comment, where they are useful for spotting a genuinely
+    # untested change, and stops that number from being a merge gate. It
+    # changes what is reported, never what is measured.
+    patch:
+      default:
+        informational: true
 ignore:
   - /usr/include/
   - tools/src/tests/

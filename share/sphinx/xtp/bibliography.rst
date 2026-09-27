@@ -7,6 +7,8 @@ Bibliography
 
 .. [Chirlian:1987] Chirlian, Francl, J. Comput. Chem. 8, 894 (1987)
 
+.. [DeLeeuw:1980] de Leeuw, Perram, and Smith, Proc. R. Soc. Lond. A 373, 27 (1980)
+
 .. [Ghan:2020] Ghan, Kunkel, Reuter, and Oberhofer, J. Chem. Theory Comput. 16, 7431 (2020)
 
 .. [Helmich-Paris:2021] Helmich-Paris, J. Chem. Phys. 154, 164104 (2021)
@@ -30,6 +32,8 @@ Bibliography
 .. [Reed:1985] Reed, Weinstock, and Weinhold, J. Chem. Phys. 83, 735 (1985)
 
 .. [Stone:2005] Stone, J. Chem. Theory Comput. 1, 1128 (2005)
+
+.. [Thole:1981] Thole, Chem. Phys. 59, 341 (1981)
 
 .. [Wu:2005] Wu and Van Voorhis, Phys. Rev. A 72, 024502 (2005)
 

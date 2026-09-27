@@ -146,11 +146,11 @@ BOOST_AUTO_TEST_CASE(check_temp_inp_geometry_agrees_with_reference) {
   std::vector<Atom> actual_atoms = ParseOrcaInputGeometry(actual_file);
   std::vector<Atom> reference_atoms = ParseOrcaInputGeometry(reference_file);
 
-  BOOST_REQUIRE_MESSAGE(
-      !reference_atoms.empty(),
-      "Reference file '" << reference_file
-                         << "' contains no real, parseable geometry at "
-                            "all -- cannot check against it.");
+  BOOST_REQUIRE_MESSAGE(!reference_atoms.empty(),
+                        "Reference file '"
+                            << reference_file
+                            << "' contains no real, parseable geometry at "
+                               "all -- cannot check against it.");
   BOOST_REQUIRE_MESSAGE(
       !actual_atoms.empty(),
       "Real, actual file '"
@@ -159,22 +159,22 @@ BOOST_AUTO_TEST_CASE(check_temp_inp_geometry_agrees_with_reference) {
              "IPodCoupling's own \"input\" task itself never actually "
              "wrote temp.inp, or genuinely crashed before doing so.");
 
-  BOOST_REQUIRE_MESSAGE(
-      actual_atoms.size() == reference_atoms.size(),
-      "Real, actual atom count (" << actual_atoms.size()
-                                  << ") does not match the reference atom "
-                                     "count ("
-                                  << reference_atoms.size() << ") at all.");
+  BOOST_REQUIRE_MESSAGE(actual_atoms.size() == reference_atoms.size(),
+                        "Real, actual atom count ("
+                            << actual_atoms.size()
+                            << ") does not match the reference atom "
+                               "count ("
+                            << reference_atoms.size() << ") at all.");
 
   for (std::size_t i = 0; i < actual_atoms.size(); ++i) {
     const Atom &actual = actual_atoms[i];
     const Atom &reference = reference_atoms[i];
 
-    BOOST_CHECK_MESSAGE(
-        actual.element == reference.element,
-        "Atom " << i << ": real, actual element '" << actual.element
-               << "' does not match the reference element '"
-               << reference.element << "' at all.");
+    BOOST_CHECK_MESSAGE(actual.element == reference.element,
+                        "Atom " << i << ": real, actual element '"
+                                << actual.element
+                                << "' does not match the reference element '"
+                                << reference.element << "' at all.");
 
     double dx = actual.x - reference.x;
     double dy = actual.y - reference.y;
@@ -184,12 +184,12 @@ BOOST_AUTO_TEST_CASE(check_temp_inp_geometry_agrees_with_reference) {
     BOOST_CHECK_MESSAGE(
         distance <= tolerance_angstrom,
         "Atom " << i << " (" << actual.element
-               << "): real, actual position deviates from the reference "
-                  "by "
-               << distance << " Angstrom (tolerance=" << tolerance_angstrom
-               << " Angstrom) -- actual=(" << actual.x << ", " << actual.y
-               << ", " << actual.z << "), reference=(" << reference.x
-               << ", " << reference.y << ", " << reference.z << ").");
+                << "): real, actual position deviates from the reference "
+                   "by "
+                << distance << " Angstrom (tolerance=" << tolerance_angstrom
+                << " Angstrom) -- actual=(" << actual.x << ", " << actual.y
+                << ", " << actual.z << "), reference=(" << reference.x << ", "
+                << reference.y << ", " << reference.z << ").");
   }
 }
 

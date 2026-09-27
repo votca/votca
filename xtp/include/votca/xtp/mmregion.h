@@ -82,6 +82,7 @@ class MMRegion : public Region {
   double InteractwithQMRegion(const QMRegion& region) override = 0;
   double InteractwithPolarRegion(const PolarRegion& region) override = 0;
   double InteractwithStaticRegion(const StaticRegion& region) override = 0;
+  double InteractwithEwaldRegion(const EwaldRegion& region) override = 0;
 
   std::vector<T> segments_;
 };

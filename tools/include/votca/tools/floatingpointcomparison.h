@@ -41,8 +41,24 @@
 namespace votca {
 namespace tools {
 
+// NOT `static`. A `static` function template in a header has internal
+// linkage, so every translation unit that includes the header gets its
+// own private copy -- and in every TU that includes the header without
+// calling the function, that copy is dead code. Clang reports it under
+// -Wunused-template, which newer releases enable as part of the general
+// warning set this project already builds with, and -DENABLE_WERROR=ON
+// turns into a build failure. The first casualty is csg's
+// lammpsdatareader.cc, whose #include of this header is left over: it
+// calls nothing from it.
+//
+// Dropping `static` is not a workaround for the warning, it is the
+// correct declaration: a function template needs neither `static` nor
+// `inline` to be defined in a header. Implicit instantiations are
+// already exempt from the one-definition rule, so several TUs
+// instantiating the same specialisation share one copy rather than
+// colliding.
 template <typename T>
-static bool isApproximatelyEqual(T a, T b, T tolerance) {
+bool isApproximatelyEqual(T a, T b, T tolerance) {
   T diff = std::abs(a - b);
   if (diff <= tolerance) {
     return true;

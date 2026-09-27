@@ -48,6 +48,10 @@ class GridBox {
   const std::vector<Eigen::Vector3d>& getGridPoints() const { return grid_pos; }
 
   const std::vector<double>& getGridWeights() const { return weights; }
+  std::vector<double>& getPotentialValues() { return potential_values; }
+  const std::vector<double>& getPotentialValues() const {
+    return potential_values;
+  }
 
   const std::vector<Index>& getOwnerAtoms() const { return owner_atoms; }
 
@@ -66,6 +70,9 @@ class GridBox {
   void addGridBox(const GridBox& box) {
     grid_pos.insert(grid_pos.end(), box.grid_pos.begin(), box.grid_pos.end());
     weights.insert(weights.end(), box.weights.begin(), box.weights.end());
+    potential_values.insert(potential_values.end(),
+                            box.potential_values.begin(),
+                            box.potential_values.end());
     owner_atoms.insert(owner_atoms.end(), box.owner_atoms.begin(),
                        box.owner_atoms.end());
     return;
@@ -74,6 +81,7 @@ class GridBox {
   void addGridPoint(const GridContainers::Cartesian_gridpoint& point) {
     grid_pos.push_back(point.grid_pos);
     weights.push_back(point.grid_weight);
+    potential_values.push_back(0.0);
     owner_atoms.push_back(point.owner_atom);
   };
 
@@ -114,6 +122,7 @@ class GridBox {
   std::vector<Eigen::Vector3d> grid_pos;
   std::vector<const AOShell*> significant_shells;
   std::vector<double> weights;
+  std::vector<double> potential_values;
   // Parallel to grid_pos/weights: which atom each point's radial/angular
   // quadrature was generated from. Added for the SSW grid-weight nuclear
   // derivative (Vxc_Potential::GridWeightGradient); not used by any
