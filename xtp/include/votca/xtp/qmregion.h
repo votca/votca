@@ -46,7 +46,7 @@ class QMRegion : public Region {
 
  public:
   QMRegion(Index id, Logger& log, std::string workdir)
-      : Region(id, log), workdir_(workdir){};
+      : Region(id, log), workdir_(workdir) {};
   ~QMRegion() override = default;
 
   void Initialize(const tools::Property& prop) override;
