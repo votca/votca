@@ -37,19 +37,27 @@
                         <r_min>1.0</r_min>  <!-- nm (user-facing); converted
                                                  to bohr in ParseOptions -->
                         <field_tol>1e-8</field_tol>
-                        <!-- Dimensionless. Sets the real-space distance
-                             cutoff to screening_factor/alpha: a pair
-                             farther apart than that contributes at most
-                             about erfc(screening_factor) of the local
-                             field, so the default 6.0 truncates at
-                             ~2e-17 per pair. This is purely a cost
-                             control - the surviving pair count grows as
-                             its cube, and on a 1000-segment box the
-                             default discards 78.7% of pairs for a 4.5x
-                             saving in real-space time with the converged
-                             dipoles unchanged in every printed digit.
-                             Lower it only deliberately, and check the
-                             result against a reference. -->
+                        <!-- Dimensionless, and the single accuracy knob
+                             for BOTH halves of the Ewald split.
+
+                             It sets the real-space cutoff to
+                             screening_factor/alpha, so a pair farther
+                             apart than that contributes at most about
+                             erfc(screening_factor) of the local field:
+                             the default 6.0 truncates at ~2e-17 per
+                             pair. The reciprocal cutoff is then derived
+                             to leave the SAME tail (eps = erfc(s_r),
+                             then k_max = 2*sqrt(-ln eps)*alpha, which
+                             is 12.39*alpha at the default), and alpha
+                             itself is derived to balance the cost of
+                             the two halves. See the long comment at the
+                             alpha derivation in ewaldbackground.h.
+
+                             So lowering this loosens both sums together
+                             and moves alpha with them; it is no longer a
+                             real-space-only cost control. Lower it only
+                             deliberately, and check the result against a
+                             reference. -->
                         <screening_factor>6.0</screening_factor>
                 </realspace>
                 <polarmethod>

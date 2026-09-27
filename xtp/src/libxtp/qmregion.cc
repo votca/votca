@@ -168,17 +168,6 @@ bool QMRegion::Converged() const {
 
 void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
-  // some funny checks
-  /*const std::vector<ewaldcontainer::PointCharge>& charges =
-  ewald_background_->charges(); for (const auto& charge : charges) { std::cout
-  << charge.charge << " " << charge.position << std::endl;
-  }
-
-  const std::vector<ewaldcontainer::PointDipole>& dipoles =
-  ewald_background_->dipoles(); for (const auto& dipole : dipoles) { std::cout
-  << dipole.dipole << " " << dipole.position << std::endl;
-  }*/
-
   std::vector<double> interact_energies = ApplyInfluenceOfOtherRegions(regions);
   double e_ext =
       std::accumulate(interact_energies.begin(), interact_energies.end(), 0.0);
@@ -198,23 +187,18 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   qmpackage_->setRunDir(workdir_);
   qmpackage_->WriteInputFile(orb_);
 
-  // attach the periodic background to xtpdft, by whichever route was set
-  // up. The two are alternatives: the grid carries a potential the engine
-  // integrates, the moments let it build its own AO matrices.
-  if (ewald_grid_ready_ || ewald_moments_ready_) {
+  // Attach the periodic background to xtpdft as a potential sampled on
+  // the integration grid. This used to be one of two routes -- the other
+  // handed over multipole moments and k-vectors for the engine to build
+  // its own AO matrices from -- but nothing ever set that one up, so it
+  // has been removed. See the git history of this file if it is ever
+  // wanted back.
+  if (ewald_grid_ready_) {
     if (qmpackage_->getPackageName() != "xtp") {
       throw std::runtime_error("QMEwald can only run with XTP as qmpackage.");
     }
-    if (ewald_grid_ready_) {
-      qmpackage_->setEwaldgrid(ewaldgrid_);
-      qmpackage_->setEwaldNuclearEnergy(ewald_nuclear_energy_);
-    }
-    if (ewald_moments_ready_) {
-      qmpackage_->setEwaldBackground(ewaldBackground());
-      qmpackage_->setEwaldForegroundCorrection(ewaldForegroundCorrection());
-      qmpackage_->setEwaldShapeCorrection(ewaldShapeCorrection());
-      qmpackage_->setEwaldMM1(ewaldMM1());
-    }
+    qmpackage_->setEwaldgrid(ewaldgrid_);
+    qmpackage_->setEwaldNuclearEnergy(ewald_nuclear_energy_);
   }
 
   XTP_LOG(Log::error, log_) << "Running DFT calculation" << std::flush;

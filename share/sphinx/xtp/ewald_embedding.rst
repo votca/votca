@@ -424,11 +424,25 @@ The Thole factor would then be formed from :math:`u^3 = 0`, which the model
 reads as complete overlap and damps maximally — the opposite of the intended
 limit.
 
-An analytic alternative, in which the background's moments are handed to the
-DFT engine as operators rather than as a sampled potential, is partially
-present in the code but not reachable. It is blocked on the
-operator-centre derivatives a rank-1 source requires, which stock ``libint2``
-builds do not provide.
+An analytic alternative to sampling the potential on a grid would hand the
+background's moments to the DFT engine as operators, building the AO
+matrices directly. Most of it was written and is preserved in the git
+history; it was removed rather than kept, for two reasons.
+
+It was blocked. A rank-1 (induced dipole) source needs operator-centre
+derivatives that stock ``libint2`` builds do not provide, which is why the
+real-space part split every background dipole into a pair of point charges
+instead of using the dipole operator.
+
+It would also not have been faster where it was wanted. Both routes evaluate
+the same Ewald sum; they differ only in how many places. The grid route does
+so once per quadrature point, which grows linearly with the size of the QM
+region; the analytic route once per shell pair, which grows quadratically. So
+it pays off for small QM regions and loses for large ones — the opposite of
+the case for adopting it to reach bigger molecules. The cost both routes
+share is the sum itself, which is addressed by balancing :math:`\alpha`
+(see :ref:`ewald-choosing-alpha`) rather than by changing how the result
+reaches the Hamiltonian.
 
 .. _ewald-gauge:
 
@@ -478,41 +492,92 @@ The practical consequence is that **changing any Ewald parameter means
 re-running** ``ewaldbackground``. The checkpoint is the unit of
 configuration, not the job file.
 
+.. _ewald-choosing-alpha:
+
 Choosing :math:`\alpha`
 =======================
 
-Since the total is independent of :math:`\alpha`, the choice is purely
-one of cost. Real-space work scales as :math:`(s/\alpha)^3` with the
-screening factor :math:`s`; reciprocal work scales as
-:math:`k_\text{max}^3`, and the derived default :math:`k_\text{max} = 6\alpha`
-makes that :math:`\alpha^3`. Balancing the two gives
+Since the total is independent of :math:`\alpha`, the choice is purely one
+of cost, and ``ewaldbackground`` makes it for you. Both cutoffs are fixed
+multiples of :math:`\alpha` -- which is what keeps the accuracy
+:math:`\alpha`-independent -- so with :math:`N` sites in a cell of volume
+:math:`V` the work at one target is
 
 .. math::
 
-    \alpha_{\text{opt}} \approx \left(\frac{8\pi^3 N}{V^2}\right)^{1/6} ,
+    N_\text{real} = \frac{N}{V}\,\frac{4\pi}{3}
+        \left(\frac{s_r}{\alpha}\right)^{3},
+    \qquad
+    N_k = \frac{4\pi}{3}\,\frac{V}{8\pi^{3}}\,(s_k\alpha)^{3} ,
 
-with :math:`N` the number of sites and :math:`V` the cell volume, which for
-a few thousand sites in a few hundred thousand :math:`a_0^3` is of order
-:math:`3\,\text{nm}^{-1}`.
+falling as :math:`\alpha^{-3}` and rising as :math:`\alpha^{3}`.
+Minimising the sum gives
 
-If :math:`k_\text{max}` is set explicitly rather than derived, the balance
-changes: reciprocal work becomes independent of :math:`\alpha` and larger
-:math:`\alpha` is monotonically cheaper, up to the point where
+.. math::
+
+    \alpha_{\text{opt}} = \sqrt{2\pi}\;
+        \frac{N^{1/6}}{V^{1/3}}\;\sqrt{\frac{s_r}{s_k}} .
+
+The :math:`N^{1/6}` is what makes Ewald :math:`O(N^{3/2})`: at the optimum
+the two halves cost the same, and that common value grows only as
+:math:`\sqrt{N}`, independent of :math:`V`.
+
+The two multiples are tied to one accuracy. :math:`s_r` is the
+``screening_factor`` option, leaving a real-space tail of
+:math:`\mathrm{erfc}(s_r)`; the reciprocal cutoff is then derived to leave
+the same tail, :math:`s_k = 2\sqrt{-\ln \mathrm{erfc}(s_r)}`, which at the
+default :math:`s_r = 6` gives :math:`k_\text{max} = 12.39\,\alpha`. So
+``screening_factor`` alone sets how accurate both sums are, and
+:math:`\alpha` follows from it and from the system.
+
+.. note::
+
+    Before this derivation the defaults were :math:`\alpha = 3/L_\text{min}`
+    and :math:`k_\text{max} = 6\alpha`, which together switched the
+    splitting off: in a cubic cell those give
+    :math:`k_\text{max}/(2\pi/L) = 9/\pi`, a fixed :math:`\approx 98`
+    :math:`k`-vectors regardless of system size, against a real-space
+    cutoff of :math:`2L`. Per target on thiophene at experimental density
+    that was 301,691 terms at 1000 segments and 1,508,063 at 5000 -- of
+    which 98 were reciprocal in both cases. Results were unaffected,
+    since :math:`\alpha` cancels; only the cost was.
+
+Setting ``alpha`` or ``k_max`` explicitly overrides either half of the
+derivation. If :math:`k_\text{max}` is fixed by hand, the balance changes:
+reciprocal work stops depending on :math:`\alpha` and larger
+:math:`\alpha` becomes monotonically cheaper, until
 :math:`k_\text{max}` is no longer large enough to converge the
-:math:`\exp(-k^2/4\alpha^2)` weight. A ratio
-:math:`k_\text{max}/\alpha = 6` corresponds to a truncation of
-:math:`e^{-9}`; much beyond that is wasted work.
+:math:`\exp(-k^2/4\alpha^2)` weight.
 
 Cost
 ====
 
 Evaluating the background potential over a DFT integration grid is the
-dominant cost of a QM/MM job, and scales as the product of the number of
-grid points, the number of background segments within the real-space cutoff,
-and the number of :math:`k`-vectors. Those three numbers are logged before
-the evaluation starts, along with periodic progress, so that a long run can
-be distinguished from a hung one. The evaluation is parallelized over grid
-points and happens once per job.
+dominant cost of a QM/MM job. It scales as
+
+.. math::
+
+    N_\text{grid} \times \left( N_\text{real} + N_k \right) ,
+
+the number of quadrature points times the work of one Ewald evaluation --
+the sources inside the real-space cutoff **plus** the :math:`k`-vectors, not
+times them. The two inner terms are a sum, which is why balancing them
+against each other (see :ref:`ewald-choosing-alpha`) is what governs the
+cost, and why leaving either one far larger than the other wastes almost all
+of the effort on one half of a split whose whole purpose is to avoid that.
+
+All three numbers are logged before the evaluation starts, along with
+periodic progress so that a long run can be distinguished from a hung one.
+``ewaldbackground`` additionally prints an ``Ewald balance`` line giving
+:math:`N_\text{real}` and :math:`N_k` side by side: at a derived
+:math:`\alpha` they come out comparable, and a run where they differ by
+orders of magnitude is one where :math:`\alpha` was set by hand or where the
+derivation was given a cell it does not suit. It is the first number to look
+at when a background solve is slower than expected.
+
+The evaluation is parallelized over grid points and happens once per job --
+the background is frozen, so the potential is laid down on the grid exactly
+once and reused across every inter-region iteration.
 
 Diagnostics
 ===========
