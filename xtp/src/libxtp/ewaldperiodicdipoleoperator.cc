@@ -297,7 +297,10 @@ void EwaldPeriodicDipoleOperator::AddIntraSegmentCoupling(
   // different directions, was the actual mistake both previous versions
   // made. This version applies ComputeThole exactly as ApplyInducedField
   // itself does, rather than assuming l3=l5=1.0 as prior versions did.
-  for (std::size_t n = 0; n < ids_.size(); ++n) {
+  // Every segment writes only its own slice of result: independent.
+#pragma omp parallel for schedule(dynamic, 4)
+  for (Index nn = 0; nn < Index(ids_.size()); ++nn) {
+    const std::size_t n = std::size_t(nn);
     const PolarSegment& segment =
         registry_.Get(ids_[n], EwaldChargeState::Neutral);
     Index n_sites = segment.size();

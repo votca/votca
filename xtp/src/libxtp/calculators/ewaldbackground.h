@@ -529,11 +529,27 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
                           << " Reciprocal-space permanent field done ("
                           << elapsed_s(t_recip) << "s)" << std::flush;
 
-  for (const auto& entry : targets) {
-    shape.AddFieldAt<Estatic::V>(*entry.second, EwaldChargeState::Neutral);
+  // The shape field is the same at every site, -(4 pi / 3V) M for a cube,
+  // but EwaldShapeCorrection::AddFieldAt sums M over the whole registry
+  // on every call. Once per site made this pass O(N^2): about 110 s of
+  // serial work for 70k sites. Evaluated once on a probe and added, as
+  // EwaldPeriodicDipoleOperator already does.
+  auto t_shape = std::chrono::steady_clock::now();
+  {
+    PolarSite shape_probe(-1, "X", Eigen::Vector3d::Zero());
+    shape.AddFieldAt<Estatic::V>(shape_probe, EwaldChargeState::Neutral);
+    const Eigen::Vector3d shape_field = shape_probe.V();
+    for (const auto& entry : targets) {
+      entry.second->V() += shape_field;
+    }
   }
+  XTP_LOG(Log::info, log) << TimeStamp() << " Shape field done ("
+                          << elapsed_s(t_shape) << "s)" << std::flush;
+  // Each step above reports its own time; this one is the sum since the
+  // real-space pass began.
   XTP_LOG(Log::info, log) << TimeStamp() << " Permanent field total ("
                           << elapsed_s(t_field) << "s)" << std::flush;
+  auto t_intra = std::chrono::steady_clock::now();
 
   // Intramolecular static-static compensation: EwaldReciprocalSpaceSum's
   // own structure factor never excludes anything (see that class's own
@@ -579,7 +595,7 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   }
   XTP_LOG(Log::info, log) << TimeStamp()
                           << " Intramolecular static compensation applied ("
-                          << elapsed_s(t_field) << "s)" << std::flush;
+                          << elapsed_s(t_intra) << "s)" << std::flush;
 
   Eigen::VectorXd b(total_size);
   {
