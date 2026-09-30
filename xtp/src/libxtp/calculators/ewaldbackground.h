@@ -500,10 +500,10 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
       targets.push_back({ids[n], &site});
     }
   }
-  for (const auto& entry : targets) {
-    real_sum.AddFieldAt<Estatic::V>(entry.first, *entry.second,
-                                    EwaldChargeState::Neutral);
-  }
+  // Parallel: builds every neighbour list (the expensive shell search,
+  // formerly one serial pass over all sites) and applies it. The
+  // operator constructed below finds every list already present.
+  real_sum.AddFieldAtMany<Estatic::V>(targets, EwaldChargeState::Neutral);
   XTP_LOG(Log::info, log) << TimeStamp() << " Real-space permanent field done ("
                           << elapsed_s(t_field) << "s)" << std::flush;
 

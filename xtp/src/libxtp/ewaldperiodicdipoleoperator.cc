@@ -68,7 +68,8 @@ EwaldPeriodicDipoleOperator::EwaldPeriodicDipoleOperator(
   // multiply() call. Without this, multiply(0) != 0, which silently
   // breaks the linearity ConjugateGradient requires -- confirmed the hard
   // way, by a failing test (see test_ewaldperiodicdipoleoperator.cc).
-  // Build every target's real-space neighbour list up front, serially.
+  // Build every target's real-space neighbour list up front (in
+  // parallel; the cache insertion inside is serial).
   // RawMultiply parallelizes over targets, and the cache (plus its
   // statistics counters) is written only while a list is being built --
   // so this pass is what makes that parallel loop safe. Done here rather

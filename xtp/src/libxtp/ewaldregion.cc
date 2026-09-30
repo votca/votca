@@ -432,13 +432,23 @@ double EwaldRegion::ApplyFieldTo(std::vector<PolarSegment>& foreground) const {
     v_before.push_back(target->V());
   }
 
-  // (1) real space, foreground copies suppressed
+  // (1) real space, foreground copies suppressed. Through AddFieldAtMany,
+  //     not an omp loop around AddFieldAt: on the first call no target
+  //     has a neighbour list yet, AddFieldAt inserts one into a shared
+  //     unordered_map on every miss, and concurrent insertion silently
+  //     loses entries. The energy loops below then find no list for
+  //     those targets and throw -- which is how this surfaced, on a
+  //     28-thread production QMMM job.
   const Index n_targets = Index(targets.size());
-#pragma omp parallel for schedule(dynamic, 16)
-  for (Index i = 0; i < n_targets; ++i) {
-    real_sum_->AddFieldAt<Estatic::V>(target_segment_ids[std::size_t(i)],
-                                      *targets[std::size_t(i)],
-                                      EwaldChargeState::Neutral);
+  {
+    std::vector<std::pair<Index, PolarSite*>> real_targets;
+    real_targets.reserve(targets.size());
+    for (Index i = 0; i < n_targets; ++i) {
+      real_targets.push_back(
+          {target_segment_ids[std::size_t(i)], targets[std::size_t(i)]});
+    }
+    real_sum_->AddFieldAtMany<Estatic::V>(real_targets,
+                                          EwaldChargeState::Neutral);
   }
 
   // Permanent-permanent (Q-Q) energy with the background, over exactly
