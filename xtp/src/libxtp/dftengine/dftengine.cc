@@ -1214,13 +1214,30 @@ bool DFTEngine::EvaluateClosedShell(
     } else if (initial_guess_ == "huckel_dft") {
       MOs = ExtendedHuckelDFTGuess(H0, orb.QMAtoms(), vxcpotential);
     } else if (initial_guess_ == "dimer_guess") {
-      throw std::runtime_error(
-          "initial_guess=dimer_guess is only meaningful for a genuinely "
-          "unrestricted (UKS) calculation -- it exists specifically to "
-          "combine two monomers of independently arbitrary charge/spin, "
-          "which by construction do not reduce to a single restricted "
-          "MO set. Use force_uks_path or an odd total electron count to "
-          "route through EvaluateUKS instead.");
+      // Closed-shell dimer: the block-diagonal guess is restricted as long
+      // as both monomers carry identical alpha and beta MOs (restricted,
+      // closed-shell monomers). Open-shell monomers need the UKS path.
+      Orbitals dimer_guess_orb = BuildDimerGuessFromMonomerFiles(orb.QMAtoms());
+      if (dimer_guess_orb.getNumberOfAlphaElectrons() !=
+              dimer_guess_orb.getNumberOfBetaElectrons() ||
+          !(dimer_guess_orb.MOs().eigenvectors() ==
+            dimer_guess_orb.MOs_beta().eigenvectors())) {
+        throw std::runtime_error(
+            "initial_guess=dimer_guess: this is a restricted (closed-shell) "
+            "calculation, but at least one monomer .orb file is open-shell "
+            "or unrestricted. Use force_uks_path to run the dimer "
+            "unrestricted with this guess.");
+      }
+      if (dimer_guess_orb.getNumberOfAlphaElectrons() != num_alpha_electrons_) {
+        throw std::runtime_error(
+            "initial_guess=dimer_guess: the monomers have " +
+            std::to_string(2 * dimer_guess_orb.getNumberOfAlphaElectrons()) +
+            " electrons in total, but this calculation has " +
+            std::to_string(2 * num_alpha_electrons_) +
+            ". Check the monomer charges against the dimer charge.");
+      }
+      MOs = dimer_guess_orb.MOs();
+      MOs.eigenvectors() = OrthogonalizeGuess(MOs.eigenvectors());
     } else {
       throw std::runtime_error("Initial guess method not known/implemented");
     }
@@ -2964,6 +2981,36 @@ Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
   };
   CheckInternalGeometry(atomsA, 0, "Monomer A");
   CheckInternalGeometry(atomsB, nA, "Monomer B");
+
+  // The MO coefficients are copied without rotating them, so the guess is
+  // only exact if each monomer is translated, not rotated, into the dimer.
+  auto MaxDeviationFromTranslation = [&](const QMMolecule& monomer_atoms,
+                                         Index offset_in_dimer) {
+    Eigen::Vector3d shift =
+        dimer_mol[offset_in_dimer].getPos() - monomer_atoms[0].getPos();
+    double max_dev = 0.0;
+    for (Index i = 0; i < monomer_atoms.size(); ++i) {
+      double dev = (dimer_mol[offset_in_dimer + i].getPos() -
+                    monomer_atoms[i].getPos() - shift)
+                       .norm();
+      max_dev = std::max(max_dev, dev);
+    }
+    return max_dev;
+  };
+  auto WarnIfRotated = [&](const QMMolecule& monomer_atoms,
+                           Index offset_in_dimer, const std::string& label) {
+    double dev = MaxDeviationFromTranslation(monomer_atoms, offset_in_dimer);
+    if (dev > kGeometryToleranceBohr) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " WARNING: " << label
+          << " is rotated with respect to its .orb file (max deviation " << dev
+          << " bohr after translation). Its MO coefficients are not "
+             "rotated, so the dimer guess will be poor."
+          << std::flush;
+    }
+  };
+  WarnIfRotated(atomsA, 0, "Monomer A");
+  WarnIfRotated(atomsB, nA, "Monomer B");
 
   Orbitals dimer_guess;
   // PrepareDimerGuess/PrepareDimerGuessMixedSpin both call SetupDftBasis

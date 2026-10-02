@@ -30,6 +30,7 @@
 #include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
+using votca::Index;
 
 BOOST_AUTO_TEST_SUITE(dftengine_test)
 
@@ -586,6 +587,127 @@ BOOST_AUTO_TEST_CASE(dft_cation) {
     std::cout << "ref coeff beta" << std::endl;
     std::cout << MOs_coeff_beta_ref << std::endl;
   }
+
+  libint2::finalize();
+}
+
+namespace {
+void WriteDimerGuessXML(const std::string& filename, const std::string& guess,
+                        const std::string& extra) {
+  std::ofstream xml(filename);
+  xml << "<dftpackage>\n";
+  xml << "<spin>1</spin>\n";
+  xml << "<name>xtp</name>\n";
+  xml << "<charge>0</charge>\n";
+  xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>\n";
+  xml << "<basisset>3-21G.xml</basisset>\n";
+  xml << "<initial_guess>" << guess << "</initial_guess>\n";
+  xml << extra;
+  xml << "<xtpdft>\n";
+  xml << "<screening_eps>1e-9</screening_eps>\n";
+  xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
+  xml << "<convergence>\n";
+  xml << "    <energy>1e-8</energy>\n";
+  xml << "    <method>DIIS</method>\n";
+  xml << "    <DIIS_start>0.002</DIIS_start>\n";
+  xml << "    <ADIIS_start>0.8</ADIIS_start>\n";
+  xml << "    <DIIS_length>20</DIIS_length>\n";
+  xml << "    <levelshift>0.0</levelshift>\n";
+  xml << "    <levelshift_end>0.2</levelshift_end>\n";
+  xml << "    <max_iterations>100</max_iterations>\n";
+  xml << "    <error>1e-7</error>\n";
+  xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
+  xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
+  xml << "    <davidson_max_iter>50</davidson_max_iter>\n";
+  xml << "</convergence>\n";
+  xml << "<integration_grid>xcoarse</integration_grid>\n";
+  xml << "</xtpdft>\n";
+  xml << "</dftpackage>\n";
+}
+
+QMMolecule WaterDimer(const Eigen::Vector3d& shift) {
+  QMMolecule dimer(" ", 1);
+  QMMolecule a = Water();
+  QMMolecule b = Water();
+  b.Translate(shift);
+  Index id = 0;
+  for (const QMAtom& at : a) {
+    dimer.push_back(QMAtom(id++, at.getElement(), at.getPos()));
+  }
+  for (const QMAtom& at : b) {
+    dimer.push_back(QMAtom(id++, at.getElement(), at.getPos()));
+  }
+  return dimer;
+}
+
+Index SCFIterations(const std::string& log) {
+  // the SCF loop logs one "Iteration" line per step
+  Index count = 0;
+  std::size_t pos = 0;
+  while ((pos = log.find(" Iteration ", pos)) != std::string::npos) {
+    ++count;
+    ++pos;
+  }
+  return count;
+}
+}  // namespace
+
+// Closed-shell dimer guess for a restricted run: two converged water monomers
+// placed 10 bohr apart. The guess must converge to the same state as a
+// standard guess, and in fewer iterations.
+BOOST_AUTO_TEST_CASE(dimer_guess_closed_shell) {
+  libint2::initialize();
+  WriteBasis321G();
+
+  {
+    Orbitals mono;
+    mono.QMAtoms() = Water();
+    WriteDimerGuessXML("dftengine_monomer.xml", "atom", "");
+    votca::tools::Property prop;
+    prop.LoadFromXML("dftengine_monomer.xml");
+    Logger log;
+    DFTEngine dft;
+    dft.setLogger(&log);
+    dft.Initialize(prop.get("dftpackage"));
+    BOOST_REQUIRE(dft.Evaluate(mono));
+    mono.WriteToCpt("water_monomer.orb");
+  }
+
+  const Eigen::Vector3d shift(10.0, 0.0, 0.0);
+
+  auto RunDimer = [&](const std::string& guess, const std::string& extra,
+                      Index& iterations) {
+    Orbitals orb;
+    orb.QMAtoms() = WaterDimer(shift);
+    WriteDimerGuessXML("dftengine_dimer.xml", guess, extra);
+    votca::tools::Property prop;
+    prop.LoadFromXML("dftengine_dimer.xml");
+    Logger log;
+    log.setReportLevel(votca::Log::info);
+    DFTEngine dft;
+    dft.setLogger(&log);
+    dft.Initialize(prop.get("dftpackage"));
+    BOOST_REQUIRE(dft.Evaluate(orb));
+    std::stringstream ss;
+    ss << log;
+    iterations = SCFIterations(ss.str());
+    return orb.getDFTTotalEnergy();
+  };
+
+  Index it_atom = 0;
+  Index it_dimer = 0;
+  double e_atom = RunDimer("atom", "", it_atom);
+  double e_dimer = RunDimer("dimer_guess",
+                            "<dimer_guess_orbA>water_monomer.orb</"
+                            "dimer_guess_orbA>\n<dimer_guess_orbB>water_"
+                            "monomer.orb</dimer_guess_orbB>\n",
+                            it_dimer);
+  BOOST_CHECK_SMALL(e_dimer - e_atom, 1e-6);
+  BOOST_TEST_MESSAGE("SCF iterations: atom guess "
+                     << it_atom << ", dimer guess " << it_dimer);
+  BOOST_CHECK_LT(it_dimer, it_atom);
 
   libint2::finalize();
 }
