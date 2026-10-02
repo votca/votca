@@ -23,6 +23,7 @@ Version 2026-dev
 -  POD2 coupling for morphology with automated H saturation (#1250)
 -  Ewald embedding in QMMM (#1251)
 -  optimized parmeters in Ewald calculation (#1252)
+-  GW-BSE reaction field screening QMMM option (#1253)
 
 Version 2026 (released 09.03.26)
 ================================
