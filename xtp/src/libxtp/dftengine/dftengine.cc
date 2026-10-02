@@ -287,6 +287,10 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
   conv_opt_.davidson_max_iter =
       options.get(key_xtpdft + ".convergence.davidson_max_iter").as<Index>();
+  conv_opt_.energy_reset = options.ifExistsReturnElseReturnDefault<double>(
+      key_xtpdft + ".convergence.energy_reset", 1.0);
+  overlap_tolerance_ = options.ifExistsReturnElseReturnDefault<double>(
+      key_xtpdft + ".overlap_tolerance", 1e-8);
 
   if (options.exists(key_xtpdft + ".dft_in_dft.activeatoms")) {
     active_atoms_as_string_ =
@@ -1251,6 +1255,7 @@ bool DFTEngine::EvaluateClosedShell(
   IncrementalFockBuilder incremental_fock(*pLog_, start_incremental_F_threshold,
                                           fock_matrix_reset_);
   incremental_fock.Configure(Dmat);
+  conv_accelerator_.StartNewSCF();
 
   for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
     XTP_LOG(Log::error, *pLog_) << std::flush;
@@ -1412,7 +1417,7 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
 
   conv_uks.Configure(opt_alpha, opt_beta);
   conv_uks.setLogger(pLog_);
-  conv_uks.setOverlap(dftAOoverlap_, 1e-8);
+  conv_uks.setOverlap(dftAOoverlap_, overlap_tolerance_);
 
   if (initial_guess_ == "orbfile") {
     XTP_LOG(Log::error, *pLog_)
@@ -1884,7 +1889,7 @@ void DFTEngine::SetupInvariantMatrices() {
                        : ConvergenceAcc::KSmode::restricted_open;
   conv_accelerator_.Configure(conv_opt_);
   conv_accelerator_.setLogger(pLog_);
-  conv_accelerator_.setOverlap(dftAOoverlap_, 1e-8);
+  conv_accelerator_.setOverlap(dftAOoverlap_, overlap_tolerance_);
   conv_accelerator_.PrintConfigOptions();
 
   if (!auxbasis_name_.empty()) {
@@ -2131,7 +2136,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   // single, jointly-derived set of (A)DIIS coefficients to both --
   // confirmed directly from uks_convergenceacc.cc's own comment ("one
   // shared DIIS/ADIIS history length") and its Iterate()'s own
-  // "diis_.Update(maxerrorindex_, err_alpha, err_beta)" call. This is
+  // "diis_.Update(drop, err_alpha, err_beta)" call. This is
   // the standard, textbook-correct formulation of UKS DIIS; the
   // previous two-independent-accelerators approach was not wrong in
   // the sense of being internally inconsistent (unlike the
@@ -2140,7 +2145,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   // is meant to work.
   conv_uks.Configure(opt_alpha, opt_beta);
   conv_uks.setLogger(&log);
-  conv_uks.setOverlap(dftAOoverlap, 1e-8);
+  conv_uks.setOverlap(dftAOoverlap, overlap_tolerance_);
 
   Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.Matrix();
   if (with_ecp) {

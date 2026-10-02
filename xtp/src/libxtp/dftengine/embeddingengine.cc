@@ -224,6 +224,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   else {
     orb.setCalculationType("Embedded_noTrunc");
     Eigen::MatrixXd ActiveDensityMatrix = InitialActiveDensityMatrix;
+    conv_accelerator_.StartNewSCF();
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
       XTP_LOG(Log::error, *pLog_) << std::flush;
       XTP_LOG(Log::error, *pLog_)
@@ -397,6 +398,7 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
         McWeenyPurification(InitialActiveDmat_trunc_, overlap);
     Eigen::MatrixXd TruncatedDensityMatrix = PurifiedActiveDmat_trunc;
 
+    conv_accelerator_.StartNewSCF();
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
       XTP_LOG(Log::error, *pLog_) << std::flush;
       XTP_LOG(Log::error, *pLog_)
@@ -452,11 +454,10 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
           << TimeStamp() << " E_trunc (Ha) = "
           << TruncatedDensityMatrix.cwiseProduct(H0_trunc_).sum() +
                  E_Hartree_truncated + E_xc_truncated
+          << "\n \t \t \t" << " E_fullDFT (Ha) = " << Total_E_full_
           << "\n \t \t \t"
-          << " E_fullDFT (Ha) = " << Total_E_full_ << "\n \t \t \t"
           << " E_initial_trunc(Ha) = " << Initial_truncated_energy
-          << "\n \t \t \t"
-          << " E_embedding_correction(Ha) = "
+          << "\n \t \t \t" << " E_embedding_correction(Ha) = "
           << ((TruncatedDensityMatrix - InitialActiveDmat_trunc_)
                   .cwiseProduct(v_embedding_trunc_)
                   .sum())
@@ -464,8 +465,7 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
 
       XTP_LOG(Log::error, *pLog_)
           << " Truncated Energy of the system: E_trunc + E_fullDFT - "
-          << "\n \t \t"
-          << " E_initial_trunc + E_embedding_correction = "
+          << "\n \t \t" << " E_initial_trunc + E_embedding_correction = "
           << TruncatedTotalEnergy << std::flush;
 
       PrintMOs(MOs_trunc.eigenvalues(), Log::info);

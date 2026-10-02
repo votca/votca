@@ -334,6 +334,9 @@ class GW {
   void PrintGWA_Energies() const;
 
   Eigen::VectorXd SolveQP(const Eigen::VectorXd& frequencies) const;
+  // HOMO-LUMO midpoint of the current QP guesses, set by SolveQP before
+  // its parallel loop and only read inside it (SolveQP_Grid).
+  mutable double qp_midgap_ = 0.0;
   boost::optional<double> SolveQP_Grid(double intercept0, double frequency0,
                                        Index gw_level,
                                        QPStats* stats = nullptr) const;

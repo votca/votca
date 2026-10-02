@@ -38,6 +38,13 @@
 			<Compute_Time>15</Compute_Time>
 			<Total_Charge>-0.000000</Total_Charge>
 			<Iterations>4</Iterations>
+			<E_ground>-1094.822712</E_ground>
+			<screened_site_energies>
+				<h>12.658889</h>
+				<e>6.374837</e>
+				<s>13.521325</s>
+				<state>s1</state>
+			</screened_site_energies>
 		</output>
 	</job>
 </jobs>

@@ -501,15 +501,20 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
     }
 
     double osc = oscs[i];
+    // On the dressed route (environment with K_reac) the exchange operator
+    // acts on integrals dressed with (1+R)^1/2, so its expectation value is
+    // that of K_x + K_reac. Label it as such.
+    const bool dressed = reaction_field_.size() > 0 && include_kreac_;
+    const std::string kx_label = dressed ? "<K_x+K_reac>" : "<K_x>";
     XTP_LOG(Log::error, log_)
         << boost::format(
                "  %1$2s = %2$4d Omega = %3$+1.12f eV  lamdba = %4$+3.2f nm "
-               "<FT> = %5$+1.4f <K_x> = %6$+1.4f <K_d> = %7$+1.4f") %
+               "<FT> = %5$+1.4f %8$s = %6$+1.4f <K_d> = %7$+1.4f") %
                StateShortLabel(type) % (i + 1) % (hrt2ev * energies(i)) %
                (1240.0 / (hrt2ev * energies(i))) %
                (hrt2ev * act.qp_contrib(i)) %
                (hrt2ev * act.exchange_contrib(i)) %
-               (hrt2ev * act.direct_contrib(i))
+               (hrt2ev * act.direct_contrib(i)) % kx_label
         << flush;
 
     const Eigen::Vector3d& trdip = orb.TransitionDipoles()[i];

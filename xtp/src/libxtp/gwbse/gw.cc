@@ -404,6 +404,18 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
 
   QPStats total_stats;
 
+  // HOMO-LUMO midpoint of the current QP guesses (DFT energies where a
+  // level is outside the QP range), for SolveQP_Grid's restricted window.
+  {
+    const Index h = opt_.homo - opt_.qpmin;
+    const double e_homo =
+        (h >= 0 && h < qptotal_) ? frequencies[h] : dft_energies_(opt_.homo);
+    const double e_lumo = (h + 1 >= 0 && h + 1 < qptotal_)
+                              ? frequencies[h + 1]
+                              : dft_energies_(opt_.homo + 1);
+    qp_midgap_ = 0.5 * (e_homo + e_lumo);
+  }
+
 #ifdef _OPENMP
   Index use_threads =
       OPENMP::getMaxThreads() > qptotal_ ? qptotal_ : OPENMP::getMaxThreads();
@@ -760,11 +772,23 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
     const Index mo_level = gw_level + opt_.qpmin;
     const bool is_occupied = (mo_level <= opt_.homo);
 
+    // The fixed bounds (-qp_zero_margin for occupied levels,
+    // qp_virtual_min_energy for virtual ones) assume the level itself lies
+    // inside them. An environment can move it outside -- an embedded LUMO
+    // below -0.1 Ha -- and then every restricted scan fails and falls back
+    // to the full dense window. In that case only, the bound moves to the
+    // HOMO-LUMO midpoint, which separates occupied from virtual levels
+    // wherever they are.
     if (is_occupied) {
-      restricted_right_limit = std::min(full_right_limit, -opt_.qp_zero_margin);
+      const double bound = (frequency0 < -opt_.qp_zero_margin)
+                               ? -opt_.qp_zero_margin
+                               : qp_midgap_;
+      restricted_right_limit = std::min(full_right_limit, bound);
     } else {
-      restricted_left_limit =
-          std::max(full_left_limit, opt_.qp_virtual_min_energy);
+      const double bound = (frequency0 > opt_.qp_virtual_min_energy)
+                               ? opt_.qp_virtual_min_energy
+                               : qp_midgap_;
+      restricted_left_limit = std::max(full_left_limit, bound);
     }
 
     const double tol = 1e-12;

@@ -336,6 +336,37 @@ void QMRegion::EvaluateScreenedGWBSE(
       << std::setprecision(10) << StateEnergy(state) * tools::conv::hrt2ev
       << " eV, region energy " << energy << " Hartree" << std::flush;
   E_hist_.push_back(energy);
+  screened_state_ = state;
+  screened_done_ = true;
+}
+
+void QMRegion::AppendScreenedSiteEnergies(tools::Property& prop) const {
+  if (!screened_done_) {
+    return;
+  }
+  // Site energies as -j read stores them: the energy of the state relative
+  // to the neutral ground state of the same environment, in eV. One
+  // screened job provides all of them, from one GW(-BSE) run on top of
+  // the converged ground state:
+  //   h: E_h - E_n = -eps_HOMO    e: E_e - E_n = eps_LUMO
+  //   s/t: Omega of the tracked exciton, if the job's state is one.
+  // Quasiparticle energies are the diagonalized ones (DQP) if available.
+  const Index homo = orb_.getHomo();
+  auto qp = [&](Index level) {
+    const std::string kind = orb_.hasQPdiag() ? "dqp" : "pqp";
+    return orb_.getExcitedStateEnergy(QMState(kind + std::to_string(level)));
+  };
+  tools::Property& out = prop.add("screened_site_energies", "");
+  out.add("h", std::to_string(-qp(homo) * tools::conv::hrt2ev));
+  out.add("e", std::to_string(qp(homo + 1) * tools::conv::hrt2ev));
+  if (screened_state_.Type() == QMStateType::Singlet) {
+    out.add("s",
+            std::to_string(StateEnergy(screened_state_) * tools::conv::hrt2ev));
+  } else if (screened_state_.Type() == QMStateType::Triplet) {
+    out.add("t",
+            std::to_string(StateEnergy(screened_state_) * tools::conv::hrt2ev));
+  }
+  out.add("state", screened_state_.ToString());
 }
 
 // helper function to hand the grid changable over to Ewald

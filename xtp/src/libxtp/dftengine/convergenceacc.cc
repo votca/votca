@@ -17,6 +17,8 @@
  *
  */
 
+#include <algorithm>
+
 // Local VOTCA includes
 #include "votca/xtp/convergenceacc.h"
 
@@ -36,13 +38,49 @@ namespace xtp {
 // matrices are diagonalized in the orthogonal AO basis X^T F X.
 void ConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
   S_ = &S;
-  Sminusahalf = S.Pseudo_InvSqrt(etol);
+  // Own eigendecomposition rather than AOOverlap::Pseudo_InvSqrt: the
+  // removed directions are needed as well, see removed_projector_.
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S.Matrix());
+  const Eigen::VectorXd& s_eig = es.eigenvalues();
+  Eigen::VectorXd inv_sqrt = Eigen::VectorXd::Zero(s_eig.size());
+  Index removed = 0;
+  for (Index i = 0; i < s_eig.size(); ++i) {
+    if (s_eig(i) < etol) {
+      ++removed;
+    } else {
+      inv_sqrt(i) = 1.0 / std::sqrt(s_eig(i));
+    }
+  }
+  Sminusahalf =
+      es.eigenvectors() * inv_sqrt.asDiagonal() * es.eigenvectors().transpose();
+  removed_projector_.resize(0, 0);
+  if (removed > 0) {
+    // In SolveFockmatrix, H_ortho = X^T H X vanishes on these directions,
+    // so they would come out as eigenvalue-0 "orbitals" in the middle of
+    // the spectrum. Shifting them far up keeps them out of the occupied
+    // and low virtual space.
+    const Eigen::MatrixXd U = es.eigenvectors().leftCols(removed);
+    removed_projector_ = U * U.transpose();
+  }
   XTP_LOG(Log::error, *log_)
-      << TimeStamp() << " Smallest value of AOOverlap matrix is "
-      << S_->SmallestEigenValue() << std::flush;
+      << TimeStamp() << " Smallest value of AOOverlap matrix is " << s_eig(0)
+      << std::flush;
   XTP_LOG(Log::error, *log_)
-      << TimeStamp() << " Removed " << S_->Removedfunctions()
-      << " basisfunction from inverse overlap matrix" << std::flush;
+      << TimeStamp() << " Removed " << removed
+      << " basisfunction from inverse overlap matrix (threshold " << etol << ")"
+      << std::flush;
+  if (removed > 0) {
+    XTP_LOG(Log::error, *log_)
+        << TimeStamp() << " The " << removed
+        << " removed direction(s) appear as zero orbitals at +" << kRemovedShift
+        << " Hartree." << std::flush;
+  } else if (s_eig(0) < 1e3 * etol) {
+    XTP_LOG(Log::error, *log_)
+        << TimeStamp()
+        << " WARNING: the overlap matrix is nearly singular; if the SCF is "
+           "unstable, raise xtpdft.overlap_tolerance above "
+        << s_eig(0) << "." << std::flush;
+  }
   return;
 }
 
@@ -60,59 +98,94 @@ void ConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
 Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
                                         Eigen::MatrixXd& H,
                                         tools::EigenSystem& MOs, double totE) {
-  Eigen::MatrixXd H_guess = Eigen::MatrixXd::Zero(H.rows(), H.cols());
-
-  if (int(mathist_.size()) == opt_.histlength) {
-    totE_.erase(totE_.begin() + maxerrorindex_);
-    mathist_.erase(mathist_.begin() + maxerrorindex_);
-    dmatHist_.erase(dmatHist_.begin() + maxerrorindex_);
-  }
-
   totE_.push_back(totE);
-  if (opt_.mode != KSmode::fractional && nocclevels_ > 0 &&
-      nocclevels_ < MOs.eigenvalues().size()) {
-    double gap =
-        MOs.eigenvalues()(nocclevels_) - MOs.eigenvalues()(nocclevels_ - 1);
-    if ((diiserror_ > opt_.levelshiftend && opt_.levelshift > 0.0) ||
-        gap < 1e-6) {
-      Levelshift(H, MOs.eigenvectors());
-    }
-  }
+  // The MOs of the previous step, for the level shift.
+  const Eigen::MatrixXd MOs_old = MOs.eigenvectors();
+  const Eigen::VectorXd MOs_old_energies = MOs.eigenvalues();
+
   const Eigen::MatrixXd& S = S_->Matrix();
-  Eigen::MatrixXd errormatrix =
+  const Eigen::MatrixXd errormatrix =
       Sminusahalf.transpose() * (H * dmat * S - S * dmat * H) * Sminusahalf;
   diiserror_ = errormatrix.cwiseAbs().maxCoeff();
 
-  mathist_.push_back(H);
-  dmatHist_.push_back(dmat);
-
-  if (opt_.maxout) {
-    if (diiserror_ > maxerror_) {
-      maxerror_ = diiserror_;
-      maxerrorindex_ = mathist_.size() - 1;
-    }
-  }
-
-  diis_.Update(maxerrorindex_, errormatrix);
-  bool diis_error = false;
   XTP_LOG(Log::error, *log_)
       << TimeStamp() << " DIIs error " << getDIIsError() << std::flush;
-
   XTP_LOG(Log::error, *log_)
       << TimeStamp() << " Delta Etot " << getDeltaE() << std::flush;
 
+  // Energy-rise reset. An extrapolated Fock matrix that sends the energy
+  // far above anything seen before is not a step to build on: the history
+  // that produced it is discarded and the SCF continues, damped, from the
+  // lowest-energy density so far.
+  ++iterations_since_reset_;
+  if (opt_.energy_reset > 0.0 && have_best_ &&
+      totE > best_energy_ + opt_.energy_reset &&
+      iterations_since_reset_ > kResetCooldown &&
+      energy_resets_ < kMaxEnergyResets) {
+    ++energy_resets_;
+    iterations_since_reset_ = 0;
+    XTP_LOG(Log::error, *log_)
+        << TimeStamp() << " WARNING: energy rose by " << totE - best_energy_
+        << " Ha above the lowest so far (" << best_energy_
+        << " Ha); discarding the (A)DIIS history and restarting from that "
+           "density (reset "
+        << energy_resets_ << ")" << std::flush;
+    mathist_.clear();
+    dmatHist_.clear();
+    errhist_.clear();
+    diis_.Clear();
+    Eigen::MatrixXd H_restart = best_H_;
+    if (opt_.levelshift > 0.0) {
+      Levelshift(H_restart, MOs_old);
+    }
+    MOs = SolveFockmatrix(H_restart);
+    usedmixing_ = true;
+    return opt_.mixingparameter * best_dmat_ +
+           (1.0 - opt_.mixingparameter) * DensityMatrix(MOs);
+  }
+  if (!have_best_ || totE < best_energy_) {
+    have_best_ = true;
+    best_energy_ = totE;
+    best_dmat_ = dmat;
+    best_H_ = H;
+  }
+
+  // History, trimmed at one index for all of mathist_, dmatHist_, errhist_
+  // and DIIS's own error history: the oldest entry, or with DIIS_maxout the
+  // one with the largest error. All four are always the same length, so
+  // DIIS::Update trims at the same moment and the same index.
+  Index drop = 0;
+  if (Index(mathist_.size()) == opt_.histlength) {
+    if (opt_.maxout) {
+      drop = Index(std::max_element(errhist_.begin(), errhist_.end()) -
+                   errhist_.begin());
+    }
+    mathist_.erase(mathist_.begin() + drop);
+    dmatHist_.erase(dmatHist_.begin() + drop);
+    errhist_.erase(errhist_.begin() + drop);
+  }
+  // The UNSHIFTED Fock matrix goes into the history: the level shift is a
+  // device for the next diagonalization only, and would otherwise enter
+  // the DIIS errors and the ADIIS energy model.
+  mathist_.push_back(H);
+  dmatHist_.push_back(dmat);
+  errhist_.push_back(diiserror_);
+  diis_.Update(drop, errormatrix);
+
+  bool diis_error = false;
+  Eigen::MatrixXd H_guess = H;
   if ((diiserror_ < opt_.adiis_start || diiserror_ < opt_.diis_start) &&
       opt_.usediis && mathist_.size() > 2) {
     Eigen::VectorXd coeffs;
-    // use ADIIs if energy has risen a lot in current iteration
-
-    if (diiserror_ > opt_.diis_start ||
-        totE_.back() > 0.9 * totE_[totE_.size() - 2]) {
+    // ADIIS above DIIS_start, and also below it whenever the energy went
+    // up: plain DIIS does not minimize the energy and can run away from a
+    // bad step.
+    const bool energy_rose = getDeltaE() > kEnergyRiseForADIIS;
+    if (diiserror_ > opt_.diis_start || energy_rose) {
       coeffs = adiis_.CalcCoeff(dmatHist_, mathist_);
       diis_error = !adiis_.Info();
       XTP_LOG(Log::warning, *log_)
           << TimeStamp() << " Using ADIIS for next guess" << std::flush;
-
     } else {
       coeffs = diis_.CalcCoeff();
       diis_error = !diis_.Info();
@@ -123,8 +196,8 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
       XTP_LOG(Log::warning, *log_)
           << TimeStamp() << " (A)DIIS failed using mixing instead"
           << std::flush;
-      H_guess = H;
     } else {
+      H_guess.setZero();
       for (Index i = 0; i < coeffs.size(); i++) {
         if (std::abs(coeffs(i)) < 1e-8) {
           continue;
@@ -132,15 +205,24 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
         H_guess += coeffs(i) * mathist_[i];
       }
     }
+  }
 
-  } else {
-    H_guess = H;
+  if (opt_.mode != KSmode::fractional && nocclevels_ > 0 &&
+      nocclevels_ < MOs_old_energies.size()) {
+    const double gap =
+        MOs_old_energies(nocclevels_) - MOs_old_energies(nocclevels_ - 1);
+    if ((diiserror_ > opt_.levelshiftend && opt_.levelshift > 0.0) ||
+        gap < 1e-6) {
+      Levelshift(H_guess, MOs_old);
+    }
   }
 
   MOs = SolveFockmatrix(H_guess);
 
   Eigen::MatrixXd dmatout = DensityMatrix(MOs);
-  if (diiserror_ > opt_.adiis_start || !opt_.usediis || diis_error ||
+  // mixing_end, not ADIIS_start, decides on damping (as in the UKS path):
+  // the two are separate options.
+  if (diiserror_ > opt_.mixingend || !opt_.usediis || diis_error ||
       mathist_.size() <= 2) {
     usedmixing_ = true;
     dmatout =
@@ -152,6 +234,26 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
     usedmixing_ = false;
   }
   return dmatout;
+}
+
+bool ConvergenceAcc::HistoryIsAligned() const {
+  const std::vector<Eigen::MatrixXd>& errors = diis_.ErrorHistory();
+  if (errors.size() != mathist_.size() || dmatHist_.size() != mathist_.size() ||
+      errhist_.size() != mathist_.size()) {
+    return false;
+  }
+  const Eigen::MatrixXd& S = S_->Matrix();
+  for (std::size_t k = 0; k < mathist_.size(); ++k) {
+    const Eigen::MatrixXd e =
+        Sminusahalf.transpose() *
+        (mathist_[k] * dmatHist_[k] * S - S * dmatHist_[k] * mathist_[k]) *
+        Sminusahalf;
+    if ((e - errors[k]).cwiseAbs().maxCoeff() > 1e-12 ||
+        std::abs(e.cwiseAbs().maxCoeff() - errhist_[k]) > 1e-12) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void ConvergenceAcc::PrintConfigOptions() const {
@@ -183,6 +285,9 @@ void ConvergenceAcc::PrintConfigOptions() const {
       << "\t\t Mixing Parameter alpha: " << opt_.mixingparameter << std::flush;
   XTP_LOG(Log::error, *log_)
       << "\t\t Mixing end: " << opt_.mixingend << std::flush;
+  XTP_LOG(Log::error, *log_)
+      << "\t\t Energy reset [Ha]: " << opt_.energy_reset
+      << (opt_.energy_reset > 0.0 ? "" : " (off)") << std::flush;
 }
 
 // Solve the generalized Roothaan-Hall problem
@@ -195,6 +300,9 @@ tools::EigenSystem ConvergenceAcc::SolveFockmatrix(
     const Eigen::MatrixXd& H) const {
   // transform to orthogonal for
   Eigen::MatrixXd H_ortho = Sminusahalf.transpose() * H * Sminusahalf;
+  if (removed_projector_.size() > 0) {
+    H_ortho += kRemovedShift * removed_projector_;
+  }
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
 
   if (es.info() != Eigen::ComputationInfo::Success) {

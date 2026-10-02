@@ -165,10 +165,10 @@ class EnvironmentScreening {
    * auxiliary function is not bounded, and 1 + R can lose positive
    * definiteness without any unphysical geometry: measured on a
    * production QM/MM job (55 QM atoms, def2-tzvp/aux-def2-tzvp, 3900 Thole
-   * sites, closest contact 2.62 A), a pi-stacked neighbour's carbons with
-   * alpha = 18.8 bohr^3 at 3.05-3.3 A carried 86% of a mode at lambda =
-   * -1.056. Smearing each site over a Gaussian of width proportional to
-   * alpha^(1/3) -- the length scale Thole damping itself uses -- removes
+   * sites, closest contact 2.62 A), three carbons (alpha = 18.8 bohr^3)
+   * of a neighbouring C60 at 3.05-3.3 A carried 86% of a mode at
+   * lambda = -1.056. Smearing each site over a Gaussian of width proportional
+   * to alpha^(1/3) -- the length scale Thole damping itself uses -- removes
    * that: at site_width 0.5 the same job has lambda_min = -0.755, while
    * 1/2 <rho|v_reac|rho> for the HOMO, LUMO and HOMO-LUMO densities moves
    * by 1e-4 relative (0.8: 2e-3, 1.0: 7e-3).

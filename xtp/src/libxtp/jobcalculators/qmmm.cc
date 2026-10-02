@@ -19,7 +19,9 @@
 
 // Standard includes
 #include <algorithm>
+#include <array>
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 #include <sstream>
 
@@ -55,7 +57,10 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   bool groundstate_found = std::any_of(
       states_.begin(), states_.end(),
       [](const QMState& state) { return state.Type() == QMStateType::Gstate; });
-  if (!groundstate_found) {
+  // The n job is the reference -j read subtracts. A job with
+  // environment_screening converges that ground state itself and reports
+  // its site energies relative to it, and refuses state n anyway.
+  if (!groundstate_found && !hasEnvironmentScreening()) {
     states_.push_back(QMState("n"));
   }
 }
@@ -200,9 +205,17 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
 
   // Embedded GW-BSE: the loop above converged the ground state; the
   // excitation is screened by the polar regions in one GW-BSE run.
+  QMRegion* screened_qmregion = nullptr;
+  double e_ground = 0.0;
   if (jres.getStatus() == Job::JobStatus::COMPLETE) {
     QMRegion* qmregion = dynamic_cast<QMRegion*>(jobtop.Regions()[0].get());
     if (qmregion != nullptr && qmregion->EnvironmentScreeningEnabled()) {
+      // The converged ground state's total energy, before the screened
+      // run replaces the QM region's energy with that of the state.
+      for (const std::unique_ptr<Region>& reg : jobtop) {
+        e_ground += reg->Etotal();
+      }
+      screened_qmregion = qmregion;
       try {
         qmregion->EvaluateScreenedGWBSE(jobtop.Regions());
       } catch (std::exception& e) {
@@ -243,8 +256,22 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   if (!no_top_scf) {
     jobresult.add("Iterations", std::to_string(iteration + 1));
   }
+  if (screened_qmregion != nullptr) {
+    jobresult.add("E_ground", std::to_string(e_ground * tools::conv::hrt2ev));
+    screened_qmregion->AppendScreenedSiteEnergies(jobresult);
+  }
   jres.setOutput(results);
   return jres;
+}
+
+bool QMMM::hasEnvironmentScreening() const {
+  for (const tools::Property& reg : regions_def_.second) {
+    if (reg.name() == "qmregion" && reg.exists("environment_screening")) {
+      const tools::Property& env = reg.get("environment_screening");
+      return env.ifExistsReturnElseReturnDefault<bool>("enabled", true);
+    }
+  }
+  return false;
 }
 
 bool QMMM::hasQMRegion() const {
@@ -339,6 +366,12 @@ void QMMM::ReadJobFile(Topology& top) {
       Eigen::Matrix<double, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
   Eigen::Matrix<bool, Eigen::Dynamic, 5> found =
       Eigen::Matrix<bool, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
+  // Site energies reported directly by screened jobs (relative to their
+  // own ground state, Hartree), for e, h, s, t.
+  Eigen::Matrix<double, Eigen::Dynamic, 4> screened =
+      Eigen::Matrix<double, Eigen::Dynamic, 4>::Zero(top.Segments().size(), 4);
+  Eigen::Matrix<bool, Eigen::Dynamic, 4> screened_found =
+      Eigen::Matrix<bool, Eigen::Dynamic, 4>::Zero(top.Segments().size(), 4);
 
   tools::Property xml;
   xml.LoadFromXML(jobfile_);
@@ -374,15 +407,56 @@ void QMMM::ReadJobFile(Topology& top) {
       message << e.what() << " for job " << jobid;
       throw std::runtime_error(message.str());
     }
+    if (job->exists("output.screened_site_energies")) {
+      const tools::Property& se = job->get("output.screened_site_energies");
+      const std::array<std::pair<const char*, QMStateType::statetype>, 4>
+          types = {{{"e", QMStateType::Electron},
+                    {"h", QMStateType::Hole},
+                    {"s", QMStateType::Singlet},
+                    {"t", QMStateType::Triplet}}};
+      for (const auto& [tag, type] : types) {
+        if (!se.exists(tag)) {
+          continue;
+        }
+        const double value = se.get(tag).as<double>() * tools::conv::ev2hrt;
+        if (screened_found(segid, type)) {
+          // e and h come with every screened job of a segment (an s1 and a
+          // pqp job, say), from the same ground state: they must agree.
+          const double diff =
+              std::abs(value - screened(segid, type)) * tools::conv::hrt2ev;
+          if (diff > 1e-3) {
+            throw std::runtime_error(
+                "Screened jobs for segment " + std::to_string(segid) +
+                " disagree on its " + std::string(tag) + " site energy by " +
+                std::to_string(diff) +
+                " eV; were they run with different settings?");
+          }
+          continue;
+        }
+        screened(segid, type) = value;
+        screened_found(segid, type) = true;
+      }
+      // Its E_tot is not an n/e/h/s/t total energy to be differenced:
+      // the site energies above are already relative to the ground state.
+      continue;
+    }
+
+    const Index col = state.Type().Type();
+    if (col > QMStateType::Gstate) {
+      throw std::runtime_error(
+          "Job " + std::to_string(jobid) + " has state " + state.ToString() +
+          ", which -j read can only use from a job with environment_screening "
+          "(it reports its own site energies).");
+    }
     double energy = job->get("output.E_tot").as<double>() * tools::conv::ev2hrt;
-    if (found(segid, state.Type().Type()) != 0) {
+    if (found(segid, col) != 0) {
       throw std::runtime_error("There are two entries in jobfile for segment " +
                                std::to_string(segid) +
                                " state:" + state.ToString());
     }
 
-    energies(segid, state.Type().Type()) = energy;
-    found(segid, state.Type().Type()) = true;
+    energies(segid, col) = energy;
+    found(segid, col) = true;
   }
 
   Eigen::Matrix<Index, 1, 5> found_states = found.colwise().count();
@@ -398,15 +472,38 @@ void QMMM::ReadJobFile(Topology& top) {
     std::cout << incomplete_jobs << " incomplete jobs found." << std::endl;
   }
 
+  Eigen::Matrix<Index, 1, 4> screened_states = screened_found.colwise().count();
+  for (Index i = 0; i < 4; i++) {
+    if (screened_states(i) > 0) {
+      QMStateType type(static_cast<QMStateType::statetype>(i));
+      std::cout << "Found " << screened_states(i) << " screened site energies "
+                << "of type " << type.ToString() << std::endl;
+    }
+  }
+
+  Index overridden = 0;
   for (Segment& seg : top.Segments()) {
     Index segid = seg.getId();
     for (Index i = 0; i < 4; i++) {
       QMStateType type(static_cast<QMStateType::statetype>(i));
-      if (found(segid, i) && found(segid, 4)) {
+      if (screened_found(segid, i)) {
+        // A screened job's own value is the one to use: it is relative to
+        // the ground state of the very same run.
+        if (found(segid, i) && found(segid, 4)) {
+          ++overridden;
+        }
+        seg.setEMpoles(type, screened(segid, i));
+      } else if (found(segid, i) && found(segid, 4)) {
         double energy = energies(segid, i) - energies(segid, 4);
         seg.setEMpoles(type, energy);
       }
     }
+  }
+  if (overridden > 0) {
+    std::cout << overridden
+              << " site energies were available both from n-referenced and "
+                 "from screened jobs; the screened values were used."
+              << std::endl;
   }
 }
 

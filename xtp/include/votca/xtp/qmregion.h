@@ -108,6 +108,10 @@ class QMRegion : public Region {
    */
   bool EnvironmentScreeningEnabled() const { return screening_; }
   void EvaluateScreenedGWBSE(std::vector<std::unique_ptr<Region> >& regions);
+  // After EvaluateScreenedGWBSE: adds <screened_site_energies> (h, e and
+  // s or t, in eV, relative to the ground state) for -j read. No-op
+  // otherwise.
+  void AppendScreenedSiteEnergies(tools::Property& prop) const;
   // Builds the reaction field for the job's polar regions and throws, with
   // a diagnosis, unless 1 + R is positive definite. Needs no ground state:
   // call it before the QM/MM loop. No-op without environment_screening.
@@ -153,6 +157,8 @@ class QMRegion : public Region {
   std::vector<Index> screening_shell_regions_;
   double screening_shell_dielectric_ = 4.0;
   double screening_site_width_ = 0.5;
+  bool screened_done_ = false;
+  QMState screened_state_;
   // DFT-in-DFT rewrite of orb_ and closed-shell check, before any GW-BSE
   void PrepareOrbitalsForGWBSE();
   // state energy of the tracked state, added to the DFT total energy
