@@ -18,7 +18,7 @@
 		<output>
 			<regions>
 				<region Tot_charge="0.000000e+00" id="0" size="1" type="qmregion">
-					<E_total>-1081.199725</E_total>
+					<E_total>-1081.196944</E_total>
 					<Initial_State>s1</Initial_State>
 					<Final_State>s1</Final_State>
 				</region>
@@ -34,7 +34,7 @@
 					<E_total>-0.003137</E_total>
 				</region>
 			</regions>
-			<E_tot>-1081.304168</E_tot>
+			<E_tot>-1081.301388</E_tot>
 			<Compute_Time>15</Compute_Time>
 			<Total_Charge>-0.000000</Total_Charge>
 			<Iterations>4</Iterations>

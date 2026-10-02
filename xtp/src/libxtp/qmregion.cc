@@ -20,9 +20,11 @@
 // Local VOTCA includes
 #include "votca/xtp/qmregion.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/basisset.h"
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/pmlocalization.h"
@@ -132,6 +134,14 @@ void QMRegion::Initialize(const tools::Property& prop) {
         env.ifExistsReturnElseReturnDefault<bool>("include_kreac", true);
     screening_shell_dielectric_ =
         env.ifExistsReturnElseReturnDefault<double>("shell_dielectric", 4.0);
+    screening_site_width_ =
+        env.ifExistsReturnElseReturnDefault<double>("site_width", 0.5);
+    if (!(screening_site_width_ >= 0.0)) {
+      throw std::runtime_error(
+          "environment_screening: site_width must be >= 0 (0 for point "
+          "sites), got " +
+          std::to_string(screening_site_width_) + ".");
+    }
     std::string shells =
         env.ifExistsReturnElseReturnDefault<std::string>("shell_regions", "");
     std::replace(shells.begin(), shells.end(), ',', ' ');
@@ -144,7 +154,9 @@ void QMRegion::Initialize(const tools::Property& prop) {
         << " Environment screening on: ground-state QM/MM loop, then one "
            "screened GW-BSE run. K_reac "
         << (screening_include_kreac_ ? "included" : "excluded")
-        << ", shell dielectric " << screening_shell_dielectric_ << std::flush;
+        << ", shell dielectric " << screening_shell_dielectric_
+        << ", site width " << screening_site_width_ << " alpha^(1/3)"
+        << std::flush;
   }
 }
 
@@ -186,20 +198,12 @@ double QMRegion::StateEnergy(const QMState& state) const {
   return -orb_.getExcitedStateEnergy(state);
 }
 
-void QMRegion::EvaluateScreenedGWBSE(
-    std::vector<std::unique_ptr<Region> >& regions) {
-  if (!screening_) {
-    return;
-  }
-  if (orb_.getCalculationType() == "Truncated") {
-    throw std::runtime_error(
-        "environment_screening is not implemented for truncated active "
-        "regions.");
-  }
-
+ScreeningEnvironment QMRegion::BuildScreeningEnvironment(
+    const std::vector<std::unique_ptr<Region> >& regions) const {
   ScreeningEnvironment env;
   env.shell_dielectric = screening_shell_dielectric_;
   env.include_kreac = screening_include_kreac_;
+  env.site_width = screening_site_width_;
   bool have_damp = false;
   PolarRegion Polardummy(0, log_);
   for (const std::unique_ptr<Region>& reg : regions) {
@@ -247,6 +251,74 @@ void QMRegion::EvaluateScreenedGWBSE(
            "region; GW-BSE runs unscreened."
         << std::flush;
   }
+  return env;
+}
+
+std::string QMRegion::ScreeningAuxBasisName() const {
+  // The auxiliary basis GWBSE::Initialize will pick: the DFT run's own
+  // (dftpackage.auxbasisset), else gwbse.auxbasisset, else aux-<basis>.
+  if (dftoptions_.exists("auxbasisset") &&
+      !dftoptions_.get("auxbasisset").as<std::string>().empty()) {
+    return dftoptions_.get("auxbasisset").as<std::string>();
+  }
+  if (gwbseoptions_.exists("auxbasisset") &&
+      !gwbseoptions_.get("auxbasisset").as<std::string>().empty()) {
+    return gwbseoptions_.get("auxbasisset").as<std::string>();
+  }
+  return "aux-" + dftoptions_.get("basisset").as<std::string>();
+}
+
+void QMRegion::CheckScreeningEnvironment(
+    const std::vector<std::unique_ptr<Region> >& regions) const {
+  if (!screening_) {
+    return;
+  }
+  // R depends on the QM atoms, the auxiliary basis on them and the polar
+  // sites -- none of which the QM/MM loop changes -- so it is checked
+  // here, before the loop, rather than after the ground state has
+  // converged. Failing now costs seconds; failing in EvaluateScreenedGWBSE
+  // costs the whole loop.
+  const ScreeningEnvironment env = BuildScreeningEnvironment(regions);
+  if (env.empty()) {
+    return;
+  }
+  const std::string auxname = ScreeningAuxBasisName();
+  BasisSet bs;
+  bs.Load(auxname);
+  AOBasis auxbasis;
+  auxbasis.Fill(bs, orb_.QMAtoms());
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Checking the screening environment (" << auxname
+      << ", " << auxbasis.AOBasisSize() << " functions)" << std::flush;
+  const ScreeningCheck check = EnvironmentScreening::Check(
+      auxbasis, orb_.QMAtoms(), env, EnvironmentScreening::Metric(auxbasis));
+  if (!check.ok()) {
+    throw std::runtime_error(
+        "environment_screening: 1 + R is not positive definite (lowest "
+        "eigenvalue of R " +
+        std::to_string(check.lowest) +
+        "): the environment would screen some charge fluctuation of the QM "
+        "region by more than the fluctuation itself. Diagnosis:\n" +
+        check.report);
+  }
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Screening environment is stable: lowest eigenvalue "
+      << "of R " << check.lowest << " (must be > -1)" << std::flush;
+  XTP_LOG(Log::info, log_) << check.report << std::flush;
+}
+
+void QMRegion::EvaluateScreenedGWBSE(
+    std::vector<std::unique_ptr<Region> >& regions) {
+  if (!screening_) {
+    return;
+  }
+  if (orb_.getCalculationType() == "Truncated") {
+    throw std::runtime_error(
+        "environment_screening is not implemented for truncated active "
+        "regions.");
+  }
+
+  const ScreeningEnvironment env = BuildScreeningEnvironment(regions);
 
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Running environment-screened GW-BSE" << std::flush;

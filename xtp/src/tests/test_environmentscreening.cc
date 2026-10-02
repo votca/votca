@@ -672,10 +672,14 @@ BOOST_AUTO_TEST_CASE(environment_kernel_is_explicit_plus_shell) {
   BOOST_CHECK(ScreeningEnvironment().empty());
 
   const Eigen::MatrixXd B = EnvironmentScreening::Kernel(aux, env);
+  // With the default site_width: each part on its own sites, smeared
+  // with its own widths.
   const Eigen::MatrixXd Fx = EnvironmentScreening::AuxFieldAtPoints(
-      aux, PositionsOf(env.explicit_segments));
+      aux, PositionsOf(env.explicit_segments),
+      EnvironmentScreening::SiteWidths(env.explicit_segments, env.site_width));
   const Eigen::MatrixXd Fs = EnvironmentScreening::AuxFieldAtPoints(
-      aux, PositionsOf(env.shell_segments));
+      aux, PositionsOf(env.shell_segments),
+      EnvironmentScreening::SiteWidths(env.shell_segments, env.site_width));
   const Eigen::MatrixXd ref = EnvironmentScreening::ReactionFieldKernel(
                                   Fx, env.explicit_segments, env.exp_damp) +
                               EnvironmentScreening::ShellKernel(
@@ -685,6 +689,146 @@ BOOST_AUTO_TEST_CASE(environment_kernel_is_explicit_plus_shell) {
                         .cwiseAbs()
                         .maxCoeff(),
                     1e-300);
+  libint2::finalize();
+}
+
+// Check, the up-front test a QM/MM job runs before its loop, must see the
+// same R the GW-BSE run will: Metric builds exactly the T that
+// TCMatrix_gwbse::Fill folds into the integrals, and Check's lowest
+// eigenvalue is that of SymmetrizedReactionField. And a stable
+// environment passes.
+BOOST_AUTO_TEST_CASE(check_sees_the_reaction_field_gwbse_uses) {
+  libint2::initialize();
+  const QMMolecule mol = Methane();
+  const AOBasis dft = MakeBasis(
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/3-21G.xml", mol);
+  const AOBasis aux = MakeBasis("aux-aug-cc-pvtz", mol);
+  const Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/MOs.mm");
+  TCMatrix_gwbse tc;
+  tc.Initialize(aux.AOBasisSize(), 0, 5, 0, 7);
+  tc.Fill(aux, dft, MOs);
+
+  const Eigen::MatrixXd T = EnvironmentScreening::Metric(aux);
+  BOOST_CHECK_EQUAL((T - tc.InvSqrt()).cwiseAbs().maxCoeff(), 0.0);
+
+  ScreeningEnvironment env;
+  env.exp_damp = 0.39;
+  env.explicit_segments = {
+      SegmentAt(
+          0, {Eigen::Vector3d(9.5, 0.0, 0.0), Eigen::Vector3d(12.0, 0.3, 0.0)},
+          9.5),
+      SegmentAt(1, {Eigen::Vector3d(-1.5, 10.0, 2.8)}, 9.5)};
+  env.shell_segments = {SegmentAt(2, {Eigen::Vector3d(0.0, -14.0, 1.0)}, 9.5)};
+  env.shell_dielectric = 4.0;
+
+  const Eigen::MatrixXd R = EnvironmentScreening::SymmetrizedReactionField(
+      EnvironmentScreening::Kernel(aux, env), tc.InvSqrt());
+  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
+      R, Eigen::EigenvaluesOnly);
+
+  const ScreeningCheck check = EnvironmentScreening::Check(aux, mol, env, T);
+  BOOST_CHECK(check.ok());
+  BOOST_CHECK_EQUAL(check.n_unstable, 0);
+  BOOST_CHECK_CLOSE(check.lowest, es.eigenvalues()(0), 1e-8);
+  BOOST_CHECK(check.lowest < 0.0);
+  BOOST_CHECK(check.report.find("mode 0") != std::string::npos);
+  libint2::finalize();
+}
+
+// An environment that over-screens. One isotropic site, so R has rank 3
+// and its nonzero eigenvalues are -alpha times those of G = F^T T T^T F;
+// alpha is chosen so the lowest is exactly -2. Check must say not ok,
+// count the unstable modes, and put all of mode 0's reaction on that
+// site, which it must name.
+BOOST_AUTO_TEST_CASE(check_flags_and_locates_an_unstable_environment) {
+  libint2::initialize();
+  const QMMolecule mol = Methane();
+  const AOBasis aux = MakeBasis("aux-aug-cc-pvtz", mol);
+  const Eigen::MatrixXd T = EnvironmentScreening::Metric(aux);
+
+  const Eigen::Vector3d where = mol[1].getPos() + Eigen::Vector3d(0, 0, 3.0);
+  const Eigen::MatrixXd F =
+      EnvironmentScreening::AuxFieldAtPoints(aux, {where});
+  const Eigen::MatrixXd TF = T.transpose() * F;
+  const Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eg(TF.transpose() * TF);
+  const double alpha = 2.0 / eg.eigenvalues()(2);
+
+  ScreeningEnvironment env;
+  env.site_width = 0.0;  // point sites: the construction above is for them
+  env.explicit_segments = {SegmentAt(7, {where}, alpha)};
+  const ScreeningCheck check = EnvironmentScreening::Check(aux, mol, env, T);
+
+  BOOST_CHECK(!check.ok());
+  BOOST_CHECK_CLOSE(check.lowest, -2.0, 1e-6);
+  BOOST_CHECK_GE(check.n_unstable, 1);
+  BOOST_CHECK(check.report.find("100.0%  segment 7") != std::string::npos);
+  BOOST_CHECK(check.report.find("from QM atom 1 H") != std::string::npos);
+  BOOST_TEST_MESSAGE(check.report);
+
+  // The same site smeared at the default width no longer over-screens by
+  // a factor of two: the mode was the site sitting in the tails of the
+  // diffuse functions, which is what the smearing is for.
+  env.site_width = 0.5;
+  const ScreeningCheck smeared = EnvironmentScreening::Check(aux, mol, env, T);
+  BOOST_CHECK(smeared.lowest > check.lowest + 0.5);
+  BOOST_TEST_MESSAGE(smeared.report);
+  libint2::finalize();
+}
+
+// Smeared sites. A spherical charge acts as a point outside its own
+// extent, so far from the auxiliary functions a Gaussian site feels the
+// field a point feels; and as the width goes to zero the two coincide
+// everywhere. Both checked for s, p, d and f functions of a diffuse
+// basis, at a close and a distant site.
+BOOST_AUTO_TEST_CASE(smeared_site_field_limits) {
+  libint2::initialize();
+  const QMMolecule mol = Methane();
+  const AOBasis aux = MakeBasis("aux-aug-cc-pvtz", mol);
+  const Eigen::Vector3d H = mol[1].getPos();
+  const std::vector<Eigen::Vector3d> close = {H + Eigen::Vector3d(0, 0, 3.0)};
+  const std::vector<Eigen::Vector3d> far = {Eigen::Vector3d(0, 0, 30.0)};
+
+  auto rel = [](const Eigen::MatrixXd& a, const Eigen::MatrixXd& b) {
+    return (a - b).norm() / b.norm();
+  };
+  const Eigen::MatrixXd Fclose =
+      EnvironmentScreening::AuxFieldAtPoints(aux, close);
+  const Eigen::MatrixXd Ffar = EnvironmentScreening::AuxFieldAtPoints(aux, far);
+
+  // Far: smearing over 1.5 bohr makes no difference.
+  BOOST_CHECK_SMALL(
+      rel(EnvironmentScreening::AuxFieldAtPoints(aux, far, {1.5}), Ffar), 1e-8);
+  // Width -> 0: point sites recovered, also inside the tails, and at the
+  // rate a smeared charge must approach a point: the difference is the
+  // Gaussian's second moment (R^2/2 per direction)
+  // acting on the local density of chi_Q, so it goes as R^2.
+  const double d1 =
+      rel(EnvironmentScreening::AuxFieldAtPoints(aux, close, {1e-2}), Fclose);
+  const double d2 =
+      rel(EnvironmentScreening::AuxFieldAtPoints(aux, close, {5e-3}), Fclose);
+  BOOST_CHECK_CLOSE(d1 / d2, 4.0, 1.0);
+  BOOST_CHECK_SMALL(d2, 1e-5);
+  // Inside the tails a finite width does change F -- that is the point.
+  BOOST_CHECK(rel(EnvironmentScreening::AuxFieldAtPoints(aux, close, {1.5}),
+                  Fclose) > 1e-3);
+  // A width per point, mixed zero and non-zero, is honoured point by point.
+  const Eigen::MatrixXd mixed = EnvironmentScreening::AuxFieldAtPoints(
+      aux, {close[0], far[0]}, {0.0, 1.5});
+  BOOST_CHECK_EQUAL((mixed.leftCols<3>() - Fclose).cwiseAbs().maxCoeff(), 0.0);
+  BOOST_CHECK_SMALL(rel(mixed.rightCols<3>(), Ffar), 1e-8);
+  BOOST_CHECK_THROW(
+      EnvironmentScreening::AuxFieldAtPoints(aux, close, {1.0, 2.0}),
+      std::runtime_error);
+
+  // SiteWidths: site_width * (tr(alpha)/3)^(1/3).
+  const std::vector<double> w =
+      EnvironmentScreening::SiteWidths({SegmentAt(0, {close[0]}, 8.0)}, 0.5);
+  BOOST_REQUIRE_EQUAL(w.size(), 1);
+  BOOST_CHECK_CLOSE(w[0], 1.0, 1e-10);
+  BOOST_CHECK_THROW(
+      EnvironmentScreening::SiteWidths({SegmentAt(0, {close[0]}, 8.0)}, -1.0),
+      std::runtime_error);
   libint2::finalize();
 }
 

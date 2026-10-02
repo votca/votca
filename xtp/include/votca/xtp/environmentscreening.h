@@ -22,12 +22,14 @@
 #define VOTCA_XTP_ENVIRONMENTSCREENING_H
 
 // Standard includes
+#include <string>
 #include <vector>
 
 // Local VOTCA includes
 #include "aobasis.h"
 #include "classicalsegment.h"
 #include "eigen.h"
+#include "qmmolecule.h"
 
 /**
  * \brief Screening of a GW-BSE calculation by a classical polarizable
@@ -89,10 +91,31 @@ struct ScreeningEnvironment {
   std::vector<PolarSegment> shell_segments;
   double shell_dielectric = 4.0;
   bool include_kreac = true;
+  // Width of the polar sites as seen by the QM charge density, in units of
+  // alpha^(1/3): each site responds to the QM field averaged over a
+  // unit-charge Gaussian exp(-r^2/R^2)/(pi^(3/2) R^3), R = site_width *
+  // alpha_iso^(1/3). 0 gives point sites. See SiteWidths.
+  double site_width = 0.5;
 
   bool empty() const {
     return explicit_segments.empty() && shell_segments.empty();
   }
+};
+
+/**
+ * \brief Outcome of EnvironmentScreening::Check: whether 1 + R is positive
+ * definite, and a human-readable account of what limits it.
+ */
+struct ScreeningCheck {
+  // Lowest eigenvalue of R = T^T B T. Must be > -1.
+  double lowest = 0.0;
+  // Number of eigenvalues at or below -1.
+  Index n_unstable = 0;
+  bool ok() const { return lowest > -1.0; }
+  // Multi-line report: spectrum, the geometry of the closest contacts, and
+  // for the lowest modes where their charge sits on the QM side and which
+  // polar sites carry their reaction. Always filled.
+  std::string report;
 };
 
 class EnvironmentScreening {
@@ -120,7 +143,38 @@ class EnvironmentScreening {
    * still correct, but the reaction field would no longer mean anything.
    */
   static Eigen::MatrixXd AuxFieldAtPoints(
-      const AOBasis& auxbasis, const std::vector<Eigen::Vector3d>& points);
+      const AOBasis& auxbasis, const std::vector<Eigen::Vector3d>& points,
+      const std::vector<double>& widths = {});
+  // widths (bohr, one per point, or empty for all zero): a point with
+  // width R > 0 is a unit-charge Gaussian exp(-r^2/R^2)/(pi^(3/2) R^3)
+  // rather than a point, and F is minus the gradient of the Coulomb
+  // interaction (chi_Q | g_R) with respect to its centre -- a libint2
+  // two-centre Coulomb integral, same stencil. Outside the extent of the
+  // auxiliary functions a spherical charge acts as a point (Newton), so
+  // this changes F only where a site sits inside their tails -- which is
+  // exactly where point sites over-respond (see Check). R = 0 is the
+  // nuclear-attraction path above, unchanged.
+
+  /**
+   * \brief R per site, in bohr: site_width * alpha_iso^(1/3), with
+   * alpha_iso = tr(alpha)/3.
+   *
+   * Why smear at all: for a charge density rho and inducible points
+   * outside it, <rho|v_reac|rho> is bounded by the dielectric limit,
+   * above -<rho|v|rho>. A point dipole inside the tail of a diffuse
+   * auxiliary function is not bounded, and 1 + R can lose positive
+   * definiteness without any unphysical geometry: measured on a
+   * production QM/MM job (55 QM atoms, def2-tzvp/aux-def2-tzvp, 3900 Thole
+   * sites, closest contact 2.62 A), a pi-stacked neighbour's carbons with
+   * alpha = 18.8 bohr^3 at 3.05-3.3 A carried 86% of a mode at lambda =
+   * -1.056. Smearing each site over a Gaussian of width proportional to
+   * alpha^(1/3) -- the length scale Thole damping itself uses -- removes
+   * that: at site_width 0.5 the same job has lambda_min = -0.755, while
+   * 1/2 <rho|v_reac|rho> for the HOMO, LUMO and HOMO-LUMO densities moves
+   * by 1e-4 relative (0.8: 2e-3, 1.0: 7e-3).
+   */
+  static std::vector<double> SiteWidths(
+      const std::vector<PolarSegment>& segments, double site_width);
 
   /**
    * \brief B = -F A^-1 F^T for an explicit Thole region.
@@ -198,6 +252,37 @@ class EnvironmentScreening {
    */
   static Eigen::MatrixXd Kernel(const AOBasis& auxbasis,
                                 const ScreeningEnvironment& env);
+
+  /**
+   * \brief T for an auxiliary basis on its own: the metric
+   * TCMatrix_gwbse::Fill folds into the three-centre integrals, built the
+   * same way (Pseudo_InvSqrt_GWBSE with the same tolerance), so R from it
+   * is the R the GW-BSE run will see.
+   */
+  static Eigen::MatrixXd Metric(const AOBasis& auxbasis);
+
+  /**
+   * \brief Builds R for env and reports whether 1 + R is positive
+   * definite, and why not.
+   *
+   * Everything R depends on -- the QM atoms, the auxiliary basis on them,
+   * the polar sites and their polarizabilities -- is fixed before the
+   * QM/MM loop starts, so this is what a job runs up front rather than
+   * discovering the problem after the ground state has converged.
+   *
+   * The eigenvalues of R are those of B c = lambda V c: for the charge
+   * distribution rho = sum_Q c_Q chi_Q, lambda is its reaction energy
+   * relative to its own Coulomb energy. For inducible points outside rho
+   * that ratio is bounded by the dielectric limit, above -1. What can
+   * push it lower is a site inside the tail of rho, where the undamped
+   * point-dipole response is no longer bounded -- so the report lists,
+   * for the n_modes lowest modes, their charge, the QM atoms and auxiliary
+   * shells carrying them, and the polar sites carrying their reaction,
+   * with the distance of each to the nearest QM atom.
+   */
+  static ScreeningCheck Check(const AOBasis& auxbasis, const QMMolecule& atoms,
+                              const ScreeningEnvironment& env,
+                              const Eigen::MatrixXd& T, Index n_modes = 3);
 };
 
 }  // namespace xtp

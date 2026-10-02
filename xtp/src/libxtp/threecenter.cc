@@ -178,7 +178,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
   auxoverlap.Fill(auxbasis);
   AOCoulomb auxcoulomb;
   auxcoulomb.Fill(auxbasis);
-  inv_sqrt_ = auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap, 5e-7);
+  inv_sqrt_ = auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap, metric_tolerance);
   removedfunctions_ = auxcoulomb.Removedfunctions();
   MultiplyRightWithAuxMatrix(inv_sqrt_);
   // What Fill leaves behind is the reference frame by definition.

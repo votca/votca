@@ -22,6 +22,7 @@
 #define VOTCA_XTP_QMREGION_H
 
 // Local VOTCA includes
+#include "environmentscreening.h"
 #include "hist.h"
 #include "orbitals.h"
 #include "qmpackagefactory.h"
@@ -46,7 +47,7 @@ class QMRegion : public Region {
 
  public:
   QMRegion(Index id, Logger& log, std::string workdir)
-      : Region(id, log), workdir_(workdir) {};
+      : Region(id, log), workdir_(workdir){};
   ~QMRegion() override = default;
 
   void Initialize(const tools::Property& prop) override;
@@ -107,6 +108,11 @@ class QMRegion : public Region {
    */
   bool EnvironmentScreeningEnabled() const { return screening_; }
   void EvaluateScreenedGWBSE(std::vector<std::unique_ptr<Region> >& regions);
+  // Builds the reaction field for the job's polar regions and throws, with
+  // a diagnosis, unless 1 + R is positive definite. Needs no ground state:
+  // call it before the QM/MM loop. No-op without environment_screening.
+  void CheckScreeningEnvironment(
+      const std::vector<std::unique_ptr<Region> >& regions) const;
 
  protected:
   void AppendResult(tools::Property& prop) const override;
@@ -118,6 +124,9 @@ class QMRegion : public Region {
  private:
   void AddNucleiFields(std::vector<PolarSegment>& segments,
                        const StaticSegment& seg) const;
+  ScreeningEnvironment BuildScreeningEnvironment(
+      const std::vector<std::unique_ptr<Region> >& regions) const;
+  std::string ScreeningAuxBasisName() const;
 
   Index size_ = 0;
   Orbitals orb_;
@@ -143,6 +152,7 @@ class QMRegion : public Region {
   bool screening_include_kreac_ = true;
   std::vector<Index> screening_shell_regions_;
   double screening_shell_dielectric_ = 4.0;
+  double screening_site_width_ = 0.5;
   // DFT-in-DFT rewrite of orb_ and closed-shell check, before any GW-BSE
   void PrepareOrbitalsForGWBSE();
   // state energy of the tracked state, added to the DFT total energy

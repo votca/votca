@@ -96,6 +96,23 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     jobtop.WriteToPdb(workdir + "/" + pdb_filename);
   }
 
+  // Embedded GW-BSE: its reaction field depends only on geometry and the
+  // auxiliary basis, so a bad environment is caught before the loop.
+  if (QMRegion* qmregion = dynamic_cast<QMRegion*>(jobtop.Regions()[0].get());
+      qmregion != nullptr && qmregion->EnvironmentScreeningEnabled()) {
+    try {
+      qmregion->CheckScreeningEnvironment(jobtop.Regions());
+    } catch (std::exception& e) {
+      XTP_LOG(Log::error, pLog)
+          << TimeStamp() << " Screening environment check failed: " << e.what()
+          << std::flush;
+      jres.setStatus(Job::JobStatus::FAILED);
+      jres.setError(std::string("Screening environment check failed: ") +
+                    e.what());
+      return jres;
+    }
+  }
+
   Index no_static_regions = std::accumulate(
       jobtop.begin(), jobtop.end(), 0, [](Index count, const auto& region) {
         return count += Index(region->Converged());

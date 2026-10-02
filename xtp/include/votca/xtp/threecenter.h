@@ -69,6 +69,11 @@ class TCMatrix_dft final : public TCMatrix {
 
 class TCMatrix_gwbse final : public TCMatrix {
  public:
+  // Eigenvalue tolerance of the metric (Pseudo_InvSqrt_GWBSE) folded into
+  // the stored integrals. Shared with EnvironmentScreening::Metric, which
+  // must build the same T.
+  static constexpr double metric_tolerance = 5e-7;
+
   // returns one level as a constant reference
   const Eigen::MatrixXd& operator[](Index i) const { return matrix_[i]; }
 
