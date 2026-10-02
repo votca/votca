@@ -90,8 +90,17 @@ class ERIs {
   Index maxnprim_;
   Index maxL_;
 
+  /// Relative size below which eigenvalues of a density matrix are treated
+  /// as zero when it is factorised for the exchange build.
+  static constexpr double kDensityRankCutoff = 1e-12;
   Eigen::MatrixXd CalculateEXX_dmat(const Eigen::MatrixXd& DMAT) const;
   Eigen::MatrixXd CalculateEXX_mos(const Eigen::MatrixXd& occMos) const;
+  /// -sum_P (B_P X)(B_P X)^T + sum_P (B_P Y)(B_P Y)^T for factors = [X Y],
+  /// X being the first npos columns.
+  Eigen::MatrixXd ExchangeFromFactors(const Eigen::MatrixXd& factors,
+                                      Index npos) const;
+  /// Rows of B_P X collected per thread before one rank update.
+  static constexpr Index kExchangeBatchRows = 1024;
 
   std::vector<std::vector<libint2::ShellPair>> ComputeShellPairData(
       const std::vector<libint2::Shell>& basis,

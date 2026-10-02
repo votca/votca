@@ -55,6 +55,10 @@ class Symmetric_Matrix {
       double factor = 1.0) const;
 
   Eigen::MatrixXd FullMatrix() const;
+
+  /// Writes the full symmetric matrix into a preallocated dim x dim matrix,
+  /// for loops that unpack many matrices of one size.
+  void FillFullMatrix(Eigen::MatrixXd& full) const;
   // returns a matrix where only the upper triangle part is filled, rest is set
   // to zero
   Eigen::MatrixXd UpperMatrix() const;

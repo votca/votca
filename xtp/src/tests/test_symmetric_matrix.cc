@@ -160,4 +160,15 @@ BOOST_AUTO_TEST_CASE(TraceofProd_test) {
   BOOST_CHECK_EQUAL(check, 1);
 }
 
+BOOST_AUTO_TEST_CASE(FillFullMatrix_test) {
+  Eigen::MatrixXd r = Eigen::MatrixXd::Random(7, 7);
+  Eigen::MatrixXd ref = r + r.transpose();
+  Symmetric_Matrix sym(ref);
+  // the target's previous content must not leak through
+  Eigen::MatrixXd full = Eigen::MatrixXd::Constant(7, 7, 42.0);
+  sym.FillFullMatrix(full);
+  BOOST_CHECK(full.isApprox(ref, 1e-14));
+  BOOST_CHECK(full.isApprox(sym.FullMatrix(), 1e-14));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
