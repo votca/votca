@@ -340,7 +340,12 @@ if(RUN_XTP_INTEGRATIONTESTS)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
   add_test(NAME integration_Run_xtp_parallel_qmmm_screened COMMAND xtp_parallel -e qmmm -o qmmm_screened.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Run_xtp_parallel_qmmm_screened PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_screened_jobs)
+  # Same budget problem as unit_test_podcoupling above: on the Debug CI
+  # build the four ground-state QM/MM iterations alone (each a full SCF
+  # from the atomic guess, ~4-6 min at -O0) take ~25 min, before the
+  # screened GW-BSE run, so CTest's default 1500 sec is not enough. The
+  # iterations converge normally; nothing hangs.
+  set_tests_properties(integration_Run_xtp_parallel_qmmm_screened PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_screened_jobs TIMEOUT 3600)
   if(HAS_XML_COMPARE)
     add_test(NAME integration_Compare_xtp_parallel_qmmm_screened_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_screened_run.jobs ${RUNPATH}/qmmm_screened.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_ground:1e-6:2e-3 --tag-tol h:1e-6:2e-3 --tag-tol e:1e-6:2e-3 --tag-tol s:1e-6:2e-3 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_qmmm_screened_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_screened)
