@@ -68,7 +68,8 @@ EwaldPeriodicDipoleOperator::EwaldPeriodicDipoleOperator(
   // multiply() call. Without this, multiply(0) != 0, which silently
   // breaks the linearity ConjugateGradient requires -- confirmed the hard
   // way, by a failing test (see test_ewaldperiodicdipoleoperator.cc).
-  // Build every target's real-space neighbour list up front, serially.
+  // Build every target's real-space neighbour list up front (in
+  // parallel; the cache insertion inside is serial).
   // RawMultiply parallelizes over targets, and the cache (plus its
   // statistics counters) is written only while a list is being built --
   // so this pass is what makes that parallel loop safe. Done here rather
@@ -297,7 +298,10 @@ void EwaldPeriodicDipoleOperator::AddIntraSegmentCoupling(
   // different directions, was the actual mistake both previous versions
   // made. This version applies ComputeThole exactly as ApplyInducedField
   // itself does, rather than assuming l3=l5=1.0 as prior versions did.
-  for (std::size_t n = 0; n < ids_.size(); ++n) {
+  // Every segment writes only its own slice of result: independent.
+#pragma omp parallel for schedule(dynamic, 4)
+  for (Index nn = 0; nn < Index(ids_.size()); ++nn) {
+    const std::size_t n = std::size_t(nn);
     const PolarSegment& segment =
         registry_.Get(ids_[n], EwaldChargeState::Neutral);
     Index n_sites = segment.size();

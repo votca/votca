@@ -95,6 +95,10 @@ class ConvergenceAcc {
     // the solver still short of its own convergence tolerance at the
     // previous, hardcoded default of 50).
     Index davidson_max_iter = 50;
+    // Energy rise (Hartree) above the lowest energy reached so far at which
+    // the SCF discards its extrapolation history and restarts from the
+    // lowest-energy density. 0 disables.
+    double energy_reset = 1.0;
   };
 
   /// Spin-resolved density matrices returned for open-shell SCF updates.
@@ -124,6 +128,17 @@ class ConvergenceAcc {
           std::max(opt_.number_alpha_electrons, opt_.number_beta_electrons);
     }
     diis_.setHistLength(opt_.histlength);
+    StartNewSCF();
+  }
+
+  // Forget the lowest-energy point used by the energy-rise reset. Called
+  // at the start of every SCF: successive SCFs on one accelerator (e.g.
+  // the stages of DFT-in-DFT embedding) need not share an energy scale.
+  // The extrapolation history itself is left as it was.
+  void StartNewSCF() {
+    have_best_ = false;
+    energy_resets_ = 0;
+    iterations_since_reset_ = kResetCooldown;
   }
   /// Attach the logger used for convergence diagnostics.
   void setLogger(Logger* log) { log_ = log; }
@@ -151,6 +166,11 @@ class ConvergenceAcc {
     }
   }
   /// Precompute overlap-dependent quantities used when solving the Fock matrix.
+  // Builds X = S^-1/2 for the orthogonal basis the Fock matrix is
+  // diagonalized in. Eigenvalues of S below etol are dropped from X; the
+  // directions they span are pushed to the top of every Fock spectrum
+  // (kRemovedShift) so that they can never be occupied or appear among the
+  // low virtuals. Their MO coefficient vectors are zero.
   void setOverlap(AOOverlap& S, double etol);
 
   /// Return the DIIS commutator norm from the latest iteration.
@@ -159,6 +179,11 @@ class ConvergenceAcc {
   /// Report whether plain density mixing is currently used instead of
   /// extrapolation.
   bool getUseMixing() const { return usedmixing_; }
+
+  // Consistency check of the extrapolation history: every stored
+  // (Fock, density) pair must still produce the error matrix DIIS holds at
+  // the same position. Used by the unit tests.
+  bool HistoryIsAligned() const;
 
   /// Advance the SCF accelerator by one step and return the updated density
   /// matrix.
@@ -202,13 +227,39 @@ class ConvergenceAcc {
   const AOOverlap* S_;
 
   Eigen::MatrixXd Sminusahalf;
+  // Projector onto the directions removed from Sminusahalf, in the
+  // orthogonal coordinates of SolveFockmatrix; empty if none were removed.
+  Eigen::MatrixXd removed_projector_;
+  static constexpr double kRemovedShift = 1e3;  // Hartree
+
+  // Extrapolation history, all three aligned entry by entry: Fock matrix,
+  // the density it was built from, and that pair's DIIS error. DIIS keeps
+  // its own copy of the error matrices and is trimmed at the same index.
   std::vector<Eigen::MatrixXd> mathist_;
   std::vector<Eigen::MatrixXd> dmatHist_;
+  std::vector<double> errhist_;
+  // Every energy, in order. Not trimmed with the history: DeltaE and the
+  // energy tests compare consecutive iterations.
   std::vector<double> totE_;
 
+  // Lowest-energy point so far, for the energy-rise reset.
+  bool have_best_ = false;
+  double best_energy_ = 0.0;
+  Eigen::MatrixXd best_dmat_;
+  Eigen::MatrixXd best_H_;
+  Index energy_resets_ = 0;
+  // A reset may not fire again until the history has rebuilt, and only a
+  // few times per SCF: returning to the same point over and over must be
+  // impossible.
+  static constexpr Index kResetCooldown = 3;
+  static constexpr Index kMaxEnergyResets = 5;
+  Index iterations_since_reset_ = kResetCooldown;
+
+  // ADIIS instead of DIIS once the energy rises by more than this
+  // (Hartree) between iterations, even below DIIS_start.
+  static constexpr double kEnergyRiseForADIIS = 1e-4;
+
   Index nocclevels_;
-  Index maxerrorindex_ = 0;
-  double maxerror_ = 0.0;
   ADIIS adiis_;
   DIIS diis_;
 };

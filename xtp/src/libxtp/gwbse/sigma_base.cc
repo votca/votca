@@ -37,14 +37,51 @@ Eigen::MatrixXd Sigma_base::CalcExchangeMatrix() const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
   Index occlevel = opt_.homo - opt_.rpamin + 1;
   Index qpmin = opt_.qpmin - opt_.rpamin;
+  // Exchange is with the bare v, which is M M^T only as long as the
+  // auxiliary frame is orthogonal. Once the index is dressed for an
+  // environment (TCMatrix_gwbse::DressAuxIndex) it takes the bare
+  // interaction in the current frame as an explicit kernel.
+  const bool bare = Mmn_.AuxFrameIsOrthogonal();
+  Eigen::MatrixXd v;
+  if (!bare) {
+    v = Mmn_.ToCurrentAuxFrame(
+        Eigen::MatrixXd::Identity(Mmn_.auxsize(), Mmn_.auxsize()));
+  }
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level1 = 0; gw_level1 < qptotal_; gw_level1++) {
     const Eigen::MatrixXd& Mmn1 = Mmn_[gw_level1 + qpmin];
+    Eigen::MatrixXd X;
+    if (!bare) {
+      X = Mmn1.topRows(occlevel) * v;
+    }
     for (Index gw_level2 = gw_level1; gw_level2 < qptotal_; gw_level2++) {
       const Eigen::MatrixXd& Mmn2 = Mmn_[gw_level2 + qpmin];
       double sigma_x =
-          -(Mmn1.topRows(occlevel).cwiseProduct(Mmn2.topRows(occlevel))).sum();
+          bare ? -(Mmn1.topRows(occlevel).cwiseProduct(Mmn2.topRows(occlevel)))
+                      .sum()
+               : -(X.cwiseProduct(Mmn2.topRows(occlevel))).sum();
       result(gw_level2, gw_level1) = sigma_x;
+    }
+  }
+  result = result.selfadjointView<Eigen::Lower>();
+  return result;
+}
+
+Eigen::MatrixXd Sigma_base::CalcReactionFieldMatrix(
+    const Eigen::MatrixXd& R) const {
+  const Eigen::MatrixXd Rc = Mmn_.ToCurrentAuxFrame(R);
+  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
+  const Index occlevel = opt_.homo - opt_.rpamin + 1;
+  const Index qpmin = opt_.qpmin - opt_.rpamin;
+#pragma omp parallel for schedule(dynamic)
+  for (Index gw_level1 = 0; gw_level1 < qptotal_; gw_level1++) {
+    const Eigen::MatrixXd& Mmn1 = Mmn_[gw_level1 + qpmin];
+    // Row m of X is s_m M_nm R: the occupation sign folded in once.
+    Eigen::MatrixXd X = Mmn1 * Rc;
+    X.topRows(occlevel) *= -1.0;
+    for (Index gw_level2 = gw_level1; gw_level2 < qptotal_; gw_level2++) {
+      const Eigen::MatrixXd& Mmn2 = Mmn_[gw_level2 + qpmin];
+      result(gw_level2, gw_level1) = 0.5 * X.cwiseProduct(Mmn2).sum();
     }
   }
   result = result.selfadjointView<Eigen::Lower>();

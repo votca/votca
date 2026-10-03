@@ -19,6 +19,7 @@
 
 // Standard includes
 #include <algorithm>
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -129,49 +130,79 @@ std::vector<EwaldRealSpaceSum::Translation>
 }
 
 template <enum Estatic CE>
+void EwaldRealSpaceSum::ApplyNeighborList(const NeighborList& list,
+                                          PolarSite& target,
+                                          bool include_static) const {
+  for (const auto& entry : list) {
+    // Stored by pointer rather than by id -- see neighbor_cache_'s own
+    // declaration for why. The Has()/Get() guard the id-based version
+    // needed is gone with it: the cache is keyed on source_state, so
+    // every entry in THIS list was registered at THIS state when the
+    // list was built, and segment addresses are stable for the
+    // registry's lifetime.
+    const PolarSegment& source_segment = *std::get<0>(entry);
+    const Index translation_idx = std::get<1>(entry);
+    const Eigen::Vector3d& baseline_shift = std::get<2>(entry);
+    const Eigen::Vector3d t = baseline_shift + translations_[translation_idx].t;
+    for (const PolarSite& source_site : source_segment) {
+      // Shift passed through rather than applied to a copy of the
+      // source site -- see ApplyStaticField's own source_shift note.
+      if (include_static) {
+        interactor_.ApplyStaticField<PolarSite, CE>(source_site, target, t);
+      }
+      interactor_.ApplyInducedField<CE>(source_site, target, t);
+    }
+  }
+}
+
+void EwaldRealSpaceSum::InsertNeighborList(
+    const std::pair<const PolarSite*, EwaldChargeState>& key, NeighborList list,
+    const SearchCounts& counts) const {
+  culled_entries_ += counts.culled;
+  foreground_entries_ += counts.foreground;
+  ++cached_targets_;
+  cached_entries_ += Index(list.size());
+  neighbor_cache_.emplace(key, std::move(list));
+}
+
+template <enum Estatic CE>
 void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
                                    EwaldChargeState source_state,
                                    bool include_static) const {
   const std::pair<const PolarSite*, EwaldChargeState> cache_key(&target,
                                                                 source_state);
   auto cached = neighbor_cache_.find(cache_key);
-  if (cached != neighbor_cache_.end()) {
-    // Fast path: the real, geometry-determined neighbor set for this
-    // target was already found by an earlier call (see this class's own
-    // documentation for why reusing it across calls for the same target
-    // is safe). Just apply every cached (source, translation) pair
-    // directly -- no shell-by-shell search, no scan of
-    // registry_.AllIds() members that turned out not to matter.
-    for (const auto& entry : cached->second) {
-      // Stored by pointer rather than by id -- see neighbor_cache_'s own
-      // declaration for why. The Has()/Get() guard the id-based version
-      // needed is gone with it: the cache is keyed on source_state, so
-      // every entry in THIS list was registered at THIS state when the
-      // list was built, and segment addresses are stable for the
-      // registry's lifetime.
-      const PolarSegment& source_segment = *std::get<0>(entry);
-      const Index translation_idx = std::get<1>(entry);
-      const Eigen::Vector3d& baseline_shift = std::get<2>(entry);
-      const Eigen::Vector3d t =
-          baseline_shift + translations_[translation_idx].t;
-      for (const PolarSite& source_site : source_segment) {
-        // Shift passed through rather than applied to a copy of the
-        // source site -- see ApplyStaticField's own source_shift note.
-        if (include_static) {
-          interactor_.ApplyStaticField<PolarSite, CE>(source_site, target, t);
-        }
-        interactor_.ApplyInducedField<CE>(source_site, target, t);
-      }
-    }
-    return;
+  if (cached == neighbor_cache_.end()) {
+    // First call for this target: run the convergence search on a
+    // scratch copy, store the list, then fall through to the same path
+    // every later call takes. Applying the list to target adds exactly
+    // the contributions the search added to the copy, in the same order
+    // and starting from the same V, so the field is bit-identical to
+    // accumulating it during the search.
+    SearchCounts counts;
+    PolarSite scratch = target;
+    NeighborList list = SearchNeighbors<CE>(
+        target_segment_id, scratch, source_state, include_static, counts);
+    InsertNeighborList(cache_key, std::move(list), counts);
+    cached = neighbor_cache_.find(cache_key);
   }
+  // Fast path: the real, geometry-determined neighbor set for this
+  // target (see this class's own documentation for why reusing it across
+  // calls for the same target is safe). Just apply every cached (source,
+  // translation) pair directly -- no shell-by-shell search, no scan of
+  // registry_.AllIds() members that turned out not to matter.
+  ApplyNeighborList<CE>(cached->second, target, include_static);
+}
 
-  // Slow path: first call for this target. Runs the full convergence
-  // search, exactly as before, but additionally records every (source,
-  // translation) pair actually visited, so every subsequent call for
-  // this same target can skip straight to the fast path above.
-  std::vector<std::tuple<const PolarSegment*, Index, Eigen::Vector3d>>
-      visited_pairs;
+template <enum Estatic CE>
+EwaldRealSpaceSum::NeighborList EwaldRealSpaceSum::SearchNeighbors(
+    Index target_segment_id, PolarSite& target, EwaldChargeState source_state,
+    bool include_static, SearchCounts& counts) const {
+  // The full convergence search. Records every (source, translation)
+  // pair actually visited; the field it accumulates into target (a
+  // scratch copy, see the declaration) is only there for the
+  // shell-convergence test. Nothing in this object is written.
+  NeighborList visited_pairs;
 
   // See the cull inside the shell loop below for what this is and why.
   const double cutoff_with_margin = real_space_cutoff_ + 2.0 * segment_radius_;
@@ -287,7 +318,7 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
         const double pair_distance =
             (min_image_offset - translations_[idx].t).norm();
         if (pair_distance > cutoff_with_margin) {
-          ++culled_entries_;
+          ++counts.culled;
           continue;
         }
         const Eigen::Vector3d t = baseline_shift + translations_[idx].t;
@@ -310,7 +341,7 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
               }
             }
             if (suppressed) {
-              ++foreground_entries_;
+              ++counts.foreground;
               continue;
             }
           }
@@ -367,9 +398,7 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
     throw std::runtime_error(message.str());
   }
 
-  ++cached_targets_;
-  cached_entries_ += Index(visited_pairs.size());
-  neighbor_cache_.emplace(cache_key, std::move(visited_pairs));
+  return visited_pairs;
 }
 
 double EwaldRealSpaceSum::CalcStaticEnergyAt(
@@ -562,19 +591,91 @@ double EwaldRealSpaceSum::CalcInducedSourceEnergyAt(
 
 void EwaldRealSpaceSum::PrepareNeighborCache(
     const std::vector<std::pair<Index, PolarSite*>>& targets,
-    EwaldChargeState source_state) const {
-  // See this method's own declaration for what this is for. The search
-  // and the field accumulation share one code path in AddFieldAt, so
-  // the list is built by running it and then undoing its effect on the
-  // target, rather than by duplicating the shell-search logic here
-  // where the two copies could drift apart.
-  for (const auto& entry : targets) {
-    PolarSite& target = *entry.second;
-    const Eigen::Vector3d saved_V = target.V();
-    const Eigen::Vector3d saved_V_noE = target.V_noE();
-    AddFieldAt<Estatic::V>(entry.first, target, source_state, false);
-    target.V() = saved_V;
-    target.V_noE() = saved_V_noE;
+    EwaldChargeState source_state, bool converge_static_field) const {
+  // The list AddFieldAt<V>(..., converge_static_field) would build.
+  PrepareNeighborCacheImpl<Estatic::V>(targets, source_state,
+                                       converge_static_field);
+}
+
+template <enum Estatic CE>
+void EwaldRealSpaceSum::PrepareNeighborCacheImpl(
+    const std::vector<std::pair<Index, PolarSite*>>& targets,
+    EwaldChargeState source_state, bool include_static) const {
+  // See PrepareNeighborCache's own declaration for what this is for. The search
+  // is the one AddFieldAt runs on a miss (SearchNeighbors), so the two
+  // paths cannot drift apart.
+  //
+  // Serial selection: skip targets that already have a list, and
+  // repeated entries, so each missing list is searched exactly once.
+  std::vector<std::size_t> todo;
+  {
+    std::unordered_map<std::pair<const PolarSite*, EwaldChargeState>, bool,
+                       PairHash>
+        seen;
+    for (std::size_t i = 0; i < targets.size(); ++i) {
+      const std::pair<const PolarSite*, EwaldChargeState> key(targets[i].second,
+                                                              source_state);
+      if (neighbor_cache_.count(key) > 0 || !seen.emplace(key, true).second) {
+        continue;
+      }
+      todo.push_back(i);
+    }
+  }
+  if (todo.empty()) {
+    return;
+  }
+
+  // Parallel search. Each iteration reads this object and writes only
+  // its own slots below. An exception cannot leave an omp region, so
+  // the first one is carried out and rethrown afterwards.
+  std::vector<NeighborList> lists(todo.size());
+  std::vector<SearchCounts> counts(todo.size());
+  std::exception_ptr failure = nullptr;
+  const Index n_todo = Index(todo.size());
+#pragma omp parallel for schedule(dynamic, 16)
+  for (Index k = 0; k < n_todo; ++k) {
+    try {
+      const auto& entry = targets[todo[std::size_t(k)]];
+      PolarSite scratch = *entry.second;
+      lists[std::size_t(k)] =
+          SearchNeighbors<CE>(entry.first, scratch, source_state,
+                              include_static, counts[std::size_t(k)]);
+    } catch (...) {
+#pragma omp critical(ewald_real_prepare_failure)
+      {
+        if (!failure) {
+          failure = std::current_exception();
+        }
+      }
+    }
+  }
+  if (failure) {
+    std::rethrow_exception(failure);
+  }
+
+  // Serial insertion, in target order.
+  for (std::size_t k = 0; k < todo.size(); ++k) {
+    const std::pair<const PolarSite*, EwaldChargeState> key(
+        targets[todo[k]].second, source_state);
+    InsertNeighborList(key, std::move(lists[k]), counts[k]);
+  }
+}
+
+template <enum Estatic CE>
+void EwaldRealSpaceSum::AddFieldAtMany(
+    const std::vector<std::pair<Index, PolarSite*>>& targets,
+    EwaldChargeState source_state, bool include_static) const {
+  // Lists first: afterwards every AddFieldAt below takes the read-only
+  // fast path. The list is converged on the same field AddFieldAt's own
+  // on-demand search would have used, so results do not depend on
+  // whether a target was prepared here or found on demand.
+  PrepareNeighborCacheImpl<CE>(targets, source_state, include_static);
+  const Index n_targets = Index(targets.size());
+#pragma omp parallel for schedule(dynamic, 16)
+  for (Index i = 0; i < n_targets; ++i) {
+    const auto& entry = targets[std::size_t(i)];
+    const auto cached = neighbor_cache_.find({entry.second, source_state});
+    ApplyNeighborList<CE>(cached->second, *entry.second, include_static);
   }
 }
 
@@ -584,6 +685,12 @@ template void EwaldRealSpaceSum::AddFieldAt<Estatic::V>(Index, PolarSite&,
 template void EwaldRealSpaceSum::AddFieldAt<Estatic::noE_V>(Index, PolarSite&,
                                                             EwaldChargeState,
                                                             bool) const;
+template void EwaldRealSpaceSum::AddFieldAtMany<Estatic::V>(
+    const std::vector<std::pair<Index, PolarSite*>>&, EwaldChargeState,
+    bool) const;
+template void EwaldRealSpaceSum::AddFieldAtMany<Estatic::noE_V>(
+    const std::vector<std::pair<Index, PolarSite*>>&, EwaldChargeState,
+    bool) const;
 
 }  // namespace xtp
 }  // namespace votca

@@ -18,6 +18,8 @@
 
 // Standard includes
 #include <iostream>
+#include <sstream>
+#include <string>
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
@@ -388,6 +390,65 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free_large) {
   bool check_eigenvectors =
       evect_ref.cwiseAbs2().isApprox(evect_dav.cwiseAbs2(), 0.001);
   BOOST_CHECK_EQUAL(check_eigenvectors, 1);
+}
+
+// Harmonic Ritz values of a non-Hermitian projected problem can come in
+// complex-conjugate pairs, of which only one member is kept. Right after a
+// restart the projected space has no more columns than Ritz vectors are
+// needed, so the selection used to read past the end of the remaining ones
+// (an Eigen assertion in Debug builds, seen on macOS in test_bse). These
+// Hamiltonians (deterministic, std::rand differs between platforms) have
+// complex eigenvalues and triggered it: the solver has to come back, here
+// reporting no convergence for the complex modes.
+BOOST_AUTO_TEST_CASE(davidson_hamiltonian_complex_ritz_pairs) {
+  struct Case {
+    Index seed;
+    Index neigen;
+    double bscale;
+    std::string update;
+  };
+  const Index size = 40;
+  for (const Case &c : {Case{1, 3, 0.3, "min"}, Case{19, 3, 0.2, "safe"},
+                        Case{2, 4, 0.15, "min"}}) {
+    Eigen::MatrixXd amat = Eigen::MatrixXd::Zero(size, size);
+    Eigen::MatrixXd bmat = Eigen::MatrixXd::Zero(size, size);
+    for (Index i = 0; i < size; i++) {
+      for (Index k = 0; k < size; k++) {
+        amat(i, k) = 0.02 * (std::sin(1.0 + 0.37 * double(c.seed) +
+                                      1.3 * double(i) + 0.7 * double(k * k)) +
+                             std::sin(1.0 + 0.37 * double(c.seed) +
+                                      1.3 * double(k) + 0.7 * double(i * i)));
+        bmat(i, k) =
+            c.bscale * (std::cos(2.0 + 0.53 * double(c.seed) +
+                                 0.9 * double(i * i) + 1.1 * double(k)) +
+                        std::cos(2.0 + 0.53 * double(c.seed) +
+                                 0.9 * double(k * k) + 1.1 * double(i)));
+      }
+      amat(i, i) += 0.1 + 0.1 * double(i);
+    }
+    HermitianBlockOperator Rop;
+    Rop.set_size(size);
+    Rop.attach_matrix(amat);
+    HermitianBlockOperator Cop;
+    Cop.set_size(size);
+    Cop.attach_matrix(bmat);
+    HamiltonianOperator<HermitianBlockOperator, HermitianBlockOperator> Hop(
+        Rop, Cop);
+
+    Logger log;
+    log.setReportLevel(Log::warning);
+    DavidsonSolver DS(log);
+    DS.set_tolerance("normal");
+    DS.set_size_update(c.update);
+    DS.set_matrix_type("HAM");
+    DS.solve(Hop, c.neigen);
+
+    std::stringstream ss;
+    ss << log;
+    BOOST_CHECK(ss.str().find("complex pairs") != std::string::npos);
+    BOOST_CHECK_EQUAL(DS.eigenvalues().size(), c.neigen);
+    BOOST_CHECK(DS.eigenvalues().allFinite());
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

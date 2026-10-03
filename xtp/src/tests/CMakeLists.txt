@@ -68,6 +68,7 @@ list(APPEND test_cases test_ewaldreciprocalspacesum)
 list(APPEND test_cases test_ewaldregion)
 list(APPEND test_cases test_ewaldsolvers)
 list(APPEND test_cases test_ewaldshapecorrection)
+list(APPEND test_cases test_environmentscreening)
 list(APPEND test_cases test_extended_hueckel)
 list(APPEND test_cases test_fragmentsaturator)
 list(APPEND test_cases test_gaussian_quadratures)
@@ -304,18 +305,52 @@ if(RUN_XTP_INTEGRATIONTESTS)
   file(MAKE_DIRECTORY ${RUNPATH})
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_einternal.hdf5 ${RUNPATH}/state.hdf5)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/qmmm_mm.jobs ${RUNPATH}/qmmm_mm.jobs)
+  # -j run marks the jobs COMPLETE in place: restore the job file before
+  # every run, not once at configure time, so the test can be rerun.
+  add_test(NAME integration_Setup_xtp_parallel_qmmm_run_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/qmmm_mm.jobs ${RUNPATH}/qmmm_mm.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_qmmm_run_jobs PROPERTIES FIXTURES_SETUP qmmm_run_jobs)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/qmmm_mm.xml ${RUNPATH}/qmmm_mm.xml)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
   add_test(NAME integration_Run_xtp_parallel_qmmm_run COMMAND xtp_parallel -e qmmm -o qmmm_mm.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Run_xtp_parallel_qmmm_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  set_tests_properties(integration_Run_xtp_parallel_qmmm_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_run_jobs)
   if(HAS_XML_COMPARE)
     add_test(NAME integration_Compare_xtp_parallel_qmmm_run_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_mm_run.jobs ${RUNPATH}/qmmm_mm.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-12 --rtol 1e-8 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_qmmm_run_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_run)
   else()
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_run (votca_compare_xml not found)")
+  endif()
+
+  # xtp_parallel -e qmmm, embedded GW-BSE: ground-state QM/MM loop, then one
+  # GW-BSE run screened by an explicit Thole region and an alpha/epsilon
+  # shell (environment_screening). The tolerance on E_total/E_tot covers
+  # the BSE eigenvalue scatter across platforms (as in the dftgwbse tests)
+  # and is still 20x below the environment's K_reac contribution to S1.
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_qmmm_screened)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_einternal.hdf5 ${RUNPATH}/state.hdf5)
+  # -j run marks the jobs COMPLETE in place: restore the job file before
+  # every run, not once at configure time, so the test can be rerun.
+  add_test(NAME integration_Setup_xtp_parallel_qmmm_screened_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/qmmm_screened.jobs ${RUNPATH}/qmmm_screened.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_qmmm_screened_jobs PROPERTIES FIXTURES_SETUP qmmm_screened_jobs)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/qmmm_screened.xml ${RUNPATH}/qmmm_screened.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
+  add_test(NAME integration_Run_xtp_parallel_qmmm_screened COMMAND xtp_parallel -e qmmm -o qmmm_screened.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
+  # Same budget problem as unit_test_podcoupling above: on the Debug CI
+  # build the four ground-state QM/MM iterations alone (each a full SCF
+  # from the atomic guess, ~4-6 min at -O0) take ~25 min, before the
+  # screened GW-BSE run, so CTest's default 1500 sec is not enough. The
+  # iterations converge normally; nothing hangs.
+  set_tests_properties(integration_Run_xtp_parallel_qmmm_screened PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_screened_jobs TIMEOUT 3600)
+  if(HAS_XML_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_qmmm_screened_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_screened_run.jobs ${RUNPATH}/qmmm_screened.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_ground:1e-6:2e-3 --tag-tol h:1e-6:2e-3 --tag-tol e:1e-6:2e-3 --tag-tol s:1e-6:2e-3 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_qmmm_screened_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_screened)
+  else()
+    message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_screened (votca_compare_xml not found)")
   endif()
 
   # xtp_parallel -e qmmm (MM only) -j read
@@ -357,13 +392,16 @@ if(RUN_XTP_INTEGRATIONTESTS)
   file(MAKE_DIRECTORY ${RUNPATH})
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_qmmm.hdf5 ${RUNPATH}/state.hdf5)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/eqm_run.in ${RUNPATH}/eqm.jobs)
+  # -j run marks the jobs COMPLETE in place: restore the job file before
+  # every run, not once at configure time, so the test can be rerun.
+  add_test(NAME integration_Setup_xtp_parallel_eqm_run_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/eqm_run.in ${RUNPATH}/eqm.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_eqm_run_jobs PROPERTIES FIXTURES_SETUP eqm_run_jobs)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/eqm.xml ${RUNPATH}/eqm.xml)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
   add_test(NAME integration_Run_xtp_parallel_eqm_run COMMAND xtp_parallel -e eqm -o eqm.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Run_xtp_parallel_eqm_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  set_tests_properties(integration_Run_xtp_parallel_eqm_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED eqm_run_jobs)
   if(HAS_XML_COMPARE)
     add_test(NAME integration_Compare_xtp_parallel_eqm_run_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/eqm_run.jobs ${RUNPATH}/eqm.jobs   --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --rtol 1e-8 --atol 1e-12 --tag-tol qp_energy:1e-06:1.5e-04 --tag-tol gw_energy:1e-06:1e-03 --tag-tol dft_energy:2e-7:5e-6 --tag-tol omega:2e-7:5e-6 --signflip-tag Trdipole WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_eqm_run_output PROPERTIES DEPENDS integration_Run_xtp_parallel_eqm_run)
@@ -403,13 +441,16 @@ if(RUN_XTP_INTEGRATIONTESTS)
   file(MAKE_DIRECTORY ${RUNPATH})
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_qmmm.hdf5 ${RUNPATH}/state.hdf5)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/iqm_run.in ${RUNPATH}/iqm.jobs)
+  # -j run marks the jobs COMPLETE in place: restore the job file before
+  # every run, not once at configure time, so the test can be rerun.
+  add_test(NAME integration_Setup_xtp_parallel_iqm_run_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/iqm_run.in ${RUNPATH}/iqm.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_iqm_run_jobs PROPERTIES FIXTURES_SETUP iqm_run_jobs)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/iqm.xml ${RUNPATH}/iqm.xml)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${REFPATH}/OR_FILES ${RUNPATH}/OR_FILES)
   add_test(NAME integration_Run_xtp_parallel_iqm_run COMMAND xtp_parallel -e iqm -o iqm.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Run_xtp_parallel_iqm_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  set_tests_properties(integration_Run_xtp_parallel_iqm_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED iqm_run_jobs)
   if(HAS_XML_COMPARE)
     add_test(NAME integration_Compare_xtp_parallel_iqm_run_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/iqm_run.jobs ${RUNPATH}/iqm.jobs  --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --rtol 1e-5 --atol 1e-6 --signflip-tag Trdipole --tag-tol coupling:1e-5:1e-3 --signflip-attr j --signflip-attr j_diag --signflip-attr j_pert WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_iqm_run_output PROPERTIES DEPENDS integration_Run_xtp_parallel_iqm_run)

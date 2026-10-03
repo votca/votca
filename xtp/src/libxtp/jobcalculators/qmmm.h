@@ -47,6 +47,8 @@ class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
 
  private:
   bool hasQMRegion() const;
+  // True if the qmregion definition carries environment_screening.
+  bool hasEnvironmentScreening() const;
   Job createJob(const Segment& seg, const QMState& state, Index jobid) const;
   std::string getFirstRegionName() const;
 

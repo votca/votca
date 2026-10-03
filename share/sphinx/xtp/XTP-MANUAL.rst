@@ -18,6 +18,7 @@ software and manual versions match.
    transfer_theory
    transport_theory
    ewald_embedding
+   embedded_gwbse
    pyxtp
    workflows_and_calculators
    reference

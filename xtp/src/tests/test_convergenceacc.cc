@@ -18,16 +18,21 @@
 #define BOOST_TEST_MODULE convergenceacc_test
 
 // Standard includes
+#include <cmath>
 #include <fstream>
+#include <limits>
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
+#include "votca/xtp/basisset.h"
 #include "votca/xtp/convergenceacc.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmmolecule.h"
 #include "xtp_libint2.h"
 using namespace votca::xtp;
 using namespace votca;
@@ -225,6 +230,230 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
       result.eigenvalues().isApprox(orb.MOs().eigenvalues(), 0.00001);
   BOOST_CHECK_EQUAL(check_level, 1);
 
+  libint2::finalize();
+}
+
+namespace {
+// A small closed-shell model SCF on methane/3-21G with an on-site
+// interaction: F(D) = h + lambda diag(D), E(D) = tr(D h) + lambda/2
+// sum_mu D_mumu^2. Cheap, deterministic, and -- unlike a term such as
+// S D S, which commutes with every idempotent density -- genuinely
+// self-consistent, so the extrapolation matters.
+struct ModelSCF {
+  AOOverlap overlap;
+  Eigen::MatrixXd h;
+  double lambda = 0.6;
+  Index nocc = 5;
+
+  ModelSCF() {
+    QMMolecule mol("methane", 0);
+    mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                     "/threecenter_gwbse/molecule.xyz");
+    BasisSet bs;
+    bs.Load(std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/3-21G.xml");
+    AOBasis basis;
+    basis.Fill(bs, mol);
+    overlap.Fill(basis);
+    AOKinetic kinetic;
+    kinetic.Fill(basis);
+    AOMultipole esp;
+    esp.FillPotential(basis, mol);
+    h = kinetic.Matrix() + esp.Matrix();
+  }
+  Eigen::MatrixXd Fock(const Eigen::MatrixXd& D) const {
+    Eigen::MatrixXd F = h;
+    F.diagonal() += lambda * D.diagonal();
+    return F;
+  }
+  double Energy(const Eigen::MatrixXd& D) const {
+    return D.cwiseProduct(h).sum() + 0.5 * lambda * D.diagonal().squaredNorm();
+  }
+  ConvergenceAcc::options Options(Index histlength, bool maxout) const {
+    ConvergenceAcc::options opt;
+    opt.mode = ConvergenceAcc::KSmode::closed;
+    opt.usediis = true;
+    opt.histlength = histlength;
+    opt.maxout = maxout;
+    opt.adiis_start = 0.8;
+    opt.diis_start = 0.002;
+    opt.levelshift = 0.0;
+    opt.levelshiftend = 0.2;
+    opt.mixingend = 0.8;
+    opt.mixingparameter = 0.7;
+    opt.mixingmax = 0.98;
+    opt.Econverged = 1e-10;
+    opt.error_converged = 1e-9;
+    opt.numberofelectrons = 2 * nocc;
+    return opt;
+  }
+  // Runs to convergence; returns the converged density (empty if not).
+  Eigen::MatrixXd Run(ConvergenceAcc& acc, Index max_iter, Index& iters) {
+    tools::EigenSystem MOs = acc.SolveFockmatrix(h);
+    Eigen::MatrixXd D = acc.DensityMatrix(MOs);
+    for (iters = 0; iters < max_iter; ++iters) {
+      Eigen::MatrixXd F = Fock(D);
+      D = acc.Iterate(D, F, MOs, Energy(D));
+      if (acc.isConverged()) {
+        return D;
+      }
+    }
+    return Eigen::MatrixXd();
+  }
+};
+}  // namespace
+
+// DIIS_maxout trims the history at the entry with the largest error. The
+// Fock, density and error histories (and DIIS's own) must lose the SAME
+// entry, or extrapolation coefficients get paired with the wrong Fock
+// matrices. The trimming index must therefore be decided once, before
+// anything is erased. Checked directly after every iteration, on an SCF
+// that is kicked periodically so that error spikes arrive while the
+// history is full -- the situation in which a stale index used to make
+// the Fock history and DIIS's error history drop different entries.
+BOOST_AUTO_TEST_CASE(maxout_history_stays_aligned) {
+  libint2::initialize();
+  ModelSCF scf;
+  Logger log;
+
+  for (bool maxout : {true, false}) {
+    for (Index histlength : {3, 5}) {
+      ConvergenceAcc acc;
+      acc.setLogger(&log);
+      acc.Configure(scf.Options(histlength, maxout));
+      acc.setOverlap(scf.overlap, 1e-8);
+      tools::EigenSystem MOs = acc.SolveFockmatrix(scf.h);
+      Eigen::MatrixXd D = acc.DensityMatrix(MOs);
+      for (Index i = 0; i < 40; ++i) {
+        if (i % 5 == 4) {
+          // Kick: a symmetric perturbation of the density, growing from
+          // kick to kick so that each spike exceeds every earlier error,
+          // the first iteration's included -- as in an SCF that is
+          // diverging (errors 0.68, then 0.92, 1.33 in a production run).
+          const double amplitude = 0.5 * double(i / 5 + 1);
+          Eigen::MatrixXd kick = Eigen::MatrixXd::Zero(D.rows(), D.cols());
+          for (Index a = 0; a < D.rows(); ++a) {
+            for (Index b = 0; b <= a; ++b) {
+              kick(a, b) = kick(b, a) =
+                  amplitude * std::sin(double(a + 3 * b + i));
+            }
+          }
+          D += kick;
+        }
+        Eigen::MatrixXd F = scf.Fock(D);
+        D = acc.Iterate(D, F, MOs, scf.Energy(D));
+        BOOST_REQUIRE_MESSAGE(acc.HistoryIsAligned(),
+                              "history misaligned at iteration "
+                                  << i << " (maxout " << maxout << ", history "
+                                  << histlength << ")");
+      }
+    }
+  }
+
+  // And a short maxout history still reaches the fixed point of a long
+  // default one.
+  ConvergenceAcc ref;
+  ref.setLogger(&log);
+  ref.Configure(scf.Options(20, false));
+  ref.setOverlap(scf.overlap, 1e-8);
+  Index iters_ref = 0;
+  const Eigen::MatrixXd D_ref = scf.Run(ref, 200, iters_ref);
+  BOOST_REQUIRE(D_ref.size() > 0);
+  ConvergenceAcc acc;
+  acc.setLogger(&log);
+  acc.Configure(scf.Options(3, true));
+  acc.setOverlap(scf.overlap, 1e-8);
+  Index iters = 0;
+  const Eigen::MatrixXd D = scf.Run(acc, 200, iters);
+  BOOST_REQUIRE(D.size() > 0);
+  BOOST_CHECK_SMALL((D - D_ref).cwiseAbs().maxCoeff(), 1e-6);
+  libint2::finalize();
+}
+
+// An energy far above the lowest so far discards the history and restarts
+// from the lowest-energy point: the returned density is the damped mix of
+// that density and the one its Fock matrix gives.
+BOOST_AUTO_TEST_CASE(energy_rise_restarts_from_best_point) {
+  libint2::initialize();
+  ModelSCF scf;
+  Logger log;
+  ConvergenceAcc acc;
+  acc.setLogger(&log);
+  ConvergenceAcc::options opt = scf.Options(10, false);
+  opt.energy_reset = 1.0;
+  acc.Configure(opt);
+  acc.setOverlap(scf.overlap, 1e-8);
+
+  tools::EigenSystem MOs = acc.SolveFockmatrix(scf.h);
+  Eigen::MatrixXd D = acc.DensityMatrix(MOs);
+  Eigen::MatrixXd best_D;
+  Eigen::MatrixXd best_F;
+  double best_E = std::numeric_limits<double>::max();
+  for (Index i = 0; i < 4; ++i) {
+    Eigen::MatrixXd F = scf.Fock(D);
+    const double E = scf.Energy(D);
+    if (E < best_E) {
+      best_E = E;
+      best_D = D;
+      best_F = F;
+    }
+    D = acc.Iterate(D, F, MOs, E);
+  }
+  // A spike: the energy reported for the current density is 50 Ha too high.
+  Eigen::MatrixXd F = scf.Fock(D);
+  const Eigen::MatrixXd D_out = acc.Iterate(D, F, MOs, scf.Energy(D) + 50.0);
+  const Eigen::MatrixXd expected =
+      opt.mixingparameter * best_D +
+      (1.0 - opt.mixingparameter) *
+          acc.DensityMatrix(acc.SolveFockmatrix(best_F));
+  BOOST_CHECK_SMALL((D_out - expected).cwiseAbs().maxCoeff(), 1e-12);
+  BOOST_CHECK(acc.getUseMixing());
+
+  // And the SCF still converges afterwards.
+  D = D_out;
+  bool converged = false;
+  for (Index i = 0; i < 200 && !converged; ++i) {
+    Eigen::MatrixXd Fi = scf.Fock(D);
+    D = acc.Iterate(D, Fi, MOs, scf.Energy(D));
+    converged = acc.isConverged();
+  }
+  BOOST_CHECK(converged);
+  libint2::finalize();
+}
+
+// Removed overlap directions must not land among the occupied or low
+// virtual orbitals. The spectrum below them equals canonical
+// orthogonalization on the kept directions; the removed ones sit at the
+// top, with zero coefficient vectors.
+BOOST_AUTO_TEST_CASE(removed_overlap_directions_go_to_the_top) {
+  libint2::initialize();
+  ModelSCF scf;
+  Logger log;
+  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(scf.overlap.Matrix());
+  const Index n = es.eigenvalues().size();
+  const Index removed = 2;
+  const double etol =
+      0.5 * (es.eigenvalues()(removed - 1) + es.eigenvalues()(removed));
+
+  ConvergenceAcc acc;
+  acc.setLogger(&log);
+  acc.Configure(scf.Options(10, false));
+  acc.setOverlap(scf.overlap, etol);
+  const tools::EigenSystem mos = acc.SolveFockmatrix(scf.h);
+
+  const Eigen::MatrixXd U = es.eigenvectors().rightCols(n - removed);
+  const Eigen::VectorXd s = es.eigenvalues().tail(n - removed);
+  const Eigen::MatrixXd X = U * s.cwiseSqrt().cwiseInverse().asDiagonal();
+  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> canon(
+      X.transpose() * scf.h * X, Eigen::EigenvaluesOnly);
+
+  BOOST_CHECK_SMALL((mos.eigenvalues().head(n - removed) - canon.eigenvalues())
+                        .cwiseAbs()
+                        .maxCoeff(),
+                    1e-10);
+  for (Index k = n - removed; k < n; ++k) {
+    BOOST_CHECK(mos.eigenvalues()(k) > 100.0);
+    BOOST_CHECK_SMALL(mos.eigenvectors().col(k).norm(), 1e-10);
+  }
   libint2::finalize();
 }
 
