@@ -751,8 +751,11 @@ BOOST_AUTO_TEST_CASE(check_flags_and_locates_an_unstable_environment) {
   const Eigen::MatrixXd F =
       EnvironmentScreening::AuxFieldAtPoints(aux, {where});
   const Eigen::MatrixXd TF = T.transpose() * F;
-  const Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eg(TF.transpose() * TF);
-  const double alpha = 2.0 / eg.eigenvalues()(2);
+  // Dynamic size on purpose: GCC's -Wmaybe-uninitialized misfires on the
+  // fixed-size 3x3 solver's eigenvalue storage.
+  const Eigen::MatrixXd G = TF.transpose() * TF;
+  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eg(G);
+  const double alpha = 2.0 / eg.eigenvalues().maxCoeff();
 
   ScreeningEnvironment env;
   env.site_width = 0.0;  // point sites: the construction above is for them

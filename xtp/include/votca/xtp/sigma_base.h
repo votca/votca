@@ -32,7 +32,7 @@ class RPA;
 
 class Sigma_base {
  public:
-  Sigma_base(TCMatrix_gwbse& Mmn, const RPA& rpa) : Mmn_(Mmn), rpa_(rpa){};
+  Sigma_base(TCMatrix_gwbse& Mmn, const RPA& rpa) : Mmn_(Mmn), rpa_(rpa) {};
 
   virtual ~Sigma_base() = default;
 

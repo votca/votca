@@ -452,7 +452,9 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     }
 
 #pragma omp critical
-    { total_stats.Add(local_stats); }
+    {
+      total_stats.Add(local_stats);
+    }
   }
 
   if (!converged.all()) {
