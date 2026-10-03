@@ -60,8 +60,11 @@ class TCMatrix_dft final : public TCMatrix {
 
   const Symmetric_Matrix& operator[](Index i) const { return matrix_[i]; }
 
+  double MetricSeconds() const { return metric_seconds_; }
+
  private:
   std::vector<Symmetric_Matrix> matrix_;
+  double metric_seconds_ = 0.0;
 
   void FillBlock(std::vector<Eigen::MatrixXd>& block, Index shellindex,
                  const AOBasis& dftbasis, const AOBasis& auxbasis);

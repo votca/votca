@@ -18,6 +18,8 @@
  */
 
 // Standard includes
+#include <chrono>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 
@@ -342,9 +344,18 @@ Eigen::VectorXd EwaldRegion::PotentialAt(
   // not a site of its own wants.
   const Index probe_segment_id = built_foreground_.front().first;
 
+  using Clock = std::chrono::steady_clock;
+  auto seconds_since = [](Clock::time_point t) {
+    return std::chrono::duration<double>(Clock::now() - t).count();
+  };
+  auto t_start = Clock::now();
   Eigen::VectorXd phi = real_sum_->PotentialAtMany(probe_segment_id, points,
                                                    EwaldChargeState::Neutral);
+  const double t_real = seconds_since(t_start);
+  auto t_recip_start = Clock::now();
   phi += recip_sum_->PotentialAtMany(points, EwaldChargeState::Neutral);
+  const double t_recip = seconds_since(t_recip_start);
+  auto t_corr_start = Clock::now();
 
   // Shape and the erf removal share a unit probe per point. Neither
   // walks a neighbour list, so both are cheap enough to evaluate through
@@ -382,6 +393,12 @@ Eigen::VectorXd EwaldRegion::PotentialAt(
     }
     phi[p] += extra;
   }
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Ewald potential at " << n_points
+      << " points: real space " << std::setprecision(4) << t_real
+      << " s, reciprocal " << t_recip << " s, shape + erf correction "
+      << seconds_since(t_corr_start) << " s (" << foreground_copies_.size()
+      << " foreground copies)" << std::flush;
   return phi;
 }
 

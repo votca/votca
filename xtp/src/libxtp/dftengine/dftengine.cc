@@ -858,13 +858,22 @@ std::array<Eigen::MatrixXd, 2> DFTEngine::CalcERIs_EXX(
     const Eigen::MatrixXd& MOCoeff, const Eigen::MatrixXd& Dmat,
     double error) const {
   if (!auxbasis_name_.empty()) {
-    if (conv_accelerator_.getUseMixing() || MOCoeff.rows() == 0) {
-      return ERIs_.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dmat);
-    } else {
-      Eigen::MatrixXd occblock = MOCoeff.leftCols(num_docc_ + num_socc_alpha_);
-      return ERIs_.CalculateERIs_EXX_3c(occblock, Dmat);
+    std::array<Eigen::MatrixXd, 2> result;
+    {
+      auto t = timings_.Measure("J (RI)");
+      result[0] = ERIs_.CalculateERIs_3c(Dmat);
     }
+    if (conv_accelerator_.getUseMixing() || MOCoeff.rows() == 0) {
+      auto t = timings_.Measure("K (RI, from density matrix)");
+      result[1] = ERIs_.CalculateEXX_3c(Eigen::MatrixXd::Zero(0, 0), Dmat);
+    } else {
+      auto t = timings_.Measure("K (RI, from occupied MOs)");
+      Eigen::MatrixXd occblock = MOCoeff.leftCols(num_docc_ + num_socc_alpha_);
+      result[1] = ERIs_.CalculateEXX_3c(occblock, Dmat);
+    }
+    return result;
   } else {
+    auto t = timings_.Measure("J+K (4c)");
     return ERIs_.CalculateERIs_EXX_4c(Dmat, error);
   }
 }
@@ -874,9 +883,42 @@ std::array<Eigen::MatrixXd, 2> DFTEngine::CalcERIs_EXX(
 Eigen::MatrixXd DFTEngine::CalcERIs(const Eigen::MatrixXd& Dmat,
                                     double error) const {
   if (!auxbasis_name_.empty()) {
+    auto t = timings_.Measure("J (RI)");
     return ERIs_.CalculateERIs_3c(Dmat);
   } else {
+    auto t = timings_.Measure("J (4c)");
     return ERIs_.CalculateERIs_4c(Dmat, error);
+  }
+}
+
+void DFTEngine::ReportDimensionsAndMemory() const {
+  const double gb = 1024.0 * 1024.0 * 1024.0;
+  const double n = double(dftbasis_.AOBasisSize());
+  const double threads = double(OPENMP::getMaxThreads());
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " DFT dimensions: " << dftbasis_.AOBasisSize()
+      << " basis functions, " << OPENMP::getMaxThreads() << " threads"
+      << std::flush;
+  if (!auxbasis_name_.empty()) {
+    const double naux = double(ERIs_.AuxSize());
+    // one packed symmetric N x N matrix per aux function
+    const double tensor = naux * n * (n + 1) / 2 * sizeof(double) / gb;
+    // per thread: the OpenMP reduction copy of J or K, and for K the
+    // unpacked 3c slice plus the product temporaries
+    const double scratch = threads * 4 * n * n * sizeof(double) / gb;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " RI: " << ERIs_.AuxSize() << " aux functions ("
+        << ERIs_.Removedfunctions()
+        << " removed from the metric); stored 3c tensor "
+        << std::setprecision(3) << tensor << " GB; J/K scratch up to about "
+        << scratch << " GB" << std::flush;
+  }
+  double rss = DFTTimings::ResidentMemoryGB(false);
+  if (rss >= 0) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Resident memory after setup: " << std::setprecision(3) << rss
+        << " GB" << std::flush;
   }
 }
 
@@ -894,8 +936,14 @@ tools::EigenSystem DFTEngine::IndependentElectronGuess(
 tools::EigenSystem DFTEngine::ModelPotentialGuess(
     const Mat_p_Energy& H0, const QMMolecule& mol,
     const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
-  Eigen::MatrixXd Dmat = AtomicGuess(mol);
-  Mat_p_Energy e_vxc = vxcpotential.IntegrateVXC(Dmat);
+  Eigen::MatrixXd Dmat = [&]() {
+    auto t = timings_.Measure("guess: atomic densities");
+    return AtomicGuess(mol);
+  }();
+  Mat_p_Energy e_vxc = [&]() {
+    auto t = timings_.Measure("Vxc");
+    return vxcpotential.IntegrateVXC(Dmat);
+  }();
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Filled DFT Vxc matrix " << std::flush;
 
@@ -913,6 +961,19 @@ tools::EigenSystem DFTEngine::ModelPotentialGuess(
 }
 
 bool DFTEngine::Evaluate(Orbitals& orb) {
+  timings_.Reset();
+  bool success = EvaluateAndTime(orb);
+  timings_.Report(*pLog_, Log::error);
+  double peak = DFTTimings::ResidentMemoryGB(true);
+  if (peak >= 0) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Peak resident memory of this process so far: "
+        << std::setprecision(3) << peak << " GB" << std::flush;
+  }
+  return success;
+}
+
+bool DFTEngine::EvaluateAndTime(Orbitals& orb) {
   if (cdft_enabled_) {
     // Deliberately dispatched here, BEFORE any of the normal
     // Prepare/SetupH0/SetupVxc/ConfigOrbfile setup below -- RunCDFT
@@ -1030,8 +1091,12 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
   }
 
   Prepare(orb);
+  ReportDimensionsAndMemory();
   Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
-  Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
+  Vxc_Potential<Vxc_Grid> vxcpotential = [&]() {
+    auto t = timings_.Measure("setup: XC grid");
+    return SetupVxc(orb.QMAtoms());
+  }();
   ConfigOrbfile(orb);
 
   if (force_uks_path_ || num_alpha_electrons_ != num_beta_electrons_) {
@@ -1279,7 +1344,10 @@ bool DFTEngine::EvaluateClosedShell(
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Iteration " << this_iter + 1
                                 << " of " << max_iter_ << std::flush;
 
-    Mat_p_Energy e_vxc = vxcpotential.IntegrateVXC(Dmat);
+    Mat_p_Energy e_vxc = [&]() {
+      auto t = timings_.Measure("Vxc");
+      return vxcpotential.IntegrateVXC(Dmat);
+    }();
     XTP_LOG(Log::info, *pLog_)
         << TimeStamp() << " Filled DFT Vxc matrix " << std::flush;
 
@@ -1334,7 +1402,10 @@ bool DFTEngine::EvaluateClosedShell(
         << TimeStamp() << " Total Energy " << std::setprecision(12) << totenergy
         << std::flush;
 
-    Dmat = conv_accelerator_.Iterate(Dmat, H, MOs, totenergy);
+    {
+      auto t = timings_.Measure("DIIS/ADIIS + diagonalisation");
+      Dmat = conv_accelerator_.Iterate(Dmat, H, MOs, totenergy);
+    }
     incremental_fock.UpdateDmats(Dmat, conv_accelerator_.getDIIsError(),
                                  this_iter);
 
@@ -1385,6 +1456,7 @@ bool DFTEngine::EvaluateClosedShell(
           std::abs(num_alpha_electrons_ - num_beta_electrons_) + 1);
 
       if (compute_forces_) {
+        auto t = timings_.Measure("forces");
         ComputeAndStoreForces(orb, Dmat, vxcpotential);
       }
 
@@ -1549,7 +1621,10 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
       E_coul = 0.5 * D_total.cwiseProduct(J).sum();
     }
 
-    auto vxc = vxcpotential.IntegrateVXCSpin(Dspin.alpha, Dspin.beta);
+    auto vxc = [&]() {
+      auto t = timings_.Measure("Vxc");
+      return vxcpotential.IntegrateVXCSpin(Dspin.alpha, Dspin.beta);
+    }();
     H_alpha += vxc.vxc_alpha;
     H_beta += vxc.vxc_beta;
     E_xc = vxc.energy;
@@ -1632,13 +1707,19 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
             H_new.alpha += J_new;
             H_new.beta += J_new;
           }
-          auto vxc_new = vxcpotential.IntegrateVXCSpin(alpha_new, beta_new);
+          auto vxc_new = [&]() {
+            auto t = timings_.Measure("Vxc");
+            return vxcpotential.IntegrateVXCSpin(alpha_new, beta_new);
+          }();
           H_new.alpha += vxc_new.vxc_alpha;
           H_new.beta += vxc_new.vxc_beta;
           return H_new;
         });
 
-    Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
+    {
+      auto t = timings_.Measure("DIIS/ADIIS + diagonalisation");
+      Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
+    }
     if (force_uks_path_ && num_alpha_electrons_ == num_beta_electrons_) {
       MOs_beta = MOs_alpha;
       Dspin.beta = Dspin.alpha;
@@ -1702,6 +1783,7 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
       PrintMOsUKS(MOs_alpha.eigenvalues(), MOs_beta.eigenvalues(), Log::error);
 
       if (compute_forces_) {
+        auto t = timings_.Measure("forces");
         ComputeAndStoreForcesUKS(orb, Dspin, MOs_alpha, MOs_beta, vxcpotential);
       }
 
@@ -1729,6 +1811,8 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
 // while the scalar energy collects all nucleus-nucleus and nucleus-external
 // interaction terms that do not depend on the electronic density.
 Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
+  auto h0_timer =
+      std::make_unique<DFTTimings::Scope>(timings_, "setup: one-electron H0");
 
   AOKinetic dftAOkinetic;
 
@@ -1756,6 +1840,7 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
     XTP_LOG(Log::info, *pLog_)
         << TimeStamp() << " Filled DFT ECP matrix" << std::flush;
   }
+  h0_timer.reset();
 
   if (externalsites_ != nullptr) {
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " " << externalsites_->size()
@@ -1804,6 +1889,7 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
           << std::flush;
     }
 
+    auto t = timings_.Measure("setup: external multipoles");
     Mat_p_Energy ext_multipoles =
         IntegrateExternalMultipoles(mol, *externalsites_);
     XTP_LOG(Log::error, *pLog_)
@@ -1835,6 +1921,7 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
   if (has_ewaldgrid_) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Integrating external Ewald Potential" << std::flush;
+    auto t = timings_.Measure("setup: Ewald potential on grid");
     Vxc_Grid ewaldgrid;
     ewaldgrid.GridSetup(grid_name_, mol, dftbasis_);
 
@@ -1894,6 +1981,8 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
 // problem and the RI/4c electron-repulsion backend that later yields J[P] and
 // K[P].
 void DFTEngine::SetupInvariantMatrices() {
+  auto overlap_timer =
+      std::make_unique<DFTTimings::Scope>(timings_, "setup: overlap, S^-1/2");
   dftAOoverlap_.Fill(dftbasis_);
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Filled DFT Overlap matrix." << std::flush;
@@ -1908,10 +1997,17 @@ void DFTEngine::SetupInvariantMatrices() {
   conv_accelerator_.setLogger(pLog_);
   conv_accelerator_.setOverlap(dftAOoverlap_, overlap_tolerance_);
   conv_accelerator_.PrintConfigOptions();
+  overlap_timer.reset();
 
   if (!auxbasis_name_.empty()) {
     // prepare invariant part of electron repulsion integrals
+    auto ri_start = DFTTimings::Clock::now();
     ERIs_.Initialize(dftbasis_, auxbasis_);
+    double ri_seconds =
+        std::chrono::duration<double>(DFTTimings::Clock::now() - ri_start)
+            .count();
+    timings_.Add("setup: RI metric V^-1/2", ERIs_.MetricSeconds());
+    timings_.Add("setup: RI 3c integrals", ri_seconds - ERIs_.MetricSeconds());
     XTP_LOG(Log::info, *pLog_)
         << TimeStamp() << " Inverted AUX Coulomb matrix, removed "
         << ERIs_.Removedfunctions() << " functions from aux basis"
@@ -1923,6 +2019,7 @@ void DFTEngine::SetupInvariantMatrices() {
   } else {
     XTP_LOG(Log::info, *pLog_)
         << TimeStamp() << " Calculating 4c diagonals. " << std::flush;
+    auto t = timings_.Measure("setup: 4c Schwarz screening");
     ERIs_.Initialize_4c(dftbasis_);
     XTP_LOG(Log::info, *pLog_)
         << TimeStamp() << " Calculated 4c diagonals. " << std::flush;

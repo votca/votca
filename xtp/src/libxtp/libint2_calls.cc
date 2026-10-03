@@ -17,6 +17,9 @@
  *
  */
 
+// Standard includes
+#include <chrono>
+
 // Local VOTCA includes
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/aobasis.h"
@@ -450,10 +453,14 @@ template std::array<Eigen::MatrixXd, 2> ERIs::Compute4c<false>(
 
 void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
   {
+    auto metric_start = std::chrono::steady_clock::now();
     AOCoulomb auxAOcoulomb;
     auxAOcoulomb.Fill(auxbasis);
     inv_sqrt_ = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
     removedfunctions_ = auxAOcoulomb.Removedfunctions();
+    metric_seconds_ = std::chrono::duration<double>(
+                          std::chrono::steady_clock::now() - metric_start)
+                          .count();
   }
   matrix_ = std::vector<Symmetric_Matrix>(auxbasis.AOBasisSize());
 

@@ -44,14 +44,25 @@ class ERIs {
       const Eigen::MatrixXd& occMos, const Eigen::MatrixXd& DMAT) const {
     std::array<Eigen::MatrixXd, 2> result;
     result[0] = CalculateERIs_3c(DMAT);
-    if (occMos.rows() > 0 && occMos.cols() > 0) {
-      assert(occMos.rows() == DMAT.rows() && "occMos.rows()==DMAT.rows()");
-      result[1] = CalculateEXX_mos(occMos);
-    } else {
-      result[1] = CalculateEXX_dmat(DMAT);
-    }
+    result[1] = CalculateEXX_3c(occMos, DMAT);
     return result;
   }
+
+  /// Exchange matrix only: from the occupied MOs if given, otherwise from
+  /// the density matrix.
+  Eigen::MatrixXd CalculateEXX_3c(const Eigen::MatrixXd& occMos,
+                                  const Eigen::MatrixXd& DMAT) const {
+    if (occMos.rows() > 0 && occMos.cols() > 0) {
+      assert(occMos.rows() == DMAT.rows() && "occMos.rows()==DMAT.rows()");
+      return CalculateEXX_mos(occMos);
+    }
+    return CalculateEXX_dmat(DMAT);
+  }
+
+  /// Number of auxiliary functions the 3c tensor is stored for.
+  Index AuxSize() const { return threecenter_.size(); }
+  /// Wall time spent on the aux Coulomb metric and its inverse square root.
+  double MetricSeconds() const { return threecenter_.MetricSeconds(); }
 
   Eigen::MatrixXd CalculateERIs_4c(const Eigen::MatrixXd& DMAT,
                                    double error) const {

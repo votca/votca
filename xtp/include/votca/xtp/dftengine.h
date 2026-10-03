@@ -30,6 +30,7 @@
 // Local VOTCA includes
 #include "ERIs.h"
 #include "convergenceacc.h"
+#include "dfttimings.h"
 #include "hirshfeldpartition.h"
 #include "uks_convergenceacc.h"
 
@@ -209,6 +210,11 @@ class DFTEngine {
 
   /// Build the Coulomb matrix contribution from the current density matrix.
   Eigen::MatrixXd CalcERIs(const Eigen::MatrixXd& Dmat, double error) const;
+
+  /// Evaluate() without the timing report.
+  bool EvaluateAndTime(Orbitals& orb);
+  /// Basis dimensions and the memory of the large intermediates.
+  void ReportDimensionsAndMemory() const;
 
   /// Propagate basis-set, XC, and metadata settings into the orbital container.
   void ConfigOrbfile(Orbitals& orb);
@@ -570,6 +576,8 @@ class DFTEngine {
   ConvergenceAcc conv_accelerator_;
   // Electron repulsion integrals
   ERIs ERIs_;
+  // Wall-clock accounting, reported at the end of Evaluate()
+  mutable DFTTimings timings_;
 
   // external charges
   std::vector<std::unique_ptr<StaticSite> >* externalsites_ = nullptr;
