@@ -42,7 +42,7 @@ class BSE {
  public:
   //  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp_in)
   //    :  log_(log),  Mmn_(Mmn),  Hqp_in_(Hqp_in){};
-  BSE(Logger& log, TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn){};
+  BSE(Logger& log, TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn) {};
 
   struct options {
     bool useTDA;
