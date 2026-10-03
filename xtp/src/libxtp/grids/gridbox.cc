@@ -52,6 +52,19 @@ AOShell::AOValues GridBox::CalcAOValues(const Eigen::Vector3d& point) const {
   return result;
 }
 
+void GridBox::CalcAOValues(const Eigen::Vector3d& point,
+                           Eigen::MatrixXd& values,
+                           Eigen::MatrixXd& derivatives, Index col) const {
+  values.col(col).setZero();
+  derivatives.middleCols(3 * col, 3).setZero();
+  for (Index j = 0; j < Shellsize(); ++j) {
+    const GridboxRange& r = aoranges[j];
+    significant_shells[j]->EvalAOspace(
+        point, values.col(col).segment(r.start, r.size),
+        derivatives.block(r.start, 3 * col, r.size, 3));
+  }
+}
+
 AOShell::AOValuesHessian GridBox::CalcAOValuesHessian(
     const Eigen::Vector3d& point) const {
   AOShell::AOValuesHessian result(Matrixsize());

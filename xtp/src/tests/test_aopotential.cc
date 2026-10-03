@@ -319,4 +319,66 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   libint2::finalize();
 }
 
+// All sites are integrated in one pass over the shell pairs. Sites of
+// different rank in one batch must give exactly the sum of their individual
+// matrices, and the nuclear potential must equal the sum over atoms.
+BOOST_AUTO_TEST_CASE(batched_sites_equal_sum_of_single_sites) {
+  libint2::initialize();
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/aopotential/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+
+  std::srand(4);
+  std::vector<std::unique_ptr<StaticSite> > sites;
+  for (Index i = 0; i < 9; ++i) {
+    auto site = std::make_unique<StaticSite>(
+        i, "C", Eigen::Vector3d(4.0 * Eigen::Vector3d::Random()));
+    Vector9d m = Vector9d::Zero();
+    m(0) = 0.3 * Eigen::VectorXd::Random(1)(0);
+    const Index rank = i % 3;  // charges, dipoles and quadrupoles mixed
+    if (rank > 0) {
+      m.segment<3>(1) = 0.2 * Eigen::Vector3d::Random();
+    }
+    if (rank > 1) {
+      m.segment<5>(4) = 0.1 * Eigen::VectorXd::Random(5);
+    }
+    site->setMultipole(m, rank);
+    sites.push_back(std::move(site));
+  }
+  AOMultipole all;
+  all.FillPotential(aobasis, sites);
+
+  Eigen::MatrixXd sum =
+      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+  for (const auto& site : sites) {
+    std::vector<std::unique_ptr<StaticSite> > one;
+    one.push_back(std::make_unique<StaticSite>(*site));
+    AOMultipole single;
+    single.FillPotential(aobasis, one);
+    sum += single.Matrix();
+  }
+  BOOST_CHECK_SMALL((all.Matrix() - sum).cwiseAbs().maxCoeff(),
+                    1e-13 * sum.cwiseAbs().maxCoeff());
+
+  AOMultipole nuclei;
+  nuclei.FillPotential(aobasis, orbitals.QMAtoms());
+  Eigen::MatrixXd nuc_sum =
+      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+  for (const QMAtom& atom : orbitals.QMAtoms()) {
+    std::vector<std::unique_ptr<StaticSite> > one;
+    one.push_back(
+        std::make_unique<StaticSite>(atom, double(atom.getNuccharge())));
+    AOMultipole single;
+    single.FillPotential(aobasis, one);
+    nuc_sum += single.Matrix();
+  }
+  BOOST_CHECK_SMALL((nuclei.Matrix() - nuc_sum).cwiseAbs().maxCoeff(),
+                    1e-13 * nuc_sum.cwiseAbs().maxCoeff());
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

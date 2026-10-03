@@ -57,6 +57,23 @@ EwaldRealSpaceInteractor::BFunctions EwaldRealSpaceInteractor::ComputeErfB(
   return b;
 }
 
+double EwaldRealSpaceInteractor::ScreenedPotential(
+    double q, const Eigen::Vector3d& mu, const Eigen::Vector3d& r_vec) const {
+  const BFunctions b = ComputeB(r_vec.norm());
+  return q * b.B0 + mu.dot(r_vec) * b.B1;
+}
+
+double EwaldRealSpaceInteractor::ErfPotential(
+    double q, const Eigen::Vector3d& mu, const Eigen::Vector3d& r_vec) const {
+  const double r = r_vec.norm();
+  if (r < kCoincidenceTol) {
+    // limit of q erf(alpha r)/r; the dipole's potential vanishes there
+    return q * 2.0 * alpha_ / std::sqrt(votca::tools::conv::Pi);
+  }
+  const BFunctions b = ComputeErfB(r);
+  return q * b.B0 + mu.dot(r_vec) * b.B1;
+}
+
 EwaldRealSpaceInteractor::TholeFactors EwaldRealSpaceInteractor::ComputeThole(
     double r, const PolarSite& site1, const PolarSite& site2) const {
   // Reuses the exponential Thole model already implemented in

@@ -160,6 +160,12 @@ class EwaldShapeCorrection {
       const std::vector<const PolarSite*>& background_exclusions,
       EwaldChargeState source_state) const;
 
+  /// Shape-term potential at each point: what CalcStaticEnergyBetween plus
+  /// CalcInducedSourceEnergyBetween return for a unit point charge there (no
+  /// exclusions), with the background moments computed once for all points.
+  Eigen::VectorXd PotentialAtMany(const std::vector<Eigen::Vector3d>& points,
+                                  EwaldChargeState source_state) const;
+
  private:
   Eigen::Vector3d TotalDipoleMoment(EwaldChargeState source_state) const;
 
@@ -174,6 +180,11 @@ class EwaldShapeCorrection {
 
   static void Accumulate(Moments& m, const PolarSite& site,
                          const Eigen::Vector3d& pos);
+
+  // Energy of foreground moments fg in the shape term of background moments
+  // bg: permanent background, and induced background (dipoles only).
+  double StaticShapeEnergy(const Moments& fg, const Moments& bg) const;
+  double InducedShapeEnergy(const Moments& fg, const Moments& bg) const;
 
   // Permanent moments of every registered site at source_state, with the
   // listed sites held out.

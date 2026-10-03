@@ -1090,8 +1090,30 @@ bool DFTEngine::EvaluateAndTime(Orbitals& orb) {
     return converged;
   }
 
+  // Prepare replaces orb's basis, so record which basis its MOs belong to.
+  const std::string previous_basis =
+      orb.hasDFTbasisName() ? orb.getDFTbasisName() : "";
   Prepare(orb);
   ReportDimensionsAndMemory();
+
+  const std::string configured_guess = initial_guess_;
+  warm_started_ = false;
+  if (warm_start_ && initial_guess_ != "orbfile") {
+    std::string reason;
+    if (UsableAsWarmStart(orb, previous_basis, reason)) {
+      initial_guess_ = "orbfile";
+      warm_started_ = true;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp()
+          << " Starting from the orbitals of the previous QM/MM iteration"
+          << std::flush;
+    } else {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Previous orbitals not usable as guess (" << reason
+          << "); using " << initial_guess_ << std::flush;
+    }
+  }
+
   Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
   Vxc_Potential<Vxc_Grid> vxcpotential = [&]() {
     auto t = timings_.Measure("setup: XC grid");
@@ -1099,6 +1121,7 @@ bool DFTEngine::EvaluateAndTime(Orbitals& orb) {
   }();
   ConfigOrbfile(orb);
 
+  bool success = false;
   if (force_uks_path_ || num_alpha_electrons_ != num_beta_electrons_) {
     if (force_uks_path_ && num_alpha_electrons_ == num_beta_electrons_) {
       XTP_LOG(Log::warning, *pLog_)
@@ -1106,9 +1129,38 @@ bool DFTEngine::EvaluateAndTime(Orbitals& orb) {
           << " Forcing closed-shell singlet through UKS development path."
           << std::flush;
     }
-    return EvaluateUKS(orb, H0, vxcpotential);
+    success = EvaluateUKS(orb, H0, vxcpotential);
+  } else {
+    success = EvaluateClosedShell(orb, H0, vxcpotential);
   }
-  return EvaluateClosedShell(orb, H0, vxcpotential);
+  initial_guess_ = configured_guess;
+  warm_started_ = false;
+  return success;
+}
+
+bool DFTEngine::UsableAsWarmStart(const Orbitals& orb,
+                                  const std::string& previous_basis,
+                                  std::string& reason) const {
+  if (!orb.hasMOs()) {
+    reason = "no MOs";
+    return false;
+  }
+  const Index n = dftbasis_.AOBasisSize();
+  if (orb.MOs().eigenvectors().rows() != n ||
+      orb.MOs().eigenvectors().cols() != n) {
+    reason = "basis size differs";
+    return false;
+  }
+  if (!previous_basis.empty() && previous_basis != orb.getDFTbasisName()) {
+    reason = "basis set differs";
+    return false;
+  }
+  if (orb.getNumberOfAlphaElectrons() != num_alpha_electrons_ ||
+      orb.getNumberOfBetaElectrons() != num_beta_electrons_) {
+    reason = "electron count differs";
+    return false;
+  }
+  return true;
 }
 
 bool DFTEngine::RunCDFT(Orbitals& orb,
@@ -2494,7 +2546,9 @@ HirshfeldPartition::Constraint DFTEngine::BuildCDFTConstraint(
 }
 
 void DFTEngine::ConfigOrbfile(Orbitals& orb) {
-  if (initial_guess_ == "orbfile") {
+  // A warm start was checked in UsableAsWarmStart, against the basis the MOs
+  // were computed in.
+  if (initial_guess_ == "orbfile" && !warm_started_) {
 
     if (orb.hasDFTbasisName()) {
       if (orb.getDFTbasisName() != dftbasis_name_) {

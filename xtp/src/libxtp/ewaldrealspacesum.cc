@@ -435,7 +435,15 @@ Eigen::VectorXd EwaldRealSpaceSum::PotentialAtMany(
   // Sources flattened once: AllIds() returns by value and the centroids
   // are fixed, so recomputing either per point would cost more than the
   // sum itself on a grid.
-  std::vector<const PolarSegment*> segments;
+  // The sites are flattened too: for a unit probe only position, charge and
+  // total (static + induced) dipole matter, and a compact array of those is
+  // far cheaper to stream per grid point than the PolarSite objects.
+  struct ProbeSource {
+    Eigen::Vector3d pos;
+    double q;
+    Eigen::Vector3d mu;
+  };
+  std::vector<std::vector<ProbeSource>> segments;
   std::vector<Index> segment_ids;
   std::vector<Eigen::Vector3d> centroids;
   for (Index source_id : registry_.AllIds()) {
@@ -443,7 +451,13 @@ Eigen::VectorXd EwaldRealSpaceSum::PotentialAtMany(
       continue;
     }
     const PolarSegment& segment = registry_.Get(source_id, source_state);
-    segments.push_back(&segment);
+    std::vector<ProbeSource> sites;
+    sites.reserve(segment.size());
+    for (const PolarSite& site : segment) {
+      sites.push_back({site.getPos(), site.getCharge(),
+                       site.getStaticDipole() + site.getInducedDipole()});
+    }
+    segments.push_back(std::move(sites));
     segment_ids.push_back(source_id);
     centroids.push_back(UnweightedCentroid(segment));
   }
@@ -462,19 +476,10 @@ Eigen::VectorXd EwaldRealSpaceSum::PotentialAtMany(
   for (Index p = 0; p < n_points; ++p) {
     const Eigen::Vector3d& point = points[std::size_t(p)];
 
-    // Unit test charge: every energy routine here reduces to
-    // q*phi - mu.E, so with q = 1 and mu = 0 what comes back is phi.
-    // Built per point on the stack, which is safe only because nothing
-    // below keys anything on its address.
-    PolarSite probe(0, "H", point);
-    probe.Reset();
-    probe.setCharge(1.0);
-    probe.setStaticDipole(Eigen::Vector3d::Zero());
-    probe.setInduced_Dipole(Eigen::Vector3d::Zero());
-
     double acc = 0.0;
     for (Index s_i = 0; s_i < n_sources; ++s_i) {
-      const PolarSegment& source_segment = *segments[std::size_t(s_i)];
+      const std::vector<ProbeSource>& source_segment =
+          segments[std::size_t(s_i)];
       const Index source_id = segment_ids[std::size_t(s_i)];
       const Eigen::Vector3d& source_centroid = centroids[std::size_t(s_i)];
 
@@ -538,18 +543,16 @@ Eigen::VectorXd EwaldRealSpaceSum::PotentialAtMany(
           continue;
         }
 
-        for (const PolarSite& source_site : source_segment) {
-          acc += interactor_.CalcStaticEnergy<PolarSite, PolarSite>(source_site,
-                                                                    probe, t);
-          // UNDAMPED: the target is a point in space, not a
-          // point-polarizable site, so there is no overlap for Thole to
-          // correct -- and the rest of the package already treats
-          // [induced dipole] x [QM density] undamped (AOMultipole and
-          // DFTEngine::ExternalRepulsion apply no Thole at all). See
-          // CalcInducedSourceEnergy's own declaration, including why
-          // this cannot be said by zeroing the probe's polarizability.
-          acc += interactor_.CalcInducedSourceEnergy(source_site, probe, t,
-                                                     /*damp=*/false);
+        // Unit-charge probe at the point: what CalcStaticEnergy plus the
+        // UNDAMPED CalcInducedSourceEnergy return for it. Undamped because
+        // the target is a point in space, not a point-polarizable site, so
+        // there is no overlap for Thole to correct -- and the rest of the
+        // package already treats [induced dipole] x [QM density] undamped
+        // (AOMultipole and DFTEngine::ExternalRepulsion apply no Thole).
+        const Eigen::Vector3d probe_offset = point - t;
+        for (const ProbeSource& source_site : source_segment) {
+          acc += interactor_.ScreenedPotential(source_site.q, source_site.mu,
+                                               probe_offset - source_site.pos);
         }
       }
     }

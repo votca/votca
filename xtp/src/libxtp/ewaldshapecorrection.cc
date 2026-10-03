@@ -110,7 +110,11 @@ double EwaldShapeCorrection::CalcStaticEnergyBetween(
   }
 
   const Moments bg = BackgroundMoments(source_state, background_exclusions);
+  return StaticShapeEnergy(fg, bg);
+}
 
+double EwaldShapeCorrection::StaticShapeEnergy(const Moments& fg,
+                                               const Moments& bg) const {
   if (shape_ == EwaldShape::Cube) {
     const double bracket =
         fg.q0 * bg.q2.trace() + bg.q0 * fg.q2.trace() - fg.q1.dot(bg.q1);
@@ -119,6 +123,39 @@ double EwaldShapeCorrection::CalcStaticEnergyBetween(
   const double bracket =
       fg.q0 * bg.q2(2, 2) + bg.q0 * fg.q2(2, 2) - fg.q1.z() * bg.q1.z();
   return -(4.0 * kPi / volume_) * bracket;
+}
+
+double EwaldShapeCorrection::InducedShapeEnergy(const Moments& fg,
+                                                const Moments& bg) const {
+  // bg.q0 is zero by construction (dipoles only), so its term is dropped.
+  if (shape_ == EwaldShape::Cube) {
+    const double bracket = fg.q0 * bg.q2.trace() - fg.q1.dot(bg.q1);
+    return -(4.0 * kPi / (3.0 * volume_)) * bracket;
+  }
+  const double bracket = fg.q0 * bg.q2(2, 2) - fg.q1.z() * bg.q1.z();
+  return -(4.0 * kPi / volume_) * bracket;
+}
+
+Eigen::VectorXd EwaldShapeCorrection::PotentialAtMany(
+    const std::vector<Eigen::Vector3d>& points,
+    EwaldChargeState source_state) const {
+  const std::vector<const PolarSite*> no_exclusions;
+  const Moments bg = BackgroundMoments(source_state, no_exclusions);
+  const Moments bg_induced =
+      BackgroundInducedMoments(source_state, no_exclusions);
+  const Index n = Index(points.size());
+  Eigen::VectorXd phi(n);
+#pragma omp parallel for schedule(static)
+  for (Index p = 0; p < n; ++p) {
+    // a unit charge at the point, as Accumulate would record it
+    const Eigen::Vector3d& pos = points[std::size_t(p)];
+    Moments fg;
+    fg.q0 = 1.0;
+    fg.q1 = pos;
+    fg.q2 = 0.5 * pos * pos.transpose();
+    phi[p] = StaticShapeEnergy(fg, bg) + InducedShapeEnergy(fg, bg_induced);
+  }
+  return phi;
 }
 
 EwaldShapeCorrection::Moments EwaldShapeCorrection::BackgroundInducedMoments(
@@ -162,15 +199,7 @@ double EwaldShapeCorrection::CalcInducedSourceEnergyBetween(
 
   const Moments bg =
       BackgroundInducedMoments(source_state, background_exclusions);
-
-  // bg.q0 is zero by construction, so its term is dropped rather than
-  // written out and multiplied by zero.
-  if (shape_ == EwaldShape::Cube) {
-    const double bracket = fg.q0 * bg.q2.trace() - fg.q1.dot(bg.q1);
-    return -(4.0 * kPi / (3.0 * volume_)) * bracket;
-  }
-  const double bracket = fg.q0 * bg.q2(2, 2) - fg.q1.z() * bg.q1.z();
-  return -(4.0 * kPi / volume_) * bracket;
+  return InducedShapeEnergy(fg, bg);
 }
 
 template <enum Estatic CE>

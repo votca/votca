@@ -99,6 +99,12 @@ class DFTEngine {
   // ExternalRepulsion for the multipole route.
   void setEwaldNuclearEnergy(double energy) { ewald_nuclear_energy_ = energy; }
 
+  /// Use the MOs already in the Orbitals passed to Evaluate as the SCF guess
+  /// when they fit this calculation (same basis set and size, same electron
+  /// counts); otherwise the configured initial_guess is used. Set by QM/MM
+  /// for iterations after the first, where only the environment changed.
+  void setWarmStart(bool warm_start) { warm_start_ = warm_start; }
+
   /// Run a full ground-state DFT calculation and store the results in the
   /// orbital container.
   bool Evaluate(Orbitals& orb);
@@ -578,6 +584,12 @@ class DFTEngine {
   ERIs ERIs_;
   // Wall-clock accounting, reported at the end of Evaluate()
   mutable DFTTimings timings_;
+  bool warm_start_ = false;
+  bool warm_started_ = false;
+  /// Whether orb's MOs (computed in previous_basis) can serve as the guess
+  /// for this calculation; if not, why not.
+  bool UsableAsWarmStart(const Orbitals& orb, const std::string& previous_basis,
+                         std::string& reason) const;
 
   // external charges
   std::vector<std::unique_ptr<StaticSite> >* externalsites_ = nullptr;

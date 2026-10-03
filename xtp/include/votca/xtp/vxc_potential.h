@@ -43,7 +43,7 @@ class Vxc_Potential {
     Eigen::MatrixXd vxc_beta;
   };
 
-  explicit Vxc_Potential(const Grid& grid) : grid_(grid) {};
+  explicit Vxc_Potential(const Grid& grid) : grid_(grid){};
   ~Vxc_Potential();
 
   static double getExactExchange(const std::string& functional);
@@ -185,6 +185,17 @@ class Vxc_Potential {
   XC_entry_spin EvaluateXCSpin(double rho_a, double rho_b, double sigma_aa,
                                double sigma_ab, double sigma_bb) const;
 
+  // libxc for n points at once, exchange and correlation summed. Unpolarized:
+  // rho, sigma, exc, vrho, vsigma have n entries. Polarized (libxc layout):
+  // rho and vrho 2n, sigma and vsigma 3n, exc n. vsigma is zero for LDA.
+  void EvaluateXCBatch(Index n, const double* rho, const double* sigma,
+                       double* exc, double* vrho, double* vsigma) const;
+  void EvaluateXCSpinBatch(Index n, const double* rho, const double* sigma,
+                           double* exc, double* vrho, double* vsigma) const;
+
+  // Grid points processed together inside a box.
+  static constexpr Index kPointBlock = 128;
+
   const Grid grid_;
   int xfunc_id;
   bool setXC_ = false;
@@ -192,6 +203,11 @@ class Vxc_Potential {
   int cfunc_id;
   xc_func_type xfunc;
   xc_func_type cfunc;
+  // Polarized handles for the UKS path, set up once with the unpolarized
+  // ones instead of per grid point.
+  xc_func_type xfunc_pol_;
+  xc_func_type cfunc_pol_;
+  bool is_gga_ = false;
 };
 
 }  // namespace xtp

@@ -712,4 +712,68 @@ BOOST_AUTO_TEST_CASE(dimer_guess_closed_shell) {
   libint2::finalize();
 }
 
+// QM/MM warm start: the converged orbitals handed back in reach the same
+// energy in a few iterations, for closed and open shells; orbitals that do not
+// fit (here: none at all) fall back to the configured guess.
+BOOST_AUTO_TEST_CASE(warm_start_from_previous_orbitals) {
+  libint2::initialize();
+  WriteBasis321G();
+
+  for (const std::string charge_spin : {"0 1", "1 2"}) {
+    std::istringstream cs(charge_spin);
+    int charge, spin;
+    cs >> charge >> spin;
+    WriteDimerGuessXML("dftengine_warm.xml", "atom", "");
+    votca::tools::Property prop;
+    prop.LoadFromXML("dftengine_warm.xml");
+    prop.set("dftpackage.charge", std::to_string(charge));
+    prop.set("dftpackage.spin", std::to_string(spin));
+
+    auto Run = [&](Orbitals& orb, bool warm, Index& iterations,
+                   std::string& logtext) {
+      Logger log;
+      log.setReportLevel(votca::Log::info);
+      DFTEngine dft;
+      dft.setLogger(&log);
+      dft.Initialize(prop.get("dftpackage"));
+      dft.setWarmStart(warm);
+      BOOST_REQUIRE(dft.Evaluate(orb));
+      std::stringstream ss;
+      ss << log;
+      logtext = ss.str();
+      iterations = SCFIterations(logtext);
+      return orb.getDFTTotalEnergy();
+    };
+
+    Orbitals orb;
+    orb.QMAtoms() = Water();
+    orb.setChargeAndSpin(charge, spin);
+    Index it_cold = 0;
+    std::string log_cold;
+    const double e_cold = Run(orb, false, it_cold, log_cold);
+
+    Index it_warm = 0;
+    std::string log_warm;
+    const double e_warm = Run(orb, true, it_warm, log_warm);
+    BOOST_CHECK(log_warm.find("Starting from the orbitals of the previous") !=
+                std::string::npos);
+    BOOST_CHECK_SMALL(e_warm - e_cold, 1e-7);
+    BOOST_CHECK_LE(it_warm, 3);
+    BOOST_TEST_MESSAGE("charge " << charge << ": cold " << it_cold
+                                 << " iterations, warm " << it_warm);
+
+    Orbitals fresh;
+    fresh.QMAtoms() = Water();
+    fresh.setChargeAndSpin(charge, spin);
+    Index it_fresh = 0;
+    std::string log_fresh;
+    const double e_fresh = Run(fresh, true, it_fresh, log_fresh);
+    BOOST_CHECK(log_fresh.find("not usable as guess (no MOs)") !=
+                std::string::npos);
+    BOOST_CHECK_SMALL(e_fresh - e_cold, 1e-7);
+    BOOST_CHECK_EQUAL(it_fresh, it_cold);
+  }
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -116,10 +116,15 @@ class QMPackage {
     has_ewald_nuclear_energy_ = true;
   }
 
+  // Start the SCF from the orbitals handed to WriteInputFile instead of the
+  // configured guess (QM/MM iterations after the first). Packages that cannot
+  // do this ignore it.
+  void setWarmStart(bool warm_start) { warm_start_ = warm_start; }
+
  protected:
   virtual void ParseSpecificOptions(const tools::Property& options) = 0;
   struct MinimalMMCharge {
-    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q) {};
+    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q){};
     Eigen::Vector3d pos_;
     double q_;
   };
@@ -162,6 +167,7 @@ class QMPackage {
   bool has_ewaldgrid_ = false;
   double ewald_nuclear_energy_ = 0.0;
   bool has_ewald_nuclear_energy_ = false;
+  bool warm_start_ = false;
 };
 
 }  // namespace xtp

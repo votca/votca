@@ -133,6 +133,17 @@ class AOShell {
 
   AOValues EvalAOspace(const Eigen::Vector3d& grid_pos) const;
 
+  /// Writable view of this shell's rows in a (functions x 3) gradient block
+  /// that may sit inside a larger matrix.
+  using AODerivativeBlock = Eigen::Ref<Eigen::Matrix<double, Eigen::Dynamic, 3>,
+                                       0, Eigen::OuterStride<>>;
+  /// Same as above, but ADDS the values and gradients into caller-provided
+  /// storage (getNumFunc() rows), so batched grid code can fill one matrix
+  /// for many points without allocating per shell and point.
+  void EvalAOspace(const Eigen::Vector3d& grid_pos,
+                   Eigen::Ref<Eigen::VectorXd> values,
+                   AODerivativeBlock derivatives) const;
+
   // ===========================================================================
   // STATUS: written but NOT yet compiled/tested (see aoshell.cc for the
   // detailed derivation). Added for GGA XC-gradient support -- the

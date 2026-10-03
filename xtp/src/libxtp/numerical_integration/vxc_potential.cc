@@ -25,6 +25,7 @@
 #include <iomanip>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 // VOTCA includes
 #include <votca/tools/tokenizer.h>
@@ -44,8 +45,10 @@ template <class Grid>
 Vxc_Potential<Grid>::~Vxc_Potential() {
   if (setXC_) {
     xc_func_end(&xfunc);
+    xc_func_end(&xfunc_pol_);
     if (use_separate_) {
       xc_func_end(&cfunc);
+      xc_func_end(&cfunc_pol_);
     }
   }
 }
@@ -141,50 +144,92 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
     }
   }
 
+  // Polarized twins for the UKS path.
+  if (xc_func_init(&xfunc_pol_, xfunc_id, XC_POLARIZED) != 0) {
+    throw std::runtime_error(
+        "Failed to initialize polarized exchange XC "
+        "functional.");
+  }
+  if (use_separate_ && xc_func_init(&cfunc_pol_, cfunc_id, XC_POLARIZED) != 0) {
+    xc_func_end(&xfunc_pol_);
+    throw std::runtime_error(
+        "Failed to initialize polarized correlation XC "
+        "functional.");
+  }
+
+  auto is_gga = [](const xc_func_type& f) {
+    return f.info->family == XC_FAMILY_GGA ||
+           f.info->family == XC_FAMILY_HYB_GGA;
+  };
+  is_gga_ = is_gga(xfunc) || (use_separate_ && is_gga(cfunc));
+
   setXC_ = true;
   return;
+}
+
+namespace {
+// One libxc call for n points with any supported family.
+void CallLibxc(const xc_func_type& f, Index n, const double* rho,
+               const double* sigma, double* exc, double* vrho, double* vsigma) {
+  switch (f.info->family) {
+    case XC_FAMILY_LDA:
+      xc_lda_exc_vxc(&f, std::size_t(n), rho, exc, vrho);
+      break;
+    case XC_FAMILY_GGA:
+    case XC_FAMILY_HYB_GGA:
+      xc_gga_exc_vxc(&f, std::size_t(n), rho, sigma, exc, vrho, vsigma);
+      break;
+    default:
+      throw std::runtime_error("Unsupported XC functional family.");
+  }
+}
+}  // namespace
+
+template <class Grid>
+void Vxc_Potential<Grid>::EvaluateXCBatch(Index n, const double* rho,
+                                          const double* sigma, double* exc,
+                                          double* vrho, double* vsigma) const {
+  std::fill(vsigma, vsigma + n, 0.0);
+  CallLibxc(xfunc, n, rho, sigma, exc, vrho, vsigma);
+  if (use_separate_) {
+    std::vector<double> e(n), vr(n), vs(n, 0.0);
+    CallLibxc(cfunc, n, rho, sigma, e.data(), vr.data(), vs.data());
+    for (Index i = 0; i < n; ++i) {
+      exc[i] += e[i];
+      vrho[i] += vr[i];
+      vsigma[i] += vs[i];
+    }
+  }
+}
+
+template <class Grid>
+void Vxc_Potential<Grid>::EvaluateXCSpinBatch(Index n, const double* rho,
+                                              const double* sigma, double* exc,
+                                              double* vrho,
+                                              double* vsigma) const {
+  std::fill(vsigma, vsigma + 3 * n, 0.0);
+  CallLibxc(xfunc_pol_, n, rho, sigma, exc, vrho, vsigma);
+  if (use_separate_) {
+    std::vector<double> e(n), vr(2 * n), vs(3 * n, 0.0);
+    CallLibxc(cfunc_pol_, n, rho, sigma, e.data(), vr.data(), vs.data());
+    for (Index i = 0; i < n; ++i) {
+      exc[i] += e[i];
+    }
+    for (Index i = 0; i < 2 * n; ++i) {
+      vrho[i] += vr[i];
+    }
+    for (Index i = 0; i < 3 * n; ++i) {
+      vsigma[i] += vs[i];
+    }
+  }
 }
 
 template <class Grid>
 typename Vxc_Potential<Grid>::XC_entry Vxc_Potential<Grid>::EvaluateXC(
     double rho, double sigma) const {
   typename Vxc_Potential<Grid>::XC_entry result;
-
-  switch (xfunc.info->family) {
-    case XC_FAMILY_LDA:
-      xc_lda_exc_vxc(&xfunc, 1, &rho, &result.f_xc, &result.df_drho);
-      break;
-    case XC_FAMILY_GGA:
-    case XC_FAMILY_HYB_GGA:
-      xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, &result.f_xc, &result.df_drho,
-                     &result.df_dsigma);
-      break;
-    default:
-      throw std::runtime_error("Unsupported XC family for unpolarized DFT.");
-  }
-
-  if (use_separate_) {
-    typename Vxc_Potential<Grid>::XC_entry temp;
-
-    switch (cfunc.info->family) {
-      case XC_FAMILY_LDA:
-        xc_lda_exc_vxc(&cfunc, 1, &rho, &temp.f_xc, &temp.df_drho);
-        break;
-      case XC_FAMILY_GGA:
-      case XC_FAMILY_HYB_GGA:
-        xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, &temp.f_xc, &temp.df_drho,
-                       &temp.df_dsigma);
-        break;
-      default:
-        throw std::runtime_error(
-            "Unsupported correlation family for unpolarized DFT.");
-    }
-
-    result.f_xc += temp.f_xc;
-    result.df_drho += temp.df_drho;
-    result.df_dsigma += temp.df_dsigma;
-  }
-
+  EvaluateXCBatch(1, &rho, &sigma, &result.f_xc, &result.df_drho,
+                  &result.df_dsigma);
   return result;
 }
 
@@ -193,106 +238,26 @@ typename Vxc_Potential<Grid>::XC_entry_spin Vxc_Potential<Grid>::EvaluateXCSpin(
     double rho_a, double rho_b, double sigma_aa, double sigma_ab,
     double sigma_bb) const {
   typename Vxc_Potential<Grid>::XC_entry_spin result;
-
-  // UKS/open-shell path: use temporary POLARIZED handles so LibXC receives the
-  // correct rho[2], sigma[3], vrho[2], vsigma[3] layout.
-  xc_func_type xfunc_pol;
-  if (xc_func_init(&xfunc_pol, xfunc_id, XC_POLARIZED) != 0) {
-    throw std::runtime_error(
-        "Failed to initialize polarized exchange XC "
-        "functional in EvaluateXCSpin.");
-  }
-
-  xc_func_type cfunc_pol;
-  bool cfunc_pol_init = false;
-  if (use_separate_) {
-    if (xc_func_init(&cfunc_pol, cfunc_id, XC_POLARIZED) != 0) {
-      xc_func_end(&xfunc_pol);
-      throw std::runtime_error(
-          "Failed to initialize polarized correlation XC "
-          "functional in EvaluateXCSpin.");
-    }
-    cfunc_pol_init = true;
-  }
-
-  double rho[2] = {rho_a, rho_b};
-
-  switch (xfunc_pol.info->family) {
-    case XC_FAMILY_LDA: {
-      double vrho[2] = {0.0, 0.0};
-      xc_lda_exc_vxc(&xfunc_pol, 1, rho, &result.f_xc, vrho);
-      result.vrho_a = vrho[0];
-      result.vrho_b = vrho[1];
-      break;
-    }
-    case XC_FAMILY_GGA:
-    case XC_FAMILY_HYB_GGA: {
-      double sigma[3] = {sigma_aa, sigma_ab, sigma_bb};
-      double vrho[2] = {0.0, 0.0};
-      double vsigma[3] = {0.0, 0.0, 0.0};
-      xc_gga_exc_vxc(&xfunc_pol, 1, rho, sigma, &result.f_xc, vrho, vsigma);
-      result.vrho_a = vrho[0];
-      result.vrho_b = vrho[1];
-      result.vsigma_aa = vsigma[0];
-      result.vsigma_ab = vsigma[1];
-      result.vsigma_bb = vsigma[2];
-      break;
-    }
-    default:
-      xc_func_end(&xfunc_pol);
-      if (cfunc_pol_init) {
-        xc_func_end(&cfunc_pol);
-      }
-      throw std::runtime_error("Unsupported XC family for polarized DFT.");
-  }
-
-  if (use_separate_) {
-    typename Vxc_Potential<Grid>::XC_entry_spin temp;
-
-    switch (cfunc_pol.info->family) {
-      case XC_FAMILY_LDA: {
-        double vrho[2] = {0.0, 0.0};
-        xc_lda_exc_vxc(&cfunc_pol, 1, rho, &temp.f_xc, vrho);
-        temp.vrho_a = vrho[0];
-        temp.vrho_b = vrho[1];
-        break;
-      }
-      case XC_FAMILY_GGA:
-      case XC_FAMILY_HYB_GGA: {
-        double sigma[3] = {sigma_aa, sigma_ab, sigma_bb};
-        double vrho[2] = {0.0, 0.0};
-        double vsigma[3] = {0.0, 0.0, 0.0};
-        xc_gga_exc_vxc(&cfunc_pol, 1, rho, sigma, &temp.f_xc, vrho, vsigma);
-        temp.vrho_a = vrho[0];
-        temp.vrho_b = vrho[1];
-        temp.vsigma_aa = vsigma[0];
-        temp.vsigma_ab = vsigma[1];
-        temp.vsigma_bb = vsigma[2];
-        break;
-      }
-      default:
-        xc_func_end(&xfunc_pol);
-        xc_func_end(&cfunc_pol);
-        throw std::runtime_error(
-            "Unsupported correlation family for polarized DFT.");
-    }
-
-    result.f_xc += temp.f_xc;
-    result.vrho_a += temp.vrho_a;
-    result.vrho_b += temp.vrho_b;
-    result.vsigma_aa += temp.vsigma_aa;
-    result.vsigma_ab += temp.vsigma_ab;
-    result.vsigma_bb += temp.vsigma_bb;
-  }
-
-  xc_func_end(&xfunc_pol);
-  if (cfunc_pol_init) {
-    xc_func_end(&cfunc_pol);
-  }
-
+  const double rho[2] = {rho_a, rho_b};
+  const double sigma[3] = {sigma_aa, sigma_ab, sigma_bb};
+  double vrho[2];
+  double vsigma[3];
+  EvaluateXCSpinBatch(1, rho, sigma, &result.f_xc, vrho, vsigma);
+  result.vrho_a = vrho[0];
+  result.vrho_b = vrho[1];
+  result.vsigma_aa = vsigma[0];
+  result.vsigma_ab = vsigma[1];
+  result.vsigma_bb = vsigma[2];
   return result;
 }
 
+// Points are processed in blocks inside each box. With Phi the box's AO
+// values (functions x points) and dPhi their gradients, the work that scales
+// with the square of the box's basis size is two matrix products per block:
+//   Y = D Phi                    (density and its gradient at every point)
+//   Vxc += A Phi^T,  A_p = w_p (vrho_p/2 phi_p + 2 vsigma_p dPhi_p grad rho_p)
+// and libxc is called once per block. Per point, only O(functions) work
+// remains. Same formulas as the former point-by-point loop.
 template <class Grid>
 Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
     const Eigen::MatrixXd& density_matrix) const {
@@ -308,8 +273,6 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
       continue;
     }
 
-    double EXC_box = 0.0;
-
     // two because we have to use the density matrix and its transpose
     const Eigen::MatrixXd DMAT_here = 2 * box.ReadFromBigMatrix(density_matrix);
 
@@ -319,34 +282,70 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
       continue;
     }
 
-    Eigen::MatrixXd Vxc_here =
-        Eigen::MatrixXd::Zero(DMAT_here.rows(), DMAT_here.cols());
+    const Index nf = box.Matrixsize();
+    const Index block = std::min(kPointBlock, box.size());
+    Eigen::MatrixXd Vxc_here = Eigen::MatrixXd::Zero(nf, nf);
+    Eigen::MatrixXd phi(nf, block);
+    Eigen::MatrixXd dphi(nf, 3 * block);
+    Eigen::MatrixXd y(nf, block);
+    Eigen::MatrixXd a(nf, block);
+    std::vector<Index> kept;
+    std::vector<double> rho, sigma, exc, vrho, vsigma;
+    std::vector<Eigen::Vector3d> grad;
+    double EXC_box = 0.0;
 
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
 
-    for (Index p = 0; p < box.size(); ++p) {
-      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+    for (Index start = 0; start < box.size(); start += block) {
+      const Index nb = std::min(block, box.size() - start);
+      for (Index p = 0; p < nb; ++p) {
+        box.CalcAOValues(points[start + p], phi, dphi, p);
+      }
+      y.leftCols(nb).noalias() = DMAT_here * phi.leftCols(nb);
 
-      Eigen::VectorXd temp = ao.values.transpose() * DMAT_here;
-      double rho = 0.5 * temp.dot(ao.values);
-      const double weight = weights[p];
-
-      if (rho * weight < 1.e-20) {
+      kept.clear();
+      rho.clear();
+      sigma.clear();
+      grad.clear();
+      for (Index p = 0; p < nb; ++p) {
+        const double r = 0.5 * phi.col(p).dot(y.col(p));
+        if (r * weights[start + p] < 1.e-20) {
+          continue;
+        }
+        const Eigen::Vector3d g =
+            dphi.middleCols(3 * p, 3).transpose() * y.col(p);
+        kept.push_back(p);
+        rho.push_back(r);
+        sigma.push_back(g.squaredNorm());
+        grad.push_back(g);
+      }
+      const Index nk = Index(kept.size());
+      if (nk == 0) {
         continue;
       }
+      exc.resize(nk);
+      vrho.resize(nk);
+      vsigma.resize(nk);
+      EvaluateXCBatch(nk, rho.data(), sigma.data(), exc.data(), vrho.data(),
+                      vsigma.data());
 
-      const Eigen::Vector3d rho_grad = temp.transpose() * ao.derivatives;
-
-      typename Vxc_Potential<Grid>::XC_entry xc =
-          EvaluateXC(rho, rho_grad.squaredNorm());
-
-      EXC_box += weight * rho * xc.f_xc;
-
-      auto grad = ao.derivatives * rho_grad;
-      temp.noalias() =
-          weight * (0.5 * xc.df_drho * ao.values + 2.0 * xc.df_dsigma * grad);
-      Vxc_here.noalias() += temp * ao.values.transpose();
+      // Kept points are compacted to the front: column k receives point
+      // kept[k] >= k, which has been read by then.
+      for (Index k = 0; k < nk; ++k) {
+        const Index p = kept[k];
+        const double w = weights[start + p];
+        EXC_box += w * rho[k] * exc[k];
+        a.col(k) = (w * 0.5 * vrho[k]) * phi.col(p);
+        if (is_gga_) {
+          a.col(k).noalias() +=
+              (w * 2.0 * vsigma[k]) * (dphi.middleCols(3 * p, 3) * grad[k]);
+        }
+        if (k != p) {
+          phi.col(k) = phi.col(p);
+        }
+      }
+      Vxc_here.noalias() += a.leftCols(nk) * phi.leftCols(nk).transpose();
     }
 
     box.AddtoBigMatrix(vxc.matrix(), Vxc_here);
@@ -601,6 +600,8 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
   return grad;
 }
 
+// Blocked like IntegrateVXC, per spin channel. UKS density matrices are not
+// pre-doubled: rho_s = phi^T D_s phi, grad rho_s = 2 dPhi^T D_s phi.
 template <class Grid>
 typename Vxc_Potential<Grid>::SpinResult Vxc_Potential<Grid>::IntegrateVXCSpin(
     const Eigen::MatrixXd& dmat_alpha, const Eigen::MatrixXd& dmat_beta) const {
@@ -622,6 +623,10 @@ typename Vxc_Potential<Grid>::SpinResult Vxc_Potential<Grid>::IntegrateVXCSpin(
         Eigen::MatrixXd::Zero(dmat_beta.rows(), dmat_beta.cols());
     double exc_private = 0.0;
 
+    std::vector<Index> kept;
+    std::vector<double> rho, sigma, exc, vrho, vsigma;
+    std::vector<Eigen::Vector3d> grad_a, grad_b;
+
 #pragma omp for schedule(guided)
     for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
       const GridBox& box = grid_[i];
@@ -639,68 +644,85 @@ typename Vxc_Potential<Grid>::SpinResult Vxc_Potential<Grid>::IntegrateVXCSpin(
         continue;
       }
 
-      Eigen::MatrixXd Vxc_a_here =
-          Eigen::MatrixXd::Zero(DMa.rows(), DMa.cols());
-      Eigen::MatrixXd Vxc_b_here =
-          Eigen::MatrixXd::Zero(DMb.rows(), DMb.cols());
+      const Index nf = box.Matrixsize();
+      const Index block = std::min(kPointBlock, box.size());
+      Eigen::MatrixXd Vxc_a_here = Eigen::MatrixXd::Zero(nf, nf);
+      Eigen::MatrixXd Vxc_b_here = Eigen::MatrixXd::Zero(nf, nf);
+      Eigen::MatrixXd phi(nf, block);
+      Eigen::MatrixXd dphi(nf, 3 * block);
+      Eigen::MatrixXd ya(nf, block);
+      Eigen::MatrixXd yb(nf, block);
+      Eigen::MatrixXd aa(nf, block);
+      Eigen::MatrixXd ab(nf, block);
 
       const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
       const std::vector<double>& weights = box.getGridWeights();
 
-      for (Index p = 0; p < box.size(); ++p) {
-        AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      for (Index start = 0; start < box.size(); start += block) {
+        const Index nb = std::min(block, box.size() - start);
+        for (Index p = 0; p < nb; ++p) {
+          box.CalcAOValues(points[start + p], phi, dphi, p);
+        }
+        ya.leftCols(nb).noalias() = DMa * phi.leftCols(nb);
+        yb.leftCols(nb).noalias() = DMb * phi.leftCols(nb);
 
-        Eigen::VectorXd temp_a = DMa * ao.values;
-        Eigen::VectorXd temp_b = DMb * ao.values;
-
-        const double rho_a = ao.values.dot(temp_a);
-        const double rho_b = ao.values.dot(temp_b);
-        const double rho = rho_a + rho_b;
-        const double weight = weights[p];
-
-        if (rho * weight < 1.e-20) {
+        kept.clear();
+        rho.clear();
+        sigma.clear();
+        grad_a.clear();
+        grad_b.clear();
+        for (Index p = 0; p < nb; ++p) {
+          const double rho_a = phi.col(p).dot(ya.col(p));
+          const double rho_b = phi.col(p).dot(yb.col(p));
+          if ((rho_a + rho_b) * weights[start + p] < 1.e-20) {
+            continue;
+          }
+          const Eigen::Vector3d ga =
+              2.0 * (dphi.middleCols(3 * p, 3).transpose() * ya.col(p));
+          const Eigen::Vector3d gb =
+              2.0 * (dphi.middleCols(3 * p, 3).transpose() * yb.col(p));
+          kept.push_back(p);
+          rho.push_back(rho_a);
+          rho.push_back(rho_b);
+          sigma.push_back(ga.dot(ga));
+          sigma.push_back(ga.dot(gb));
+          sigma.push_back(gb.dot(gb));
+          grad_a.push_back(ga);
+          grad_b.push_back(gb);
+        }
+        const Index nk = Index(kept.size());
+        if (nk == 0) {
           continue;
         }
+        exc.resize(nk);
+        vrho.resize(2 * nk);
+        vsigma.resize(3 * nk);
+        EvaluateXCSpinBatch(nk, rho.data(), sigma.data(), exc.data(),
+                            vrho.data(), vsigma.data());
 
-        // For symmetric density matrices, this gives the full gradient
-        // consistent with the restricted implementation, which used 2*P.
-        const Eigen::Vector3d grad_a =
-            2.0 * (ao.derivatives.transpose() * temp_a);
-        const Eigen::Vector3d grad_b =
-            2.0 * (ao.derivatives.transpose() * temp_b);
-
-        const double sigma_aa = grad_a.dot(grad_a);
-        const double sigma_ab = grad_a.dot(grad_b);
-        const double sigma_bb = grad_b.dot(grad_b);
-
-        typename Vxc_Potential<Grid>::XC_entry_spin xc =
-            EvaluateXCSpin(rho_a, rho_b, sigma_aa, sigma_ab, sigma_bb);
-
-        exc_private += weight * rho * xc.f_xc;
-
-        if (xfunc.info->family == XC_FAMILY_LDA) {
-          // 0.5 factor because we symmetrize by adding transpose at the end
-          Eigen::VectorXd wa = weight * (0.5 * xc.vrho_a) * ao.values;
-          Eigen::VectorXd wb = weight * (0.5 * xc.vrho_b) * ao.values;
-
-          Vxc_a_here.noalias() += wa * ao.values.transpose();
-          Vxc_b_here.noalias() += wb * ao.values.transpose();
-        } else {
-          Eigen::VectorXd g_a = ao.derivatives * grad_a;
-          Eigen::VectorXd g_b = ao.derivatives * grad_b;
-
-          // Same 0.5 prefactor on vrho term as in restricted path.
-          Eigen::VectorXd wa =
-              weight * (0.5 * xc.vrho_a * ao.values + 2.0 * xc.vsigma_aa * g_a +
-                        xc.vsigma_ab * g_b);
-
-          Eigen::VectorXd wb =
-              weight * (0.5 * xc.vrho_b * ao.values + xc.vsigma_ab * g_a +
-                        2.0 * xc.vsigma_bb * g_b);
-
-          Vxc_a_here.noalias() += wa * ao.values.transpose();
-          Vxc_b_here.noalias() += wb * ao.values.transpose();
+        for (Index k = 0; k < nk; ++k) {
+          const Index p = kept[k];
+          const double w = weights[start + p];
+          exc_private += w * (rho[2 * k] + rho[2 * k + 1]) * exc[k];
+          // 0.5 because the result is symmetrized by adding the transpose
+          aa.col(k) = (w * 0.5 * vrho[2 * k]) * phi.col(p);
+          ab.col(k) = (w * 0.5 * vrho[2 * k + 1]) * phi.col(p);
+          if (is_gga_) {
+            const auto d = dphi.middleCols(3 * p, 3);
+            const Eigen::VectorXd g_a = d * grad_a[k];
+            const Eigen::VectorXd g_b = d * grad_b[k];
+            const double vs_aa = vsigma[3 * k];
+            const double vs_ab = vsigma[3 * k + 1];
+            const double vs_bb = vsigma[3 * k + 2];
+            aa.col(k).noalias() += w * (2.0 * vs_aa * g_a + vs_ab * g_b);
+            ab.col(k).noalias() += w * (vs_ab * g_a + 2.0 * vs_bb * g_b);
+          }
+          if (k != p) {
+            phi.col(k) = phi.col(p);
+          }
         }
+        Vxc_a_here.noalias() += aa.leftCols(nk) * phi.leftCols(nk).transpose();
+        Vxc_b_here.noalias() += ab.leftCols(nk) * phi.leftCols(nk).transpose();
       }
 
       box.AddtoBigMatrix(vxc_alpha_private, Vxc_a_here);

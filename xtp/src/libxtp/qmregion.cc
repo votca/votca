@@ -475,6 +475,10 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     qmpackage_->setEwaldNuclearEnergy(ewald_nuclear_energy_);
   }
 
+  // From the second inter-region iteration on, only the environment has
+  // changed: start the SCF from the previous iteration's orbitals.
+  qmpackage_->setWarmStart(E_hist_.filled() && orb_.hasMOs());
+
   XTP_LOG(Log::error, log_) << "Running DFT calculation" << std::flush;
   bool run_success = qmpackage_->Run();
   if (!run_success) {

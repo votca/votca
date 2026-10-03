@@ -89,13 +89,18 @@ void AOShell::normalizeContraction() {
 }
 
 AOShell::AOValues AOShell::EvalAOspace(const Eigen::Vector3d& grid_pos) const {
+  AOShell::AOValues AO(getNumFunc());
+  EvalAOspace(grid_pos, AO.values, AO.derivatives);
+  return AO;
+}
+
+void AOShell::EvalAOspace(const Eigen::Vector3d& grid_pos,
+                          Eigen::Ref<Eigen::VectorXd> AOvalues,
+                          AODerivativeBlock gradAOvalues) const {
 
   // need position of shell
   const Eigen::Vector3d center = (grid_pos - pos_);
   const double distsq = center.squaredNorm();
-  AOShell::AOValues AO(getNumFunc());
-  Eigen::VectorXd& AOvalues = AO.values;
-  Eigen::MatrixX3d& gradAOvalues = AO.derivatives;
 
   // iterate over Gaussians in this shell
   for (const AOGaussianPrimitive& gaussian : gaussians_) {
@@ -300,7 +305,6 @@ AOShell::AOValues AOShell::EvalAOspace(const Eigen::Vector3d& grid_pos) const {
         break;
     }
   }  // contractions
-  return AO;
 }
 
 AOShell::AOValuesHessian AOShell::EvalAOspaceHessian(

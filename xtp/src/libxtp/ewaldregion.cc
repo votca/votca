@@ -357,39 +357,38 @@ Eigen::VectorXd EwaldRegion::PotentialAt(
   const double t_recip = seconds_since(t_recip_start);
   auto t_corr_start = Clock::now();
 
-  // Shape and the erf removal share a unit probe per point. Neither
-  // walks a neighbour list, so both are cheap enough to evaluate through
-  // the existing energy routines rather than re-deriving them here --
-  // which also keeps them in the same gauge by construction.
   const Index n_points = Index(points.size());
-  const std::vector<const PolarSite*> no_exclusions;
+
+  // Shape term: depends on the point only through its position relative to
+  // the background's moments, which are computed once.
+  phi += shape_->PotentialAtMany(points, EwaldChargeState::Neutral);
+
+  // Remove the erf-screened half of the neutral foreground copies that the
+  // reciprocal sum necessarily put back -- the same copies, with the same
+  // shift, as step (4) of ApplyFieldTo. Their sites are flattened once.
+  struct ProbeSource {
+    Eigen::Vector3d pos;
+    double q;
+    Eigen::Vector3d mu;
+  };
+  std::vector<ProbeSource> erf_sources;
+  for (const auto& copy : foreground_copies_) {
+    const PolarSegment& bg =
+        registry_.Get(copy.first, EwaldChargeState::Neutral);
+    const Eigen::Vector3d shift = copy.second - Centroid(bg);
+    for (const PolarSite& source : bg) {
+      erf_sources.push_back(
+          {source.getPos() + shift, source.getCharge(),
+           source.getStaticDipole() + source.getInducedDipole()});
+    }
+  }
 #pragma omp parallel for schedule(static)
   for (Index p = 0; p < n_points; ++p) {
-    PolarSite probe(0, "H", points[std::size_t(p)]);
-    probe.Reset();
-    probe.setCharge(1.0);
-    probe.setStaticDipole(Eigen::Vector3d::Zero());
-    probe.setInduced_Dipole(Eigen::Vector3d::Zero());
-    const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> one{
-        {&probe, points[std::size_t(p)]}};
-
-    double extra = shape_->CalcStaticEnergyBetween(one, no_exclusions,
-                                                   EwaldChargeState::Neutral) +
-                   shape_->CalcInducedSourceEnergyBetween(
-                       one, no_exclusions, EwaldChargeState::Neutral);
-
-    // Remove the erf-screened half of the neutral foreground copies that
-    // the reciprocal sum necessarily put back -- the same copies, with
-    // the same shift, as step (4) of ApplyFieldTo.
-    for (const auto& copy : foreground_copies_) {
-      const PolarSegment& bg =
-          registry_.Get(copy.first, EwaldChargeState::Neutral);
-      const Eigen::Vector3d shift = copy.second - Centroid(bg);
-      for (const PolarSite& source : bg) {
-        extra -= interactor_->CalcErfStaticEnergy<PolarSite, PolarSite>(
-            source, probe, shift);
-        extra -= interactor_->CalcErfInducedSourceEnergy(source, probe, shift);
-      }
+    const Eigen::Vector3d& point = points[std::size_t(p)];
+    double extra = 0.0;
+    for (const ProbeSource& source : erf_sources) {
+      extra -=
+          interactor_->ErfPotential(source.q, source.mu, point - source.pos);
     }
     phi[p] += extra;
   }

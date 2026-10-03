@@ -56,6 +56,7 @@ bool XTPDFT::RunDFT() {
   DFTEngine xtpdft;
   xtpdft.Initialize(options_);
   xtpdft.setLogger(pLog_);
+  xtpdft.setWarmStart(warm_start_);
 
   if (!externalsites_.empty()) {
     xtpdft.setExternalcharges(&externalsites_);

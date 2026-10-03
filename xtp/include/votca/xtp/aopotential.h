@@ -75,9 +75,20 @@ class AOMultipole : public AOPotential<double> {
                  const AOShell& shell_col) const override;
 
  private:
-  void setSite(const StaticSite* site) { site_ = site; };
+  // What FillBlock needs of a site, prepared once per site rather than per
+  // primitive pair.
+  struct SiteData {
+    Eigen::Vector3d pos;
+    Index rank;
+    double charge;
+    Eigen::Vector3d dipole;
+    Eigen::Matrix3d quadrupole;  // 1.5 * cartesian quadrupole
+  };
+  void setSites(const std::vector<const StaticSite*>& sites);
 
-  const StaticSite* site_;
+  // FillBlock returns the summed potential integrals of all these sites, so
+  // one pass over the shell pairs handles any number of sites.
+  std::vector<SiteData> sites_;
 };
 
 class AOPlanewave : public AOPotential<std::complex<double>> {
