@@ -19,6 +19,7 @@
 #define BOOST_TEST_MODULE dfttimings_test
 
 // Standard includes
+#include <chrono>
 #include <sstream>
 #include <thread>
 #include <utility>
@@ -52,22 +53,34 @@ std::pair<long, double> ReportedRow(const std::string& report,
 }  // namespace
 
 // Each entry holds its own time only: nested scopes and added time are taken
-// out of the enclosing scope, so nothing is counted twice.
+// out of the enclosing scope, so nothing is counted twice. The expected
+// values are measured around the scopes rather than taken from the sleep
+// durations: sleep_for may oversleep a lot on a loaded machine (CI runners).
 BOOST_AUTO_TEST_CASE(nested_scopes_are_counted_once) {
+  using Clock = std::chrono::steady_clock;
+  auto Seconds = [](Clock::time_point from, Clock::time_point to) {
+    return std::chrono::duration<double>(to - from).count();
+  };
   DFTTimings timings;
   timings.Reset();
+  double inner_measured = 0.0;
+  double outer_measured = 0.0;
   {
-    auto outer = timings.Measure("outer");
-    Sleep(0.05);
+    const Clock::time_point outer_start = Clock::now();
     {
-      auto inner = timings.Measure("inner");
-      Sleep(0.10);
+      auto outer = timings.Measure("outer");
+      Sleep(0.05);
+      for (int i = 0; i < 2; ++i) {
+        const Clock::time_point start = Clock::now();
+        {
+          auto inner = timings.Measure("inner");
+          Sleep(0.10);
+        }
+        inner_measured += Seconds(start, Clock::now());
+      }
+      timings.Add("added", 0.03);
     }
-    {
-      auto inner = timings.Measure("inner");
-      Sleep(0.10);
-    }
-    timings.Add("added", 0.03);
+    outer_measured = Seconds(outer_start, Clock::now());
   }
 
   Logger log;
@@ -77,10 +90,17 @@ BOOST_AUTO_TEST_CASE(nested_scopes_are_counted_once) {
   ss << log;
   const std::string report = ss.str();
 
-  // outer: own 0.05 s, minus the 0.03 s added inside it
+  // The report prints 2 decimals; the measured intervals enclose the scopes,
+  // so they can only be slightly longer than what the scopes record.
+  const double tolerance = 0.006 + 0.01;
   BOOST_CHECK_EQUAL(ReportedRow(report, "inner").first, 2);
-  BOOST_CHECK_CLOSE(ReportedRow(report, "inner").second, 0.20, 15);
-  BOOST_CHECK_SMALL(ReportedRow(report, "outer").second - 0.02, 0.02);
+  const double inner = ReportedRow(report, "inner").second;
+  BOOST_CHECK_GE(inner, 0.20 - 0.006);
+  BOOST_CHECK_SMALL(inner - inner_measured, tolerance);
+  // outer: its own time, without the inner scopes and the 0.03 s added
+  const double outer = ReportedRow(report, "outer").second;
+  BOOST_CHECK_SMALL(outer - (outer_measured - inner_measured - 0.03),
+                    tolerance);
   BOOST_CHECK_CLOSE(ReportedRow(report, "added").second, 0.03, 1);
 }
 
