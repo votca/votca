@@ -219,7 +219,9 @@ Eigen::MatrixXd ERIs::ExchangeFromFactors(const Eigen::MatrixXd& factors,
     }
     flush();
 #pragma omp critical
-    { EXX.triangularView<Eigen::Lower>() += local; }
+    {
+      EXX.triangularView<Eigen::Lower>() += local;
+    }
   }
   return EXX.selfadjointView<Eigen::Lower>();
 }
