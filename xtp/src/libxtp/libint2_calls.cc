@@ -18,7 +18,9 @@
  */
 
 // Standard includes
+#include <algorithm>
 #include <chrono>
+#include <numeric>
 
 // Local VOTCA includes
 #include "votca/xtp/ERIs.h"
@@ -451,7 +453,56 @@ template std::array<Eigen::MatrixXd, 2> ERIs::Compute4c<true>(
 template std::array<Eigen::MatrixXd, 2> ERIs::Compute4c<false>(
     const Eigen::MatrixXd& dmat, double error) const;
 
-void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
+std::vector<std::vector<Index>> TCMatrix_dft::SignificantPairs(
+    const AOBasis& dftbasis, const Eigen::MatrixXd& metric,
+    double pair_threshold) const {
+  const Index nshells = dftbasis.getNumofShells();
+  std::vector<std::vector<Index>> kept(nshells);
+  if (pair_threshold <= 0.0) {
+    for (Index a = 0; a < nshells; ++a) {
+      kept[a].resize(a + 1);
+      std::iota(kept[a].begin(), kept[a].end(), Index(0));
+    }
+    return kept;
+  }
+  // |(P|ab)| <= sqrt((P|P)) sqrt((ab|ab))
+  const double max_aux = std::sqrt(metric.diagonal().cwiseAbs().maxCoeff());
+  const Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] =
+      libint2::Engine(libint2::Operator::coulomb, dftbasis.getMaxNprim(),
+                      static_cast<int>(dftbasis.getMaxL()), 0, 0.0);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+  const std::vector<libint2::Shell> shells = dftbasis.GenerateLibintBasis();
+#pragma omp parallel for schedule(dynamic)
+  for (Index a = nshells - 1; a >= 0; --a) {
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    for (Index b = 0; b < a; ++b) {
+      engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xx_xx, 0>(
+          shells[a], shells[b], shells[a], shells[b]);
+      if (buf[0] == nullptr) {
+        continue;
+      }
+      const Index n = Index(shells[a].size() * shells[b].size());
+      const double schwarz =
+          std::sqrt(Eigen::Map<const Eigen::MatrixXd>(buf[0], n, n)
+                        .cwiseAbs()
+                        .maxCoeff());
+      if (max_aux * schwarz >= pair_threshold) {
+        kept[a].push_back(b);
+      }
+    }
+    kept[a].push_back(a);  // diagonal shell pairs are always kept
+  }
+  return kept;
+}
+
+void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
+                        double pair_threshold, Index build_columns) {
+  std::vector<std::vector<Index>> kept;
   {
     auto metric_start = std::chrono::steady_clock::now();
     AOCoulomb auxAOcoulomb;
@@ -461,17 +512,50 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
     metric_seconds_ = std::chrono::duration<double>(
                           std::chrono::steady_clock::now() - metric_start)
                           .count();
+    kept = SignificantPairs(dftbasis, auxAOcoulomb.Matrix(), pair_threshold);
   }
-  matrix_ = std::vector<Symmetric_Matrix>(auxbasis.AOBasisSize());
+  SetupLayout(dftbasis, kept);
+  const Index naux = auxbasis.AOBasisSize();
+  // every stored entry is written below
+  data_.resize(
+      Index(runs_.empty() ? 0 : runs_.back().offset + runs_.back().length),
+      naux);
 
-#pragma omp parallel for schedule(dynamic, 4)
-  for (Index i = 0; i < auxbasis.AOBasisSize(); i++) {
-    matrix_[i] = Symmetric_Matrix(dftbasis.AOBasisSize());
+  const std::vector<Index> shell2bf = dftbasis.getMapToBasisFunctions();
+  const std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
+  const std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
+  const std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
+
+  // Work unit: shell a with the kept shells kept[a][first, last). Its pair
+  // columns are built for all aux functions at once, at most about
+  // build_columns of them, which bounds the scratch memory per thread.
+  struct Unit {
+    Index a;
+    Index first;
+    Index last;
+  };
+  std::vector<Unit> units;
+  Index max_rows = 0;
+  for (Index a = dftbasis.getNumofShells() - 1; a >= 0; --a) {
+    const Index na = Index(dftshells[a].size());
+    Index first = 0;
+    while (first < Index(kept[a].size())) {
+      Index last = first;
+      Index rows = 0;
+      while (last < Index(kept[a].size()) &&
+             (last == first ||
+              rows + na * Index(dftshells[kept[a][last]].size()) <=
+                  build_columns)) {
+        rows += na * Index(dftshells[kept[a][last]].size());
+        ++last;
+      }
+      max_rows = std::max(max_rows, rows);
+      units.push_back({a, first, last});
+      first = last;
+    }
   }
 
-  Index nthreads = OPENMP::getMaxThreads();
-  std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
-  std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
+  const Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Engine> engines(nthreads);
   engines[0] = libint2::Engine(
       libint2::Operator::coulomb,
@@ -482,65 +566,84 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
     engines[i] = engines[0];
   }
 
-  std::vector<Index> shell2bf = dftbasis.getMapToBasisFunctions();
-  std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
-
-#pragma omp parallel for schedule(dynamic)
-  for (Index is = dftbasis.getNumofShells() - 1; is >= 0; is--) {
-
+#pragma omp parallel
+  {
     libint2::Engine& engine = engines[OPENMP::getThreadId()];
     const libint2::Engine::target_ptr_vec& buf = engine.results();
-    const libint2::Shell& dftshell = dftshells[is];
-    Index start = shell2bf[is];
-    std::vector<Eigen::MatrixXd> block(dftshell.size());
-    for (Index i = 0; i < Index(dftshell.size()); i++) {
-      Index size = start + i + 1;
-      block[i] = Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), size);
-    }
+    // rows: pair columns (nu, mu) of the unit, columns: aux functions
+    Eigen::MatrixXd raw(max_rows, naux);
+    Eigen::MatrixXd transformed(max_rows, naux);
+    std::vector<Index> row_start;
+    std::vector<Index> chunk_pos;
 
-    for (Index aux = 0; aux < auxbasis.getNumofShells(); aux++) {
-      const libint2::Shell& auxshell = auxshells[aux];
-      Index aux_start = auxshell2bf[aux];
+#pragma omp for schedule(dynamic)
+    for (Index u = 0; u < Index(units.size()); ++u) {
+      const Unit& unit = units[u];
+      const libint2::Shell& shell_a = dftshells[unit.a];
+      const Index na = Index(shell_a.size());
+      const Index start_a = shell2bf[unit.a];
+      const bool has_diagonal = kept[unit.a][unit.last - 1] == unit.a;
 
-      for (Index dis = 0; dis <= is; dis++) {
+      // position of each kept shell in the unit's part of a column
+      chunk_pos.assign(1, 0);
+      for (Index k = unit.first; k < unit.last; ++k) {
+        chunk_pos.push_back(chunk_pos.back() +
+                            Index(dftshells[kept[unit.a][k]].size()));
+      }
+      const Index width = chunk_pos.back();
+      // column mu = start_a + i holds width rows, fewer on the diagonal
+      row_start.assign(1, 0);
+      for (Index i = 0; i < na; ++i) {
+        const Index len = has_diagonal ? width - (na - i - 1) : width;
+        row_start.push_back(row_start.back() + len);
+      }
+      const Index rows = row_start.back();
+      raw.topRows(rows).setZero();
 
-        const libint2::Shell& shell_col = dftshells[dis];
-        Index col_start = shell2bf[dis];
-        engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 0>(
-            auxshell, libint2::Shell::unit(), dftshell, shell_col);
-
-        if (buf[0] == nullptr) {
-          continue;
-        }
-        Eigen::TensorMap<Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-            result(buf[0], auxshell.size(), dftshell.size(), shell_col.size());
-
-        for (size_t left = 0; left < dftshell.size(); left++) {
-          for (size_t auxf = 0; auxf < auxshell.size(); auxf++) {
-            for (size_t col = 0; col < shell_col.size(); col++) {
-              // symmetry
-              if ((col_start + col) > (start + left)) {
-                break;
+      for (Index aux = 0; aux < Index(auxshells.size()); ++aux) {
+        const libint2::Shell& auxshell = auxshells[aux];
+        const Index aux_start = auxshell2bf[aux];
+        for (Index k = unit.first; k < unit.last; ++k) {
+          const Index b = kept[unit.a][k];
+          const libint2::Shell& shell_b = dftshells[b];
+          engine
+              .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 0>(
+                  auxshell, libint2::Shell::unit(), shell_a, shell_b);
+          if (buf[0] == nullptr) {
+            continue;
+          }
+          Eigen::TensorMap<
+              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+              result(buf[0], auxshell.size(), shell_a.size(), shell_b.size());
+          const Index nb = Index(shell_b.size());
+          const Index pos = chunk_pos[k - unit.first];
+          for (Index i = 0; i < na; ++i) {
+            // nu <= mu
+            const Index ncol = (b == unit.a) ? std::min(nb, i + 1) : nb;
+            for (Index c = 0; c < ncol; ++c) {
+              for (Index f = 0; f < Index(auxshell.size()); ++f) {
+                raw(row_start[i] + pos + c, aux_start + f) = result(f, i, c);
               }
-              block[left](aux_start + auxf, col_start + col) =
-                  result(auxf, left, col);
             }
           }
         }
       }
-    }
 
-    for (Index i = 0; i < Index(block.size()); ++i) {
-      Eigen::MatrixXd temp = inv_sqrt_ * block[i];
-      for (Index mu = 0; mu < temp.rows(); ++mu) {
-        for (Index j = 0; j < temp.cols(); ++j) {
-          matrix_[mu](i + start, j) = temp(mu, j);
-        }
+      // B_P = sum_Q V^-1/2_PQ (Q|..)
+      transformed.topRows(rows).noalias() =
+          raw.topRows(rows) * inv_sqrt_.transpose();
+      // unit rows of column mu continue the column after the shells before
+      Index before = 0;
+      for (Index k = 0; k < unit.first; ++k) {
+        before += Index(dftshells[kept[unit.a][k]].size());
+      }
+      for (Index i = 0; i < na; ++i) {
+        const Index len = row_start[i + 1] - row_start[i];
+        data_.block(col_offset_[start_a + i] + before, 0, len, naux) =
+            transformed.middleRows(row_start[i], len);
       }
     }
   }
-
-  return;
 }
 
 /*

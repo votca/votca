@@ -291,6 +291,8 @@ void DFTEngine::Initialize(tools::Property& options) {
       key_xtpdft + ".convergence.energy_reset", 1.0);
   overlap_tolerance_ = options.ifExistsReturnElseReturnDefault<double>(
       key_xtpdft + ".overlap_tolerance", 1e-8);
+  ri_pair_threshold_ = options.ifExistsReturnElseReturnDefault<double>(
+      key_xtpdft + ".ri_pair_threshold", 1e-10);
 
   if (options.exists(key_xtpdft + ".dft_in_dft.activeatoms")) {
     active_atoms_as_string_ =
@@ -901,8 +903,11 @@ void DFTEngine::ReportDimensionsAndMemory() const {
       << std::flush;
   if (!auxbasis_name_.empty()) {
     const double naux = double(ERIs_.AuxSize());
-    // one packed symmetric N x N matrix per aux function
-    const double tensor = naux * n * (n + 1) / 2 * sizeof(double) / gb;
+    // the stored basis-function pairs for every aux function
+    const double tensor =
+        naux * double(ERIs_.StoredPairs()) * sizeof(double) / gb;
+    const double kept = double(ERIs_.StoredPairs()) /
+                        double(std::max<Index>(1, ERIs_.AllPairs()));
     // per thread: the OpenMP reduction copy of J or K, and for K the
     // unpacked 3c slice plus the product temporaries
     const double scratch = threads * 4 * n * n * sizeof(double) / gb;
@@ -910,8 +915,9 @@ void DFTEngine::ReportDimensionsAndMemory() const {
         << TimeStamp() << " RI: " << ERIs_.AuxSize() << " aux functions ("
         << ERIs_.Removedfunctions()
         << " removed from the metric); stored 3c tensor "
-        << std::setprecision(3) << tensor << " GB; J/K scratch up to about "
-        << scratch << " GB" << std::flush;
+        << std::setprecision(3) << tensor << " GB (" << 100.0 * kept
+        << "% of the pairs at ri_pair_threshold " << ri_pair_threshold_
+        << "); J/K scratch up to about " << scratch << " GB" << std::flush;
   }
   double rss = DFTTimings::ResidentMemoryGB(false);
   if (rss >= 0) {
@@ -2054,7 +2060,7 @@ void DFTEngine::SetupInvariantMatrices() {
   if (!auxbasis_name_.empty()) {
     // prepare invariant part of electron repulsion integrals
     auto ri_start = DFTTimings::Clock::now();
-    ERIs_.Initialize(dftbasis_, auxbasis_);
+    ERIs_.Initialize(dftbasis_, auxbasis_, ri_pair_threshold_);
     double ri_seconds =
         std::chrono::duration<double>(DFTTimings::Clock::now() - ri_start)
             .count();
@@ -2081,6 +2087,266 @@ void DFTEngine::SetupInvariantMatrices() {
 }
 
 namespace {
+// Spherically averaged atom SCF used for the atomic guess and the
+// Hirshfeld reference densities.
+//
+// Averaged over rotations, an operator on one atom keeps, between two
+// shells of equal l, (trace / (2l+1)) times the identity and nothing
+// between different l. The averaged problem therefore separates into one
+// small "radial" problem per l over the shells of that l, whose levels are
+// (2l+1)-fold degenerate. Electrons are filled into these levels by aufbau;
+// a partly filled level holds them spread evenly over its 2l+1 components.
+// The density is spherical by construction, so there is no orientation of
+// a partly filled shell to choose and no symmetry breaking to converge
+// through (with integer occupation of the individual orbitals, an open p
+// or d shell made the SCF stall or oscillate).
+class SphericalAtomSCF {
+ public:
+  explicit SphericalAtomSCF(const AOBasis& basis) : n_(basis.AOBasisSize()) {
+    for (const AOShell& shell : basis) {
+      const Index l = static_cast<Index>(shell.getL());
+      Index g = 0;
+      while (g < Index(l_.size()) && l_[g] != l) {
+        ++g;
+      }
+      if (g == Index(l_.size())) {
+        l_.push_back(l);
+        starts_.emplace_back();
+      }
+      starts_[g].push_back(shell.getStartIndex());
+    }
+  }
+
+  Index Groups() const { return Index(l_.size()); }
+
+  /// Radial matrix of group g: trace of each shell block / (2l+1).
+  Eigen::MatrixXd Reduce(const Eigen::MatrixXd& full, Index g) const {
+    const std::vector<Index>& st = starts_[g];
+    const Index size = 2 * l_[g] + 1;
+    Eigen::MatrixXd red(st.size(), st.size());
+    for (Index i = 0; i < Index(st.size()); ++i) {
+      for (Index j = 0; j < Index(st.size()); ++j) {
+        red(i, j) = full.block(st[i], st[j], size, size).trace() / double(size);
+      }
+    }
+    return red;
+  }
+
+  /// Full matrix from radial matrices: red_g(i,j) times the identity on
+  /// every shell block of group g, zero elsewhere.
+  Eigen::MatrixXd Expand(const std::vector<Eigen::MatrixXd>& red) const {
+    Eigen::MatrixXd full = Eigen::MatrixXd::Zero(n_, n_);
+    for (Index g = 0; g < Groups(); ++g) {
+      const std::vector<Index>& st = starts_[g];
+      const Index size = 2 * l_[g] + 1;
+      for (Index i = 0; i < Index(st.size()); ++i) {
+        for (Index j = 0; j < Index(st.size()); ++j) {
+          full.block(st[i], st[j], size, size)
+              .diagonal()
+              .setConstant(red[g](i, j));
+        }
+      }
+    }
+    return full;
+  }
+
+  /// Radial density matrices: occupation(k) electrons in the k-th lowest
+  /// level of group g, spread evenly over its 2l+1 components.
+  std::vector<Eigen::MatrixXd> Density(
+      const std::vector<Eigen::MatrixXd>& fock,
+      const std::vector<Eigen::MatrixXd>& overlap,
+      const std::vector<Eigen::VectorXd>& occupation) const {
+    std::vector<Eigen::MatrixXd> dens(Groups());
+    for (Index g = 0; g < Groups(); ++g) {
+      Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> es(fock[g],
+                                                                   overlap[g]);
+      const Index nocc = occupation[g].size();
+      const Eigen::MatrixXd c = es.eigenvectors().leftCols(nocc);
+      dens[g] = c * (occupation[g] / double(2 * l_[g] + 1)).asDiagonal() *
+                c.transpose();
+    }
+    return dens;
+  }
+
+  /// Aufbau occupation of nelectrons over the levels of all groups, a level
+  /// holding up to 2l+1 electrons; used if no configuration is available.
+  std::vector<Eigen::VectorXd> AufbauOccupation(
+      const std::vector<Eigen::MatrixXd>& fock,
+      const std::vector<Eigen::MatrixXd>& overlap, double nelectrons) const {
+    struct Level {
+      double energy;
+      Index group;
+      Index index;
+    };
+    std::vector<Level> levels;
+    std::vector<Eigen::VectorXd> occ(Groups());
+    for (Index g = 0; g < Groups(); ++g) {
+      Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> es(
+          fock[g], overlap[g], Eigen::EigenvaluesOnly);
+      occ[g] = Eigen::VectorXd::Zero(es.eigenvalues().size());
+      for (Index k = 0; k < es.eigenvalues().size(); ++k) {
+        levels.push_back({es.eigenvalues()(k), g, k});
+      }
+    }
+    std::stable_sort(
+        levels.begin(), levels.end(),
+        [](const Level& a, const Level& b) { return a.energy < b.energy; });
+    double left = nelectrons;
+    for (const Level& lev : levels) {
+      const double take = std::clamp(left, 0.0, double(2 * l_[lev.group] + 1));
+      occ[lev.group](lev.index) = take;
+      left -= take;
+    }
+    return occ;
+  }
+
+  /// Occupation per group and level from subshell occupations (l, k-th
+  /// level of that l, electrons of one spin); false if the basis has no
+  /// such level.
+  bool OccupationFromSubshells(
+      const std::vector<std::array<double, 3>>& subshells,
+      const std::vector<Eigen::MatrixXd>& overlap,
+      std::vector<Eigen::VectorXd>& occ) const {
+    occ.assign(Groups(), Eigen::VectorXd());
+    for (Index g = 0; g < Groups(); ++g) {
+      occ[g] = Eigen::VectorXd::Zero(overlap[g].rows());
+    }
+    for (const auto& sub : subshells) {
+      const Index l = Index(sub[0]);
+      const Index k = Index(sub[1]);
+      Index g = 0;
+      while (g < Groups() && l_[g] != l) {
+        ++g;
+      }
+      if (g == Groups() || k >= occ[g].size()) {
+        return false;
+      }
+      occ[g](k) += sub[2];
+    }
+    return true;
+  }
+
+ private:
+  Index n_;
+  std::vector<Index> l_;
+  std::vector<std::vector<Index>> starts_;
+};
+
+// Pulay DIIS on a flattened Fock vector with a flattened error vector.
+class SimpleDIIS {
+ public:
+  explicit SimpleDIIS(Index maxhist) : maxhist_(maxhist) {}
+
+  Eigen::VectorXd Extrapolate(const Eigen::VectorXd& fock,
+                              const Eigen::VectorXd& error) {
+    focks_.push_back(fock);
+    errors_.push_back(error);
+    if (Index(focks_.size()) > maxhist_) {
+      focks_.erase(focks_.begin());
+      errors_.erase(errors_.begin());
+    }
+    const Index m = Index(focks_.size());
+    if (m < 2) {
+      return fock;
+    }
+    Eigen::MatrixXd b = Eigen::MatrixXd::Zero(m + 1, m + 1);
+    for (Index i = 0; i < m; ++i) {
+      for (Index j = 0; j <= i; ++j) {
+        b(i, j) = b(j, i) = errors_[i].dot(errors_[j]);
+      }
+      b(i, m) = b(m, i) = -1.0;
+    }
+    // Scale the error overlaps to order one: near convergence they are
+    // ~1e-12 next to the -1 constraint entries, and a rank-revealing solver
+    // would treat the whole block as zero (the extrapolation then stalls).
+    // The scale only changes the Lagrange multiplier, not the coefficients.
+    const double scale = b.topLeftCorner(m, m).diagonal().maxCoeff();
+    if (scale > 0.0) {
+      b.topLeftCorner(m, m) /= scale;
+    }
+    Eigen::VectorXd rhs = Eigen::VectorXd::Zero(m + 1);
+    rhs(m) = -1.0;
+    const Eigen::VectorXd x = b.colPivHouseholderQr().solve(rhs);
+    if (!x.allFinite()) {
+      return fock;
+    }
+    Eigen::VectorXd result = Eigen::VectorXd::Zero(fock.size());
+    for (Index i = 0; i < m; ++i) {
+      result += x(i) * focks_[i];
+    }
+    return result;
+  }
+
+ private:
+  Index maxhist_;
+  std::vector<Eigen::VectorXd> focks_;
+  std::vector<Eigen::VectorXd> errors_;
+};
+
+// Valence subshells of a neutral atom for the spherical atom SCF, as
+// {l, k, alpha electrons, beta electrons}, k counting the subshells of that
+// l from the lowest valence one. Subshells are filled by the Madelung (n+l,
+// then n) rule; the ncore electrons an ECP replaces are taken from the
+// lowest subshells in (n, l) order (def2: 28 = 1s-3d, 46, 60 = up to 4f,
+// ...). Every subshell holds alpha and beta electrons equally except that
+// alpha - beta = nalpha - nbeta is put into the open subshells, highest
+// first. Empty if the ECP core does not end at a subshell boundary or the
+// spin difference does not fit.
+std::vector<std::array<double, 4>> ValenceConfiguration(Index z, Index ncore,
+                                                        Index nalpha,
+                                                        Index nbeta) {
+  struct Sub {
+    Index n;
+    Index l;
+    double electrons;
+  };
+  std::vector<Sub> subs;
+  Index left = z;
+  for (Index sum = 1; left > 0; ++sum) {
+    for (Index l = (sum - 1) / 2; l >= 0 && left > 0; --l) {
+      const Index take = std::min(left, 2 * (2 * l + 1));
+      subs.push_back({sum - l, l, double(take)});
+      left -= take;
+    }
+  }
+  std::stable_sort(subs.begin(), subs.end(), [](const Sub& a, const Sub& b) {
+    return a.n < b.n || (a.n == b.n && a.l < b.l);
+  });
+  Index removed = 0;
+  std::size_t first = 0;
+  while (first < subs.size() && removed < ncore) {
+    removed += Index(subs[first].electrons);
+    ++first;
+  }
+  if (removed != ncore) {
+    return {};
+  }
+  std::vector<std::array<double, 4>> result;
+  for (std::size_t i = first; i < subs.size(); ++i) {
+    Index k = 0;
+    for (std::size_t j = first; j < i; ++j) {
+      k += (subs[j].l == subs[i].l) ? 1 : 0;
+    }
+    result.push_back({double(subs[i].l), double(k), 0.5 * subs[i].electrons,
+                      0.5 * subs[i].electrons});
+  }
+  // spin polarisation into the open subshells, last filled first
+  double excess = 0.5 * double(nalpha - nbeta);
+  for (auto it = result.rbegin(); it != result.rend() && excess > 0.0; ++it) {
+    const double capacity = double(2 * Index((*it)[0]) + 1);
+    const double move = std::min(excess, capacity - (*it)[2]);
+    if (move > 0.0 && (*it)[3] >= move) {
+      (*it)[2] += move;
+      (*it)[3] -= move;
+      excess -= move;
+    }
+  }
+  if (excess > 1e-12) {
+    return {};
+  }
+  return result;
+}
+
 // Hund's-rule ground-state (alpha electrons, beta electrons) for the
 // main-group (s/p-block) elements most relevant to organic systems --
 // H through Kr, plus the heavier halogens (Br, I) via their own,
@@ -2209,32 +2475,31 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     ecp.Fill(ecps, atom);
   }
 
-  Index numofelectrons = uniqueAtom.getNuccharge();
+  // Electrons of the neutral atom that the basis describes: without the
+  // core an ECP replaces (ecp.Fill sets it on the atom in `atom`, not on
+  // uniqueAtom, which therefore must not be used here).
+  const Index z = uniqueAtom.getElementNumber();
+  const Index ncore = z - atom[0].getNuccharge();
+  const Index numofelectrons = atom[0].getNuccharge();
   Index alpha_e = 0;
   Index beta_e = 0;
 
-  // Deliberately opt-in, defaulting to false: this changes ONLY which
-  // total alpha/beta split is used for the reference atom's own SCF,
-  // not the SphericalAverageShells step below (kept unconditionally,
-  // for both modes) -- the existing SAD-initial-guess caller
-  // (AtomicGuess) is not changed at all by this parameter existing, and
-  // continues to use the simpler, parity-based split exactly as
-  // before. A physically correct free-atom ground state is not needed
-  // for a good SCF starting guess (the molecule's own overall spin
-  // state, and the SCF that follows, will reshape this regardless);
-  // it matters for the promolecular reference densities Hirshfeld-based
-  // CDFT will need instead, which is what this parameter exists for.
+  // Total alpha/beta split. The SAD guess (AtomicGuess) uses the
+  // parity-based split; the Hirshfeld reference densities of CDFT ask for
+  // the Hund's-rule ground state (use_hunds_rule_occupation). Either way
+  // the atom is spherical and its open subshells fractionally occupied.
   if (use_hunds_rule_occupation) {
-    auto hunds_rule = HundsRuleAlphaBetaElectrons(numofelectrons);
+    auto hunds_rule = HundsRuleAlphaBetaElectrons(z);
     if (hunds_rule.has_value()) {
-      alpha_e = hunds_rule->first;
-      beta_e = hunds_rule->second;
+      // the ECP core is closed-shell
+      alpha_e = hunds_rule->first - ncore / 2;
+      beta_e = hunds_rule->second - ncore / 2;
     } else {
       XTP_LOG(Log::warning, *pLog_)
           << TimeStamp()
           << " No Hund's-rule ground-state occupation table "
              "entry for nuclear charge "
-          << numofelectrons
+          << z
           << " (d/f-block elements are not covered -- see "
              "HundsRuleAlphaBetaElectrons's own comment for why) -- "
              "falling back to the simpler, parity-based alpha/beta split."
@@ -2264,160 +2529,216 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   dftAOESP.FillPotential(dftbasis, atom);
   ERIs_atom.Initialize_4c(dftbasis);
 
-  UKSConvergenceAcc conv_uks;
-  ConvergenceAcc::options opt_alpha = conv_opt_;
-  opt_alpha.mode = ConvergenceAcc::KSmode::open;
-  opt_alpha.histlength = 20;
-  opt_alpha.levelshift = 0.1;
-  opt_alpha.levelshiftend = 0.0;
-  opt_alpha.usediis = true;
-  // adiis_start/diis_start deliberately NOT overridden here (previously
-  // both hardcoded to 0.0) -- confirmed via ConvergenceAcc::Iterate's
-  // own gating logic (the "diiserror_ < opt_.adiis_start ||
-  // diiserror_ < opt_.diis_start" check) that 0.0 makes this condition
-  // permanently false, since diiserror_ is a norm and can never be
-  // negative. That silently disabled BOTH DIIS and ADIIS for the
-  // entire atomic SCF regardless of usediis=true just above -- an
-  // internal inconsistency, not an intentional design choice -- and is
-  // the likely root cause of this function's own, separately reported
-  // slow convergence (falling back to plain, level-shift-damped linear
-  // mixing every single iteration, with no (A)DIIS extrapolation ever
-  // actually applied). Inheriting these two fields from conv_opt_
-  // (already the base for opt_alpha above, via "= conv_opt_") matches
-  // the main UKS SCF path's own behavior, which never overrides them
-  // at all.
-  opt_alpha.numberofelectrons = alpha_e;
-
-  ConvergenceAcc::options opt_beta = opt_alpha;
-  opt_beta.numberofelectrons = beta_e;
-
-  Logger log;
-  // Single, shared accelerator -- previously two fully independent
-  // ConvergenceAcc instances (Convergence_alpha, Convergence_beta),
-  // each with its own separate DIIS history/error tracking/coefficient
-  // calculation, with no coupling between the two spin channels at
-  // all. The main UKS SCF path (DFTEngine::EvaluateUKS) instead uses
-  // exactly this UKSConvergenceAcc class, which builds ONE combined
-  // error metric from both spin channels together and applies a
-  // single, jointly-derived set of (A)DIIS coefficients to both --
-  // confirmed directly from uks_convergenceacc.cc's own comment ("one
-  // shared DIIS/ADIIS history length") and its Iterate()'s own
-  // "diis_.Update(drop, err_alpha, err_beta)" call. This is
-  // the standard, textbook-correct formulation of UKS DIIS; the
-  // previous two-independent-accelerators approach was not wrong in
-  // the sense of being internally inconsistent (unlike the
-  // adiis_start/diis_start bug above), but it let each spin channel's
-  // extrapolation disagree with the other's, which is not how UKS DIIS
-  // is meant to work.
-  conv_uks.Configure(opt_alpha, opt_beta);
-  conv_uks.setLogger(&log);
-  conv_uks.setOverlap(dftAOoverlap, overlap_tolerance_);
-
   Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.Matrix();
   if (with_ecp) {
     dftAOECP.FillPotential(dftbasis, ecp);
     H0 += dftAOECP.Matrix();
   }
 
-  tools::EigenSystem MOs_alpha = conv_uks.SolveFockmatrix(H0);
-
   if (uniqueAtom.getElement() == "H") {
-    // H has no beta electrons at all (beta_e=0 above) -- nocclevels_beta_
-    // will be 0 once Configure() runs, and
-    // DensityMatrixGroundState_unres already returns a zero matrix
-    // whenever nocclevels==0 regardless of what MOs are passed in, so
-    // reusing MOs_alpha as a dummy beta argument here is safe: only
-    // Dspin_H.alpha is ever used below.
-    UKSConvergenceAcc::SpinDensity Dspin_H =
-        conv_uks.DensityMatrix(MOs_alpha, MOs_alpha);
-    return Dspin_H.alpha;
+    // One electron: the lowest orbital of H0, as before.
+    Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> es(
+        H0, dftAOoverlap.Matrix());
+    const Eigen::VectorXd c = es.eigenvectors().col(0);
+    return c * c.transpose();
   }
 
-  tools::EigenSystem MOs_beta = conv_uks.SolveFockmatrix(H0);
-  UKSConvergenceAcc::SpinDensity Dspin =
-      conv_uks.DensityMatrix(MOs_alpha, MOs_beta);
+  // Spherically averaged SCF with fractional occupation of open shells
+  // (see SphericalAtomSCF).
+  const SphericalAtomSCF sph(dftbasis);
+  const Index ngroups = sph.Groups();
+  using Radial = std::vector<Eigen::MatrixXd>;
+  Radial S_red(ngroups);
+  Radial H0_red(ngroups);
+  // S^-1/2 of each group, to measure the error in an orthonormal basis
+  Radial X_red(ngroups);
+  for (Index g = 0; g < ngroups; ++g) {
+    S_red[g] = sph.Reduce(dftAOoverlap.Matrix(), g);
+    H0_red[g] = sph.Reduce(H0, g);
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S_red[g]);
+    X_red[g] = es.eigenvectors() *
+               es.eigenvalues().cwiseInverse().cwiseSqrt().asDiagonal() *
+               es.eigenvectors().transpose();
+  }
 
-  Index maxiter = 80;
-  for (Index this_iter = 0; this_iter < maxiter; this_iter++) {
+  // Energy and averaged Fock matrices of the spin densities (radial)
+  struct State {
+    Radial Da, Db, Fa, Fb;
+    double energy = 0.0;
+  };
+  // from the functional, not ScaHFX_: that member is only set in SetupVxc,
+  // and this function is also called without it (Hirshfeld references, tests)
+  const double scahfx =
+      Vxc_Potential<Vxc_Grid>::getExactExchange(xc_functional_name_);
+  auto Build = [&](const Radial& Da, const Radial& Db) {
+    const Eigen::MatrixXd D_alpha = sph.Expand(Da);
+    const Eigen::MatrixXd D_beta = sph.Expand(Db);
+    const Eigen::MatrixXd D_total = D_alpha + D_beta;
     Eigen::MatrixXd H_alpha = H0;
     Eigen::MatrixXd H_beta = H0;
-
-    double E_coul = 0.0;
-    double E_exx = 0.0;
-    double E_xc = 0.0;
-
-    // Matches EvaluateUKS's own formula exactly (a single combined
-    // DIIS error now, not an average of two independent ones).
-    double integral_error = std::min(conv_uks.getDIIsError() * 1e-5, 1e-5);
-
-    if (ScaHFX_ > 0) {
+    double e_two = 0.0;
+    if (scahfx > 0) {
       std::array<Eigen::MatrixXd, 2> both_alpha =
-          ERIs_atom.CalculateERIs_EXX_4c(Dspin.alpha, integral_error);
+          ERIs_atom.CalculateERIs_EXX_4c(D_alpha, 1e-12);
       std::array<Eigen::MatrixXd, 2> both_beta =
-          ERIs_atom.CalculateERIs_EXX_4c(Dspin.beta, integral_error);
-
-      Eigen::MatrixXd Hartree = both_alpha[0] + both_beta[0];
-      H_alpha += Hartree + ScaHFX_ * both_alpha[1];
-      H_beta += Hartree + ScaHFX_ * both_beta[1];
-
-      E_coul = 0.5 * Dspin.total().cwiseProduct(Hartree).sum();
-      E_exx = 0.5 * ScaHFX_ *
-              (both_alpha[1].cwiseProduct(Dspin.alpha).sum() +
-               both_beta[1].cwiseProduct(Dspin.beta).sum());
+          ERIs_atom.CalculateERIs_EXX_4c(D_beta, 1e-12);
+      const Eigen::MatrixXd hartree = both_alpha[0] + both_beta[0];
+      H_alpha += hartree + scahfx * both_alpha[1];
+      H_beta += hartree + scahfx * both_beta[1];
+      e_two = 0.5 * D_total.cwiseProduct(hartree).sum() +
+              0.5 * scahfx *
+                  (both_alpha[1].cwiseProduct(D_alpha).sum() +
+                   both_beta[1].cwiseProduct(D_beta).sum());
     } else {
-      Eigen::MatrixXd Hartree =
-          ERIs_atom.CalculateERIs_4c(Dspin.total(), integral_error);
-      H_alpha += Hartree;
-      H_beta += Hartree;
-      E_coul = 0.5 * Dspin.total().cwiseProduct(Hartree).sum();
+      const Eigen::MatrixXd hartree =
+          ERIs_atom.CalculateERIs_4c(D_total, 1e-12);
+      H_alpha += hartree;
+      H_beta += hartree;
+      e_two = 0.5 * D_total.cwiseProduct(hartree).sum();
     }
-
-    auto vxc = gridIntegration.IntegrateVXCSpin(Dspin.alpha, Dspin.beta);
+    const auto vxc = gridIntegration.IntegrateVXCSpin(D_alpha, D_beta);
     H_alpha += vxc.vxc_alpha;
     H_beta += vxc.vxc_beta;
-    E_xc = vxc.energy;
-
-    double E_one_alpha = Dspin.alpha.cwiseProduct(H0).sum();
-    double E_one_beta = Dspin.beta.cwiseProduct(H0).sum();
-    double totenergy = E_one_alpha + E_one_beta + E_coul + E_exx + E_xc;
-
-    UKSConvergenceAcc::SpinFock Hspin{H_alpha, H_beta};
-    Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
-
-    XTP_LOG(Log::debug, *pLog_)
-        << TimeStamp() << " Iter " << this_iter << " of " << maxiter << " Etot "
-        << totenergy << " diise " << conv_uks.getDIIsError() << "\n\t\t a_gap "
-        << MOs_alpha.eigenvalues()(alpha_e) -
-               MOs_alpha.eigenvalues()(alpha_e - 1)
-        << " b_gap "
-        << MOs_beta.eigenvalues()(beta_e) - MOs_beta.eigenvalues()(beta_e - 1)
-        << " Nalpha=" << dftAOoverlap.Matrix().cwiseProduct(Dspin.alpha).sum()
-        << " Nbeta=" << dftAOoverlap.Matrix().cwiseProduct(Dspin.beta).sum()
-        << std::flush;
-
-    bool converged = conv_uks.isConverged();
-    if (converged || this_iter == maxiter - 1) {
-      if (converged) {
-        XTP_LOG(Log::info, *pLog_)
-            << TimeStamp() << " Converged after " << this_iter + 1
-            << " iterations" << std::flush;
-      } else {
-        XTP_LOG(Log::info, *pLog_)
-            << TimeStamp() << " Not converged after " << this_iter + 1
-            << " iterations. Unconverged density.\n\t\t\t"
-            << " DIIsError=" << conv_uks.getDIIsError() << std::flush;
-      }
-      break;
+    State st;
+    st.Da = Da;
+    st.Db = Db;
+    st.energy = D_total.cwiseProduct(H0).sum() + e_two + vxc.energy;
+    st.Fa.resize(ngroups);
+    st.Fb.resize(ngroups);
+    for (Index g = 0; g < ngroups; ++g) {
+      st.Fa[g] = sph.Reduce(H_alpha, g);
+      st.Fb[g] = sph.Reduce(H_beta, g);
+    }
+    return st;
+  };
+  // Fixed occupation of the valence subshells (Madelung configuration); an
+  // aufbau occupation that may change between iterations only if there is
+  // none for this atom and basis.
+  std::vector<Eigen::VectorXd> occ_alpha;
+  std::vector<Eigen::VectorXd> occ_beta;
+  bool fixed_occupation = false;
+  {
+    const std::vector<std::array<double, 4>> config =
+        ValenceConfiguration(z, ncore, alpha_e, beta_e);
+    std::vector<std::array<double, 3>> alpha_subshells;
+    std::vector<std::array<double, 3>> beta_subshells;
+    for (const auto& sub : config) {
+      alpha_subshells.push_back({sub[0], sub[1], sub[2]});
+      beta_subshells.push_back({sub[0], sub[1], sub[3]});
+    }
+    fixed_occupation =
+        !config.empty() &&
+        sph.OccupationFromSubshells(alpha_subshells, S_red, occ_alpha) &&
+        sph.OccupationFromSubshells(beta_subshells, S_red, occ_beta);
+    if (!fixed_occupation) {
+      XTP_LOG(Log::warning, *pLog_)
+          << TimeStamp() << " No subshell configuration for "
+          << uniqueAtom.getElement()
+          << " in this basis/ECP; atomic SCF uses aufbau occupation"
+          << std::flush;
     }
   }
+  auto Occupy = [&](const Radial& F, bool alpha) {
+    if (fixed_occupation) {
+      return sph.Density(F, S_red, alpha ? occ_alpha : occ_beta);
+    }
+    return sph.Density(
+        F, S_red,
+        sph.AufbauOccupation(F, S_red, double(alpha ? alpha_e : beta_e)));
+  };
+  // flattened Fock matrices and commutator errors F D S - S D F
+  auto Flatten = [&](const State& st, Eigen::VectorXd& fock,
+                     Eigen::VectorXd& error) {
+    Index total = 0;
+    for (Index g = 0; g < ngroups; ++g) {
+      total += 2 * st.Fa[g].size();
+    }
+    fock.resize(total);
+    error.resize(total);
+    Index pos = 0;
+    for (Index spin = 0; spin < 2; ++spin) {
+      const Radial& F = (spin == 0) ? st.Fa : st.Fb;
+      const Radial& D = (spin == 0) ? st.Da : st.Db;
+      for (Index g = 0; g < ngroups; ++g) {
+        const Eigen::MatrixXd fds = F[g] * D[g] * S_red[g];
+        const Eigen::MatrixXd err =
+            X_red[g] * (fds - fds.transpose()) * X_red[g];
+        const Index size = F[g].size();
+        fock.segment(pos, size) =
+            Eigen::Map<const Eigen::VectorXd>(F[g].data(), size);
+        error.segment(pos, size) =
+            Eigen::Map<const Eigen::VectorXd>(err.data(), size);
+        pos += size;
+      }
+    }
+  };
+  auto Unflatten = [&](const Eigen::VectorXd& fock, Radial& Fa, Radial& Fb) {
+    Index pos = 0;
+    for (Index spin = 0; spin < 2; ++spin) {
+      Radial& F = (spin == 0) ? Fa : Fb;
+      for (Index g = 0; g < ngroups; ++g) {
+        const Index rows = S_red[g].rows();
+        F[g] = Eigen::Map<const Eigen::MatrixXd>(fock.data() + pos, rows, rows);
+        pos += rows * rows;
+      }
+    }
+  };
 
-  Eigen::MatrixXd avgmatrix = SphericalAverageShells(Dspin.total(), dftbasis);
+  // Pulay DIIS on the averaged Fock matrices. With the occupation of each
+  // subshell fixed, the density is a smooth function of the Fock matrix and
+  // DIIS converges in about 5-15 iterations for H-Kr (including the 3d
+  // metals, where aufbau occupation flips between 4s and 3d).
+  State cur = Build(Occupy(H0_red, true), Occupy(H0_red, false));
+  SimpleDIIS diis(8);
+  const Index maxiter = 100;
+  // The molecule's tolerances, but not tighter than the atom needs as a
+  // starting density: 1e-7 is at the noise floor of the atomic integrals and
+  // grid for the 3d metals, where DIIS then stalls.
+  const double error_tolerance = std::max(conv_opt_.error_converged, 1e-6);
+  const double energy_tolerance = std::max(conv_opt_.Econverged, 1e-8);
+  double energy_old = cur.energy;
+  bool converged = false;
+  Index this_iter = 0;
+  for (; this_iter < maxiter; this_iter++) {
+    Eigen::VectorXd fock;
+    Eigen::VectorXd error;
+    Flatten(cur, fock, error);
+    const double max_error = error.cwiseAbs().maxCoeff();
+    XTP_LOG(Log::debug, *pLog_)
+        << TimeStamp() << " Iter " << this_iter << " of " << maxiter << " Etot "
+        << std::setprecision(12) << cur.energy << " error " << max_error
+        << std::flush;
+    if (this_iter > 0 && max_error < error_tolerance &&
+        std::abs(cur.energy - energy_old) < energy_tolerance) {
+      converged = true;
+      break;
+    }
+    energy_old = cur.energy;
+    Radial Fa(ngroups);
+    Radial Fb(ngroups);
+    Unflatten(diis.Extrapolate(fock, error), Fa, Fb);
+    cur = Build(Occupy(Fa, true), Occupy(Fb, false));
+  }
+  if (converged) {
+    XTP_LOG(Log::info, *pLog_)
+        << TimeStamp() << " Converged after " << this_iter + 1
+        << " iterations, Etot=" << std::setprecision(12) << cur.energy
+        << std::flush;
+  } else {
+    XTP_LOG(Log::info, *pLog_)
+        << TimeStamp() << " Not converged after " << maxiter
+        << " iterations. Unconverged density." << std::flush;
+  }
+  const Radial& Da = cur.Da;
+  const Radial& Db = cur.Db;
+
+  const Eigen::MatrixXd density = sph.Expand(Da) + sph.Expand(Db);
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Atomic density Matrix for " << uniqueAtom.getElement()
       << " gives N=" << std::setprecision(9)
-      << avgmatrix.cwiseProduct(dftAOoverlap.Matrix()).sum() << " electrons."
+      << density.cwiseProduct(dftAOoverlap.Matrix()).sum() << " electrons."
       << std::flush;
-  return avgmatrix;
+  return density;
 }
 
 Eigen::MatrixXd DFTEngine::AtomicGuess(const QMMolecule& mol) const {
@@ -2775,32 +3096,32 @@ double DFTEngine::NuclearRepulsion(const QMMolecule& mol) const {
 }
 
 // spherically average the density matrix belonging to two shells
+// Average of an atom's density matrix over all rotations about the nucleus.
+// In real spherical harmonics a rotation acts on each shell by an orthogonal
+// matrix that depends only on l, so the average of the block between two
+// shells is (trace / (2l+1)) times the identity if both have the same l, and
+// zero otherwise. The result is independent of the orientation of the input
+// (an open-shell atom's SCF converges to a symmetry-broken solution whose
+// orientation is decided by round-off) and keeps the number of electrons:
+// the overlap between shells of one atom is diagonal within equal l and zero
+// between different l.
 Eigen::MatrixXd DFTEngine::SphericalAverageShells(
     const Eigen::MatrixXd& dmat, const AOBasis& dftbasis) const {
   Eigen::MatrixXd avdmat = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
   for (const AOShell& shellrow : dftbasis) {
-    Index size_row = shellrow.getNumFunc();
-    Index start_row = shellrow.getStartIndex();
     for (const AOShell& shellcol : dftbasis) {
-      Index size_col = shellcol.getNumFunc();
-      Index start_col = shellcol.getStartIndex();
-      Eigen::MatrixXd shelldmat =
-          dmat.block(start_row, start_col, size_row, size_col);
-      if (shellrow.getL() == shellcol.getL()) {
-        double diagavg = shelldmat.diagonal().sum() / double(shelldmat.rows());
-        Index offdiagelements =
-            shelldmat.rows() * shelldmat.cols() - shelldmat.cols();
-        double offdiagavg = (shelldmat.sum() - shelldmat.diagonal().sum()) /
-                            double(offdiagelements);
-        avdmat.block(start_row, start_col, size_row, size_col).array() =
-            offdiagavg;
-        avdmat.block(start_row, start_col, size_row, size_col)
-            .diagonal()
-            .array() = diagavg;
-      } else {
-        double avg = shelldmat.sum() / double(shelldmat.size());
-        avdmat.block(start_row, start_col, size_row, size_col).array() = avg;
+      if (shellrow.getL() != shellcol.getL()) {
+        continue;
       }
+      const Index size = shellrow.getNumFunc();
+      const double diagavg = dmat.block(shellrow.getStartIndex(),
+                                        shellcol.getStartIndex(), size, size)
+                                 .trace() /
+                             double(size);
+      avdmat
+          .block(shellrow.getStartIndex(), shellcol.getStartIndex(), size, size)
+          .diagonal()
+          .setConstant(diagavg);
     }
   }
   return avdmat;

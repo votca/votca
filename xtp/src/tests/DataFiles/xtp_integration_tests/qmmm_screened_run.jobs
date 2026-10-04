@@ -37,7 +37,7 @@
 			<E_tot>-1081.301388</E_tot>
 			<Compute_Time>15</Compute_Time>
 			<Total_Charge>-0.000000</Total_Charge>
-			<Iterations>4</Iterations>
+			<Iterations>3</Iterations>
 			<E_ground>-1094.822712</E_ground>
 			<screened_site_energies>
 				<h>12.658889</h>

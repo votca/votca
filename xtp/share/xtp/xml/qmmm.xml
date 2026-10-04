@@ -33,8 +33,8 @@
         <grid_for_potential help="Grid to integrate influence of qm density om other regions" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
         <extgrid help="grid on which the interaction with classical regions is compute" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
         <tolerance_energy help="if energy difference for this region is below this value it is considered converged" unit="Hartree" default="5e-5" choices="float+" />
-        <tolerance_density help="if RMS difference of density matrix is below this value it is considered converged" default="5e-5" choices="float+" />
-        <tolerance_density_max help="if Max difference of density matrix is below this value it is considered converged" default="5e-5" choices="float+" />
+        <tolerance_density help="if the RMS change of the density matrix is below this value it is considered converged; measured in the Loewdin-orthonormalised basis (S^1/2 dD S^1/2), where near-linear dependencies of the AO basis do not inflate it" default="5e-5" choices="float+" />
+        <tolerance_density_max help="if the largest change of a density-matrix element is below this value it is considered converged; measured in the Loewdin-orthonormalised basis. The largest element change is typically tens of times the RMS change, so this is looser than tolerance_density" default="1e-3" choices="float+" />
       </qmregion>
       <polarregion default="OPTIONAL" help="polar region with polarisation dipoles and thole damping" link="region.xml polar.xml"/>
       <staticregion default="OPTIONAL" link="region.xml"/>

@@ -25,12 +25,14 @@
 // Local VOTCA includes
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/symmetric_matrix.h"
 namespace votca {
 namespace xtp {
 
-void ERIs::Initialize(const AOBasis& dftbasis, const AOBasis& auxbasis) {
-  threecenter_.Fill(auxbasis, dftbasis);
+void ERIs::Initialize(const AOBasis& dftbasis, const AOBasis& auxbasis,
+                      double pair_threshold) {
+  threecenter_.Fill(auxbasis, dftbasis, pair_threshold);
   return;
 }
 
@@ -82,22 +84,31 @@ Eigen::MatrixXd ERIs::ComputeShellBlockNorm(const Eigen::MatrixXd& dmat) const {
   return result.selfadjointView<Eigen::Upper>();
 }
 
+// J[D]_mu nu = sum_P B_P,mu nu c_P with c_P = sum_kl B_P,kl D_kl: two
+// matrix-vector products with the stored pair x aux tensor.
 Eigen::MatrixXd ERIs::CalculateERIs_3c(const Eigen::MatrixXd& DMAT) const {
   assert(threecenter_.size() > 0 &&
          "Please call Initialize before running this");
-  Eigen::MatrixXd ERIs2 = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
-  Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
-#pragma omp parallel for schedule(guided) reduction(+ : ERIs2)
-  for (Index i = 0; i < threecenter_.size(); i++) {
-    const Symmetric_Matrix& threecenter = threecenter_[i];
-    // Trace over prod::DMAT,I(l)=componentwise product over
-    const double factor = threecenter.TraceofProd(dmat_sym);
-    Eigen::SelfAdjointView<Eigen::MatrixXd, Eigen::Upper> m =
-        ERIs2.selfadjointView<Eigen::Upper>();
-    threecenter.AddtoEigenUpperMatrix(m, factor);
+  const Eigen::MatrixXd& data = threecenter_.Data();
+  // lower triangle of DMAT, as before
+  const Eigen::VectorXd dpacked = threecenter_.PackWeighted(DMAT);
+  Eigen::VectorXd c(data.cols());
+#pragma omp parallel for schedule(static)
+  for (Index P = 0; P < data.cols(); ++P) {
+    c(P) = data.col(P).dot(dpacked);
   }
-
-  return ERIs2.selfadjointView<Eigen::Upper>();
+  Eigen::VectorXd jpacked(data.rows());
+  const Index nblocks = std::max<Index>(1, OPENMP::getMaxThreads()) * 8;
+  const Index blocksize = (data.rows() + nblocks - 1) / nblocks;
+#pragma omp parallel for schedule(static)
+  for (Index blk = 0; blk < nblocks; ++blk) {
+    const Index row = blk * blocksize;
+    const Index len = std::min(blocksize, data.rows() - row);
+    if (len > 0) {
+      jpacked.segment(row, len).noalias() = data.middleRows(row, len) * c;
+    }
+  }
+  return threecenter_.Unpack(jpacked);
 }
 
 // K[D] = -sum_P B_P D B_P is linear in D. Writing D = X X^T - Y Y^T from
@@ -176,7 +187,8 @@ Eigen::MatrixXd ERIs::ExchangeFromFactors(const Eigen::MatrixXd& factors,
 #pragma omp parallel
   {
     Eigen::MatrixXd local = Eigen::MatrixXd::Zero(n, n);
-    Eigen::MatrixXd b(n, n);
+    // entries of screened pairs are never written and stay zero
+    Eigen::MatrixXd b = Eigen::MatrixXd::Zero(n, n);
     Eigen::MatrixXd tx(batch * npos, n);
     Eigen::MatrixXd ty(batch * nneg, n);
     Index filled = 0;
@@ -194,7 +206,7 @@ Eigen::MatrixXd ERIs::ExchangeFromFactors(const Eigen::MatrixXd& factors,
     };
 #pragma omp for schedule(dynamic)
     for (Index i = 0; i < threecenter_.size(); i++) {
-      threecenter_[i].FillFullMatrix(b);
+      threecenter_.FillFullMatrix(i, b);
       if (npos > 0) {
         tx.middleRows(filled * npos, npos).noalias() = xt * b;
       }

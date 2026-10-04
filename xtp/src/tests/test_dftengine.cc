@@ -770,8 +770,14 @@ BOOST_AUTO_TEST_CASE(warm_start_from_previous_orbitals) {
     const double e_fresh = Run(fresh, true, it_fresh, log_fresh);
     BOOST_CHECK(log_fresh.find("not usable as guess (no MOs)") !=
                 std::string::npos);
+    BOOST_CHECK(log_fresh.find("Starting from the orbitals of the previous") ==
+                std::string::npos);
     BOOST_CHECK_SMALL(e_fresh - e_cold, 1e-7);
-    BOOST_CHECK_EQUAL(it_fresh, it_cold);
+    // The iteration counts of the cold and the fallback run are not compared:
+    // with several threads, summation order differs from run to run and can
+    // change the SCF path (seen for the cation: 10 or 16 iterations).
+    BOOST_TEST_MESSAGE("charge " << charge << ": fallback " << it_fresh
+                                 << " iterations");
   }
   libint2::finalize();
 }

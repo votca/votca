@@ -47,7 +47,7 @@ class QMRegion : public Region {
 
  public:
   QMRegion(Index id, Logger& log, std::string workdir)
-      : Region(id, log), workdir_(workdir) {};
+      : Region(id, log), workdir_(workdir){};
   ~QMRegion() override = default;
 
   void Initialize(const tools::Property& prop) override;
@@ -143,11 +143,15 @@ class QMRegion : public Region {
 
   hist<double> E_hist_;
   hist<Eigen::MatrixXd> Dmat_hist_;
+  // S^1/2 of the DFT basis, for measuring density changes in the
+  // Loewdin-orthonormalised basis (empty: AO basis)
+  Eigen::MatrixXd overlap_sqrt_;
+  void UpdateOverlapSqrt();
 
   // convergence options
   double DeltaD_ = 5e-5;
   double DeltaE_ = 5e-5;
-  double DeltaDmax_ = 5e-5;
+  double DeltaDmax_ = 1e-3;
 
   bool do_gwbse_ = false;
 

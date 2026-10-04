@@ -423,20 +423,37 @@ bool QMRegion::Converged() const {
     return false;
   }
 
-  double Echange = E_hist_.getDiff();
-  double Dchange =
-      Dmat_hist_.getDiff().norm() / double(Dmat_hist_.back().cols());
-  double Dmax = Dmat_hist_.getDiff().cwiseAbs().maxCoeff();
+  const double Echange = E_hist_.getDiff();
+  const Eigen::MatrixXd diff_ao = Dmat_hist_.getDiff();
+  const double n = double(diff_ao.cols());
+  // The density change is measured in the Loewdin-orthonormalised basis,
+  // S^1/2 dD S^1/2. In the AO basis, a near-linearly dependent basis lets
+  // density-matrix elements move a lot along near-redundant directions while
+  // the density itself hardly changes (C60/def2-TZVP: max change ~170 times
+  // the RMS), which made the max criterion decide the convergence alone.
+  const bool orthonormal = overlap_sqrt_.rows() == diff_ao.rows();
+  const Eigen::MatrixXd diff =
+      orthonormal ? Eigen::MatrixXd(overlap_sqrt_ * diff_ao * overlap_sqrt_)
+                  : diff_ao;
+  const double Dchange = diff.norm() / n;
+  const double Dmax = diff.cwiseAbs().maxCoeff();
   std::string info = "not converged";
   bool converged = false;
   if (Dchange < DeltaD_ && Dmax < DeltaDmax_ && std::abs(Echange) < DeltaE_) {
     info = "converged";
     converged = true;
   }
+  std::ostringstream measure;
+  if (orthonormal) {
+    measure << " (orthonormal basis; AO basis: RMS " << diff_ao.norm() / n
+            << " Max " << diff_ao.cwiseAbs().maxCoeff() << ")";
+  } else {
+    measure << " (AO basis)";
+  }
   XTP_LOG(Log::error, log_)
       << " Region:" << this->identify() << " " << this->getId() << " is "
       << info << " deltaE=" << Echange << " RMS Dmat=" << Dchange
-      << " MaxDmat=" << Dmax << std::flush;
+      << " MaxDmat=" << Dmax << measure.str() << std::flush;
   return converged;
 }
 
@@ -608,7 +625,32 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   E_hist_.push_back(energy);
 
   Dmat_hist_.push_back(orb_.DensityMatrixFull(state));
+  UpdateOverlapSqrt();
   return;
+}
+
+void QMRegion::UpdateOverlapSqrt() {
+  if (overlap_sqrt_.rows() == Dmat_hist_.back().rows()) {
+    return;
+  }
+  overlap_sqrt_.resize(0, 0);
+  if (orb_.getBasisSetSize() != Dmat_hist_.back().rows() ||
+      orb_.getDFTbasisName().empty()) {
+    return;  // no matching basis to orthonormalise with: AO measure
+  }
+  AOOverlap overlap;
+  try {
+    overlap.Fill(orb_.getDftBasis());
+  } catch (const std::runtime_error&) {
+    return;
+  }
+  if (overlap.Matrix().rows() != Dmat_hist_.back().rows()) {
+    return;
+  }
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(overlap.Matrix());
+  overlap_sqrt_ = es.eigenvectors() *
+                  es.eigenvalues().cwiseMax(0.0).cwiseSqrt().asDiagonal() *
+                  es.eigenvectors().transpose();
 }
 
 void QMRegion::push_back(const QMMolecule& mol) {

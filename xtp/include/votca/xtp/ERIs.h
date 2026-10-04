@@ -35,7 +35,10 @@ namespace xtp {
 class ERIs {
 
  public:
-  void Initialize(const AOBasis& dftbasis, const AOBasis& auxbasis);
+  /// pair_threshold: shell pairs whose three-centre integrals are bounded
+  /// by less than this are not stored (see TCMatrix_dft); 0 keeps all.
+  void Initialize(const AOBasis& dftbasis, const AOBasis& auxbasis,
+                  double pair_threshold = 0.0);
   void Initialize_4c(const AOBasis& dftbasis);
 
   Eigen::MatrixXd CalculateERIs_3c(const Eigen::MatrixXd& DMAT) const;
@@ -61,6 +64,9 @@ class ERIs {
 
   /// Number of auxiliary functions the 3c tensor is stored for.
   Index AuxSize() const { return threecenter_.size(); }
+  /// Stored basis-function pairs of the 3c tensor and all N(N+1)/2 pairs.
+  Index StoredPairs() const { return threecenter_.StoredPairs(); }
+  Index AllPairs() const { return threecenter_.AllPairs(); }
   /// Wall time spent on the aux Coulomb metric and its inverse square root.
   double MetricSeconds() const { return threecenter_.MetricSeconds(); }
 

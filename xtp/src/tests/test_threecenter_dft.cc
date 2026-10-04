@@ -53,18 +53,18 @@ BOOST_AUTO_TEST_CASE(small_basis) {
   Eigen::MatrixXd Ref4 = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/Ref4.mm");
 
-  bool check_three1 = Ref0.isApprox(threec[0].FullMatrix(), 0.00001);
+  bool check_three1 = Ref0.isApprox(threec.FullMatrix(0), 0.00001);
   if (!check_three1) {
     std::cout << "Res0" << std::endl;
-    std::cout << threec[0].FullMatrix() << std::endl;
+    std::cout << threec.FullMatrix(0) << std::endl;
     std::cout << "0_ref" << std::endl;
     std::cout << Ref0 << std::endl;
   }
   BOOST_CHECK_EQUAL(check_three1, true);
-  bool check_three2 = Ref4.isApprox(threec[4].FullMatrix(), 0.00001);
+  bool check_three2 = Ref4.isApprox(threec.FullMatrix(4), 0.00001);
   if (!check_three2) {
     std::cout << "Res4" << std::endl;
-    std::cout << threec[4].FullMatrix() << std::endl;
+    std::cout << threec.FullMatrix(4) << std::endl;
     std::cout << "4_ref" << std::endl;
     std::cout << Ref4 << std::endl;
   }
@@ -103,13 +103,13 @@ BOOST_AUTO_TEST_CASE(small_basis) {
   }
 
   for (Index i = 0; i < 4; i++) {
-    bool check = ref[i].isApprox(threec[indeces[i]].FullMatrix(), 1e-5);
+    bool check = ref[i].isApprox(threec.FullMatrix(indeces[i]), 1e-5);
     BOOST_CHECK_EQUAL(check, true);
     if (!check) {
       std::cout << "ref " << indeces[i] << std::endl;
       std::cout << ref[i] << std::endl;
       std::cout << "result " << indeces[i] << std::endl;
-      std::cout << threec[indeces[i]].FullMatrix() << std::endl;
+      std::cout << threec.FullMatrix(indeces[i]) << std::endl;
     }
   }
 } */

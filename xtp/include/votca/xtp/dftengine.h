@@ -559,6 +559,9 @@ class DFTEngine {
   // Eigenvalues of the AO overlap below this are removed from S^-1/2
   // (xtpdft.overlap_tolerance).
   double overlap_tolerance_ = 1e-8;
+  // Shell pairs whose RI three-centre integrals are bounded by less than this
+  // are not stored (xtpdft.ri_pair_threshold).
+  double ri_pair_threshold_ = 1e-10;
 
   // numerical integration Vxc
   std::string grid_name_;
@@ -595,7 +598,7 @@ class DFTEngine {
   std::vector<std::unique_ptr<StaticSite> >* externalsites_ = nullptr;
 
   // exchange and correlation
-  double ScaHFX_;
+  double ScaHFX_ = 0.0;
   std::string xc_functional_name_;
 
   bool integrate_ext_density_ = false;
