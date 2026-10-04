@@ -24,6 +24,7 @@ Version 2026-dev
 -  Ewald embedding in QMMM (#1251)
 -  optimized parmeters in Ewald calculation (#1252)
 -  GW-BSE reaction field screening QMMM option (#1253)
+-  faster and leaner DFT for QM/MM with Ewald embedding (#1254)
 
 Version 2026 (released 09.03.26)
 ================================
