@@ -26,8 +26,12 @@
 
 // Local VOTCA includes
 #include "votca/tools/eigenio_matrixmarket.h"
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/basisset.h"
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/polarsite.h"
+#include "votca/xtp/vxc_grid.h"
 
 using namespace votca::xtp;
 using votca::Index;
@@ -201,7 +205,7 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   Vector9d multipoles;
   multipoles << 1.0, 0.5, 1.0, -1.0, 0.1, -0.2, 0.333, 0.1, 0.15;
   s->setMultipole(multipoles, 2);
-  std::vector<std::unique_ptr<StaticSite> > multipole_vec;
+  std::vector<std::unique_ptr<StaticSite>> multipole_vec;
   multipole_vec.push_back(std::move(s));
 
   dft.setExternalcharges(&multipole_vec);
@@ -779,6 +783,178 @@ BOOST_AUTO_TEST_CASE(warm_start_from_previous_orbitals) {
     BOOST_TEST_MESSAGE("charge " << charge << ": fallback " << it_fresh
                                  << " iterations");
   }
+  libint2::finalize();
+}
+
+// The RI integrals kept in a DFTSetupCache (QM/MM keeps them across its
+// inter-region iterations) are reused only for the same basis sets and
+// geometry, and give the same energy as integrals built anew.
+BOOST_AUTO_TEST_CASE(setup_cache_reuses_ri_integrals) {
+  libint2::initialize();
+  WriteBasis321G();
+  WriteDimerGuessXML("dftengine_cache.xml", "atom",
+                     "<auxbasisset>3-21G.xml</auxbasisset>\n");
+  votca::tools::Property prop;
+  prop.LoadFromXML("dftengine_cache.xml");
+
+  auto Run = [&](const QMMolecule& mol, DFTSetupCache* cache,
+                 std::string& logtext) {
+    Logger log;
+    log.setReportLevel(votca::Log::error);
+    DFTEngine dft;
+    dft.setLogger(&log);
+    dft.Initialize(prop.get("dftpackage"));
+    if (cache != nullptr) {
+      dft.setSetupCache(cache);
+    }
+    Orbitals orb;
+    orb.QMAtoms() = mol;
+    BOOST_REQUIRE(dft.Evaluate(orb));
+    dft.ReturnSetupCache();
+    std::stringstream ss;
+    ss << log;
+    logtext = ss.str();
+    return orb.getDFTTotalEnergy();
+  };
+  const std::string reuse = "Reusing the RI integrals";
+
+  const QMMolecule water = Water();
+  std::string log;
+  const double e_plain = Run(water, nullptr, log);
+
+  DFTSetupCache cache;
+  const double e_first = Run(water, &cache, log);
+  BOOST_CHECK(log.find(reuse) == std::string::npos);
+  BOOST_CHECK(cache.has_eris);
+  BOOST_CHECK_SMALL(e_first - e_plain, 1e-10);
+
+  const double e_second = Run(water, &cache, log);
+  BOOST_CHECK(log.find(reuse) != std::string::npos);
+  BOOST_CHECK(cache.has_eris);
+  BOOST_CHECK_SMALL(e_second - e_plain, 1e-10);
+
+  // a different geometry: the cached integrals must not be used
+  QMMolecule moved = water;
+  moved[0].setPos(moved[0].getPos() + Eigen::Vector3d(0.05, 0.0, 0.0));
+  const double e_moved_plain = Run(moved, nullptr, log);
+  const double e_moved = Run(moved, &cache, log);
+  BOOST_CHECK(log.find(reuse) == std::string::npos);
+  BOOST_CHECK_SMALL(e_moved - e_moved_plain, 1e-10);
+  BOOST_CHECK_GT(std::abs(e_moved - e_plain), 1e-6);
+
+  // An external Ewald potential on the grid: its AO matrix is reused for
+  // the same basis, grid and potential values only.
+  BasisSet basisset;
+  basisset.Load("3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basisset, water);
+  auto EwaldGrid = [&](double strength) {
+    Vxc_Grid grid;
+    grid.GridSetup("xcoarse", water, aobasis);
+    for (Index b = 0; b < grid.getBoxesSize(); ++b) {
+      GridBox& box = grid[b];
+      std::vector<double>& values = box.getPotentialValues();
+      values.clear();
+      for (const Eigen::Vector3d& r : box.getGridPoints()) {
+        values.push_back(strength * (r.x() + 0.5 * r.y()));
+      }
+    }
+    return grid;
+  };
+  auto RunEwald = [&](double strength, DFTSetupCache* run_cache,
+                      std::string& logtext) {
+    Logger elog;
+    elog.setReportLevel(votca::Log::error);
+    DFTEngine dft;
+    dft.setLogger(&elog);
+    dft.Initialize(prop.get("dftpackage"));
+    dft.setEwaldgrid(EwaldGrid(strength));
+    if (run_cache != nullptr) {
+      dft.setSetupCache(run_cache);
+    }
+    Orbitals orb;
+    orb.QMAtoms() = water;
+    BOOST_REQUIRE(dft.Evaluate(orb));
+    dft.ReturnSetupCache();
+    std::stringstream ss;
+    ss << elog;
+    logtext = ss.str();
+    return orb.getDFTTotalEnergy();
+  };
+  const std::string reuse_ewald = "Reusing the Ewald potential matrix";
+  DFTSetupCache ecache;
+  const double e_ewald_plain = RunEwald(0.01, nullptr, log);
+  RunEwald(0.01, &ecache, log);
+  BOOST_CHECK(log.find(reuse_ewald) == std::string::npos);
+  const double e_ewald = RunEwald(0.01, &ecache, log);
+  BOOST_CHECK(log.find(reuse_ewald) != std::string::npos);
+  BOOST_CHECK(log.find(reuse) != std::string::npos);
+  BOOST_CHECK_SMALL(e_ewald - e_ewald_plain, 1e-10);
+  BOOST_CHECK_GT(std::abs(e_ewald_plain - e_plain), 1e-6);
+  // different potential values: rebuilt
+  const double e_ewald2_plain = RunEwald(0.02, nullptr, log);
+  const double e_ewald2 = RunEwald(0.02, &ecache, log);
+  BOOST_CHECK(log.find(reuse_ewald) == std::string::npos);
+  BOOST_CHECK_SMALL(e_ewald2 - e_ewald2_plain, 1e-10);
+
+  // External multipoles: the permanent part is reused as long as positions
+  // and permanent moments are unchanged; induced dipoles may change.
+  std::vector<std::unique_ptr<StaticSite>> sites;
+  for (Index i = 0; i < 4; ++i) {
+    auto site = std::make_unique<PolarSite>(
+        i, "O", Eigen::Vector3d(6.0 + 1.5 * double(i), 2.0, -1.0));
+    Vector9d m = Vector9d::Zero();
+    m(0) = (i % 2 == 0) ? 0.4 : -0.4;
+    m.segment<3>(1) = Eigen::Vector3d(0.1, -0.05, 0.02 * double(i));
+    m.segment<5>(4) = 0.05 * Eigen::VectorXd::Ones(5);
+    site->setMultipole(m, 2);
+    site->setInduced_Dipole(Eigen::Vector3d(0.02, 0.01, -0.03));
+    sites.push_back(std::move(site));
+  }
+  auto RunSites = [&](DFTSetupCache* run_cache, std::string& logtext) {
+    Logger mlog;
+    mlog.setReportLevel(votca::Log::error);
+    DFTEngine dft;
+    dft.setLogger(&mlog);
+    dft.Initialize(prop.get("dftpackage"));
+    dft.setExternalcharges(&sites);
+    if (run_cache != nullptr) {
+      dft.setSetupCache(run_cache);
+    }
+    Orbitals orb;
+    orb.QMAtoms() = water;
+    BOOST_REQUIRE(dft.Evaluate(orb));
+    dft.ReturnSetupCache();
+    std::stringstream ss;
+    ss << mlog;
+    logtext = ss.str();
+    return orb.getDFTTotalEnergy();
+  };
+  const std::string reuse_mp = "Reusing the permanent multipole potential";
+  DFTSetupCache mcache;
+  const double e_mp_plain = RunSites(nullptr, log);
+  const double e_mp_first = RunSites(&mcache, log);
+  BOOST_CHECK(log.find(reuse_mp) == std::string::npos);
+  BOOST_CHECK_SMALL(e_mp_first - e_mp_plain, 1e-10);
+  BOOST_CHECK_GT(std::abs(e_mp_plain - e_plain), 1e-6);
+  // new induced dipoles: permanent part reused, result equals a plain run
+  for (auto& site : sites) {
+    static_cast<PolarSite&>(*site).setInduced_Dipole(
+        Eigen::Vector3d(-0.04, 0.03, 0.05));
+  }
+  const double e_ind_plain = RunSites(nullptr, log);
+  const double e_ind = RunSites(&mcache, log);
+  BOOST_CHECK(log.find(reuse_mp) != std::string::npos);
+  BOOST_CHECK_SMALL(e_ind - e_ind_plain, 1e-10);
+  BOOST_CHECK_GT(std::abs(e_ind_plain - e_mp_plain), 1e-7);
+  // a changed permanent moment: rebuilt
+  Vector9d q = sites[1]->Q();
+  q(0) += 0.1;
+  sites[1]->setMultipole(q, 2);
+  const double e_perm_plain = RunSites(nullptr, log);
+  const double e_perm = RunSites(&mcache, log);
+  BOOST_CHECK(log.find(reuse_mp) == std::string::npos);
+  BOOST_CHECK_SMALL(e_perm - e_perm_plain, 1e-10);
   libint2::finalize();
 }
 

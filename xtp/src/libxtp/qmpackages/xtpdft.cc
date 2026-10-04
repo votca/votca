@@ -68,7 +68,13 @@ bool XTPDFT::RunDFT() {
     }
   }
 
+  if (setup_cache_) {
+    xtpdft.setSetupCache(setup_cache_.get());
+  }
+  xtpdft.setSCFToleranceFloor(scf_energy_floor_, scf_error_floor_);
+
   bool success = xtpdft.Evaluate(orbitals_);
+  xtpdft.ReturnSetupCache();
   std::string file_name = run_dir_ + "/" + log_file_name_;
   XTP_LOG(Log::error, *pLog_)
       << "Writing result to " << log_file_name_ << flush;

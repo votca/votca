@@ -41,7 +41,14 @@ namespace xtp {
 class TCMatrix {
 
  public:
+  TCMatrix() = default;
   virtual ~TCMatrix() = default;
+  // the virtual destructor would otherwise suppress moving: moving the DFT
+  // tensor (tens of GB) must not fall back to a copy
+  TCMatrix(const TCMatrix&) = default;
+  TCMatrix(TCMatrix&&) = default;
+  TCMatrix& operator=(const TCMatrix&) = default;
+  TCMatrix& operator=(TCMatrix&&) = default;
   Index Removedfunctions() const { return removedfunctions_; }
   enum class SpinChannel { Alpha, Beta };
 

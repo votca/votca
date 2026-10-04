@@ -138,6 +138,9 @@ class QMRegion : public Region {
   QMState initstate_;
   std::string workdir_ = "";
   std::unique_ptr<QMPackage> qmpackage_ = nullptr;
+  // RI integrals and Ewald potential matrix kept across the inter-region
+  // iterations (DFT-only regions)
+  std::shared_ptr<DFTSetupCache> setup_cache_;
 
   std::string grid_accuracy_for_ext_interaction_ = "medium";
 

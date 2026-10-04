@@ -23,6 +23,7 @@
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/density_integration.h"
+#include "votca/xtp/dftengine.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/ewaldregion.h"
@@ -494,7 +495,28 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
   // From the second inter-region iteration on, only the environment has
   // changed: start the SCF from the previous iteration's orbitals.
-  qmpackage_->setWarmStart(E_hist_.filled() && orb_.hasMOs());
+  const bool warm_start = E_hist_.filled() && orb_.hasMOs();
+  qmpackage_->setWarmStart(warm_start);
+  // From the second inter-region iteration on, the inner SCF only needs to
+  // be converged a factor 10 beyond what the outer loop resolves: its
+  // energy error is second order in the density error, and its density
+  // error stays below the outer density tolerance. Not with GW-BSE, which
+  // takes the orbitals as they are; capped at 1e-5 in both.
+  if (warm_start && !do_gwbse_) {
+    qmpackage_->setSCFToleranceFloor(std::min(0.1 * DeltaE_, 1e-5),
+                                     std::min(0.1 * DeltaD_, 1e-5));
+  }
+  // Basis sets and geometry stay the same over the inter-region iterations:
+  // keep the RI integrals and the Ewald potential matrix for the next one.
+  // Not with GW-BSE, whose own three-centre integrals would come on top of
+  // the cached ones in memory. The cache lives here because Reset()
+  // recreates the QM package every iteration.
+  if (!do_gwbse_) {
+    if (!setup_cache_) {
+      setup_cache_ = std::make_shared<DFTSetupCache>();
+    }
+    qmpackage_->setSetupCache(setup_cache_);
+  }
 
   XTP_LOG(Log::error, log_) << "Running DFT calculation" << std::flush;
   bool run_success = qmpackage_->Run();
@@ -860,9 +882,17 @@ double QMRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
   }
 
   // ELECTRONS. The potential on the integration grid, which the DFT
-  // engine integrates against the density into H0.
-  const std::vector<Eigen::Vector3d> points = copyEwaldGrid();
-  const Eigen::VectorXd phi = region.PotentialAt(points);
+  // engine integrates against the density into H0. The nuclei (below) are
+  // appended to the same call: every call recomputes the reciprocal-space
+  // structure factors of the whole background, whatever the point count.
+  std::vector<Eigen::Vector3d> points = copyEwaldGrid();
+  const Index n_grid = Index(points.size());
+  for (const QMAtom& atom : orb_.QMAtoms()) {
+    points.push_back(atom.getPos());
+  }
+  const Eigen::VectorXd phi_all = region.PotentialAt(points);
+  const Eigen::VectorXd phi = phi_all.head(n_grid);
+  const Eigen::VectorXd phi_nuclei = phi_all.tail(phi_all.size() - n_grid);
 
   // Vxc_Grid::getGridpoints() walks grid_boxes_ in order and each box's
   // own points in order, so the flat vector maps back by giving each box
@@ -893,12 +923,6 @@ double QMRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
   // to the engine as a scalar to add to E0, NOT returned from here --
   // QMRegion::Evaluate accumulates the Interactwith* return values into
   // e_ext, logs it, and drops it on the floor.
-  std::vector<Eigen::Vector3d> nuclei;
-  nuclei.reserve(std::size_t(orb_.QMAtoms().size()));
-  for (const QMAtom& atom : orb_.QMAtoms()) {
-    nuclei.push_back(atom.getPos());
-  }
-  const Eigen::VectorXd phi_nuclei = region.PotentialAt(nuclei);
   ewald_nuclear_energy_ = 0.0;
   Index a = 0;
   for (const QMAtom& atom : orb_.QMAtoms()) {

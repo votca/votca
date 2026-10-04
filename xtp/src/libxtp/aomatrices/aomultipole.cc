@@ -27,6 +27,122 @@ namespace xtp {
 
 namespace {
 constexpr double kMaxExpArg = 50.0;
+
+// How a Cartesian function t is built in the recursions: along direction d
+// (its first nonzero exponent, as in the explicit recursions: xy from y
+// along x) from parent = t - 1_d, with n = exponent of d in the parent and
+// grand = parent - 1_d (if n > 0); l is the angular momentum of t.
+struct BuildStep {
+  int d;
+  int parent;
+  int n;
+  int grand;
+  int l;
+};
+
+const std::array<BuildStep, 165>& BuildSteps() {
+  static const std::array<BuildStep, 165> steps = [] {
+    const std::array<int, 165> nx = AOTransform::nx();
+    const std::array<int, 165> ny = AOTransform::ny();
+    const std::array<int, 165> nz = AOTransform::nz();
+    const std::array<std::array<int, 165>, 3> less = {AOTransform::i_less_x(),
+                                                      AOTransform::i_less_y(),
+                                                      AOTransform::i_less_z()};
+    const std::array<const std::array<int, 165>*, 3> n = {&nx, &ny, &nz};
+    std::array<BuildStep, 165> result{};
+    for (std::size_t t = 1; t < 165; ++t) {
+      BuildStep step;
+      step.d = (nx[t] > 0) ? 0 : ((ny[t] > 0) ? 1 : 2);
+      step.parent = less[std::size_t(step.d)][t];
+      step.n = (*n[std::size_t(step.d)])[std::size_t(step.parent)];
+      step.grand = (step.n > 0)
+                       ? less[std::size_t(step.d)][std::size_t(step.parent)]
+                       : 0;
+      step.l = nx[t] + ny[t] + nz[t];
+      result[t] = step;
+    }
+    return result;
+  }();
+  return steps;
+}
+
+// Potential integrals of a point dipole mu, contracted with mu during the
+// recursion: one Obara-Saika recursion for mu . (dipole integrals) instead
+// of one per Cartesian component. The recursion is linear in the dipole
+// component k, and k enters only through the start values (PmC_k) and the
+// term delta_kd * nuc(m+1), so contracting replaces those by PmC . mu and
+// mu_d * nuc(m+1). Same terms and same build order as the per-component
+// recursion; on return dipc(:, :, 0) holds the contracted integrals.
+void ContractedDipoleIntegrals(const Eigen::Tensor<double, 3>& nuc,
+                               Eigen::Tensor<double, 3>& dipc, Index lmax_row,
+                               Index lmax_col, const Eigen::Vector3d& PmA,
+                               const Eigen::Vector3d& PmB,
+                               const Eigen::Vector3d& PmC, double fak,
+                               double prefactor_dip, const Eigen::VectorXd& FmU,
+                               const Eigen::Vector3d& mu) {
+  // the index tables are fixed: built once, not copied per call
+  static const std::array<int, 9> n_orbitals = AOTransform::n_orbitals();
+  static const std::array<std::array<int, 165>, 3> n_of = {
+      AOTransform::nx(), AOTransform::ny(), AOTransform::nz()};
+  static const std::array<std::array<int, 165>, 3> less = {
+      AOTransform::i_less_x(), AOTransform::i_less_y(),
+      AOTransform::i_less_z()};
+  const std::array<BuildStep, 165>& steps = BuildSteps();
+
+  const Index lsum = lmax_row + lmax_col;
+  const Index nrows = dipc.dimension(0);
+  const Index s_col = nrows;                    // stride of the column index
+  const Index s_m = nrows * dipc.dimension(1);  // stride of m
+  double* D = dipc.data();
+  const double* N = nuc.data();
+  const Index rows = n_orbitals[lmax_row];
+
+  const double start = PmC.dot(mu) * prefactor_dip;
+  for (Index m = 0; m < lsum + 1; m++) {
+    D[m * s_m] = start * FmU[m + 1];
+  }
+  // rows: (t, s) from (t - 1_d, s)
+  for (Index t = 1; t < rows; t++) {
+    const BuildStep& st = steps[std::size_t(t)];
+    const double pa = PmA(st.d);
+    const double pc = PmC(st.d);
+    const double md = mu(st.d);
+    const double nf = st.n * fak;
+    for (Index m = 0; m < lsum - st.l + 1; m++) {
+      const Index o = m * s_m;
+      D[t + o] = pa * D[st.parent + o] - pc * D[st.parent + o + s_m] +
+                 md * N[st.parent + o + s_m] +
+                 nf * (D[st.grand + o] - D[st.grand + o + s_m]);
+    }
+  }
+  // columns: (i, c) from (i, c - 1_d)
+  for (Index c = 1; c < n_orbitals[lmax_col]; c++) {
+    const BuildStep& st = steps[std::size_t(c)];
+    const double pb = PmB(st.d);
+    const double pc = PmC(st.d);
+    const double md = mu(st.d);
+    const double nqf = st.n * fak;
+    const std::array<int, 165>& n_i = n_of[std::size_t(st.d)];
+    const std::array<int, 165>& less_i = less[std::size_t(st.d)];
+    for (Index m = 0; m < lmax_col - st.l + 1; m++) {
+      const Index o = m * s_m;
+      const double* Dq = D + st.parent * s_col + o;
+      const double* Dqq = D + st.grand * s_col + o;
+      const double* Nq = N + st.parent * s_col + o;
+      double* Dc = D + c * s_col + o;
+      for (Index i = 0; i < rows; i++) {
+        double value = pb * Dq[i] - pc * Dq[i + s_m] + md * Nq[i + s_m] +
+                       nqf * (Dqq[i] - Dqq[i + s_m]);
+        const int ni = n_i[std::size_t(i)];
+        if (ni > 0) {
+          const int il = less_i[std::size_t(i)];
+          value += ni * fak * (Dq[il] - Dq[il + s_m]);
+        }
+        Dc[i] = value;
+      }
+    }
+  }
+}
 }  // namespace
 
 void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
@@ -62,11 +178,14 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   Eigen::MatrixXd cartesian = Eigen::MatrixXd::Zero(
       shell_row.getCartesianNumFunc(), shell_col.getCartesianNumFunc());
 
-  // recursion buffers, zeroed per site
+  // recursion buffers; every entry a recursion reads is written first, so
+  // they are not zeroed per site (checked by filling them with NaN)
   Eigen::Tensor<double, 3> nuc3(nrows, ncols, lsum + 1);
   Eigen::Tensor<double, 4> dip4(nrows, ncols, 3, lsum + 1);
+  Eigen::Tensor<double, 3> dipc(nrows, ncols, lsum + 1);
   Eigen::Tensor<double, 4> quad4(nrows, ncols, 5, lsum + 1);
   Eigen::MatrixXd multipole(nrows, ncols);
+  Eigen::VectorXd FmU(lsum + 3);  // Boys function values, rank <= 2
 
   // iterate over Gaussians in this shell_row
   for (const auto& gaussian_row : shell_row) {
@@ -96,6 +215,8 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       const Eigen::Vector3d PmB =
           fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_col;
 
+      // summed over all sites, normalised once per primitive pair
+      multipole.setZero();
       for (const SiteData& site : sites_) {
         const Index rank = site.rank;
         const double charge = site.charge;
@@ -107,9 +228,8 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         const double U = zeta * PmC.squaredNorm();
 
         // +3 quadrupole, +2 dipole, +1 nuclear attraction integrals
-        const Eigen::VectorXd FmU = AOTransform::XIntegrate(lsum + rank + 1, U);
+        AOTransform::XIntegrate(lsum + rank + 1, U, FmU.data());
 
-        nuc3.setZero();
         // (s-s element normiert )
         double prefactor = 4. * sqrt(2. / pi) *
                            pow(decay_row * decay_col, .75) * fak2 *
@@ -613,11 +733,16 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
           //------------------------------------------------------
         }  // end if (lmax_col > 3)
 
-        multipole.noalias() =
+        multipole.noalias() +=
             charge * Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols);
 
-        if (rank > 0) {
-          dip4.setZero();
+        if (rank == 1) {
+          // no quadrupole: the dipole integrals are needed only contracted
+          ContractedDipoleIntegrals(nuc3, dipc, lmax_row, lmax_col, PmA, PmB,
+                                    PmC, fak, 2. * zeta * prefactor, FmU,
+                                    dipole);
+          multipole += Eigen::Map<Eigen::MatrixXd>(dipc.data(), nrows, ncols);
+        } else if (rank > 1) {
 
           // (s-s element normiert )
           double prefactor_dip_ = 2. * zeta * prefactor;
@@ -1351,7 +1476,6 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                                         dip4.data() + 2 * offset, nrows, ncols);
 
           if (rank > 1) {
-            quad4.setZero();
 
             double fact = 1. / 3.;
             std::array<double, 5> fac0 = {fact, fact, 0., 2. * fact, 0.};
@@ -2134,13 +2258,13 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
           }
         }
 
-        // save to matrix
-        cartesian +=
-            AOTransform::getNorm(shell_row.getL(), gaussian_row) *
-            AOTransform::getNorm(shell_col.getL(), gaussian_col) *
-            multipole.bottomRightCorner(shell_row.getCartesianNumFunc(),
-                                        shell_col.getCartesianNumFunc());
       }  // sites
+
+      // save to matrix
+      cartesian += AOTransform::getNorm(shell_row.getL(), gaussian_row) *
+                   AOTransform::getNorm(shell_col.getL(), gaussian_col) *
+                   multipole.bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                               shell_col.getCartesianNumFunc());
 
     }  // shell_col Gaussians
   }  // shell_row Gaussians
@@ -2148,18 +2272,35 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   matrix = AOTransform::tform(shell_row.getL(), shell_col.getL(), cartesian);
 }
 
-void AOMultipole::setSites(const std::vector<const StaticSite*>& sites) {
+void AOMultipole::setSites(const std::vector<const StaticSite*>& sites,
+                           Moments moments) {
   sites_.clear();
   sites_.reserve(sites.size());
   for (const StaticSite* site : sites) {
     SiteData d;
     d.pos = site->getPos();
+    if (moments == Moments::Induced) {
+      // A pure point dipole: no charge, no quadrupole.
+      d.dipole = site->getInducedDipole();
+      if (d.dipole.norm() <= 1e-12) {
+        continue;
+      }
+      d.rank = 1;
+      d.charge = 0.0;
+      d.quadrupole = Eigen::Matrix3d::Zero();
+      sites_.push_back(d);
+      continue;
+    }
+    // getDipole() is virtual and includes the induced dipole of a PolarSite;
+    // Q() holds the permanent moments only.
+    d.dipole = (moments == Moments::All)
+                   ? site->getDipole()
+                   : Eigen::Vector3d(site->Q().segment<3>(1));
     d.rank = site->getRank();
-    if (d.rank < 1 && site->getDipole().norm() > 1e-12) {
+    if (d.rank < 1 && d.dipole.norm() > 1e-12) {
       d.rank = 1;
     }
     d.charge = site->getCharge();
-    d.dipole = site->getDipole();
     // factor 1.5 I am not sure about but then 6 monopoles and this tensor
     // agree
     d.quadrupole = 1.5 * site->CalculateCartesianMultipole();
@@ -2192,13 +2333,14 @@ void AOMultipole::FillPotential(const AOBasis& aobasis,
 
 void AOMultipole::FillPotential(
     const AOBasis& aobasis,
-    const std::vector<std::unique_ptr<StaticSite>>& externalsites) {
+    const std::vector<std::unique_ptr<StaticSite>>& externalsites,
+    Moments moments) {
   std::vector<const StaticSite*> sites;
   sites.reserve(externalsites.size());
   for (const std::unique_ptr<StaticSite>& site : externalsites) {
     sites.push_back(site.get());
   }
-  setSites(sites);
+  setSites(sites, moments);
   aopotential_ = -Fill(aobasis);
 }
 

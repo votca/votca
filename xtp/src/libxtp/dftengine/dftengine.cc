@@ -21,9 +21,11 @@
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <optional>
+#include <sstream>
 #include <string>
 
 // VOTCA includes
@@ -2020,8 +2022,42 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
       std::vector<double>& values = box.getPotentialValues();
       values = source;
     }
-    Ewald_Potential<Vxc_Grid> EwaldIntegration(ewaldgrid);
-    H0 += EwaldIntegration.IntegrateEwald(dftbasis_.AOBasisSize()).matrix();
+    // The AO matrix depends on the basis, the grid and the potential values;
+    // reuse it from the previous run if all three are the same.
+    std::string ewald_key;
+    if (setup_cache_ != nullptr) {
+      double sum = 0.0;
+      double sum2 = 0.0;
+      Index points = 0;
+      for (Index i = 0; i < ewaldgrid.getBoxesSize(); ++i) {
+        for (double v : ewaldgrid[i].getPotentialValues()) {
+          sum += v;
+          sum2 += v * v;
+          ++points;
+        }
+      }
+      std::ostringstream key;
+      key << std::setprecision(17) << RISetupKey() << "|" << grid_name_ << "|"
+          << points << "|" << sum << "|" << sum2;
+      ewald_key = key.str();
+    }
+    if (setup_cache_ != nullptr && setup_cache_->ewald_key == ewald_key &&
+        setup_cache_->ewald_matrix.rows() == dftbasis_.AOBasisSize()) {
+      H0 += setup_cache_->ewald_matrix;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp()
+          << " Reusing the Ewald potential matrix of the previous run"
+          << std::flush;
+    } else {
+      Ewald_Potential<Vxc_Grid> EwaldIntegration(ewaldgrid);
+      const Eigen::MatrixXd ewald_matrix =
+          EwaldIntegration.IntegrateEwald(dftbasis_.AOBasisSize()).matrix();
+      H0 += ewald_matrix;
+      if (setup_cache_ != nullptr) {
+        setup_cache_->ewald_key = ewald_key;
+        setup_cache_->ewald_matrix = ewald_matrix;
+      }
+    }
 
     // The grid reaches the electron density only. The nuclei sit in the
     // same potential, and their share arrives as a scalar -- the same
@@ -2033,6 +2069,43 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
   }
 
   return Mat_p_Energy(E0, H0);
+}
+
+std::string DFTEngine::RISetupKey() const {
+  std::ostringstream key;
+  key << std::setprecision(17) << dftbasis_name_ << "|" << auxbasis_name_ << "|"
+      << ri_pair_threshold_;
+  for (const AOBasis* basis : {&dftbasis_, &auxbasis_}) {
+    key << "|";
+    for (const AOShell& shell : *basis) {
+      key << static_cast<int>(shell.getL()) << "," << shell.getSize() << ","
+          << shell.getPos().x() << "," << shell.getPos().y() << ","
+          << shell.getPos().z() << ";";
+    }
+  }
+  return key.str();
+}
+
+void DFTEngine::setSCFToleranceFloor(double energy, double error) {
+  if (energy <= conv_opt_.Econverged && error <= conv_opt_.error_converged) {
+    return;
+  }
+  conv_opt_.Econverged = std::max(conv_opt_.Econverged, energy);
+  conv_opt_.error_converged = std::max(conv_opt_.error_converged, error);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " SCF thresholds for this run: Delta E "
+      << conv_opt_.Econverged << " Ha, DIIS error " << conv_opt_.error_converged
+      << " (set by the caller)" << std::flush;
+}
+
+void DFTEngine::ReturnSetupCache() {
+  if (setup_cache_ == nullptr || auxbasis_name_.empty() ||
+      ERIs_.AuxSize() == 0) {
+    return;
+  }
+  setup_cache_->eris = std::move(ERIs_);
+  setup_cache_->eris_key = eris_key_;
+  setup_cache_->has_eris = true;
 }
 
 // Precompute SCF-invariant matrices: overlap for the generalized eigenvalue
@@ -2057,9 +2130,25 @@ void DFTEngine::SetupInvariantMatrices() {
   conv_accelerator_.PrintConfigOptions();
   overlap_timer.reset();
 
-  if (!auxbasis_name_.empty()) {
+  if (!auxbasis_name_.empty() && setup_cache_ != nullptr &&
+      setup_cache_->has_eris && setup_cache_->eris_key == RISetupKey()) {
+    // same basis sets and geometry as the previous run (QM/MM iteration)
+    ERIs_ = std::move(setup_cache_->eris);
+    setup_cache_->has_eris = false;
+    eris_key_ = setup_cache_->eris_key;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Reusing the RI integrals of the previous run (same basis sets "
+           "and geometry)"
+        << std::flush;
+  } else if (!auxbasis_name_.empty()) {
     // prepare invariant part of electron repulsion integrals
     auto ri_start = DFTTimings::Clock::now();
+    if (setup_cache_ != nullptr) {
+      setup_cache_->has_eris = false;
+      setup_cache_->eris = ERIs();  // free a stale tensor before building
+      eris_key_ = RISetupKey();
+    }
     ERIs_.Initialize(dftbasis_, auxbasis_, ri_pair_threshold_);
     double ri_seconds =
         std::chrono::duration<double>(DFTTimings::Clock::now() - ri_start)
@@ -3210,14 +3299,66 @@ Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
     const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
 
   Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
-  AOMultipole dftAOESP;
-
-  dftAOESP.FillPotential(dftbasis_, multipoles);
-  XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Filled DFT external multipole potential matrix"
-      << std::flush;
-  result.matrix() = dftAOESP.Matrix();
   result.energy() = ExternalRepulsion(mol, multipoles);
+
+  if (setup_cache_ == nullptr) {
+    AOMultipole dftAOESP;
+    dftAOESP.FillPotential(dftbasis_, multipoles);
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Filled DFT external multipole potential matrix"
+        << std::flush;
+    result.matrix() = dftAOESP.Matrix();
+    return result;
+  }
+
+  // In QM/MM only the induced dipoles change between iterations. The
+  // potential is linear in the moments, so the permanent part is kept in the
+  // cache and reused as long as basis, positions and permanent moments are
+  // exactly the same; the induced dipoles are integrated every run.
+  Eigen::MatrixXd sites(Index(multipoles.size()), 13);
+  for (Index i = 0; i < Index(multipoles.size()); ++i) {
+    const StaticSite& site = *multipoles[i];
+    sites.block<1, 3>(i, 0) = site.getPos().transpose();
+    sites(i, 3) = double(site.getRank());
+    sites.block<1, 9>(i, 4) = site.Q().transpose();
+  }
+  const std::string key = RISetupKey();
+  if (setup_cache_->multipole_key == key &&
+      setup_cache_->multipole_matrix.rows() == dftbasis_.AOBasisSize() &&
+      setup_cache_->multipole_sites.rows() == sites.rows() &&
+      setup_cache_->multipole_sites == sites) {
+    result.matrix() = setup_cache_->multipole_matrix;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Reusing the permanent multipole potential matrix of the previous "
+           "run"
+        << std::flush;
+  } else {
+    AOMultipole permanent;
+    permanent.FillPotential(dftbasis_, multipoles,
+                            AOMultipole::Moments::Permanent);
+    result.matrix() = permanent.Matrix();
+    setup_cache_->multipole_key = key;
+    setup_cache_->multipole_sites = sites;
+    setup_cache_->multipole_matrix = permanent.Matrix();
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Filled DFT permanent multipole potential matrix"
+        << std::flush;
+  }
+
+  const bool has_induced =
+      std::any_of(multipoles.begin(), multipoles.end(),
+                  [](const std::unique_ptr<StaticSite>& site) {
+                    return site->getInducedDipole().norm() > 1e-12;
+                  });
+  if (has_induced) {
+    AOMultipole induced;
+    induced.FillPotential(dftbasis_, multipoles, AOMultipole::Moments::Induced);
+    result.matrix() += induced.Matrix();
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Filled DFT induced dipole potential matrix"
+        << std::flush;
+  }
 
   return result;
 }

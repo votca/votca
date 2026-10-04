@@ -806,9 +806,13 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
   Eigen::MatrixXd H_guess_alpha = H.alpha;
   Eigen::MatrixXd H_guess_beta = H.beta;
 
+  // As in ConvergenceAcc::Iterate: below DIIS_start (e.g. after a warm
+  // start) no damping, a plain first step and DIIS from two entries on.
+  const bool near_convergence = diiserror_ < opt_alpha_.diis_start;
+  const std::size_t min_history = near_convergence ? 1 : 2;
   if ((diiserror_ < opt_alpha_.adiis_start ||
        diiserror_ < opt_alpha_.diis_start) &&
-      opt_alpha_.usediis && mathist_alpha_.size() > 2) {
+      opt_alpha_.usediis && mathist_alpha_.size() > min_history) {
 
     Eigen::VectorXd coeffs;
 
@@ -997,7 +1001,7 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
   SpinDensity dmatout = DensityMatrix(MOs_alpha, MOs_beta);
 
   if (diiserror_ > opt_alpha_.mixingend || !opt_alpha_.usediis || diis_error ||
-      mathist_alpha_.size() <= 2) {
+      (mathist_alpha_.size() <= 2 && !near_convergence)) {
     // mixingend, not adiis_start -- deliberately decoupled (see the
     // options struct's own comment in convergenceacc.h): ORCA keeps
     // DampErr fully independent of DIISStart, and recommends making

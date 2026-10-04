@@ -24,6 +24,7 @@
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/orbreorder.h"
+#include "votca/xtp/polarsite.h"
 #include "xtp_libint2.h"
 #include <votca/tools/eigenio_matrixmarket.h>
 using namespace votca::xtp;
@@ -378,6 +379,118 @@ BOOST_AUTO_TEST_CASE(batched_sites_equal_sum_of_single_sites) {
   }
   BOOST_CHECK_SMALL((nuclei.Matrix() - nuc_sum).cwiseAbs().maxCoeff(),
                     1e-13 * nuc_sum.cwiseAbs().maxCoeff());
+  libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(permanent_plus_induced_equals_all) {
+  libint2::initialize();
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/aopotential/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+
+  std::srand(7);
+  std::vector<std::unique_ptr<StaticSite> > sites;
+  for (Index i = 0; i < 12; ++i) {
+    const Eigen::Vector3d pos = 4.0 * Eigen::Vector3d::Random();
+    Vector9d m = Vector9d::Zero();
+    m(0) = 0.3 * Eigen::VectorXd::Random(1)(0);
+    const Index rank = i % 3;
+    if (rank > 0) {
+      m.segment<3>(1) = 0.2 * Eigen::Vector3d::Random();
+    }
+    if (rank > 1) {
+      m.segment<5>(4) = 0.1 * Eigen::VectorXd::Random(5);
+    }
+    if (i % 4 == 3) {  // a static site among the polar ones
+      auto site = std::make_unique<StaticSite>(i, "C", pos);
+      site->setMultipole(m, rank);
+      sites.push_back(std::move(site));
+      continue;
+    }
+    auto site = std::make_unique<PolarSite>(i, "C", pos);
+    site->setMultipole(m, rank);
+    if (i % 4 != 2) {  // some polar sites without induced dipole
+      site->setInduced_Dipole(0.1 * Eigen::Vector3d::Random());
+    }
+    sites.push_back(std::move(site));
+  }
+  AOMultipole all;
+  all.FillPotential(aobasis, sites);
+  AOMultipole permanent;
+  permanent.FillPotential(aobasis, sites, AOMultipole::Moments::Permanent);
+  AOMultipole induced;
+  induced.FillPotential(aobasis, sites, AOMultipole::Moments::Induced);
+  const Eigen::MatrixXd sum = permanent.Matrix() + induced.Matrix();
+  BOOST_CHECK_SMALL((all.Matrix() - sum).cwiseAbs().maxCoeff(),
+                    1e-13 * all.Matrix().cwiseAbs().maxCoeff());
+  BOOST_CHECK_GT(induced.Matrix().cwiseAbs().maxCoeff(),
+                 1e-3 * all.Matrix().cwiseAbs().maxCoeff());
+
+  // without induced dipoles the permanent part is everything
+  for (auto& site : sites) {
+    if (auto* polar = dynamic_cast<PolarSite*>(site.get())) {
+      polar->setInduced_Dipole(Eigen::Vector3d::Zero());
+    }
+  }
+  AOMultipole all0;
+  all0.FillPotential(aobasis, sites);
+  BOOST_CHECK_SMALL((all0.Matrix() - permanent.Matrix()).cwiseAbs().maxCoeff(),
+                    1e-13 * all0.Matrix().cwiseAbs().maxCoeff());
+  libint2::finalize();
+}
+
+// Rank-1 sites use a recursion contracted with the dipole; a rank-2 site
+// with zero quadrupole goes through the per-component dipole recursion. Both
+// must agree, up to g functions on both sides of the integral.
+BOOST_AUTO_TEST_CASE(contracted_dipole_equals_components) {
+  libint2::initialize();
+  auto Check = [](const AOBasis& aobasis) {
+    std::srand(11);
+    std::vector<std::unique_ptr<StaticSite> > dipoles;
+    std::vector<std::unique_ptr<StaticSite> > as_rank2;
+    for (Index i = 0; i < 6; ++i) {
+      const Eigen::Vector3d pos = 3.0 * Eigen::Vector3d::Random();
+      Vector9d m = Vector9d::Zero();
+      m(0) = 0.3 * Eigen::VectorXd::Random(1)(0);
+      m.segment<3>(1) = 0.5 * Eigen::Vector3d::Random();
+      auto d = std::make_unique<StaticSite>(i, "C", pos);
+      d->setMultipole(m, 1);
+      dipoles.push_back(std::move(d));
+      auto q = std::make_unique<StaticSite>(i, "C", pos);
+      q->setMultipole(m, 2);
+      as_rank2.push_back(std::move(q));
+    }
+    AOMultipole contracted;
+    contracted.FillPotential(aobasis, dipoles);
+    AOMultipole components;
+    components.FillPotential(aobasis, as_rank2);
+    const double scale = components.Matrix().cwiseAbs().maxCoeff();
+    BOOST_CHECK_GT(scale, 1e-3);
+    BOOST_CHECK_SMALL(
+        (contracted.Matrix() - components.Matrix()).cwiseAbs().maxCoeff(),
+        1e-13 * scale);
+  };
+
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/aopotential/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+  Check(aobasis);
+
+  QMMolecule mol("C", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/C2.xyz");
+  BasisSet gbasis;
+  gbasis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/G.xml");
+  AOBasis gaobasis;
+  gaobasis.Fill(gbasis, mol);
+  Check(gaobasis);
   libint2::finalize();
 }
 

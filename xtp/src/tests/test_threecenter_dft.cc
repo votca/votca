@@ -73,6 +73,29 @@ BOOST_AUTO_TEST_CASE(small_basis) {
   libint2::finalize();
 }
 
+// Moving the tensor (as the QM/MM setup cache does) must not copy it.
+BOOST_AUTO_TEST_CASE(move_does_not_copy) {
+  libint2::initialize();
+  QMMolecule mol(" ", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/threecenter_dft/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, mol);
+  TCMatrix_dft threec;
+  threec.Fill(aobasis, aobasis);
+  const double* data = threec.Data().data();
+  const Eigen::MatrixXd b0 = threec.FullMatrix(0);
+  TCMatrix_dft moved(std::move(threec));
+  BOOST_CHECK(moved.Data().data() == data);
+  TCMatrix_dft assigned;
+  assigned = std::move(moved);
+  BOOST_CHECK(assigned.Data().data() == data);
+  BOOST_CHECK_EQUAL((assigned.FullMatrix(0) - b0).cwiseAbs().maxCoeff(), 0.0);
+  libint2::finalize();
+}
+
 /*BOOST_AUTO_TEST_CASE(large_l_test) {
 
   QMMolecule mol("C", 0);

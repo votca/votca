@@ -86,6 +86,8 @@ class AOTransform {
 
   static Index getBlockSize(Index lmax);
   static Eigen::VectorXd XIntegrate(Index size, double U);
+  /// Same, written to FmU[0..size), without allocating.
+  static void XIntegrate(Index size, double U, double* FmU);
 
   static double getNorm(L l, const AOGaussianPrimitive& gaussian);
 
