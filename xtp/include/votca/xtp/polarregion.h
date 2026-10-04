@@ -58,6 +58,10 @@ class PolarRegion : public MMRegion<PolarSegment> {
 
   double Etotal() const override { return E_hist_.back().Etotal(); }
 
+  // Thole damping of this region's induced dipoles, which environment
+  // screening must reuse to respond exactly as this region does.
+  double ExpDamp() const { return exp_damp_; }
+
   void WriteToCpt(CheckpointWriter& w) const override;
 
   void ReadFromCpt(CheckpointReader& r) override;

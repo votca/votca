@@ -31,6 +31,7 @@
 #include "bse.h"
 #include "bse_uks.h"
 #include "eigen.h"
+#include "environmentscreening.h"
 #include "gw.h"
 #include "gw_uks.h"
 #include "logger.h"
@@ -63,6 +64,13 @@ class GWBSE {
   std::string Identify() { return "gwbse"; }
 
   void setLogger(Logger* pLog) { pLog_ = pLog; }
+
+  // Screen GW and BSE by a static polarizable environment (embedded
+  // GW-BSE). R is built in Evaluate, once the auxiliary basis and its
+  // metric exist. Closed shell only.
+  void setScreeningEnvironment(const ScreeningEnvironment& env) {
+    environment_ = env;
+  }
 
   bool Evaluate();
 
@@ -100,6 +108,8 @@ class GWBSE {
   std::string dftbasis_name_;
 
   std::vector<QMFragment<BSE_Population> > fragments_;
+
+  ScreeningEnvironment environment_;
 };
 }  // namespace xtp
 }  // namespace votca

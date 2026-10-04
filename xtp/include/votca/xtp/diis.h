@@ -54,9 +54,23 @@ class DIIS {
   /// extrapolation.
   void setHistLength(Index length) { histlength_ = length; }
 
+  // Forget the whole history, e.g. when the SCF restarts from an earlier
+  // density after an energy blow-up (ConvergenceAcc::Iterate).
+  void Clear() {
+    Diis_Bs_.clear();
+    errormatrixhist_.clear();
+    errormatrixhist_alpha_.clear();
+    errormatrixhist_beta_.clear();
+  }
+
   /// Report whether the most recent DIIS setup and solve completed
   /// successfully.
   bool Info() { return success; }
+
+  // The stored error matrices, oldest first (closed-shell history).
+  const std::vector<Eigen::MatrixXd>& ErrorHistory() const {
+    return errormatrixhist_;
+  }
 
  private:
   bool success = true;

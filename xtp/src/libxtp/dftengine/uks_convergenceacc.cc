@@ -20,6 +20,8 @@
 // Local VOTCA includes
 #include "votca/xtp/uks_convergenceacc.h"
 
+#include <algorithm>
+
 #include <tuple>
 
 namespace votca {
@@ -41,19 +43,49 @@ void UKSConvergenceAcc::Configure(const options& opt_alpha,
 void UKSConvergenceAcc::setLogger(Logger* log) { log_ = log; }
 
 void UKSConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
+  // As ConvergenceAcc::setOverlap: removed directions are kept out of the
+  // occupied and low virtual space via removed_projector_.
   S_ = &S;
-  Sminusahalf = S.Pseudo_InvSqrt(etol);
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S.Matrix());
+  const Eigen::VectorXd& s_eig = es.eigenvalues();
+  Eigen::VectorXd inv_sqrt = Eigen::VectorXd::Zero(s_eig.size());
+  Index removed = 0;
+  for (Index i = 0; i < s_eig.size(); ++i) {
+    if (s_eig(i) < etol) {
+      ++removed;
+    } else {
+      inv_sqrt(i) = 1.0 / std::sqrt(s_eig(i));
+    }
+  }
+  Sminusahalf =
+      es.eigenvectors() * inv_sqrt.asDiagonal() * es.eigenvectors().transpose();
+  removed_projector_.resize(0, 0);
+  if (removed > 0) {
+    const Eigen::MatrixXd U = es.eigenvectors().leftCols(removed);
+    removed_projector_ = U * U.transpose();
+  }
   XTP_LOG(Log::error, *log_)
-      << TimeStamp() << " Smallest value of AOOverlap matrix is "
-      << S_->SmallestEigenValue() << std::flush;
+      << TimeStamp() << " Smallest value of AOOverlap matrix is " << s_eig(0)
+      << std::flush;
   XTP_LOG(Log::error, *log_)
-      << TimeStamp() << " Removed " << S_->Removedfunctions()
-      << " basisfunction from inverse overlap matrix" << std::flush;
+      << TimeStamp() << " Removed " << removed
+      << " basisfunction from inverse overlap matrix (threshold " << etol << ")"
+      << std::flush;
+  if (removed == 0 && s_eig(0) < 1e3 * etol) {
+    XTP_LOG(Log::error, *log_)
+        << TimeStamp()
+        << " WARNING: the overlap matrix is nearly singular; if the SCF is "
+           "unstable, raise xtpdft.overlap_tolerance above "
+        << s_eig(0) << "." << std::flush;
+  }
 }
 
 tools::EigenSystem UKSConvergenceAcc::SolveFockmatrix(
     const Eigen::MatrixXd& H) const {
   Eigen::MatrixXd H_ortho = Sminusahalf.transpose() * H * Sminusahalf;
+  if (removed_projector_.size() > 0) {
+    H_ortho += kRemovedShift * removed_projector_;
+  }
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
 
   if (es.info() != Eigen::ComputationInfo::Success) {
@@ -661,12 +693,24 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
     direct_min_pending_ = false;
   }
 
+  // History, trimmed at ONE index for the Fock, density and error
+  // histories and for DIIS's own error history: the oldest entry, or with
+  // DIIS_maxout the entry with the largest error. Previously the index was
+  // a stale position (never re-based after an erase, maxerror_ never
+  // reset), and DIIS::Update could trim at a different index than the
+  // Fock history, pairing coefficients with the wrong matrices. totE_ is
+  // not trimmed: it is the chronological energy list getDeltaE reads.
+  Index drop = 0;
   if (int(mathist_alpha_.size()) == opt_alpha_.histlength) {
-    totE_.erase(totE_.begin() + maxerrorindex_);
-    mathist_alpha_.erase(mathist_alpha_.begin() + maxerrorindex_);
-    mathist_beta_.erase(mathist_beta_.begin() + maxerrorindex_);
-    dmatHist_alpha_.erase(dmatHist_alpha_.begin() + maxerrorindex_);
-    dmatHist_beta_.erase(dmatHist_beta_.begin() + maxerrorindex_);
+    if (opt_alpha_.maxout) {
+      drop = Index(std::max_element(errhist_.begin(), errhist_.end()) -
+                   errhist_.begin());
+    }
+    mathist_alpha_.erase(mathist_alpha_.begin() + drop);
+    mathist_beta_.erase(mathist_beta_.begin() + drop);
+    dmatHist_alpha_.erase(dmatHist_alpha_.begin() + drop);
+    dmatHist_beta_.erase(dmatHist_beta_.begin() + drop);
+    errhist_.erase(errhist_.begin() + drop);
   }
 
   totE_.push_back(totE);
@@ -748,17 +792,10 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
   dmatHist_alpha_.push_back(dmat.alpha);
   dmatHist_beta_.push_back(dmat.beta);
 
-  if (opt_alpha_.maxout) {
-    if (diiserror_ > maxerror_) {
-      maxerror_ = diiserror_;
-      maxerrorindex_ = mathist_alpha_.size() - 1;
-    }
-  } else {
-    maxerrorindex_ = 0;
-  }
+  errhist_.push_back(diiserror_);
 
   // crucial: one shared error matrix = alpha + beta contribution
-  diis_.Update(maxerrorindex_, err_alpha, err_beta);
+  diis_.Update(drop, err_alpha, err_beta);
 
   bool diis_error = false;
   XTP_LOG(Log::error, *log_)
@@ -776,7 +813,7 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
     Eigen::VectorXd coeffs;
 
     if (diiserror_ > opt_alpha_.diis_start ||
-        totE_.back() > 0.9 * totE_[totE_.size() - 2]) {
+        totE_.back() - totE_[totE_.size() - 2] > kEnergyRiseForADIIS) {
       coeffs = adiis_.CalcCoeff(dmatHist_alpha_, dmatHist_beta_, mathist_alpha_,
                                 mathist_beta_);
       diis_error = !adiis_.Info() || coeffs.size() == 0;

@@ -484,8 +484,8 @@ void GWBSE::Initialize(tools::Property& options) {
       }
 
       XTP_LOG(Log::error, *pLog_)
-          << " Deprecated GW QP options detected: "
-          << "qp_grid_steps=" << gwopt_.qp_grid_steps
+          << " Deprecated GW QP options detected: " << "qp_grid_steps="
+          << gwopt_.qp_grid_steps
           << " qp_grid_spacing=" << gwopt_.qp_grid_spacing
           << " -> mapped to qp_full_window_half_width="
           << gwopt_.qp_full_window_half_width
@@ -926,6 +926,42 @@ bool GWBSE::Evaluate() {
         << flush;
   }
 
+  // The environment's reaction field in the metric of Mmn. Needs only the
+  // auxiliary basis and its metric, so it stays valid however Mmn is later
+  // rotated, dressed or refilled (QSGW) -- all of it on this basis.
+  Eigen::MatrixXd reaction_field;
+  if (!environment_.empty()) {
+    if (is_uks) {
+      throw std::runtime_error(
+          "GWBSE: environment screening is implemented for closed-shell "
+          "systems only.");
+    }
+    std::chrono::time_point<std::chrono::system_clock> start =
+        std::chrono::system_clock::now();
+    Index n_explicit = 0;
+    for (const PolarSegment& seg : environment_.explicit_segments) {
+      n_explicit += seg.size();
+    }
+    Index n_shell = 0;
+    for (const PolarSegment& seg : environment_.shell_segments) {
+      n_shell += seg.size();
+    }
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Environment screening: " << n_explicit
+        << " explicit Thole sites (exp_damp " << environment_.exp_damp << "), "
+        << n_shell << " shell sites (epsilon " << environment_.shell_dielectric
+        << ")" << flush;
+    const Eigen::MatrixXd B =
+        EnvironmentScreening::Kernel(auxbasis, environment_);
+    reaction_field =
+        EnvironmentScreening::SymmetrizedReactionField(B, Mmn.InvSqrt());
+    std::chrono::duration<double> elapsed_time =
+        std::chrono::system_clock::now() - start;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Built environment reaction field in "
+        << elapsed_time.count() << " seconds." << flush;
+  }
+
   Eigen::MatrixXd Hqp;
   Eigen::MatrixXd Hqp_alpha;
   Eigen::MatrixXd Hqp_beta;
@@ -1003,6 +1039,7 @@ bool GWBSE::Evaluate() {
       Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
       GW gw = GW(*pLog_, Mmn, vxc, orbitals_.MOs().eigenvalues());
       gw.configure(gwopt_);
+      gw.setReactionField(reaction_field);
 
       gw.CalculateGWPerturbation();
 
@@ -1210,6 +1247,7 @@ bool GWBSE::Evaluate() {
       }
     } else {
       BSE bse = BSE(*pLog_, Mmn);
+      bse.setReactionField(reaction_field, environment_.include_kreac);
       bse.configure(bseopt_, orbitals_.RPAInputEnergies(), Hqp);
 
       if (do_bse_triplets_) {

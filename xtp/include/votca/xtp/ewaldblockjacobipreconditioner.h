@@ -159,7 +159,10 @@ class EwaldBlockJacobiPreconditioner {
 
   template <typename Rhs, typename Dest>
   void _solve_impl(const Rhs& b, Dest& x) const {
-    for (std::size_t n = 0; n < ids_.size(); ++n) {
+    // Segments own disjoint slices of x, so they are independent.
+#pragma omp parallel for schedule(dynamic, 4)
+    for (Index nn = 0; nn < Index(ids_.size()); ++nn) {
+      const std::size_t n = std::size_t(nn);
       const Index base = offsets_[n];
       const Index width = offsets_[n + 1] - base;
       // LDLT::solve works identically regardless of block size -- no
@@ -215,8 +218,12 @@ class EwaldBlockJacobiPreconditioner {
   // operator's assembled block, not against AddIntraSegmentCoupling in
   // isolation.
   void FactorizeBlocks() {
-    factorizations_.reserve(ids_.size());
-    for (std::size_t n = 0; n < ids_.size(); ++n) {
+    // One independent block per segment: built and factorized in
+    // parallel, each into its own slot.
+    factorizations_.resize(ids_.size());
+#pragma omp parallel for schedule(dynamic, 4)
+    for (Index nn = 0; nn < Index(ids_.size()); ++nn) {
+      const std::size_t n = std::size_t(nn);
       const PolarSegment& segment =
           registry_->Get(ids_[n], EwaldChargeState::Neutral);
       const Index n_sites = segment.size();
@@ -262,8 +269,7 @@ class EwaldBlockJacobiPreconditioner {
         }
       }
 
-      Eigen::LDLT<Eigen::MatrixXd> ldlt(block);
-      factorizations_.push_back(std::move(ldlt));
+      factorizations_[n].compute(block);
     }
   }
 

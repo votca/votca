@@ -189,6 +189,23 @@ class EwaldRealSpaceSum {
                   EwaldChargeState source_state,
                   bool include_static = true) const;
 
+  // AddFieldAt for a whole batch, in parallel. Every missing neighbour
+  // list is built first by PrepareNeighborCache (parallel search, serial
+  // insertion), after which the field pass only reads this object and
+  // each iteration writes only its own target, so it is safe to spread
+  // over threads. The result is bit-identical to calling AddFieldAt on
+  // every target in turn: each target sees the same (source, translation)
+  // list, applied in the same order.
+  //
+  // This, not an omp loop around AddFieldAt, is how a caller evaluates
+  // many targets concurrently: AddFieldAt inserts into neighbor_cache_
+  // on a miss, and concurrent insertion into an unordered_map loses
+  // entries (and can corrupt the table) without any diagnostic.
+  template <enum Estatic CE>
+  void AddFieldAtMany(const std::vector<std::pair<Index, PolarSite*>>& targets,
+                      EwaldChargeState source_state,
+                      bool include_static = true) const;
+
   // The erfc-screened PERMANENT-multipole interaction energy between one
   // target site and every background source this class would sum a field
   // from -- the same neighbour set, with the same foreground copies
@@ -259,18 +276,29 @@ class EwaldRealSpaceSum {
   double CalcInducedSourceEnergyAt(const PolarSite& target,
                                    EwaldChargeState source_state) const;
 
-  // Builds the neighbour cache for every target in one serial pass,
-  // WITHOUT applying any field (each target's own V()/V_noE() are
-  // restored before returning). Exists so callers can parallelize over
-  // targets afterwards: neighbor_cache_ and the statistics counters are
-  // mutable and written only while a target's list is being built, so
-  // once every list exists AddFieldAt is read-only with respect to this
-  // object and safe to call concurrently for distinct targets. Calling
-  // this is optional -- AddFieldAt still builds its own list on demand
-  // -- but a caller that skips it must not run AddFieldAt in parallel.
+  // Builds the neighbour list of every target that does not have one
+  // yet, WITHOUT applying any field: the search runs on a scratch copy of
+  // each target, so the targets themselves are not touched. Targets that
+  // already have a list (and repeated entries) are skipped.
+  //
+  // The searches run in parallel -- each one only reads this object --
+  // and the lists are inserted into neighbor_cache_ afterwards, serially,
+  // together with the statistics counters. Once every list exists
+  // AddFieldAt is read-only with respect to this object and safe to call
+  // concurrently for distinct targets. Calling this is optional --
+  // AddFieldAt still builds its own list on demand -- but a caller that
+  // skips it must not run AddFieldAt in parallel.
+  //
+  // converge_static_field selects the field whose shell contribution
+  // decides when the search stops, exactly as include_static does for
+  // AddFieldAt's own on-demand search: true converges the permanent plus
+  // induced field (what AddFieldAt<V>(..., true) would have built),
+  // false the induced field alone. Callers pass what their first
+  // AddFieldAt call would have passed, so the list -- and hence every
+  // later result -- is the one the on-demand path would have produced.
   void PrepareNeighborCache(
       const std::vector<std::pair<Index, PolarSite*>>& targets,
-      EwaldChargeState source_state) const;
+      EwaldChargeState source_state, bool converge_static_field = false) const;
 
   // Neighbour-list statistics over every target whose list has been
   // built so far. entries is the total number of (source segment,
@@ -303,6 +331,45 @@ class EwaldRealSpaceSum {
     double r;
   };
   std::vector<Translation> GenerateSortedTranslations() const;
+
+  using NeighborList =
+      std::vector<std::tuple<const PolarSegment*, Index, Eigen::Vector3d>>;
+
+  // Per-search statistics, accumulated locally so that a search can run
+  // without writing to this object, and added to the member counters by
+  // whoever inserts the list.
+  struct SearchCounts {
+    Index culled = 0;
+    Index foreground = 0;
+  };
+
+  // The shell-by-shell convergence search for one target. Accumulates
+  // the field into scratch (a copy of the target: the convergence test
+  // needs a field to watch) and returns every (source, translation) pair
+  // it applied, in the order it applied them. Writes nothing in this
+  // object, so concurrent calls are safe.
+  template <enum Estatic CE>
+  NeighborList SearchNeighbors(Index target_segment_id, PolarSite& scratch,
+                               EwaldChargeState source_state,
+                               bool include_static, SearchCounts& counts) const;
+
+  // Applies a neighbour list to target: the fast path of AddFieldAt.
+  template <enum Estatic CE>
+  void ApplyNeighborList(const NeighborList& list, PolarSite& target,
+                         bool include_static) const;
+
+  // PrepareNeighborCache for the search AddFieldAt<CE>(..., include_static)
+  // would run on a miss, so a list built here is the one the on-demand
+  // path would have built. AddFieldAtMany<CE> uses this directly.
+  template <enum Estatic CE>
+  void PrepareNeighborCacheImpl(
+      const std::vector<std::pair<Index, PolarSite*>>& targets,
+      EwaldChargeState source_state, bool include_static) const;
+
+  // Inserts one list and its statistics. Not thread-safe.
+  void InsertNeighborList(
+      const std::pair<const PolarSite*, EwaldChargeState>& key,
+      NeighborList list, const SearchCounts& counts) const;
 
   // std::pair has no default std::hash specialization; EwaldChargeState
   // (an enum class) does, via std::underlying_type, since C++14, so this
@@ -391,10 +458,8 @@ class EwaldRealSpaceSum {
   // stored in a std::map, whose elements keep stable addresses; the same
   // stability argument this cache already relies on for target site
   // addresses being usable as keys.
-  mutable std::unordered_map<
-      std::pair<const PolarSite*, EwaldChargeState>,
-      std::vector<std::tuple<const PolarSegment*, Index, Eigen::Vector3d>>,
-      PairHash>
+  mutable std::unordered_map<std::pair<const PolarSite*, EwaldChargeState>,
+                             NeighborList, PairHash>
       neighbor_cache_;
 };
 

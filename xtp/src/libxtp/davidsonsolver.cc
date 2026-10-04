@@ -319,6 +319,23 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getHarmonicRitz(
   // we only need enough pairs for either extension of space or restart
   Index needed_pairs =
       std::min(proj.T.cols(), std::max(restart_size_, proj.size_update));
+  // Dropping one member of each complex pair can leave fewer candidates than
+  // needed (e.g. right after a restart, when the space has restart_size_
+  // columns). Then add the imaginary parts of the pairs' eigenvectors: with
+  // the real parts they span the real invariant subspaces of the pairs.
+  if (j < needed_pairs) {
+    const Index missing =
+        std::min(needed_pairs - j, Index(complex_pairs.size()));
+    eigenvalues.conservativeResize(j + missing);
+    eigenvectors.conservativeResize(Eigen::NoChange, j + missing);
+    for (Index p = 0; p < missing; ++p) {
+      const Index i = complex_pairs[p].first;
+      eigenvalues(j) = ges.eigenvalues()(i).real();
+      eigenvectors.col(j) = ges.eigenvectors().col(i).imag();
+      eigenvectors.col(j).normalize();
+      j++;
+    }
+  }
   ArrayXl idx =
       DavidsonSolver::argsort(eigenvalues).reverse().head(needed_pairs);
   // we need the largest values, because this is the inverse value, so

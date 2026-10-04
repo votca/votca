@@ -228,8 +228,12 @@ class UKSConvergenceAcc {
   ADIIS adiis_;
 
   double diiserror_ = 1.0;
-  double maxerror_ = -1.0;
-  Index maxerrorindex_ = 0;
+  // DIIS error of each history entry, aligned with mathist_alpha_.
+  std::vector<double> errhist_;
+  // See ConvergenceAcc.
+  static constexpr double kEnergyRiseForADIIS = 1e-4;
+  Eigen::MatrixXd removed_projector_;
+  static constexpr double kRemovedShift = 1e3;
   bool usedmixing_ = true;
 
   // Direct-minimization fallback bookkeeping. consecutive_adiis_failures_

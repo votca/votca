@@ -22,6 +22,10 @@
 #include <iostream>
 #include <vector>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 // Third party includes
 #include <boost/test/tools/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
@@ -440,6 +444,159 @@ BOOST_AUTO_TEST_CASE(probe_is_not_thole_damped_against_an_induced_dipole) {
   BOOST_REQUIRE_GT(std::abs(undamped - fully_damped), 0.1 * std::abs(undamped));
 
   BOOST_CHECK_CLOSE(phi(0), undamped, 1e-8);
+}
+
+// AddFieldAtMany is the batched, threaded form of AddFieldAt: it must give
+// bit-identical fields, the same neighbour lists (hence the same
+// energies) and the same statistics as the serial per-target loop, and
+// every target must have its list afterwards.
+//
+// The regression this guards: EwaldRegion::ApplyFieldTo used to run
+// AddFieldAt under omp parallel for on targets that had no list yet, so
+// every thread inserted into the same unordered_map at once. Entries
+// were lost, and the energy pass that follows threw "no neighbour list
+// for this target" on a 28-thread production QMMM job. Run here with
+// several threads and enough targets for the insertions to overlap.
+BOOST_AUTO_TEST_CASE(add_field_at_many_matches_serial_add_field_at) {
+  const double alpha = 0.35;
+  const double thole = 0.39;
+  const double L = 15.0;
+  const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
+
+  EwaldRegistry registry;
+  const Index n = 3;
+  const double d = L / double(n);
+  Index id = 0;
+  for (Index a = 0; a < n; ++a) {
+    for (Index b = 0; b < n; ++b) {
+      for (Index c = 0; c < n; ++c) {
+        const Eigen::Vector3d centre(double(a) * d, double(b) * d,
+                                     double(c) * d);
+        PolarSegment seg("seg", id);
+        const double t = 0.63;
+        const Eigen::Vector3d offsets[5] = {
+            {0.0, 0.0, 0.0}, {t, t, t}, {t, -t, -t}, {-t, t, -t}, {-t, -t, t}};
+        for (Index j = 0; j < 5; ++j) {
+          PolarSite site(j, (j == 0) ? "C" : "H", centre + offsets[j]);
+          site.setpolarization(((j == 0) ? 8.0 : 3.0) *
+                               Eigen::Matrix3d::Identity());
+          site.setCharge((j == 0) ? -0.4 : 0.1);
+          site.setStaticDipole(Eigen::Vector3d(1e-2 * double(j + 1), -5e-3,
+                                               2e-3 * double(j + id % 3)));
+          site.setInduced_Dipole(Eigen::Vector3d(1e-3, -5e-4, 7e-4));
+          seg.push_back(site);
+        }
+        registry.Register(id, EwaldChargeState::Neutral, seg);
+        ++id;
+      }
+    }
+  }
+
+  // A foreground of four segments, as a QMMM job would carve out.
+  std::vector<std::pair<Index, Eigen::Vector3d>> foreground;
+  const Index fg_ids[4] = {0, 1, 3, 9};
+  for (Index fg_id : fg_ids) {
+    const PolarSegment& seg = registry.Get(fg_id, EwaldChargeState::Neutral);
+    Eigen::Vector3d pos = Eigen::Vector3d::Zero();
+    for (const PolarSite& site : seg) {
+      pos += site.getPos();
+    }
+    foreground.push_back({fg_id, pos / double(seg.size())});
+  }
+
+  // Targets are copies of the sites of every segment (135 of them, enough
+  // for concurrent first-time insertions to collide), owned here, as a
+  // polar region owns its own. Two independent sets, one per sum object.
+  auto make_targets = [&](std::vector<PolarSite>& storage) {
+    storage.clear();
+    storage.reserve(std::size_t(5 * n * n * n));
+    std::vector<Index> seg_ids;
+    for (Index seg_id : registry.AllIds()) {
+      for (const PolarSite& site :
+           registry.Get(seg_id, EwaldChargeState::Neutral)) {
+        storage.push_back(site);
+        storage.back().Reset();
+        seg_ids.push_back(seg_id);
+      }
+    }
+    std::vector<std::pair<Index, PolarSite*>> targets;
+    for (std::size_t i = 0; i < storage.size(); ++i) {
+      targets.push_back({seg_ids[i], &storage[i]});
+    }
+    return targets;
+  };
+
+#ifdef _OPENMP
+  const int saved_threads = omp_get_max_threads();
+  omp_set_num_threads(4);
+#endif
+
+  for (bool include_static : {true, false}) {
+    EwaldRealSpaceSum serial(box, registry, alpha, thole, 12.0, 1e-12, 0.945,
+                             15, 6.0, foreground);
+    EwaldRealSpaceSum batched(box, registry, alpha, thole, 12.0, 1e-12, 0.945,
+                              15, 6.0, foreground);
+    std::vector<PolarSite> serial_sites;
+    std::vector<PolarSite> batched_sites;
+    const auto serial_targets = make_targets(serial_sites);
+    auto batched_targets = make_targets(batched_sites);
+    // A repeated entry must be searched once and applied twice, exactly
+    // like two AddFieldAt calls.
+    batched_targets.push_back(batched_targets.front());
+
+    for (const auto& entry : serial_targets) {
+      serial.AddFieldAt<Estatic::V>(entry.first, *entry.second,
+                                    EwaldChargeState::Neutral, include_static);
+    }
+    serial.AddFieldAt<Estatic::V>(serial_targets.front().first,
+                                  *serial_targets.front().second,
+                                  EwaldChargeState::Neutral, include_static);
+    batched.AddFieldAtMany<Estatic::V>(
+        batched_targets, EwaldChargeState::Neutral, include_static);
+
+    BOOST_REQUIRE_EQUAL(serial_sites.size(), batched_sites.size());
+    for (std::size_t i = 0; i < serial_sites.size(); ++i) {
+      // Same pairs, same order, same starting V: exactly equal.
+      BOOST_CHECK(serial_sites[i].V() == batched_sites[i].V());
+      BOOST_CHECK_EQUAL(
+          serial.CalcStaticEnergyAt(serial_sites[i], EwaldChargeState::Neutral),
+          batched.CalcStaticEnergyAt(batched_sites[i],
+                                     EwaldChargeState::Neutral));
+    }
+    BOOST_CHECK(serial_sites.front().V().norm() > 1e-6);
+
+    const auto s = serial.GetNeighborStats();
+    const auto b = batched.GetNeighborStats();
+    BOOST_CHECK_EQUAL(s.targets, Index(serial_sites.size()));
+    BOOST_CHECK_EQUAL(s.targets, b.targets);
+    BOOST_CHECK_EQUAL(s.entries, b.entries);
+    BOOST_CHECK_EQUAL(s.culled, b.culled);
+    BOOST_CHECK_EQUAL(s.foreground, b.foreground);
+
+    // A second batch reuses every list: no new searches.
+    batched.AddFieldAtMany<Estatic::V>(
+        batched_targets, EwaldChargeState::Neutral, include_static);
+    BOOST_CHECK_EQUAL(batched.GetNeighborStats().targets, b.targets);
+  }
+
+  // PrepareNeighborCache alone leaves the targets untouched and makes the
+  // energy query valid for every one of them.
+  {
+    EwaldRealSpaceSum sum(box, registry, alpha, thole, 12.0, 1e-12, 0.945, 15,
+                          6.0, foreground);
+    std::vector<PolarSite> sites;
+    const auto targets = make_targets(sites);
+    sum.PrepareNeighborCache(targets, EwaldChargeState::Neutral, true);
+    for (const PolarSite& site : sites) {
+      BOOST_CHECK(site.V().isZero(0.0));
+      BOOST_CHECK_NO_THROW(
+          sum.CalcStaticEnergyAt(site, EwaldChargeState::Neutral));
+    }
+  }
+
+#ifdef _OPENMP
+  omp_set_num_threads(saved_threads);
+#endif
 }
 
 BOOST_AUTO_TEST_SUITE_END()

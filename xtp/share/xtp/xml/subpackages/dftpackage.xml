@@ -15,7 +15,7 @@
   <temporary_file help="Filename for temporary files without extension" default="temp"/>
   <convergence_tightness help="How accurate the dft self-consistency has to be" default="tight" choices="low,normal,tight,verytight" />
   <cleanup help="files to remove after the calculation. Specify the fileextensions" default="" />
-  <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities) or previous calculation keyword orbfile or dimer_guess (combine two monomer .orb files of independently arbitrary charge/spin -- see dimer_guess_orbA/orbB below)" default="atom" choices="independent,atom,orbfile,huckel,huckel_dft,dimer_guess" />
+  <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities) or previous calculation keyword orbfile or dimer_guess (combine two monomer .orb files, see dimer_guess_orbA/orbB below; closed-shell monomers work for restricted and unrestricted runs, open-shell monomers need the unrestricted path)" default="atom" choices="independent,atom,orbfile,huckel,huckel_dft,dimer_guess" />
   <dimer_guess_orbA help="Path to monomer A's own, already-converged .orb file -- only read when initial_guess=dimer_guess. Monomer A's atoms must be an exact internal-geometry match (bond lengths/angles, NOT absolute position -- translation/rotation between the standalone monomer and its placement in the dimer is expected and fine) for the first N_A atoms of this calculation's own molecule." default="" />
   <dimer_guess_orbB help="Same as dimer_guess_orbA, for monomer B -- expected to match this calculation's own remaining atoms (after monomer A's own N_A atoms)." default="" />
   <orca help="orca specific keywords can be added here, where the xml tag corresponds to the option and the value to the option's value" unchecked=""/>
@@ -28,6 +28,7 @@
       <truncation_threshold help="Threshold to convert an inactive atom to a border atom" default="1e-4" choices="float+"/>
     </dft_in_dft>
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
+    <overlap_tolerance help="Eigenvalues of the AO overlap matrix below this value are removed from the orthogonalization (near linear dependencies; the removed directions become zero orbitals at the top of the spectrum). Raise to 1e-7 to 1e-6 if the log reports a nearly singular overlap and the SCF is unstable." default="1e-8" choices="float+" />
     <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />
     <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
     <force_uks_path help="forcing UKS path" default="false" choices="bool"/>
@@ -55,6 +56,7 @@
       <mixing help="mixing parameter for linear mixing of density matrices" default="0.7" choices="float+" />
       <mixing_end help="DIIS error below which mixing is disabled -- independent of ADIIS_start (see ORCA's own DampErr, kept independent of DIISStart for the same reason: difficult systems benefit from keeping mixing active well past the point where ADIIS/DIIS themselves start being tried, not exactly until that same point). Defaults to match ADIIS_start's own default (0.8) for backward compatibility -- existing configurations see identical behavior unless this is set explicitly." default="0.8" choices="float+" />
       <mixing_max help="Ceiling mixing can adaptively ramp up toward as the SCF struggles (see consecutive ADIIS failures), rather than staying fixed at the base mixing value for an entire run. Matches ORCA's own DampMax (default 0.98, confirmed directly from a real ORCA log's own resolved SCF settings) -- ORCA ramps its own damping factor from a base (DampFac, 0.7 by default) up to this ceiling only when actually needed, rather than paying the cost of heavy damping throughout." default="0.98" choices="float+" />
+      <energy_reset help="If the energy rises by more than this above the lowest energy reached so far, the (A)DIIS history is discarded and the SCF restarts, damped, from the lowest-energy density. 0 disables." unit="hartree" default="1.0" choices="float+" />
       <davidson_max_iter help="Maximum iterations for the Davidson eigensolver used by the direct-minimization (augmented-Hessian) fallback, engaged when ADIIS/DIIS themselves are struggling. A genuinely difficult system (e.g. a strong constraint spanning a large fragment) can leave this solver still short of its own convergence tolerance at the default -- confirmed directly, from a real run, that the previous, hardcoded 50 was not always enough. Not CDFT-specific: this fallback can also engage for an ordinary, non-CDFT UKS calculation." default="50" choices="int+" />
     </convergence>
   </xtpdft>

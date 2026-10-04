@@ -287,6 +287,10 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
   conv_opt_.davidson_max_iter =
       options.get(key_xtpdft + ".convergence.davidson_max_iter").as<Index>();
+  conv_opt_.energy_reset = options.ifExistsReturnElseReturnDefault<double>(
+      key_xtpdft + ".convergence.energy_reset", 1.0);
+  overlap_tolerance_ = options.ifExistsReturnElseReturnDefault<double>(
+      key_xtpdft + ".overlap_tolerance", 1e-8);
 
   if (options.exists(key_xtpdft + ".dft_in_dft.activeatoms")) {
     active_atoms_as_string_ =
@@ -1210,13 +1214,30 @@ bool DFTEngine::EvaluateClosedShell(
     } else if (initial_guess_ == "huckel_dft") {
       MOs = ExtendedHuckelDFTGuess(H0, orb.QMAtoms(), vxcpotential);
     } else if (initial_guess_ == "dimer_guess") {
-      throw std::runtime_error(
-          "initial_guess=dimer_guess is only meaningful for a genuinely "
-          "unrestricted (UKS) calculation -- it exists specifically to "
-          "combine two monomers of independently arbitrary charge/spin, "
-          "which by construction do not reduce to a single restricted "
-          "MO set. Use force_uks_path or an odd total electron count to "
-          "route through EvaluateUKS instead.");
+      // Closed-shell dimer: the block-diagonal guess is restricted as long
+      // as both monomers carry identical alpha and beta MOs (restricted,
+      // closed-shell monomers). Open-shell monomers need the UKS path.
+      Orbitals dimer_guess_orb = BuildDimerGuessFromMonomerFiles(orb.QMAtoms());
+      if (dimer_guess_orb.getNumberOfAlphaElectrons() !=
+              dimer_guess_orb.getNumberOfBetaElectrons() ||
+          !(dimer_guess_orb.MOs().eigenvectors() ==
+            dimer_guess_orb.MOs_beta().eigenvectors())) {
+        throw std::runtime_error(
+            "initial_guess=dimer_guess: this is a restricted (closed-shell) "
+            "calculation, but at least one monomer .orb file is open-shell "
+            "or unrestricted. Use force_uks_path to run the dimer "
+            "unrestricted with this guess.");
+      }
+      if (dimer_guess_orb.getNumberOfAlphaElectrons() != num_alpha_electrons_) {
+        throw std::runtime_error(
+            "initial_guess=dimer_guess: the monomers have " +
+            std::to_string(2 * dimer_guess_orb.getNumberOfAlphaElectrons()) +
+            " electrons in total, but this calculation has " +
+            std::to_string(2 * num_alpha_electrons_) +
+            ". Check the monomer charges against the dimer charge.");
+      }
+      MOs = dimer_guess_orb.MOs();
+      MOs.eigenvectors() = OrthogonalizeGuess(MOs.eigenvectors());
     } else {
       throw std::runtime_error("Initial guess method not known/implemented");
     }
@@ -1251,6 +1272,7 @@ bool DFTEngine::EvaluateClosedShell(
   IncrementalFockBuilder incremental_fock(*pLog_, start_incremental_F_threshold,
                                           fock_matrix_reset_);
   incremental_fock.Configure(Dmat);
+  conv_accelerator_.StartNewSCF();
 
   for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
     XTP_LOG(Log::error, *pLog_) << std::flush;
@@ -1412,7 +1434,7 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
 
   conv_uks.Configure(opt_alpha, opt_beta);
   conv_uks.setLogger(pLog_);
-  conv_uks.setOverlap(dftAOoverlap_, 1e-8);
+  conv_uks.setOverlap(dftAOoverlap_, overlap_tolerance_);
 
   if (initial_guess_ == "orbfile") {
     XTP_LOG(Log::error, *pLog_)
@@ -1884,7 +1906,7 @@ void DFTEngine::SetupInvariantMatrices() {
                        : ConvergenceAcc::KSmode::restricted_open;
   conv_accelerator_.Configure(conv_opt_);
   conv_accelerator_.setLogger(pLog_);
-  conv_accelerator_.setOverlap(dftAOoverlap_, 1e-8);
+  conv_accelerator_.setOverlap(dftAOoverlap_, overlap_tolerance_);
   conv_accelerator_.PrintConfigOptions();
 
   if (!auxbasis_name_.empty()) {
@@ -2131,7 +2153,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   // single, jointly-derived set of (A)DIIS coefficients to both --
   // confirmed directly from uks_convergenceacc.cc's own comment ("one
   // shared DIIS/ADIIS history length") and its Iterate()'s own
-  // "diis_.Update(maxerrorindex_, err_alpha, err_beta)" call. This is
+  // "diis_.Update(drop, err_alpha, err_beta)" call. This is
   // the standard, textbook-correct formulation of UKS DIIS; the
   // previous two-independent-accelerators approach was not wrong in
   // the sense of being internally inconsistent (unlike the
@@ -2140,7 +2162,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   // is meant to work.
   conv_uks.Configure(opt_alpha, opt_beta);
   conv_uks.setLogger(&log);
-  conv_uks.setOverlap(dftAOoverlap, 1e-8);
+  conv_uks.setOverlap(dftAOoverlap, overlap_tolerance_);
 
   Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.Matrix();
   if (with_ecp) {
@@ -2959,6 +2981,36 @@ Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
   };
   CheckInternalGeometry(atomsA, 0, "Monomer A");
   CheckInternalGeometry(atomsB, nA, "Monomer B");
+
+  // The MO coefficients are copied without rotating them, so the guess is
+  // only exact if each monomer is translated, not rotated, into the dimer.
+  auto MaxDeviationFromTranslation = [&](const QMMolecule& monomer_atoms,
+                                         Index offset_in_dimer) {
+    Eigen::Vector3d shift =
+        dimer_mol[offset_in_dimer].getPos() - monomer_atoms[0].getPos();
+    double max_dev = 0.0;
+    for (Index i = 0; i < monomer_atoms.size(); ++i) {
+      double dev = (dimer_mol[offset_in_dimer + i].getPos() -
+                    monomer_atoms[i].getPos() - shift)
+                       .norm();
+      max_dev = std::max(max_dev, dev);
+    }
+    return max_dev;
+  };
+  auto WarnIfRotated = [&](const QMMolecule& monomer_atoms,
+                           Index offset_in_dimer, const std::string& label) {
+    double dev = MaxDeviationFromTranslation(monomer_atoms, offset_in_dimer);
+    if (dev > kGeometryToleranceBohr) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " WARNING: " << label
+          << " is rotated with respect to its .orb file (max deviation " << dev
+          << " bohr after translation). Its MO coefficients are not "
+             "rotated, so the dimer guess will be poor."
+          << std::flush;
+    }
+  };
+  WarnIfRotated(atomsA, 0, "Monomer A");
+  WarnIfRotated(atomsB, nA, "Monomer B");
 
   Orbitals dimer_guess;
   // PrepareDimerGuess/PrepareDimerGuessMixedSpin both call SetupDftBasis

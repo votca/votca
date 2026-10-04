@@ -544,6 +544,9 @@ class DFTEngine {
   Index fock_matrix_reset_;
   // Pre-screening
   double screening_eps_;
+  // Eigenvalues of the AO overlap below this are removed from S^-1/2
+  // (xtpdft.overlap_tolerance).
+  double overlap_tolerance_ = 1e-8;
 
   // numerical integration Vxc
   std::string grid_name_;
