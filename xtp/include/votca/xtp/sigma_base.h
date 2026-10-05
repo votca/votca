@@ -21,6 +21,8 @@
 #ifndef VOTCA_XTP_SIGMA_BASE_H
 #define VOTCA_XTP_SIGMA_BASE_H
 
+#include <functional>
+
 // Local VOTCA includes
 #include "eigen.h"
 
@@ -32,7 +34,7 @@ class RPA;
 
 class Sigma_base {
  public:
-  Sigma_base(TCMatrix_gwbse& Mmn, const RPA& rpa) : Mmn_(Mmn), rpa_(rpa) {};
+  Sigma_base(TCMatrix_gwbse& Mmn, const RPA& rpa) : Mmn_(Mmn), rpa_(rpa){};
 
   virtual ~Sigma_base() = default;
 
@@ -97,8 +99,8 @@ class Sigma_base {
   Eigen::MatrixXd CalcReactionFieldMatrix(const Eigen::MatrixXd& R) const;
   // Calculates correlation diagonal
   Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies) const;
-  // Calculates correlation off-diagonal
-  Eigen::MatrixXd CalcCorrelationOffDiag(
+  // Calculates correlation off-diagonal (diagonal left zero)
+  virtual Eigen::MatrixXd CalcCorrelationOffDiag(
       const Eigen::VectorXd& frequencies) const;
 
   // Sets up the screening parametrisation
@@ -108,10 +110,28 @@ class Sigma_base {
       Index gw_level, double frequency) const = 0;
   virtual double CalcCorrelationDiagElement(Index gw_level,
                                             double frequency) const = 0;
+  /// Diagonal element at several frequencies. The default evaluates them one
+  /// by one; implementations may do all of them in one pass over the
+  /// integrals.
+  virtual Eigen::VectorXd CalcCorrelationDiagElements(
+      Index gw_level, const Eigen::VectorXd& frequencies) const {
+    Eigen::VectorXd result(frequencies.size());
+    for (Index i = 0; i < frequencies.size(); ++i) {
+      result(i) = CalcCorrelationDiagElement(gw_level, frequencies(i));
+    }
+    return result;
+  }
   // Calculates Sigma_c off-diagonal elements
   virtual double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
                                                double frequency1,
                                                double frequency2) const = 0;
+
+  /// Memory (bytes) for the level block and the integral chunk of
+  /// PairContraction; smaller values only mean more passes.
+  void setPairContractionMemory(double block_bytes, double chunk_bytes) {
+    block_bytes_ = block_bytes;
+    chunk_bytes_ = chunk_bytes;
+  }
 
   void ResetDiagEvalCounter() const { diag_eval_counter_.store(0); }
   std::size_t GetDiagEvalCounter() const { return diag_eval_counter_.load(); }
@@ -131,7 +151,18 @@ class Sigma_base {
 
   void CountDiagEval() const { diag_eval_counter_.fetch_add(1); }
 
+  /// A(m,n) = sum_{l < nrows, P} X_m(l,P) M_n(l,P) for all pairs of QP
+  /// levels m, n, with M_n = Mmn_[n] (QP-window numbering) and X_m from
+  /// makeX(m, X) (nrows x auxsize). Evaluated as matrix products over blocks
+  /// of m and chunks of the auxiliary index, so the three-centre integrals
+  /// are streamed a few times instead of once per pair.
+  Eigen::MatrixXd PairContraction(
+      Index nrows,
+      const std::function<void(Index, Eigen::MatrixXd&)>& makeX) const;
+
  private:
+  double block_bytes_ = 4e9;
+  double chunk_bytes_ = 5e8;
   mutable std::atomic<std::size_t> diag_eval_counter_{0};
 };
 }  // namespace xtp

@@ -93,7 +93,8 @@ class DFTTimings {
   }
 
   /// Table of all entries with their share of the time since Reset().
-  void Report(Logger& log, Log::Level level) const;
+  void Report(Logger& log, Log::Level level,
+              const std::string& title = "DFT timing summary") const;
 
   /// Resident memory of this process in GB, read from /proc/self/status
   /// (VmRSS, or VmHWM for the peak). Returns a negative value where that

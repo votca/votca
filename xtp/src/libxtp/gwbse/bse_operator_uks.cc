@@ -18,6 +18,7 @@
  */
 
 #include "votca/xtp/bse_operator_uks.h"
+#include "votca/xtp/bse_operator_kernels.h"
 
 namespace votca {
 namespace xtp {
@@ -44,31 +45,14 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::configure(BSEOperatorUKS_Options opt) {
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
-Eigen::VectorXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::Hqp_row(
-    const Eigen::MatrixXd& Hqp, const SpinBlockInfo& blk, Index v1,
-    Index c1) const {
-  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(blk.ctotal, blk.vtotal);
-  Index cmin_qp = blk.vtotal;
-  result.col(v1) += Hqp.col(c1 + cmin_qp).segment(cmin_qp, blk.ctotal);
-  result.row(c1) -= Hqp.col(v1).head(blk.vtotal).transpose();
-  return Eigen::Map<Eigen::VectorXd>(result.data(), result.size());
-}
-
-template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_qp_block(
     Eigen::MatrixXd& y, const Eigen::MatrixXd& x, const SpinBlockInfo& blk,
     const Eigen::MatrixXd& Hqp) const {
   if (cqp == 0) {
     return;
   }
-
-  for (Index c1 = 0; c1 < blk.ctotal; ++c1) {
-    for (Index v1 = 0; v1 < blk.vtotal; ++v1) {
-      const Index out_idx = v1 * blk.ctotal + c1;
-      Eigen::VectorXd row = Hqp_row(Hqp, blk, v1, c1);
-      y.row(out_idx) += row.transpose() * x;
-    }
-  }
+  y += ApplyBSEQuasiparticle(Hqp, blk.vtotal, blk.ctotal, x,
+                             static_cast<double>(cqp));
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
@@ -79,23 +63,11 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_exchange_block(
   if (cx == 0 || prefactor == 0.0) {
     return;
   }
-
-  for (Index v1 = 0; v1 < out_blk.vtotal; ++v1) {
-    const Eigen::MatrixXd left =
-        prefactor * Mout[v1 + out_blk.vmin_rpa].middleRows(out_blk.cmin_rpa,
-                                                           out_blk.ctotal);
-
-    for (Index v2 = 0; v2 < in_blk.vtotal; ++v2) {
-      const Eigen::MatrixXd right =
-          Min[v2 + in_blk.vmin_rpa].middleRows(in_blk.cmin_rpa, in_blk.ctotal);
-
-      const Eigen::MatrixXd block = left * right.transpose();
-      const Index out_row0 = v1 * out_blk.ctotal;
-      const Index in_row0 = v2 * in_blk.ctotal;
-      y.middleRows(out_row0, out_blk.ctotal) +=
-          block * x.middleRows(in_row0, in_blk.ctotal);
-    }
-  }
+  const BSEWindow out{out_blk.vmin_rpa, out_blk.cmin_rpa, out_blk.vtotal,
+                      out_blk.ctotal};
+  const BSEWindow in{in_blk.vmin_rpa, in_blk.cmin_rpa, in_blk.vtotal,
+                     in_blk.ctotal};
+  y += ApplyBSEExchange(Mout, out, Min, in, x, prefactor);
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
@@ -172,45 +144,6 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
-void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct_cross_tda_block(
-    Eigen::MatrixXd& y, const Eigen::MatrixXd& x, const SpinBlockInfo& out_blk,
-    const SpinBlockInfo& in_blk, const TCMatrix_gwbse& Mout,
-    const TCMatrix_gwbse& Min, double prefactor) const {
-  if (cd == 0 || prefactor == 0.0) {
-    return;
-  }
-
-  const Eigen::DiagonalMatrix<double, Eigen::Dynamic> eps =
-      epsilon_0_inv_.asDiagonal();
-
-  for (Index v1 = 0; v1 < out_blk.vtotal; ++v1) {
-    for (Index c1 = 0; c1 < out_blk.ctotal; ++c1) {
-
-      // Transition density for the output excitation (v1 -> c1)
-      const Eigen::RowVectorXd tout =
-          prefactor * Mout[c1 + out_blk.cmin_rpa].row(v1 + out_blk.vmin_rpa);
-
-      const Index out_idx = v1 * out_blk.ctotal + c1;
-
-      // Build the row blockwise in the input excitation space:
-      // input ordering is (v2 * ctotal + c2), i.e. c2 runs fastest.
-      for (Index v2 = 0; v2 < in_blk.vtotal; ++v2) {
-        const Eigen::MatrixXd Tin = Min[v2 + in_blk.vmin_rpa].middleRows(
-            in_blk.cmin_rpa, in_blk.ctotal);
-
-        // Tin rows correspond to c2, and column-major flattening over
-        // successive v2 blocks is therefore consistent with vc = v*ctotal + c.
-        const Eigen::VectorXd row_block = Tin * eps * tout.transpose();
-
-        const Index in_row0 = v2 * in_blk.ctotal;
-        y.row(out_idx) +=
-            row_block.transpose() * x.middleRows(in_row0, in_blk.ctotal);
-      }
-    }
-  }
-}
-
-template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matmul(
     const Eigen::MatrixXd& input) const {
 
@@ -243,19 +176,18 @@ Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matmul(
   add_direct2_block(y_beta, x_beta, beta_, beta_, Mmn_.beta, Mmn_.beta,
                     -static_cast<double>(cd2));
 
-  // Cross-spin TDA coupling: use transition-density form.
-  add_direct_cross_tda_block(y_alpha, x_beta, alpha_, beta_, Mmn_.alpha,
-                             Mmn_.beta, -static_cast<double>(cd));
-  add_direct_cross_tda_block(y_beta, x_alpha, beta_, alpha_, Mmn_.beta,
-                             Mmn_.alpha, -static_cast<double>(cd));
-
-  // Cross-spin full-BSE B-block coupling is not the same object as the TDA
-  // cross block above; keep the existing Hd2-style contraction for now.
-  add_direct2_block(y_alpha, x_beta, alpha_, beta_, Mmn_.alpha, Mmn_.beta,
-                    -static_cast<double>(cd2));
-
-  add_direct2_block(y_beta, x_alpha, beta_, alpha_, Mmn_.beta, Mmn_.alpha,
-                    -static_cast<double>(cd2));
+  // Cross-spin coupling. In the spin-unrestricted kernel
+  //   A(ia s, jb s') = delta_ss' (e_a - e_i) + (ia|jb) - delta_ss' W(ij,ab)
+  //   B(ia s, jb s') = (ia|bj) - delta_ss' W(ib,aj)
+  // the bare exchange couples all spin blocks, while the screened direct
+  // terms act within one spin only. So the alpha-beta blocks of A and of B
+  // are both the bare exchange (ia|jb), with the same prefactor as the
+  // same-spin exchange. For a closed-shell reference this reproduces the
+  // singlet and triplet spectra of the restricted BSE.
+  add_exchange_block(y_alpha, x_beta, alpha_, beta_, Mmn_.alpha, Mmn_.beta,
+                     static_cast<double>(cx));
+  add_exchange_block(y_beta, x_alpha, beta_, alpha_, Mmn_.beta, Mmn_.alpha,
+                     static_cast<double>(cx));
 
   y.topRows(alpha_.size) = y_alpha;
   y.bottomRows(beta_.size) = y_beta;

@@ -33,7 +33,7 @@ class RPA;
 
 class Sigma_PPM : public Sigma_base {
  public:
-  Sigma_PPM(TCMatrix_gwbse& Mmn, RPA& rpa) : Sigma_base(Mmn, rpa) {};
+  Sigma_PPM(TCMatrix_gwbse& Mmn, RPA& rpa) : Sigma_base(Mmn, rpa){};
 
   // Sets up the screening parametrisation
   void PrepareScreening() final;
@@ -43,10 +43,16 @@ class Sigma_PPM : public Sigma_base {
 
   double CalcCorrelationDiagElementDerivative(Index gw_level,
                                               double frequency) const final;
+  // All frequencies in one pass over the integrals of the level
+  Eigen::VectorXd CalcCorrelationDiagElements(
+      Index gw_level, const Eigen::VectorXd& frequencies) const final;
   // Calculates Sigma_c off-diagonal elements
   double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
                                        double frequency1,
                                        double frequency2) const final;
+  // All off-diagonal elements at once as matrix products (PairContraction)
+  Eigen::MatrixXd CalcCorrelationOffDiag(
+      const Eigen::VectorXd& frequencies) const final;
 
  private:
   PPM ppm_;

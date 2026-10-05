@@ -23,6 +23,27 @@
 namespace votca {
 namespace xtp {
 
+namespace {
+// L * A * R evaluated in the cheaper order. For the AO->MO transformation of
+// the three-centre integrals L = C_n^T (n x N), A = (mu nu|P) (N x N) and
+// R = C_m (N x m) with m < n, so A * R first saves a factor of about n/m on
+// the dominant product.
+Eigen::MatrixXd MultiplyLeftRightCPU(const Eigen::MatrixXd& L,
+                                     const Eigen::MatrixXd& A,
+                                     const Eigen::MatrixXd& R) {
+  const double left_first =
+      double(L.rows()) * double(A.rows()) * double(A.cols()) +
+      double(L.rows()) * double(A.cols()) * double(R.cols());
+  const double right_first =
+      double(A.rows()) * double(A.cols()) * double(R.cols()) +
+      double(L.rows()) * double(A.rows()) * double(R.cols());
+  if (right_first < left_first) {
+    return L * (A * R);
+  }
+  return (L * A) * R;
+}
+}  // namespace
+
 // Has to be declared because of
 // https://stackoverflow.com/questions/9110487/undefined-reference-to-a-static-member
 Index OpenMP_CUDA::number_of_gpus = 0;
@@ -181,13 +202,13 @@ void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix,
     gpu.pipe().gemm(gpu.Mat(2), gpu.Mat(3), gpu.Mat(4));
     matrix = gpu.Mat(4);
   } else {
-    matrix = lOP_() * matrix * rOP_();
+    matrix = MultiplyLeftRightCPU(lOP_(), matrix, rOP_());
   }
   return;
 }
 #else
 void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix, Index) {
-  matrix = lOP_() * matrix * rOP_();
+  matrix = MultiplyLeftRightCPU(lOP_(), matrix, rOP_());
 }
 #endif
 

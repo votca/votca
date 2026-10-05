@@ -26,6 +26,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/bse.h"
+#include "votca/xtp/bse_fullsolver.h"
 #include "votca/xtp/bse_initialization.h"
 #include "votca/xtp/bse_operator.h"
 #include "votca/xtp/bseoperator_btda.h"
@@ -40,6 +41,21 @@ using std::flush;
 
 namespace votca {
 namespace xtp {
+
+namespace {
+double DavidsonToleranceValue(const std::string& tol) {
+  if (tol == "loose") {
+    return 1e-3;
+  } else if (tol == "normal") {
+    return 1e-4;
+  } else if (tol == "strict") {
+    return 1e-5;
+  } else if (tol == "lapack") {
+    return 1e-9;
+  }
+  throw std::runtime_error(tol + " is not a valid Davidson tolerance");
+}
+}  // namespace
 
 void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies,
                     const Eigen::MatrixXd& Hqp_in) {
@@ -249,6 +265,7 @@ void BSE::configureBSEOperator(BSE_OPERATOR& H) const {
   opt.rpamin = opt_.rpamin;
   opt.vmin = opt_.vmin;
   H.configure(opt);
+  H.set_direct_cache_limit(opt_.direct_cache_gb * 1e9);
 }
 
 tools::EigenSystem BSE::Solve_triplets_TDA() const {
@@ -400,6 +417,22 @@ tools::EigenSystem BSE::Solve_triplets_BTDA() const {
 template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
 tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
                                                     BSE_OPERATOR_B& Bop) const {
+  // Hermitian (A-B)(A+B) form: one application of A and of B per new
+  // vector. Falls back to the general non-Hermitian Davidson if A-B or A+B
+  // is not positive definite.
+  try {
+    FullBSEDavidson::Options fopt;
+    fopt.tolerance = DavidsonToleranceValue(opt_.davidson_tolerance);
+    fopt.max_iterations = opt_.davidson_maxiter;
+    fopt.max_subspace = 10 * opt_.nmax;
+    FullBSEDavidson solver(log_, fopt);
+    return solver.Solve(Aop, Bop, opt_.nmax);
+  } catch (const std::runtime_error& error) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " " << error.what()
+        << "; using the non-Hermitian Davidson solver" << flush;
+  }
+
   std::chrono::time_point<std::chrono::system_clock> start =
       std::chrono::system_clock::now();
 

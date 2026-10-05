@@ -735,27 +735,18 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
       std::vector<Eigen::MatrixXd> ao3c =
           ComputeAO3cBlock(auxshell, dftbasis, engines[threadid]);
 
-      // this is basically a transpose of AO3c and at the same time the ao->mo
-      // transformation
-      // we do not want to put it into  matrix_ straight away is because,
-      //  matrix_ is shared between all threads and we want a nice clean access
-      // pattern to it
-      std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
-          mtotal_, Eigen::MatrixXd::Zero(ntotal_, ao3c.size()));
-
-      Index dim = static_cast<Index>(ao3c.size());
+      // AO->MO transformation of each function of the aux shell, written
+      // straight into its column of every m-slice. Each aux function is a
+      // different column, so the threads write to disjoint memory.
+      const Index dim = static_cast<Index>(ao3c.size());
+      const Index aux0 = auxshell2bf[aux];
       for (Index k = 0; k < dim; ++k) {
         transform.MultiplyLeftRight(ao3c[k], threadid);
-        for (Index i = 0; i < ao3c[k].cols(); ++i) {
-          block[i].col(k) = ao3c[k].col(i);
+        for (Index m_level = 0; m_level < mtotal_; m_level++) {
+          matrix_[m_level].col(aux0 + k) = ao3c[k].col(m_level);
         }
+        ao3c[k].resize(0, 0);
       }
-
-      // put into correct position
-      for (Index m_level = 0; m_level < mtotal_; m_level++) {
-        matrix_[m_level].middleCols(auxshell2bf[aux], auxshell.size()) =
-            block[m_level];
-      }  // m-th DFT orbital
     }  // shells of GW basis set
   }
 }

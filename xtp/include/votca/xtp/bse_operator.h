@@ -43,7 +43,7 @@ class BSE_OPERATOR final : public MatrixFreeOperator {
  public:
   BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, const TCMatrix_gwbse& Mmn,
                const Eigen::MatrixXd& Hqp)
-      : epsilon_0_inv_(Hd_operator), Mmn_(Mmn), Hqp_(Hqp) {};
+      : epsilon_0_inv_(Hd_operator), Mmn_(Mmn), Hqp_(Hqp){};
 
   void configure(BSEOperator_Options opt);
 
@@ -61,9 +61,20 @@ class BSE_OPERATOR final : public MatrixFreeOperator {
    */
   Eigen::MatrixXd matmul(const Eigen::MatrixXd& input) const;
 
- private:
-  Eigen::VectorXd Hqp_row(Index v1, Index c1) const;
+  /// Keep the screened direct term as a dense matrix, built on first use, if
+  /// it needs at most this many bytes (0, the default, disables it).
+  void set_direct_cache_limit(double bytes) { direct_cache_limit_ = bytes; }
+  bool direct_term_cached() const { return direct_built_; }
 
+ private:
+  // the screened direct term (cd or cd2 part, with prefactor) as a dense
+  // matrix, row-major so each Hamiltonian row is contiguous
+  void BuildDirectMatrix() const;
+
+  double direct_cache_limit_ = 0.0;
+  mutable bool direct_built_ = false;
+  mutable Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+      direct_;
   BSEOperator_Options opt_;
   Index bse_size_;
   Index bse_vtotal_;

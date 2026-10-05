@@ -22,6 +22,7 @@
 
 #include <votca/tools/linalg.h>
 
+#include "votca/xtp/bse_fullsolver.h"
 #include "votca/xtp/bse_initialization.h"
 #include "votca/xtp/bse_operator_uks.h"
 #include "votca/xtp/bse_uks.h"
@@ -47,6 +48,21 @@ Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1,
 
 namespace votca {
 namespace xtp {
+
+namespace {
+double DavidsonToleranceValue(const std::string& tol) {
+  if (tol == "loose") {
+    return 1e-3;
+  } else if (tol == "normal") {
+    return 1e-4;
+  } else if (tol == "strict") {
+    return 1e-5;
+  } else if (tol == "lapack") {
+    return 1e-9;
+  }
+  throw std::runtime_error(tol + " is not a valid Davidson tolerance");
+}
+}  // namespace
 
 void BSE_UKS::configure_with_precomputed_screening(
     const options& opt, Index homo_alpha, Index homo_beta,
@@ -405,7 +421,21 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
     return result;
   }
 
-  // Default Davidson/HAM path for larger systems
+  // Hermitian (A-B)(A+B) form for larger systems; the non-Hermitian
+  // Davidson below if A-B or A+B is not positive definite.
+  try {
+    FullBSEDavidson::Options fopt;
+    fopt.tolerance = DavidsonToleranceValue(opt_.davidson_tolerance);
+    fopt.max_iterations = opt_.davidson_maxiter;
+    fopt.max_subspace = 10 * opt_.nmax;
+    FullBSEDavidson solver(log_, fopt);
+    return solver.Solve(A, B, opt_.nmax);
+  } catch (const std::runtime_error& error) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " " << error.what()
+        << "; using the non-Hermitian Davidson solver" << flush;
+  }
+
   const Eigen::VectorXd adiag = A.diagonal();
   const Eigen::VectorXd bdiag = B.diagonal();
   Eigen::MatrixXd initial_guess =

@@ -26,10 +26,11 @@
 namespace votca {
 namespace xtp {
 
-void DFTTimings::Report(Logger& log, Log::Level level) const {
+void DFTTimings::Report(Logger& log, Log::Level level,
+                        const std::string& title) const {
   const double total = Elapsed();
   double accounted = 0.0;
-  XTP_LOG(level, log) << " DFT timing summary (wall clock)" << std::flush;
+  XTP_LOG(level, log) << " " << title << " (wall clock)" << std::flush;
   XTP_LOG(level, log) << (boost::format("   %-38s %7s %11s %10s %6s") % "part" %
                           "calls" % "time [s]" % "per call" % "%")
                              .str()

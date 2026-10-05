@@ -18,6 +18,7 @@
  */
 
 // Standard includes
+#include <chrono>
 #include <fstream>
 #include <iostream>
 
@@ -275,8 +276,11 @@ Eigen::VectorXd GW::ScissorShift_DFTlevel(
 }
 
 void GW::CalculateGWPerturbation() {
-
-  Sigma_x_ = (1 - opt_.ScaHFX) * sigma_->CalcExchangeMatrix();
+  timings_.Reset();
+  {
+    auto t = timings_.Measure("exchange Sigma_x");
+    Sigma_x_ = (1 - opt_.ScaHFX) * sigma_->CalcExchangeMatrix();
+  }
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Calculated Hartree exchange contribution"
       << std::flush;
@@ -285,11 +289,15 @@ void GW::CalculateGWPerturbation() {
   // independent. Not scaled by ScaHFX: the DFT starting point has no
   // reaction field to double count.
   if (reaction_field_.size() > 0) {
+    auto t = timings_.Measure("reaction field Sigma_reac");
     Sigma_reac_ = sigma_->CalcReactionFieldMatrix(reaction_field_);
     PrintReactionFieldShifts();
   }
   // From here on the RPA and Sigma_c see u = v + v_reac.
-  DressForEnvironment();
+  {
+    auto t = timings_.Measure("dress Mmn for the environment");
+    DressForEnvironment();
+  }
   // dftenergies has size aobasissize
   // rpaenergies/Mmn have size rpatotal
   // gwaenergies/frequencies have size qptotal
@@ -308,13 +316,17 @@ void GW::CalculateGWPerturbation() {
 
   for (Index i_gw = 0; i_gw < opt_.gw_sc_max_iterations; ++i_gw) {
     gw_sc_iteration_ = i_gw;
-    if (i_gw % opt_.reset_3c == 0 && i_gw != 0) {
+    if (opt_.reset_3c > 0 && i_gw % opt_.reset_3c == 0 && i_gw != 0) {
+      auto t = timings_.Measure("rebuild Mmn");
       Mmn_.Rebuild();
       XTP_LOG(Log::info, log_)
           << TimeStamp() << " Rebuilding 3c integrals" << std::flush;
       DressForEnvironment();  // Rebuild leaves them bare
     }
-    sigma_->PrepareScreening();
+    {
+      auto t = timings_.Measure("screening (RPA, PPM/modes, Mmn frame)");
+      sigma_->PrepareScreening();
+    }
     XTP_LOG(Log::info, log_)
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
     XTP_LOG(Log::info, log_)
@@ -323,7 +335,10 @@ void GW::CalculateGWPerturbation() {
       mixing_.UpdateInput(frequencies);
     }
 
-    frequencies = SolveQP(frequencies);
+    {
+      auto t = timings_.Measure("QP equations (Sigma_c diagonal)");
+      frequencies = SolveQP(frequencies);
+    }
 
     if (opt_.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = rpa_.getRPAInputEnergies();
@@ -375,8 +390,12 @@ void GW::CalculateGWPerturbation() {
       }
     }
   }
-  Sigma_c_.diagonal() = sigma_->CalcCorrelationDiag(frequencies);
+  {
+    auto t = timings_.Measure("QP equations (Sigma_c diagonal)");
+    Sigma_c_.diagonal() = sigma_->CalcCorrelationDiag(frequencies);
+  }
   PrintGWA_Energies();
+  timings_.Report(log_, Log::error, "GW timing summary");
 }
 
 Eigen::VectorXd GW::getGWAResults() const {
@@ -452,9 +471,7 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     }
 
 #pragma omp critical
-    {
-      total_stats.Add(local_stats);
-    }
+    { total_stats.Add(local_stats); }
   }
 
   if (!converged.all()) {
@@ -617,12 +634,24 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Dense(
                std::ceil((right_limit - left_limit) / opt_.qp_dense_spacing)) +
                1);
 
+    auto node = [&](Index i_node) {
+      return (i_node == n_steps - 1)
+                 ? right_limit
+                 : std::min(right_limit,
+                            left_limit + static_cast<double>(i_node) *
+                                             opt_.qp_dense_spacing);
+    };
+    {
+      // all scan nodes in one batch
+      std::vector<double> nodes;
+      for (Index i_node = 1; i_node < n_steps; ++i_node) {
+        nodes.push_back(node(i_node));
+      }
+      qp_solver::PrefetchIfAvailable(fqp, nodes, 0);
+    }
+
     for (Index i_node = 1; i_node < n_steps; ++i_node) {
-      const double freq =
-          (i_node == n_steps - 1)
-              ? right_limit
-              : std::min(right_limit, left_limit + static_cast<double>(i_node) *
-                                                       opt_.qp_dense_spacing);
+      const double freq = node(i_node);
 
       const double targ = fqp.value(freq, EvalStage::Scan);
 
@@ -864,9 +893,16 @@ bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
 }
 
 void GW::CalculateHQP() {
+  const auto start = std::chrono::steady_clock::now();
   Eigen::VectorXd diag_backup = Sigma_c_.diagonal();
   Sigma_c_ = sigma_->CalcCorrelationOffDiag(getGWAResults());
   Sigma_c_.diagonal() = diag_backup;
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Sigma_c off-diagonal ("
+      << qptotal_ * (qptotal_ - 1) / 2 << " pairs) took "
+      << std::chrono::duration<double>(std::chrono::steady_clock::now() - start)
+             .count()
+      << " s" << std::flush;
 }
 
 // =============================================================================

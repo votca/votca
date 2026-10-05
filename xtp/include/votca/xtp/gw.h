@@ -21,9 +21,11 @@
 #ifndef VOTCA_XTP_GW_H
 #define VOTCA_XTP_GW_H
 
+#include <unordered_map>
 #include <unordered_set>
 
 // Local VOTCA includes
+#include "dfttimings.h"
 #include "logger.h"
 #include "orbitals.h"
 #include "qp_solver_utils.h"
@@ -48,7 +50,7 @@ class GW {
         Mmn_(Mmn),
         vxc_(vxc),
         dft_energies_(dft_energies),
-        rpa_(log, Mmn) {};
+        rpa_(log, Mmn){};
 
   struct options {
     Index homo;
@@ -222,6 +224,8 @@ class GW {
 
  private:
   Index qptotal_;
+  // wall-clock accounting of the GW steps, reported at the end
+  mutable DFTTimings timings_;
 
   Eigen::MatrixXd Sigma_x_;         // Fock exchange with the bare v, only
   Eigen::MatrixXd Sigma_c_;         // dynamic correlation
@@ -276,7 +280,31 @@ class GW {
       }
 
       CountSigmaStage(stage);
+      auto cached = cache_.find(key);
+      if (cached != cache_.end()) {
+        return cached->second;
+      }
       return sigma_c_func_.CalcCorrelationDiagElement(gw_level_, frequency);
+    }
+
+    /// Evaluates Sigma_c at these frequencies in one batch and keeps the
+    /// values for later sigma() calls at exactly these frequencies.
+    void Prefetch(const std::vector<double>& frequencies) const {
+      std::vector<double> todo;
+      for (double f : frequencies) {
+        if (cache_.find(FrequencyKey(f)) == cache_.end()) {
+          todo.push_back(f);
+        }
+      }
+      if (todo.empty()) {
+        return;
+      }
+      const Eigen::VectorXd values = sigma_c_func_.CalcCorrelationDiagElements(
+          gw_level_,
+          Eigen::Map<const Eigen::VectorXd>(todo.data(), Index(todo.size())));
+      for (std::size_t i = 0; i < todo.size(); ++i) {
+        cache_[FrequencyKey(todo[i])] = values(Index(i));
+      }
     }
 
     double value(double frequency, EvalStage stage = EvalStage::Other) const {
@@ -324,6 +352,7 @@ class GW {
     const Sigma_base& sigma_c_func_;
 
     mutable std::unordered_set<std::uint64_t> seen_frequencies_;
+    mutable std::unordered_map<std::uint64_t, double> cache_;
     mutable QPStats stats_;
   };
 

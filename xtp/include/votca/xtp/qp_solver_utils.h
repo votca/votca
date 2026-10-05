@@ -34,6 +34,16 @@ namespace votca {
 namespace xtp {
 namespace qp_solver {
 
+// Batched evaluation hook: a QP function may offer Prefetch(frequencies) to
+// evaluate several points at once; others are evaluated point by point.
+template <typename QPFunc>
+auto PrefetchIfAvailable(const QPFunc& fqp, const std::vector<double>& nodes,
+                         int) -> decltype(fqp.Prefetch(nodes), void()) {
+  fqp.Prefetch(nodes);
+}
+template <typename QPFunc>
+void PrefetchIfAvailable(const QPFunc&, const std::vector<double>&, long) {}
+
 enum class EvalStage { Scan, Refine, Derivative, Other };
 
 struct Stats {
@@ -497,6 +507,13 @@ boost::optional<double> SolveQP_Grid_Windowed(
 
     if (b > a) {
       const double dx = (b - a) / static_cast<double>(local_substeps);
+      {
+        std::vector<double> nodes;
+        for (Index i = 1; i < local_substeps; ++i) {
+          nodes.push_back(a + static_cast<double>(i) * dx);
+        }
+        PrefetchIfAvailable(fqp, nodes, 0);
+      }
 
       double x_prev = a;
       double f_prev = fa;
@@ -570,6 +587,23 @@ boost::optional<double> SolveQP_Grid_Windowed(
       rejected_roots.push_back(cand);
     }
   };
+
+  // All shell points are known in advance: evaluate them in one batch.
+  {
+    std::vector<double> nodes{center};
+    for (Index shell = 1; shell <= n_shells; ++shell) {
+      const double delta = double(shell) * shell_width;
+      if (center - delta >= left_limit) {
+        nodes.push_back(center - delta);
+      }
+      if (center + delta <= right_limit) {
+        nodes.push_back(center + delta);
+      }
+    }
+    nodes.push_back(left_limit);
+    nodes.push_back(right_limit);
+    PrefetchIfAvailable(fqp, nodes, 0);
+  }
 
   SamplePoIndex center_pt{center, fqp.value(center, EvalStage::Scan)};
 

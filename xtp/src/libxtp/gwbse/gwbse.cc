@@ -242,6 +242,7 @@ void GWBSE::Initialize(tools::Property& options) {
       options.get("bse.davidson.update").as<std::string>();
 
   bseopt_.davidson_maxiter = options.get("bse.davidson.maxiter").as<Index>();
+  bseopt_.direct_cache_gb = options.get("bse.direct_cache_memory").as<double>();
 
   bseopt_.useTDA = options.get("bse.useTDA").as<bool>();
   orbitals_.setTDAApprox(bseopt_.useTDA);

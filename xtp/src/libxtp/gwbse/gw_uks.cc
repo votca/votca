@@ -219,7 +219,7 @@ void GW_UKS::CalculateGWPerturbation() {
 
   for (Index i_gw = 0; i_gw < opt_.gw_sc_max_iterations; ++i_gw) {
     gw_sc_iteration_ = i_gw;
-    if (i_gw % opt_.reset_3c == 0 && i_gw != 0) {
+    if (opt_.reset_3c > 0 && i_gw % opt_.reset_3c == 0 && i_gw != 0) {
       Mmn_.alpha.Rebuild();
       Mmn_.beta.Rebuild();
       XTP_LOG(Log::info, log_)

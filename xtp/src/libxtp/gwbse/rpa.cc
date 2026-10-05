@@ -57,17 +57,21 @@ void RPA::ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
   double max_correction_occ = getMaxCorrection(dftenergies, qpmin, homo_);
   double max_correction_virt = getMaxCorrection(dftenergies, lumo, qpmax);
 
-  // shift energies
-  energies_.head(qpmin).array() -= max_correction_occ;
+  // shift energies; energies_ is indexed from rpamin_, the level numbers
+  // qpmin and qpmax are absolute
+  energies_.head(qpmin - rpamin_).array() -= max_correction_occ;
   energies_.tail(rpamax_ - qpmax).array() += max_correction_virt;
 }
 
 double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
                              Index max) const {
-
+  if (max < min) {
+    return 0.0;
+  }
+  // energies_ is indexed from rpamin_, dftenergies by absolute level number
   Index range = max - min + 1;
   Eigen::VectorXd corrections =
-      energies_.segment(min, range) - dftenergies.segment(min - rpamin_, range);
+      energies_.segment(min - rpamin_, range) - dftenergies.segment(min, range);
 
   return (corrections.cwiseAbs()).maxCoeff();
 }

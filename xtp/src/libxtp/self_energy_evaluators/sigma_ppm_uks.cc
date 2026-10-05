@@ -38,7 +38,9 @@ void Sigma_PPM_UKS::PrepareScreening() {
 
 double Sigma_PPM_UKS::CalcCorrelationDiagElement(Index gw_level,
                                                  double frequency) const {
-  const Index lumo = opt_.homo + 1;
+  // first virtual level, counted from rpamin like the energies and the
+  // rows of Mmn_
+  const Index lumo = opt_.homo + 1 - opt_.rpamin;
   const double eta2 = opt_.eta * opt_.eta;
   const Index levelsum = Mmn_.nsize();
   const Index qpmin_offset = opt_.qpmin - opt_.rpamin;
@@ -68,7 +70,9 @@ double Sigma_PPM_UKS::CalcCorrelationDiagElement(Index gw_level,
 
 double Sigma_PPM_UKS::CalcCorrelationDiagElementDerivative(
     Index gw_level, double frequency) const {
-  const Index lumo = opt_.homo + 1;
+  // first virtual level, counted from rpamin like the energies and the
+  // rows of Mmn_
+  const Index lumo = opt_.homo + 1 - opt_.rpamin;
   const double eta2 = opt_.eta * opt_.eta;
   const Index levelsum = Mmn_.nsize();
   const Index qpmin_offset = opt_.qpmin - opt_.rpamin;
@@ -100,7 +104,9 @@ double Sigma_PPM_UKS::CalcCorrelationOffDiagElement(Index gw_level1,
                                                     Index gw_level2,
                                                     double frequency1,
                                                     double frequency2) const {
-  const Index lumo = opt_.homo + 1;
+  // first virtual level, counted from rpamin like the energies and the
+  // rows of Mmn_
+  const Index lumo = opt_.homo + 1 - opt_.rpamin;
   const double eta2 = opt_.eta * opt_.eta;
   const Index levelsum = Mmn_.nsize();
   const Index auxsize = Mmn_.auxsize();

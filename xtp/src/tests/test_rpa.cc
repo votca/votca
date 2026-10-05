@@ -187,4 +187,25 @@ BOOST_AUTO_TEST_CASE(rpa_qsgw_rotation) {
 
   libint2::finalize();
 }
+// With rpamin > 0 the RPA energies are stored from rpamin on, while qpmin and
+// homo are absolute level numbers.
+BOOST_AUTO_TEST_CASE(rpa_calcenergies_with_rpamin) {
+  Logger log;
+  TCMatrix_gwbse Mmn;
+  RPA rpa(log, Mmn);
+  rpa.configure(4, 2, 9);  // homo 4, levels 2..9
+  Eigen::VectorXd dftenergies = Eigen::VectorXd::Zero(10);
+  dftenergies << -0.5, -0.4, -0.3, -0.2, -0.2, -0.1, 0, 0.1, 0.2, 0.3;
+  // QP levels 3..7: occupied corrections -0.15, -0.1; virtual 0.15, 0.2, 0.15
+  Eigen::VectorXd gwenergies = Eigen::VectorXd::Zero(5);
+  gwenergies << -0.35, -0.3, 0.05, 0.2, 0.25;
+  rpa.UpdateRPAInputEnergies(dftenergies, gwenergies, 3);
+  Eigen::VectorXd rpaenergies_ref = Eigen::VectorXd::Zero(8);
+  // level 2 shifted by -0.15, levels 8, 9 by +0.2
+  rpaenergies_ref << -0.45, -0.35, -0.3, 0.05, 0.2, 0.25, 0.4, 0.5;
+  BOOST_CHECK_SMALL(
+      (rpa.getRPAInputEnergies() - rpaenergies_ref).cwiseAbs().maxCoeff(),
+      1e-12);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
