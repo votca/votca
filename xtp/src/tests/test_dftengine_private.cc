@@ -23,11 +23,14 @@
 #include <Eigen/Core>
 
 #include <array>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
+#include <votca/tools/property.h>
 #include <votca/xtp/basisset.h>
 
 #include <votca/xtp/ERIs.h>
@@ -56,6 +59,11 @@ class DFTEngineTestAccess {
  public:
   static double NuclearRepulsion(const DFTEngine& e, const QMMolecule& mol) {
     return e.NuclearRepulsion(mol);
+  }
+
+  static Eigen::MatrixXd RunAtomicDFT(const DFTEngine& e, const QMAtom& atom,
+                                      bool hunds_rule) {
+    return e.RunAtomicDFT_unrestricted(atom, hunds_rule);
   }
 
   static Eigen::MatrixXd SphericalAverageShells(const DFTEngine& e,
@@ -154,11 +162,6 @@ AOBasis MakeBasis(const std::string& basis_name, const QMMolecule& mol) {
   return basis;
 }
 
-bool BlockIsConstant(const Eigen::MatrixXd& m, Index row0, Index col0,
-                     Index rows, Index cols, double value, double tol = 1e-12) {
-  return ((m.block(row0, col0, rows, cols).array() - value).abs() < tol).all();
-}
-
 }  // namespace xtp
 }  // namespace votca
 
@@ -215,80 +218,146 @@ BOOST_AUTO_TEST_CASE(build_eht_hamiltonian_is_symmetric_and_matches_formula) {
   libint2::finalize();
 }
 
-BOOST_AUTO_TEST_CASE(spherical_average_shells_makes_shell_blocks_uniform) {
+// The rotational average of an atom's density: (trace / (2l+1)) times the
+// identity between shells of equal l, zero between different l. It must not
+// depend on the orientation of the density (an open-shell atom converges to a
+// symmetry-broken solution whose orientation is decided by round-off; the old
+// average turned that into a 1% difference of the guess) and must keep the
+// number of electrons.
+BOOST_AUTO_TEST_CASE(spherical_average_shells_is_rotation_average) {
   libint2::initialize();
   DFTEngine engine;
   Logger log;
   engine.setLogger(&log);
 
-  // Needs at least one multi-function shell; O/STO-3G is a reasonable choice.
-  const std::string basis_name = "3-21G";
   QMMolecule mol = MakeSingleAtom("O");
-  AOBasis basis = MakeBasis(basis_name, mol);
-
+  AOBasis basis = MakeBasis("3-21G", mol);
   const Index nao = basis.AOBasisSize();
-  BOOST_REQUIRE(nao > 1);
+  AOOverlap overlap;
+  overlap.Fill(basis);
 
-  Eigen::MatrixXd dmat = Eigen::MatrixXd::Zero(nao, nao);
+  // block structure for an arbitrary matrix
+  Eigen::MatrixXd dmat(nao, nao);
   for (Index i = 0; i < nao; ++i) {
     for (Index j = 0; j < nao; ++j) {
-      dmat(i, j) =
-          10.0 * static_cast<double>(i + 1) + static_cast<double>(j + 1);
+      dmat(i, j) = 10.0 * double(i + 1) + double(j + 1);
+    }
+  }
+  const Eigen::MatrixXd avg =
+      DFTEngineTestAccess::SphericalAverageShells(engine, dmat, basis);
+  for (const AOShell& row : basis) {
+    for (const AOShell& col : basis) {
+      const Eigen::MatrixXd out =
+          avg.block(row.getStartIndex(), col.getStartIndex(), row.getNumFunc(),
+                    col.getNumFunc());
+      Eigen::MatrixXd expected = Eigen::MatrixXd::Zero(out.rows(), out.cols());
+      if (row.getL() == col.getL()) {
+        expected.diagonal().setConstant(
+            dmat.block(row.getStartIndex(), col.getStartIndex(),
+                       row.getNumFunc(), col.getNumFunc())
+                .trace() /
+            double(row.getNumFunc()));
+      }
+      BOOST_CHECK_SMALL((out - expected).cwiseAbs().maxCoeff(), 1e-12);
     }
   }
 
-  const Eigen::MatrixXd avg =
-      DFTEngineTestAccess::SphericalAverageShells(engine, dmat, basis);
-
-  BOOST_REQUIRE_EQUAL(avg.rows(), nao);
-  BOOST_REQUIRE_EQUAL(avg.cols(), nao);
-
-  for (const AOShell& shellrow : basis) {
-    const Index size_row = shellrow.getNumFunc();
-    const Index start_row = shellrow.getStartIndex();
-
-    for (const AOShell& shellcol : basis) {
-      const Index size_col = shellcol.getNumFunc();
-      const Index start_col = shellcol.getStartIndex();
-
-      const Eigen::MatrixXd in_block =
-          dmat.block(start_row, start_col, size_row, size_col);
-      const Eigen::MatrixXd out_block =
-          avg.block(start_row, start_col, size_row, size_col);
-
-      if (shellrow.getL() == shellcol.getL()) {
-        const double diagavg =
-            in_block.diagonal().sum() / static_cast<double>(in_block.rows());
-
-        if (size_row == 1 && size_col == 1) {
-          BOOST_TEST(out_block(0, 0) == diagavg,
-                     boost::test_tools::tolerance(1e-12));
-        } else {
-          const Index offdiag_n =
-              in_block.rows() * in_block.cols() - in_block.cols();
-          const double offdiagavg =
-              (in_block.sum() - in_block.diagonal().sum()) /
-              static_cast<double>(offdiag_n);
-
-          for (Index i = 0; i < size_row; ++i) {
-            for (Index j = 0; j < size_col; ++j) {
-              if (i == j) {
-                BOOST_TEST(out_block(i, j) == diagavg,
-                           boost::test_tools::tolerance(1e-12));
-              } else {
-                BOOST_TEST(out_block(i, j) == offdiagavg,
-                           boost::test_tools::tolerance(1e-12));
-              }
-            }
-          }
-        }
-      } else {
-        const double expected =
-            in_block.sum() / static_cast<double>(in_block.size());
-        BOOST_TEST(BlockIsConstant(avg, start_row, start_col, size_row,
-                                   size_col, expected));
-      }
+  // one electron in a p orbital, along x and along (1,1,1): equal averages,
+  // one electron each
+  std::vector<Index> p_shells;
+  for (const AOShell& shell : basis) {
+    if (shell.getL() == L::P) {
+      p_shells.push_back(shell.getStartIndex());
     }
+  }
+  BOOST_REQUIRE_GE(p_shells.size(), 2);
+  auto POrbital = [&](const Eigen::Vector3d& dir) {
+    Eigen::VectorXd c = Eigen::VectorXd::Zero(nao);
+    c.segment(p_shells[0], 3) = 0.8 * dir.normalized();
+    c.segment(p_shells[1], 3) = 0.3 * dir.normalized();
+    c /= std::sqrt(c.dot(overlap.Matrix() * c));
+    return Eigen::MatrixXd(c * c.transpose());
+  };
+  const Eigen::MatrixXd dx = POrbital(Eigen::Vector3d(1, 0, 0));
+  const Eigen::MatrixXd dd = POrbital(Eigen::Vector3d(1, 1, 1));
+  const Eigen::MatrixXd ax =
+      DFTEngineTestAccess::SphericalAverageShells(engine, dx, basis);
+  const Eigen::MatrixXd ad =
+      DFTEngineTestAccess::SphericalAverageShells(engine, dd, basis);
+  BOOST_CHECK_SMALL((ax - ad).cwiseAbs().maxCoeff(), 1e-14);
+  BOOST_CHECK_CLOSE(ax.cwiseProduct(overlap.Matrix()).sum(), 1.0, 1e-10);
+  BOOST_CHECK_CLOSE(ad.cwiseProduct(overlap.Matrix()).sum(), 1.0, 1e-10);
+  libint2::finalize();
+}
+
+// The spherical atom SCF of the atomic guess: open p and d shells (O, N,
+// Fe, Ni) converge in a few iterations to a spherical density with the
+// right number of electrons, also in Hund's-rule mode, and with an ECP the
+// atom holds only the valence electrons (it used to get all Z).
+BOOST_AUTO_TEST_CASE(atomic_scf_spherical_open_shells) {
+  libint2::initialize();
+  struct Case {
+    std::string element;
+    std::string basis;
+    std::string ecp;
+    bool hunds_rule;
+    double electrons;
+  };
+  const std::vector<Case> cases = {
+      {"O", "def2-svp", "", false, 8},
+      {"N", "def2-svp", "", true, 7},
+      {"Fe", "def2-svp", "", false, 26},
+      {"Ni", "def2-svp", "", false, 28},
+      {"I", "def2-tzvp-ecp", "def2-ecp", false, 25}};
+  for (const Case& c : cases) {
+    std::ofstream xml("atomic_scf.xml");
+    xml << "<dftpackage><spin>1</spin><name>xtp</name><charge>0</charge>"
+        << "<functional>XC_HYB_GGA_XC_PBEH</functional>" << "<basisset>"
+        << c.basis << "</basisset>"
+        << (c.ecp.empty() ? "" : "<ecp>" + c.ecp + "</ecp>")
+        << "<initial_guess>atom</initial_guess><xtpdft>"
+        << "<screening_eps>1e-9</screening_eps>"
+        << "<fock_matrix_reset>5</fock_matrix_reset><convergence>"
+        << "<energy>1e-8</energy><method>DIIS</method>"
+        << "<DIIS_start>0.002</DIIS_start><ADIIS_start>0.8</ADIIS_start>"
+        << "<DIIS_length>20</DIIS_length><levelshift>0.0</levelshift>"
+        << "<levelshift_end>0.2</levelshift_end>"
+        << "<max_iterations>100</max_iterations><error>1e-7</error>"
+        << "<DIIS_maxout>false</DIIS_maxout><mixing>0.7</mixing>"
+        << "<mixing_max>0.98</mixing_max><mixing_end>0.8</mixing_end>"
+        << "<davidson_max_iter>50</davidson_max_iter></convergence>"
+        << "<integration_grid>coarse</integration_grid></xtpdft></dftpackage>";
+    xml.close();
+    votca::tools::Property prop;
+    prop.LoadFromXML("atomic_scf.xml");
+    DFTEngine engine;
+    Logger log;
+    log.setReportLevel(Log::info);
+    engine.setLogger(&log);
+    engine.Initialize(prop.get("dftpackage"));
+
+    const QMMolecule mol = MakeSingleAtom(c.element);
+    const AOBasis basis = MakeBasis(c.basis, mol);
+    AOOverlap overlap;
+    overlap.Fill(basis);
+    const Eigen::MatrixXd dmat =
+        DFTEngineTestAccess::RunAtomicDFT(engine, mol[0], c.hunds_rule);
+
+    std::stringstream ss;
+    ss << log;
+    const std::string text = ss.str();
+    const std::size_t pos = text.find("Converged after ");
+    BOOST_REQUIRE_MESSAGE(pos != std::string::npos,
+                          c.element << ": atomic SCF not converged\n"
+                                    << text);
+    const Index iterations = std::stol(text.substr(pos + 16));
+    BOOST_TEST_MESSAGE(c.element << ": " << iterations << " iterations");
+    BOOST_CHECK_LE(iterations, 20);
+    BOOST_CHECK_CLOSE(dmat.cwiseProduct(overlap.Matrix()).sum(), c.electrons,
+                      1e-8);
+    const Eigen::MatrixXd averaged =
+        DFTEngineTestAccess::SphericalAverageShells(engine, dmat, basis);
+    BOOST_CHECK_SMALL((averaged - dmat).cwiseAbs().maxCoeff(), 1e-12);
   }
   libint2::finalize();
 }

@@ -954,4 +954,68 @@ BOOST_AUTO_TEST_CASE(
   BOOST_CHECK_CLOSE(energy_from_potential, energy_from_field_path, 1e-8);
 }
 
+// QMRegion evaluates the integration grid and the nuclei in one call, so the
+// potential at a point must not depend on which other points share the call.
+BOOST_AUTO_TEST_CASE(potential_at_is_pointwise) {
+  const std::string file = "ewaldregion_test_pointwise.hdf5";
+  {
+    EwaldRegistry registry;
+    PolarSegment seg("pair", 0);
+    const std::vector<std::pair<double, Eigen::Vector3d>> cluster = {
+        {0.4, Eigen::Vector3d(-1.5, 0.3, 0.0)},
+        {-0.4, Eigen::Vector3d(1.2, -0.2, 0.5)}};
+    for (std::size_t i = 0; i < cluster.size(); ++i) {
+      PolarSite site(Index(i), "C", cluster[i].second);
+      site.setpolarization(1e-6 * Eigen::Matrix3d::Identity());
+      site.setCharge(cluster[i].first);
+      site.setInduced_Dipole(Eigen::Vector3d(0.01, -0.02, 0.03));
+      seg.push_back(site);
+    }
+    registry.Register(0, EwaldChargeState::Neutral, seg);
+    EwaldParameters params;
+    params.alpha = 0.3;
+    params.k_max = 3.6;
+    params.r_min = 12.0;
+    params.field_tol = 1e-12;
+    params.thole_a = 0.39;
+    params.screening_factor = 6.0;
+    params.shape = EwaldShape::Cube;
+    params.box = 18.0 * Eigen::Matrix3d::Identity();
+    CheckpointFile cpf(file, CheckpointAccessLevel::CREATE);
+    CheckpointWriter w = cpf.getWriter();
+    registry.WriteToCpt(w);
+    CheckpointWriter wp = w.openChild("ewald_parameters");
+    params.WriteToCpt(wp);
+  }
+  Logger log;
+  log.setReportLevel(Log::error);
+  EwaldRegion region(1, log);
+  tools::Property prop = RegionDefinition(file);
+  region.Initialize(prop.get("ewaldregion"));
+  region.RegisterForeground({{0, Eigen::Vector3d(-0.15, 0.05, 0.25)}});
+
+  std::srand(5);
+  std::vector<Eigen::Vector3d> grid;
+  for (Index i = 0; i < 40; ++i) {
+    grid.push_back(4.0 * Eigen::Vector3d::Random());
+  }
+  const std::vector<Eigen::Vector3d> nuclei = {Eigen::Vector3d(0.5, 0.5, 0.5),
+                                               Eigen::Vector3d(-2.0, 1.0, 0.0)};
+  std::vector<Eigen::Vector3d> all = grid;
+  all.insert(all.end(), nuclei.begin(), nuclei.end());
+
+  const Eigen::VectorXd phi_grid = region.PotentialAt(grid);
+  const Eigen::VectorXd phi_nuclei = region.PotentialAt(nuclei);
+  const Eigen::VectorXd phi_all = region.PotentialAt(all);
+  std::remove(file.c_str());
+
+  BOOST_REQUIRE_EQUAL(phi_all.size(), Index(all.size()));
+  const double scale = phi_all.cwiseAbs().maxCoeff();
+  BOOST_CHECK_GT(scale, 1e-5);
+  BOOST_CHECK_SMALL((phi_all.head(40) - phi_grid).cwiseAbs().maxCoeff(),
+                    1e-14 * scale);
+  BOOST_CHECK_SMALL((phi_all.tail(2) - phi_nuclei).cwiseAbs().maxCoeff(),
+                    1e-14 * scale);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

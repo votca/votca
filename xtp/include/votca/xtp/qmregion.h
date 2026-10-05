@@ -138,16 +138,23 @@ class QMRegion : public Region {
   QMState initstate_;
   std::string workdir_ = "";
   std::unique_ptr<QMPackage> qmpackage_ = nullptr;
+  // RI integrals and Ewald potential matrix kept across the inter-region
+  // iterations (DFT-only regions)
+  std::shared_ptr<DFTSetupCache> setup_cache_;
 
   std::string grid_accuracy_for_ext_interaction_ = "medium";
 
   hist<double> E_hist_;
   hist<Eigen::MatrixXd> Dmat_hist_;
+  // S^1/2 of the DFT basis, for measuring density changes in the
+  // Loewdin-orthonormalised basis (empty: AO basis)
+  Eigen::MatrixXd overlap_sqrt_;
+  void UpdateOverlapSqrt();
 
   // convergence options
   double DeltaD_ = 5e-5;
   double DeltaE_ = 5e-5;
-  double DeltaDmax_ = 5e-5;
+  double DeltaDmax_ = 1e-3;
 
   bool do_gwbse_ = false;
 

@@ -22,6 +22,7 @@
 #define VOTCA_XTP_XTPDFT_H
 
 // Standard includes
+#include <memory>
 #include <string>
 
 // Local VOTCA includes
@@ -49,6 +50,15 @@ class XTPDFT final : public QMPackage {
   bool RunDFT() final;
 
   bool RunActiveDFT() final;
+
+  void setSetupCache(std::shared_ptr<DFTSetupCache> cache) final {
+    setup_cache_ = std::move(cache);
+  }
+
+  void setSCFToleranceFloor(double energy, double error) final {
+    scf_energy_floor_ = energy;
+    scf_error_floor_ = error;
+  }
 
   void CleanUp() final;
 
@@ -101,6 +111,10 @@ class XTPDFT final : public QMPackage {
 
   void WriteChargeOption() final { return; }
   tools::Property xtpdft_options_;
+  // setup kept between runs (QM/MM iterations) by the caller; may be empty
+  std::shared_ptr<DFTSetupCache> setup_cache_;
+  double scf_energy_floor_ = 0.0;
+  double scf_error_floor_ = 0.0;
 
   Orbitals orbitals_;
 };

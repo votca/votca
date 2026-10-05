@@ -26,6 +26,7 @@ list(APPEND test_cases test_bse)
 list(APPEND test_cases test_bsecoupling)
 list(APPEND test_cases test_bse_operator)
 list(APPEND test_cases test_bseoperator_btda)
+list(APPEND test_cases test_dfttimings)
 list(APPEND test_cases test_convergenceacc)
 list(APPEND test_cases test_uks_convergenceacc)
 list(APPEND test_cases test_podcoupling)
@@ -138,6 +139,12 @@ foreach(PROG ${test_cases} )
   add_executable(unit_${PROG} ${PROG}.cc)
   target_compile_definitions(unit_${PROG} PRIVATE XTP_TEST_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/DataFiles")
   target_link_libraries(unit_${PROG} votca_xtp Boost::unit_test_framework Libint2::int2 ECPINT::ecpint openbabel)
+  # Libxc is a PRIVATE dependency of votca_xtp; a test that calls libxc
+  # itself (xc_func_init in test_vxc_potential) must link it directly, or
+  # linkers without implicit DSO resolution (ld.bfd) reject it.
+  if(PROG STREQUAL "test_vxc_potential")
+    target_link_libraries(unit_${PROG} Libxc::xc)
+  endif()
   # openbabel is a PRIVATE dependency of votca_xtp (xtp/src/libxtp/
   # CMakeLists.txt), so its own include directories are not
   # automatically propagated here via votca_xtp alone -- confirmed

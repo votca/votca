@@ -53,23 +53,46 @@ BOOST_AUTO_TEST_CASE(small_basis) {
   Eigen::MatrixXd Ref4 = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/Ref4.mm");
 
-  bool check_three1 = Ref0.isApprox(threec[0].FullMatrix(), 0.00001);
+  bool check_three1 = Ref0.isApprox(threec.FullMatrix(0), 0.00001);
   if (!check_three1) {
     std::cout << "Res0" << std::endl;
-    std::cout << threec[0].FullMatrix() << std::endl;
+    std::cout << threec.FullMatrix(0) << std::endl;
     std::cout << "0_ref" << std::endl;
     std::cout << Ref0 << std::endl;
   }
   BOOST_CHECK_EQUAL(check_three1, true);
-  bool check_three2 = Ref4.isApprox(threec[4].FullMatrix(), 0.00001);
+  bool check_three2 = Ref4.isApprox(threec.FullMatrix(4), 0.00001);
   if (!check_three2) {
     std::cout << "Res4" << std::endl;
-    std::cout << threec[4].FullMatrix() << std::endl;
+    std::cout << threec.FullMatrix(4) << std::endl;
     std::cout << "4_ref" << std::endl;
     std::cout << Ref4 << std::endl;
   }
   BOOST_CHECK_EQUAL(check_three2, true);
 
+  libint2::finalize();
+}
+
+// Moving the tensor (as the QM/MM setup cache does) must not copy it.
+BOOST_AUTO_TEST_CASE(move_does_not_copy) {
+  libint2::initialize();
+  QMMolecule mol(" ", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/threecenter_dft/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, mol);
+  TCMatrix_dft threec;
+  threec.Fill(aobasis, aobasis);
+  const double* data = threec.Data().data();
+  const Eigen::MatrixXd b0 = threec.FullMatrix(0);
+  TCMatrix_dft moved(std::move(threec));
+  BOOST_CHECK(moved.Data().data() == data);
+  TCMatrix_dft assigned;
+  assigned = std::move(moved);
+  BOOST_CHECK(assigned.Data().data() == data);
+  BOOST_CHECK_EQUAL((assigned.FullMatrix(0) - b0).cwiseAbs().maxCoeff(), 0.0);
   libint2::finalize();
 }
 
@@ -103,13 +126,13 @@ BOOST_AUTO_TEST_CASE(small_basis) {
   }
 
   for (Index i = 0; i < 4; i++) {
-    bool check = ref[i].isApprox(threec[indeces[i]].FullMatrix(), 1e-5);
+    bool check = ref[i].isApprox(threec.FullMatrix(indeces[i]), 1e-5);
     BOOST_CHECK_EQUAL(check, true);
     if (!check) {
       std::cout << "ref " << indeces[i] << std::endl;
       std::cout << ref[i] << std::endl;
       std::cout << "result " << indeces[i] << std::endl;
-      std::cout << threec[indeces[i]].FullMatrix() << std::endl;
+      std::cout << threec.FullMatrix(indeces[i]) << std::endl;
     }
   }
 } */

@@ -22,7 +22,9 @@
 #ifndef VOTCA_XTP_QMPACKAGE_H
 #define VOTCA_XTP_QMPACKAGE_H
 
+// Standard includes
 #include <memory>
+
 // VOTCA includes
 #include <votca/tools/property.h>
 
@@ -38,6 +40,8 @@ namespace votca {
 namespace xtp {
 
 class Orbitals;
+
+struct DFTSetupCache;
 
 class QMPackage {
  public:
@@ -116,6 +120,22 @@ class QMPackage {
     has_ewald_nuclear_energy_ = true;
   }
 
+  // Start the SCF from the orbitals handed to WriteInputFile instead of the
+  // configured guess (QM/MM iterations after the first). Packages that cannot
+  // do this ignore it.
+  void setWarmStart(bool warm_start) { warm_start_ = warm_start; }
+
+  /// Setup that does not change between runs on the same molecule (RI
+  /// integrals, Ewald potential matrix), kept by the caller across runs.
+  /// Only packages with such setup (xtp) use it.
+  virtual void setSetupCache(std::shared_ptr<DFTSetupCache>) {}
+
+  /// Lower bounds for the SCF convergence thresholds (energy in Hartree,
+  /// DIIS error) of the next run; the configured thresholds apply where they
+  /// are looser. Used by QM/MM, whose outer loop does not need the inner SCF
+  /// converged further than it resolves itself. Only xtp uses it.
+  virtual void setSCFToleranceFloor(double, double) {}
+
  protected:
   virtual void ParseSpecificOptions(const tools::Property& options) = 0;
   struct MinimalMMCharge {
@@ -162,6 +182,7 @@ class QMPackage {
   bool has_ewaldgrid_ = false;
   double ewald_nuclear_energy_ = 0.0;
   bool has_ewald_nuclear_energy_ = false;
+  bool warm_start_ = false;
 };
 
 }  // namespace xtp

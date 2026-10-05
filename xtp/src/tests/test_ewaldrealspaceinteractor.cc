@@ -625,4 +625,49 @@ BOOST_AUTO_TEST_CASE(damped_real_and_erf_halves_reassemble_to_damped_bare) {
   }
 }
 
+// The fused unit-probe potentials used on DFT grids must equal the energy
+// functions they replace, for a unit-charge probe: erfc-screened static plus
+// undamped induced, and the erf-screened pair, including the coincidence
+// limit of the latter.
+BOOST_AUTO_TEST_CASE(unit_probe_potentials_match_energy_functions) {
+  EwaldRealSpaceInteractor interactor(0.35);
+  std::srand(11);
+  for (int trial = 0; trial < 50; ++trial) {
+    PolarSite source(1, "C", 3.0 * Eigen::Vector3d::Random());
+    Vector9d mpoles = Vector9d::Zero();
+    mpoles(0) = Eigen::VectorXd::Random(1)(0);
+    mpoles.segment<3>(1) = Eigen::Vector3d::Random();
+    source.setMultipole(mpoles, 1);
+    source.setpolarization(Eigen::Matrix3d::Identity());
+    source.setInduced_Dipole(Eigen::Vector3d::Random());
+    const Eigen::Vector3d shift = 5.0 * Eigen::Vector3d::Random();
+    // the last trial puts the probe on the (shifted) source
+    const Eigen::Vector3d point =
+        trial == 49 ? Eigen::Vector3d(source.getPos() + shift)
+                    : Eigen::Vector3d(4.0 * Eigen::Vector3d::Random());
+    PolarSite probe(0, "H", point);
+    probe.setCharge(1.0);
+    const Eigen::Vector3d r_vec = point - (source.getPos() + shift);
+    const Eigen::Vector3d mu =
+        source.getStaticDipole() + source.getInducedDipole();
+
+    if (trial != 49) {
+      const double ref =
+          interactor.CalcStaticEnergy<PolarSite, PolarSite>(source, probe,
+                                                            shift) +
+          interactor.CalcInducedSourceEnergy(source, probe, shift, false);
+      BOOST_CHECK_SMALL(
+          interactor.ScreenedPotential(source.getCharge(), mu, r_vec) - ref,
+          1e-13 * std::max(1.0, std::abs(ref)));
+    }
+    const double ref_erf =
+        interactor.CalcErfStaticEnergy<PolarSite, PolarSite>(source, probe,
+                                                             shift) +
+        interactor.CalcErfInducedSourceEnergy(source, probe, shift);
+    BOOST_CHECK_SMALL(
+        interactor.ErfPotential(source.getCharge(), mu, r_vec) - ref_erf,
+        1e-13 * std::max(1.0, std::abs(ref_erf)));
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

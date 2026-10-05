@@ -114,8 +114,13 @@ template Eigen::MatrixXcd AOTransform::tform(L l_row, L l_col,
                                              const Eigen::MatrixXcd& cartesian);
 
 Eigen::VectorXd AOTransform::XIntegrate(Index size, double U) {
-
   Eigen::VectorXd FmU = Eigen::VectorXd::Zero(size);
+  XIntegrate(size, U, FmU.data());
+  return FmU;
+}
+
+void AOTransform::XIntegrate(Index size, double U, double* FmU) {
+
   const Index mm = size - 1;
   const double pi = boost::math::constants::pi<double>();
   if (mm < 0) {
@@ -133,14 +138,14 @@ Eigen::VectorXd AOTransform::XIntegrate(Index size, double U) {
     FmU[0] = 0.50 * std::sqrt(pi / U) * std::erf(std::sqrt(U));
 
     const double expU = std::exp(-U);
-    for (Index m = 1; m < FmU.size(); m++) {
+    for (Index m = 1; m < size; m++) {
       FmU[m] =
           (2.0 * double(m) - 1) * FmU[m - 1] / (2.0 * U) - expU / (2.0 * U);
     }
   }
 
   else if (U < 1e-10) {
-    for (Index m = 0; m < FmU.size(); m++) {
+    for (Index m = 0; m < size; m++) {
       FmU[m] = 1.0 / (2.0 * double(m) + 1.0) - U / (2.0 * double(m) + 3.0);
     }
   }
@@ -158,8 +163,6 @@ Eigen::VectorXd AOTransform::XIntegrate(Index size, double U) {
           (2.0 * U) / (2.0 * double(m) + 1.0) * (FmU[m + 1] + expU / (2.0 * U));
     }
   }
-
-  return FmU;
 }
 
 Index AOTransform::getBlockSize(Index lmax) {

@@ -41,7 +41,14 @@ namespace xtp {
 class TCMatrix {
 
  public:
+  TCMatrix() = default;
   virtual ~TCMatrix() = default;
+  // the virtual destructor would otherwise suppress moving: moving the DFT
+  // tensor (tens of GB) must not fall back to a copy
+  TCMatrix(const TCMatrix&) = default;
+  TCMatrix(TCMatrix&&) = default;
+  TCMatrix& operator=(const TCMatrix&) = default;
+  TCMatrix& operator=(TCMatrix&&) = default;
   Index Removedfunctions() const { return removedfunctions_; }
   enum class SpinChannel { Alpha, Beta };
 
@@ -50,21 +57,87 @@ class TCMatrix {
   Eigen::MatrixXd inv_sqrt_;
 };
 
+/**
+ * \brief RI three-centre tensor of the DFT code,
+ * B_P,mu nu = sum_Q V^-1/2_PQ (Q|mu nu).
+ *
+ * Only the significant basis-function pairs are stored. A shell pair (a,b) is
+ * kept if the Schwarz bound of its three-centre integrals,
+ * max_P sqrt((P|P)) sqrt((ab|ab)), reaches the pair threshold; the integrals
+ * of the dropped pairs are smaller than the threshold. As V^-1/2 only mixes
+ * the aux index, the dropped pairs are the same for every aux function.
+ * Threshold 0 keeps every pair.
+ *
+ * Storage: one column of data_ per aux function, holding the kept (nu, mu)
+ * with nu <= mu, column mu after column mu-1 (upper triangle, column-major).
+ */
 class TCMatrix_dft final : public TCMatrix {
  public:
-  void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis);
+  /// build_columns: pair columns one thread builds at a time (see
+  /// kBuildColumns); only changes the memory and work split, not the result.
+  void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
+            double pair_threshold = 0.0, Index build_columns = kBuildColumns);
 
-  Index size() const { return Index(matrix_.size()); }
+  /// Number of aux functions.
+  Index size() const { return Index(data_.cols()); }
+  /// Number of basis functions.
+  Index basissize() const { return basissize_; }
 
-  Symmetric_Matrix& operator[](Index i) { return matrix_[i]; }
+  /// B_P as a full symmetric matrix, zero for the dropped pairs.
+  Eigen::MatrixXd FullMatrix(Index P) const;
 
-  const Symmetric_Matrix& operator[](Index i) const { return matrix_[i]; }
+  /// Writes B_P into full (basissize x basissize). The entries of dropped
+  /// pairs are not written: full must hold zeros there, as it does when the
+  /// same buffer is reused for all aux functions.
+  void FillFullMatrix(Index P, Eigen::MatrixXd& full) const;
+
+  /// Packs the lower triangle of a matrix into the stored pair layout,
+  /// off-diagonal entries counted twice, so that for symmetric D
+  /// PackWeighted(D).dot(data column P) = sum_{mu nu} B_P,mu nu D_mu nu.
+  /// Like Symmetric_Matrix(full), the upper triangle is not read.
+  Eigen::VectorXd PackWeighted(const Eigen::MatrixXd& full) const;
+
+  /// Inverse layout map without weights: symmetric matrix from a packed
+  /// vector, zero for the dropped pairs.
+  Eigen::MatrixXd Unpack(const Eigen::VectorXd& packed) const;
+
+  /// The stored tensor, one column per aux function.
+  const Eigen::MatrixXd& Data() const { return data_; }
+
+  /// Stored pairs (nu <= mu) and all pairs N(N+1)/2.
+  Index StoredPairs() const { return Index(data_.rows()); }
+  Index AllPairs() const { return basissize_ * (basissize_ + 1) / 2; }
+
+  double MetricSeconds() const { return metric_seconds_; }
 
  private:
-  std::vector<Symmetric_Matrix> matrix_;
+  /// Contiguous piece of column mu: rows [row, row+length) of B, stored from
+  /// position offset of a data column on.
+  struct Run {
+    Index col;
+    Index row;
+    Index length;
+    Index offset;
+  };
 
-  void FillBlock(std::vector<Eigen::MatrixXd>& block, Index shellindex,
-                 const AOBasis& dftbasis, const AOBasis& auxbasis);
+  /// Kept shells of the pairs (a, b) with b <= a, for each shell a, in
+  /// increasing order; a itself is always kept.
+  std::vector<std::vector<Index>> SignificantPairs(
+      const AOBasis& dftbasis, const Eigen::MatrixXd& metric,
+      double pair_threshold) const;
+  void SetupLayout(const AOBasis& dftbasis,
+                   const std::vector<std::vector<Index>>& kept);
+
+  Eigen::MatrixXd data_;
+  std::vector<Run> runs_;
+  // column mu starts at col_offset_[mu] in a data column
+  std::vector<Index> col_offset_;
+  Index basissize_ = 0;
+  double metric_seconds_ = 0.0;
+
+  /// Upper bound for the pair columns that one thread builds at a time:
+  /// the transient memory of Fill is two such blocks of aux size per thread.
+  static constexpr Index kBuildColumns = 512;
 };
 
 class TCMatrix_gwbse final : public TCMatrix {

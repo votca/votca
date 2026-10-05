@@ -115,6 +115,18 @@ Eigen::MatrixXd Symmetric_Matrix::FullMatrix() const {
   return result;
 }
 
+void Symmetric_Matrix::FillFullMatrix(Eigen::MatrixXd& full) const {
+  assert(full.rows() == dimension && full.cols() == dimension &&
+         "FillFullMatrix needs a dim x dim matrix");
+  // column j of the upper triangle is stored contiguously
+  for (Index j = 0; j < dimension; ++j) {
+    const Index start = (j * (j + 1)) / 2;
+    full.col(j).head(j + 1) =
+        Eigen::Map<const Eigen::VectorXd>(data.data() + start, j + 1);
+  }
+  full.triangularView<Eigen::StrictlyLower>() = full.transpose();
+}
+
 Eigen::MatrixXd Symmetric_Matrix::UpperMatrix() const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(dimension, dimension);
   for (Index j = 0; j < result.cols(); ++j) {

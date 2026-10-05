@@ -174,8 +174,15 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
 
   bool diis_error = false;
   Eigen::MatrixXd H_guess = H;
+  // Below DIIS_start the density is already close to self-consistency (as
+  // after a warm start from the previous QM/MM iteration): no damping, a
+  // plain step from the current Fock matrix first and DIIS from two
+  // history entries on. Far from it (a cold start), the first steps are
+  // damped until the history holds three entries, as before.
+  const bool near_convergence = diiserror_ < opt_.diis_start;
+  const std::size_t min_history = near_convergence ? 1 : 2;
   if ((diiserror_ < opt_.adiis_start || diiserror_ < opt_.diis_start) &&
-      opt_.usediis && mathist_.size() > 2) {
+      opt_.usediis && mathist_.size() > min_history) {
     Eigen::VectorXd coeffs;
     // ADIIS above DIIS_start, and also below it whenever the energy went
     // up: plain DIIS does not minimize the energy and can run away from a
@@ -223,7 +230,7 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
   // mixing_end, not ADIIS_start, decides on damping (as in the UKS path):
   // the two are separate options.
   if (diiserror_ > opt_.mixingend || !opt_.usediis || diis_error ||
-      mathist_.size() <= 2) {
+      (mathist_.size() <= 2 && !near_convergence)) {
     usedmixing_ = true;
     dmatout =
         opt_.mixingparameter * dmat + (1.0 - opt_.mixingparameter) * dmatout;

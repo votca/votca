@@ -23,6 +23,7 @@
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/density_integration.h"
+#include "votca/xtp/dftengine.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/ewaldregion.h"
@@ -423,20 +424,37 @@ bool QMRegion::Converged() const {
     return false;
   }
 
-  double Echange = E_hist_.getDiff();
-  double Dchange =
-      Dmat_hist_.getDiff().norm() / double(Dmat_hist_.back().cols());
-  double Dmax = Dmat_hist_.getDiff().cwiseAbs().maxCoeff();
+  const double Echange = E_hist_.getDiff();
+  const Eigen::MatrixXd diff_ao = Dmat_hist_.getDiff();
+  const double n = double(diff_ao.cols());
+  // The density change is measured in the Loewdin-orthonormalised basis,
+  // S^1/2 dD S^1/2. In the AO basis, a near-linearly dependent basis lets
+  // density-matrix elements move a lot along near-redundant directions while
+  // the density itself hardly changes (C60/def2-TZVP: max change ~170 times
+  // the RMS), which made the max criterion decide the convergence alone.
+  const bool orthonormal = overlap_sqrt_.rows() == diff_ao.rows();
+  const Eigen::MatrixXd diff =
+      orthonormal ? Eigen::MatrixXd(overlap_sqrt_ * diff_ao * overlap_sqrt_)
+                  : diff_ao;
+  const double Dchange = diff.norm() / n;
+  const double Dmax = diff.cwiseAbs().maxCoeff();
   std::string info = "not converged";
   bool converged = false;
   if (Dchange < DeltaD_ && Dmax < DeltaDmax_ && std::abs(Echange) < DeltaE_) {
     info = "converged";
     converged = true;
   }
+  std::ostringstream measure;
+  if (orthonormal) {
+    measure << " (orthonormal basis; AO basis: RMS " << diff_ao.norm() / n
+            << " Max " << diff_ao.cwiseAbs().maxCoeff() << ")";
+  } else {
+    measure << " (AO basis)";
+  }
   XTP_LOG(Log::error, log_)
       << " Region:" << this->identify() << " " << this->getId() << " is "
       << info << " deltaE=" << Echange << " RMS Dmat=" << Dchange
-      << " MaxDmat=" << Dmax << std::flush;
+      << " MaxDmat=" << Dmax << measure.str() << std::flush;
   return converged;
 }
 
@@ -473,6 +491,31 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     }
     qmpackage_->setEwaldgrid(ewaldgrid_);
     qmpackage_->setEwaldNuclearEnergy(ewald_nuclear_energy_);
+  }
+
+  // From the second inter-region iteration on, only the environment has
+  // changed: start the SCF from the previous iteration's orbitals.
+  const bool warm_start = E_hist_.filled() && orb_.hasMOs();
+  qmpackage_->setWarmStart(warm_start);
+  // From the second inter-region iteration on, the inner SCF only needs to
+  // be converged a factor 10 beyond what the outer loop resolves: its
+  // energy error is second order in the density error, and its density
+  // error stays below the outer density tolerance. Not with GW-BSE, which
+  // takes the orbitals as they are; capped at 1e-5 in both.
+  if (warm_start && !do_gwbse_) {
+    qmpackage_->setSCFToleranceFloor(std::min(0.1 * DeltaE_, 1e-5),
+                                     std::min(0.1 * DeltaD_, 1e-5));
+  }
+  // Basis sets and geometry stay the same over the inter-region iterations:
+  // keep the RI integrals and the Ewald potential matrix for the next one.
+  // Not with GW-BSE, whose own three-centre integrals would come on top of
+  // the cached ones in memory. The cache lives here because Reset()
+  // recreates the QM package every iteration.
+  if (!do_gwbse_) {
+    if (!setup_cache_) {
+      setup_cache_ = std::make_shared<DFTSetupCache>();
+    }
+    qmpackage_->setSetupCache(setup_cache_);
   }
 
   XTP_LOG(Log::error, log_) << "Running DFT calculation" << std::flush;
@@ -604,7 +647,32 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   E_hist_.push_back(energy);
 
   Dmat_hist_.push_back(orb_.DensityMatrixFull(state));
+  UpdateOverlapSqrt();
   return;
+}
+
+void QMRegion::UpdateOverlapSqrt() {
+  if (overlap_sqrt_.rows() == Dmat_hist_.back().rows()) {
+    return;
+  }
+  overlap_sqrt_.resize(0, 0);
+  if (orb_.getBasisSetSize() != Dmat_hist_.back().rows() ||
+      orb_.getDFTbasisName().empty()) {
+    return;  // no matching basis to orthonormalise with: AO measure
+  }
+  AOOverlap overlap;
+  try {
+    overlap.Fill(orb_.getDftBasis());
+  } catch (const std::runtime_error&) {
+    return;
+  }
+  if (overlap.Matrix().rows() != Dmat_hist_.back().rows()) {
+    return;
+  }
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(overlap.Matrix());
+  overlap_sqrt_ = es.eigenvectors() *
+                  es.eigenvalues().cwiseMax(0.0).cwiseSqrt().asDiagonal() *
+                  es.eigenvectors().transpose();
 }
 
 void QMRegion::push_back(const QMMolecule& mol) {
@@ -814,9 +882,17 @@ double QMRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
   }
 
   // ELECTRONS. The potential on the integration grid, which the DFT
-  // engine integrates against the density into H0.
-  const std::vector<Eigen::Vector3d> points = copyEwaldGrid();
-  const Eigen::VectorXd phi = region.PotentialAt(points);
+  // engine integrates against the density into H0. The nuclei (below) are
+  // appended to the same call: every call recomputes the reciprocal-space
+  // structure factors of the whole background, whatever the point count.
+  std::vector<Eigen::Vector3d> points = copyEwaldGrid();
+  const Index n_grid = Index(points.size());
+  for (const QMAtom& atom : orb_.QMAtoms()) {
+    points.push_back(atom.getPos());
+  }
+  const Eigen::VectorXd phi_all = region.PotentialAt(points);
+  const Eigen::VectorXd phi = phi_all.head(n_grid);
+  const Eigen::VectorXd phi_nuclei = phi_all.tail(phi_all.size() - n_grid);
 
   // Vxc_Grid::getGridpoints() walks grid_boxes_ in order and each box's
   // own points in order, so the flat vector maps back by giving each box
@@ -847,12 +923,6 @@ double QMRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
   // to the engine as a scalar to add to E0, NOT returned from here --
   // QMRegion::Evaluate accumulates the Interactwith* return values into
   // e_ext, logs it, and drops it on the floor.
-  std::vector<Eigen::Vector3d> nuclei;
-  nuclei.reserve(std::size_t(orb_.QMAtoms().size()));
-  for (const QMAtom& atom : orb_.QMAtoms()) {
-    nuclei.push_back(atom.getPos());
-  }
-  const Eigen::VectorXd phi_nuclei = region.PotentialAt(nuclei);
   ewald_nuclear_energy_ = 0.0;
   Index a = 0;
   for (const QMAtom& atom : orb_.QMAtoms()) {

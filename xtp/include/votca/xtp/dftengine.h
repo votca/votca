@@ -30,6 +30,7 @@
 // Local VOTCA includes
 #include "ERIs.h"
 #include "convergenceacc.h"
+#include "dfttimings.h"
 #include "hirshfeldpartition.h"
 #include "uks_convergenceacc.h"
 
@@ -44,6 +45,26 @@
 namespace votca {
 namespace xtp {
 class Orbitals;
+/**
+ * \brief Parts of the DFT setup that stay the same between runs on the same
+ * molecule with the same basis sets, such as the outer iterations of QM/MM:
+ * the RI three-centre integrals and the AO matrix of an external Ewald
+ * potential. Owned by the caller (XTPDFT), lent to one DFTEngine per run.
+ * Entries are reused only if their key matches; otherwise they are rebuilt.
+ */
+struct DFTSetupCache {
+  std::string eris_key;
+  bool has_eris = false;
+  ERIs eris;
+  std::string ewald_key;
+  Eigen::MatrixXd ewald_matrix;
+  // AO potential of the permanent moments of the external sites; the induced
+  // dipoles change between QM/MM iterations and are integrated every run.
+  std::string multipole_key;
+  Eigen::MatrixXd multipole_sites;  // one row per site: pos, rank, Q
+  Eigen::MatrixXd multipole_matrix;
+};
+
 class DFTEngineTestAccess;
 
 /// True if the libint2 this was built against supports derivative
@@ -97,6 +118,22 @@ class DFTEngine {
   // only, exactly as IntegrateExternalMultipoles pairs its AO matrix with
   // ExternalRepulsion for the multipole route.
   void setEwaldNuclearEnergy(double energy) { ewald_nuclear_energy_ = energy; }
+
+  /// Use the MOs already in the Orbitals passed to Evaluate as the SCF guess
+  /// when they fit this calculation (same basis set and size, same electron
+  /// counts); otherwise the configured initial_guess is used. Set by QM/MM
+  /// for iterations after the first, where only the environment changed.
+  void setWarmStart(bool warm_start) { warm_start_ = warm_start; }
+
+  /// Reuse setup from, and keep it in, this cache (see DFTSetupCache). The
+  /// RI integrals are taken out of the cache while the engine runs; call
+  /// ReturnSetupCache() afterwards to put them back.
+  void setSetupCache(DFTSetupCache* cache) { setup_cache_ = cache; }
+
+  /// Raise the SCF convergence thresholds (energy in Hartree, DIIS error) to
+  /// at least these values; call after Initialize.
+  void setSCFToleranceFloor(double energy, double error);
+  void ReturnSetupCache();
 
   /// Run a full ground-state DFT calculation and store the results in the
   /// orbital container.
@@ -209,6 +246,11 @@ class DFTEngine {
 
   /// Build the Coulomb matrix contribution from the current density matrix.
   Eigen::MatrixXd CalcERIs(const Eigen::MatrixXd& Dmat, double error) const;
+
+  /// Evaluate() without the timing report.
+  bool EvaluateAndTime(Orbitals& orb);
+  /// Basis dimensions and the memory of the large intermediates.
+  void ReportDimensionsAndMemory() const;
 
   /// Propagate basis-set, XC, and metadata settings into the orbital container.
   void ConfigOrbfile(Orbitals& orb);
@@ -547,6 +589,9 @@ class DFTEngine {
   // Eigenvalues of the AO overlap below this are removed from S^-1/2
   // (xtpdft.overlap_tolerance).
   double overlap_tolerance_ = 1e-8;
+  // Shell pairs whose RI three-centre integrals are bounded by less than this
+  // are not stored (xtpdft.ri_pair_threshold).
+  double ri_pair_threshold_ = 1e-10;
 
   // numerical integration Vxc
   std::string grid_name_;
@@ -570,12 +615,25 @@ class DFTEngine {
   ConvergenceAcc conv_accelerator_;
   // Electron repulsion integrals
   ERIs ERIs_;
+  // Wall-clock accounting, reported at the end of Evaluate()
+  mutable DFTTimings timings_;
+  bool warm_start_ = false;
+  bool warm_started_ = false;
+  DFTSetupCache* setup_cache_ = nullptr;
+  std::string eris_key_;  // key of the RI integrals in ERIs_
+  /// Identifies what the RI integrals depend on: basis sets (shell types,
+  /// primitives, centres) and the pair threshold.
+  std::string RISetupKey() const;
+  /// Whether orb's MOs (computed in previous_basis) can serve as the guess
+  /// for this calculation; if not, why not.
+  bool UsableAsWarmStart(const Orbitals& orb, const std::string& previous_basis,
+                         std::string& reason) const;
 
   // external charges
   std::vector<std::unique_ptr<StaticSite> >* externalsites_ = nullptr;
 
   // exchange and correlation
-  double ScaHFX_;
+  double ScaHFX_ = 0.0;
   std::string xc_functional_name_;
 
   bool integrate_ext_density_ = false;

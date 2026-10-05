@@ -455,4 +455,30 @@ BOOST_AUTO_TEST_CASE(shape_energy_tracks_foreground_charge_state) {
   BOOST_CHECK(std::abs(e_charged - e_neutral) > 1e-8);
 }
 
+// PotentialAtMany computes the background moments once; per point it must
+// equal the per-point energy functions for a unit charge there.
+BOOST_AUTO_TEST_CASE(potential_at_many_matches_per_point_energies) {
+  EwaldRegistry registry = BuildTestRegistry();
+  for (EwaldShape geometry : {EwaldShape::Cube, EwaldShape::Slab}) {
+    EwaldShapeCorrection shape(1000.0, registry, geometry);
+    const std::vector<Eigen::Vector3d> points = {
+        Eigen::Vector3d(0.3, -1.2, 2.5), Eigen::Vector3d(-4.0, 0.7, 0.1),
+        Eigen::Vector3d::Zero()};
+    const Eigen::VectorXd phi =
+        shape.PotentialAtMany(points, EwaldChargeState::Neutral);
+    for (std::size_t p = 0; p < points.size(); ++p) {
+      PolarSite probe(0, "H", points[p]);
+      probe.setCharge(1.0);
+      const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> one{
+          {&probe, points[p]}};
+      const std::vector<const PolarSite*> none;
+      const double ref =
+          shape.CalcStaticEnergyBetween(one, none, EwaldChargeState::Neutral) +
+          shape.CalcInducedSourceEnergyBetween(one, none,
+                                               EwaldChargeState::Neutral);
+      BOOST_CHECK_SMALL(phi[Index(p)] - ref, 1e-14);
+    }
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

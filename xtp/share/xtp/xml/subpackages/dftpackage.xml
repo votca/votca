@@ -29,6 +29,7 @@
     </dft_in_dft>
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
     <overlap_tolerance help="Eigenvalues of the AO overlap matrix below this value are removed from the orthogonalization (near linear dependencies; the removed directions become zero orbitals at the top of the spectrum). Raise to 1e-7 to 1e-6 if the log reports a nearly singular overlap and the SCF is unstable." default="1e-8" choices="float+" />
+    <ri_pair_threshold help="RI only: basis-function shell pairs whose three-centre integrals (P|ab) are bounded by less than this (Schwarz bound) are not stored. Reduces the memory of the stored RI tensor substantially for large molecules; energies change at the level of the threshold. 0 stores all pairs." default="1e-10" choices="float+" />
     <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />
     <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
     <force_uks_path help="forcing UKS path" default="false" choices="bool"/>

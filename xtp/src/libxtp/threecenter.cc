@@ -19,6 +19,8 @@
 
 // Local VOTCA includes
 // Standard includes
+#include <algorithm>
+#include <cassert>
 #include <stdexcept>
 #include <string>
 
@@ -228,6 +230,78 @@ void TCMatrix_gwbse::Rotate(const Eigen::MatrixXd& U, Index qpmin,
         U.transpose() *
         matrix_[m + qp_offset_m].middleRows(qp_offset_n, qptotal);
   }
+}
+
+void TCMatrix_dft::SetupLayout(const AOBasis& dftbasis,
+                               const std::vector<std::vector<Index>>& kept) {
+  basissize_ = dftbasis.AOBasisSize();
+  const std::vector<Index> shell2bf = dftbasis.getMapToBasisFunctions();
+  runs_.clear();
+  col_offset_.assign(basissize_, 0);
+  Index offset = 0;
+  for (Index a = 0; a < Index(kept.size()); ++a) {
+    const Index start = shell2bf[a];
+    const Index size = dftbasis.getShell(a).getNumFunc();
+    for (Index i = 0; i < size; ++i) {
+      const Index mu = start + i;
+      col_offset_[mu] = offset;
+      // merge neighbouring kept shells into one run of rows
+      Index k = 0;
+      while (k < Index(kept[a].size())) {
+        Index b_first = kept[a][k];
+        Index b_last = b_first;
+        while (k + 1 < Index(kept[a].size()) && kept[a][k + 1] == b_last + 1) {
+          ++k;
+          b_last = kept[a][k];
+        }
+        ++k;
+        const Index row = shell2bf[b_first];
+        const Index end = std::min(
+            shell2bf[b_last] + dftbasis.getShell(b_last).getNumFunc(), mu + 1);
+        runs_.push_back({mu, row, end - row, offset});
+        offset += end - row;
+      }
+    }
+  }
+}
+
+void TCMatrix_dft::FillFullMatrix(Index P, Eigen::MatrixXd& full) const {
+  assert(full.rows() == basissize_ && full.cols() == basissize_);
+  const double* src = data_.col(P).data();
+  for (const Run& r : runs_) {
+    std::copy(src + r.offset, src + r.offset + r.length,
+              full.data() + r.col * basissize_ + r.row);
+  }
+  full.triangularView<Eigen::StrictlyLower>() = full.transpose();
+}
+
+Eigen::MatrixXd TCMatrix_dft::FullMatrix(Index P) const {
+  Eigen::MatrixXd full = Eigen::MatrixXd::Zero(basissize_, basissize_);
+  FillFullMatrix(P, full);
+  return full;
+}
+
+Eigen::VectorXd TCMatrix_dft::PackWeighted(const Eigen::MatrixXd& full) const {
+  assert(full.rows() == basissize_ && full.cols() == basissize_);
+  Eigen::VectorXd packed(data_.rows());
+  for (const Run& r : runs_) {
+    for (Index k = 0; k < r.length; ++k) {
+      const Index row = r.row + k;
+      packed(r.offset + k) =
+          (row == r.col) ? full(r.col, row) : 2.0 * full(r.col, row);
+    }
+  }
+  return packed;
+}
+
+Eigen::MatrixXd TCMatrix_dft::Unpack(const Eigen::VectorXd& packed) const {
+  assert(packed.size() == data_.rows());
+  Eigen::MatrixXd full = Eigen::MatrixXd::Zero(basissize_, basissize_);
+  for (const Run& r : runs_) {
+    full.block(r.row, r.col, r.length, 1) = packed.segment(r.offset, r.length);
+  }
+  full.triangularView<Eigen::StrictlyLower>() = full.transpose();
+  return full;
 }
 
 }  // namespace xtp

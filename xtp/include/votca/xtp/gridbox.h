@@ -38,6 +38,13 @@ class GridBox {
   void FindSignificantShells(const AOBasis& basis);
   AOShell::AOValues CalcAOValues(const Eigen::Vector3d& point) const;
 
+  /// Batched form for blocks of points: writes the AO values at `point`
+  /// into column `col` of `values` (Matrixsize() x block) and the gradients
+  /// into columns 3*col .. 3*col+2 of `derivatives` (Matrixsize() x
+  /// 3*block). Nothing is allocated per shell or point.
+  void CalcAOValues(const Eigen::Vector3d& point, Eigen::MatrixXd& values,
+                    Eigen::MatrixXd& derivatives, Index col) const;
+
   // Added for GGA XC-gradient support -- same pattern as CalcAOValues
   // above (loop over significant_shells, pack into box-local ranges via
   // aoranges), calling AOShell::EvalAOspaceHessian instead of
