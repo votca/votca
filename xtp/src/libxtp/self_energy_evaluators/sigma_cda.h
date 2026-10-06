@@ -39,7 +39,7 @@ class Sigma_CDA : public Sigma_base {
 
  public:
   Sigma_CDA(TCMatrix_gwbse& Mmn, RPA& rpa)
-      : Sigma_base(Mmn, rpa), gq_(rpa.getRPAInputEnergies(), Mmn) {};
+      : Sigma_base(Mmn, rpa), gq_(rpa.getRPAInputEnergies(), Mmn){};
 
   ~Sigma_CDA() = default;
 
@@ -78,12 +78,14 @@ class Sigma_CDA : public Sigma_base {
                               double delta, double eta) const;
 
   // Sigma_c part from Gaussian tail correction
-  double CalcDiagContributionValue_tail(
-      const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
-      double alpha) const;
+  // Imx_row kappa(0) Imx_row^T is tail_terms_[gw_level](i)
+  double CalcDiagContributionValue_tail(double row_term, double delta,
+                                        double alpha) const;
 
   ImaginaryAxisIntegration gq_;
-  Eigen::MatrixXd kDielMxInv_zero_;  // kappa = eps^-1 - 1 matrix
+  Eigen::MatrixXd kDielMxInv_zero_;
+  // per GW level: Imx.row(i) kappa(0) Imx.row(i)^T for every level i
+  std::vector<Eigen::VectorXd> tail_terms_;  // kappa = eps^-1 - 1 matrix
 };
 
 }  // namespace xtp

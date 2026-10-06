@@ -21,6 +21,7 @@
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/openmp_cuda.h"
+#include "votca/xtp/screening_kernels.h"
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
 #include <iomanip>
@@ -76,69 +77,83 @@ double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
   return (corrections.cwiseAbs()).maxCoeff();
 }
 
-template <bool imag>
-Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
+void RPA::VisitHoleVirtualRows(Index m_level,
+                               const WeightedGram::RowsVisitor& use) const {
+  const Index n_unocc = rpamax_ - homo_;
+  // QSGW: for hole slices in the QP window, apply the m-rotation on the fly.
+  // This makes the RPA hole states consistent with the current QP
+  // wavefunctions while keeping Mmn_ unmodified (its m-index remains in the
+  // DFT-MO basis for correct sigma matrix element evaluation).
+  if (qsgw_U_ != nullptr) {
+    const Index qp_offset_m = qsgw_qpmin_ - rpamin_;
+    const Index qptotal = Index(qsgw_U_->cols());
+    const Index qp_end_occ =
+        std::min(qsgw_homo_ - rpamin_ + 1, qp_offset_m + qptotal);
+    if (m_level >= qp_offset_m && m_level < qp_end_occ) {
+      const Index v_qp = m_level - qp_offset_m;
+      Eigen::MatrixXd rotated = Eigen::MatrixXd::Zero(n_unocc, Mmn_.auxsize());
+      for (Index vp = 0; vp < qptotal; vp++) {
+        rotated.noalias() +=
+            (*qsgw_U_)(vp, v_qp) * Mmn_[vp + qp_offset_m].bottomRows(n_unocc);
+      }
+      use(rotated);
+      return;
+    }
+  }
+  use(Mmn_[m_level].bottomRows(n_unocc));
+}
+
+Eigen::MatrixXd RPA::ResponseSum(const WeightedGram::WeightsFn& weights) const {
   const Index size = Mmn_.auxsize();
-
-  const Index lumo = homo_ + 1;
-  const Index n_occ = lumo - rpamin_;
-  const Index n_unocc = rpamax_ - lumo + 1;
-  const double freq2 = frequency * frequency;
-  const double eta2 = eta_ * eta_;
-
+  const Index n_occ = homo_ + 1 - rpamin_;
+  const Index n_unocc = rpamax_ - homo_;
+  OptionalTiming timing(timings_, "screening: epsilon (RPA)");
+  if (OpenMP_CUDA::UsingGPUs() == 0) {
+    return WeightedGram::Compute(
+        n_occ, size, weights,
+        [this](Index m, const WeightedGram::RowsVisitor& use) {
+          VisitHoleVirtualRows(m, use);
+        });
+  }
+  // GPU path: per-thread products M^T diag(w) M on the devices
   OpenMP_CUDA transform;
   transform.createTemporaries(n_unocc, size);
-
 #pragma omp parallel
   {
     Index threadid = OPENMP::getThreadId();
 #pragma omp for schedule(dynamic)
     for (Index m_level = 0; m_level < n_occ; m_level++) {
-      const double qp_energy_m = energies_(m_level);
-
-      // QSGW: for hole slices in the QP window, apply the m-rotation on the
-      // fly. This makes the RPA hole states consistent with the current QP
-      // wavefunctions while keeping Mmn_ unmodified (its m-index remains in the
-      // DFT-MO basis for correct sigma matrix element evaluation).
-      Eigen::MatrixXd Mmn_RPA;
-      if (qsgw_U_ != nullptr) {
-        const Index qp_offset_m = qsgw_qpmin_ - rpamin_;
-        const Index qptotal = Index(qsgw_U_->cols());
-        const Index qp_end_occ =
-            std::min(qsgw_homo_ - rpamin_ + 1, qp_offset_m + qptotal);
-        if (m_level >= qp_offset_m && m_level < qp_end_occ) {
-          // This hole slice is within the QP window: apply m-rotation
-          const Index v_qp = m_level - qp_offset_m;
-          Mmn_RPA = Eigen::MatrixXd::Zero(n_unocc, Mmn_.auxsize());
-          for (Index vp = 0; vp < qptotal; vp++) {
-            Mmn_RPA.noalias() += (*qsgw_U_)(vp, v_qp) *
-                                 Mmn_[vp + qp_offset_m].bottomRows(n_unocc);
-          }
-        } else {
-          Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
-        }
-      } else {
-        Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
-      }
-
-      transform.PushMatrix(Mmn_RPA, threadid);
-      const Eigen::ArrayXd deltaE =
-          energies_.tail(n_unocc).array() - qp_energy_m;
-      Eigen::VectorXd denom;
-      if (imag) {
-        denom = 4 * deltaE / (deltaE.square() + freq2);
-      } else {
-        Eigen::ArrayXd deltEf = deltaE - frequency;
-        Eigen::ArrayXd sum = deltEf / (deltEf.square() + eta2);
-        deltEf = deltaE + frequency;
-        sum += deltEf / (deltEf.square() + eta2);
-        denom = 2 * sum;
-      }
-
-      transform.A_TDA(denom, threadid);
+      Eigen::VectorXd w;
+      weights(m_level, w);
+      VisitHoleVirtualRows(m_level,
+                           [&](const Eigen::Ref<const Eigen::MatrixXd>& rows) {
+                             transform.PushMatrix(rows, threadid);
+                           });
+      transform.A_TDA(w, threadid);
     }
   }
-  Eigen::MatrixXd result = transform.getReductionVar();
+  return transform.getReductionVar();
+}
+
+template <bool imag>
+Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
+  const Index n_unocc = rpamax_ - homo_;
+  const double freq2 = frequency * frequency;
+  const double eta2 = eta_ * eta_;
+  Eigen::MatrixXd result =
+      ResponseSum([&](Index m_level, Eigen::VectorXd& denom) {
+        const Eigen::ArrayXd deltaE =
+            energies_.tail(n_unocc).array() - energies_(m_level);
+        if (imag) {
+          denom = 4 * deltaE / (deltaE.square() + freq2);
+        } else {
+          Eigen::ArrayXd deltEf = deltaE - frequency;
+          Eigen::ArrayXd sum = deltEf / (deltEf.square() + eta2);
+          deltEf = deltaE + frequency;
+          sum += deltEf / (deltEf.square() + eta2);
+          denom = 2 * sum;
+        }
+      });
   result.diagonal().array() += 1.0;
   return result;
 }
@@ -147,60 +162,19 @@ template Eigen::MatrixXd RPA::calculate_epsilon<true>(double frequency) const;
 template Eigen::MatrixXd RPA::calculate_epsilon<false>(double frequency) const;
 
 Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
-
-  const Index size = Mmn_.auxsize();
-
-  const Index lumo = homo_ + 1;
-  const Index n_occ = lumo - rpamin_;
-  const Index n_unocc = rpamax_ - lumo + 1;
-  OpenMP_CUDA transform;
-  transform.createTemporaries(n_unocc, size);
-#pragma omp parallel
-  {
-    Index threadid = OPENMP::getThreadId();
-#pragma omp for schedule(dynamic)
-    for (Index m_level = 0; m_level < n_occ; m_level++) {
-
-      const double qp_energy_m = energies_(m_level);
-
-      // QSGW: apply m-rotation to QP-window hole slices on the fly
-      Eigen::MatrixXd Mmn_RPA;
-      if (qsgw_U_ != nullptr) {
-        const Index qp_offset_m = qsgw_qpmin_ - rpamin_;
-        const Index qptotal = Index(qsgw_U_->cols());
-        const Index qp_end_occ =
-            std::min(qsgw_homo_ - rpamin_ + 1, qp_offset_m + qptotal);
-        if (m_level >= qp_offset_m && m_level < qp_end_occ) {
-          const Index v_qp = m_level - qp_offset_m;
-          Mmn_RPA = Eigen::MatrixXd::Zero(n_unocc, Mmn_.auxsize());
-          for (Index vp = 0; vp < qptotal; vp++) {
-            Mmn_RPA.noalias() += (*qsgw_U_)(vp, v_qp) *
-                                 Mmn_[vp + qp_offset_m].bottomRows(n_unocc);
-          }
-        } else {
-          Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
-        }
-      } else {
-        Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
-      }
-
-      transform.PushMatrix(Mmn_RPA, threadid);
-      const Eigen::ArrayXd deltaE =
-          energies_.tail(n_unocc).array() - qp_energy_m;
-
-      Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
-      Eigen::ArrayXd deltaEp = frequency.real() + deltaE;
-
-      double sigma_1 = std::pow(frequency.imag() + eta_, 2);
-      double sigma_2 = std::pow(frequency.imag() - eta_, 2);
-
-      Eigen::VectorXd chi =
-          deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
-          deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
-      transform.A_TDA(chi, threadid);
-    }
-  }
-  Eigen::MatrixXd result = -2 * transform.getReductionVar();
+  const Index n_unocc = rpamax_ - homo_;
+  const double sigma_1 = std::pow(frequency.imag() + eta_, 2);
+  const double sigma_2 = std::pow(frequency.imag() - eta_, 2);
+  Eigen::MatrixXd result =
+      ResponseSum([&](Index m_level, Eigen::VectorXd& chi) {
+        const Eigen::ArrayXd deltaE =
+            energies_.tail(n_unocc).array() - energies_(m_level);
+        const Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
+        const Eigen::ArrayXd deltaEp = frequency.real() + deltaE;
+        // the factor -2 of the response is folded into the weights
+        chi = -2.0 * (deltaEm * (deltaEm.abs2() + sigma_1).inverse() -
+                      deltaEp * (deltaEp.abs2() + sigma_2).inverse());
+      });
   result.diagonal().array() += 1.0;
   return result;
 }
@@ -222,11 +196,11 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   C.applyOnTheLeft(AmB.cwiseSqrt().asDiagonal());
   C.applyOnTheRight(AmB.cwiseSqrt().asDiagonal());
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es = Diagonalize_H2p_C(C);
+  const SymmetricEigenSystem es = Diagonalize_H2p_C(C);
 
   // Do not remove this line! It has to be there for MKL to not crash
-  sol.omega = Eigen::VectorXd::Zero(es.eigenvalues().size());
-  sol.omega = es.eigenvalues().cwiseSqrt();
+  sol.omega = Eigen::VectorXd::Zero(es.values.size());
+  sol.omega = es.values.cwiseSqrt();
   sol.ERPA_correlation += 0.5 * sol.omega.sum();
 
   {
@@ -261,7 +235,7 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   Eigen::VectorXd Omega_sqrt_inv = sol.omega.cwiseSqrt().cwiseInverse();
   for (int s = 0; s < rpasize; s++) {
     sol.XpY.col(s) =
-        Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(es.eigenvectors().col(s));
+        Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(es.vectors.col(s));
   }
 
   return sol;
@@ -329,15 +303,14 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
   return ApB;
 }
 
-Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> RPA::Diagonalize_H2p_C(
-    const Eigen::MatrixXd& C) const {
+SymmetricEigenSystem RPA::Diagonalize_H2p_C(const Eigen::MatrixXd& C) const {
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Diagonalizing two-particle Hamiltonian "
       << std::flush;
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(C);  // Uses lower triangle
+  const SymmetricEigenSystem es = SymmetricEigen(C);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Diagonalization done " << std::flush;
-  double minCoeff = es.eigenvalues().minCoeff();
+  double minCoeff = es.values.minCoeff();
   if (minCoeff <= 0.0) {
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " Detected non-positive eigenvalue: " << minCoeff

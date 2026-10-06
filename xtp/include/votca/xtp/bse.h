@@ -25,6 +25,7 @@
 #include "logger.h"
 #include "orbitals.h"
 #include "qmstate.h"
+#include "screening_kernels.h"
 #include "threecenter.h"
 
 namespace votca {
@@ -42,7 +43,7 @@ class BSE {
  public:
   //  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp_in)
   //    :  log_(log),  Mmn_(Mmn),  Hqp_in_(Hqp_in){};
-  BSE(Logger& log, TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn) {};
+  BSE(Logger& log, TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn){};
 
   struct options {
     bool useTDA;
@@ -113,12 +114,18 @@ class BSE {
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
 
-  void Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
+  void Analyze_singlets(std::vector<QMFragment<BSE_Population>> fragments,
                         const Orbitals& orb) const;
-  void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
+  void Analyze_triplets(std::vector<QMFragment<BSE_Population>> fragments,
                         const Orbitals& orb) const;
 
   void Perturbative_DynamicalScreening(const QMStateType& type, Orbitals& orb);
+
+  /// Bytes for the intermediates of one pass when the dynamical screening
+  /// builds its per-state matrices; smaller values only mean more passes.
+  static void setStateMatrixMemory(double bytes) {
+    state_matrix_bytes_ = bytes;
+  }
 
  private:
   options opt_;
@@ -133,6 +140,8 @@ class BSE {
     Eigen::VectorXd direct_term;
     Eigen::VectorXd cross_term;
   };
+
+  static double state_matrix_bytes_;
 
   Logger& log_;
   Index bse_vmax_;
@@ -175,9 +184,19 @@ class BSE {
   tools::EigenSystem Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
                                                  BSE_OPERATOR_B& Bop) const;
 
-  void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
+  void printFragInfo(const std::vector<QMFragment<BSE_Population>>& frags,
                      Index state) const;
   void printWeights(Index i_bse, double weight) const;
+  void RotateIntoScreeningFrame(const Eigen::MatrixXd& U);
+  void MatchDressingToRoute();
+  SymmetricEigenSystem ScreenedInteraction(
+      const Eigen::VectorXd& RPAInputEnergies, double energy,
+      DFTTimings& timings) const;
+  Eigen::MatrixXd DirectTermDensity(
+      const std::vector<std::pair<const Eigen::VectorXd*,
+                                  const Eigen::VectorXd*>>& pairs) const;
+  Eigen::MatrixXd CouplingTermDensity(const Eigen::VectorXd& Avec,
+                                      const Eigen::VectorXd& Bvec) const;
   void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies,
                                       double energy);
 
@@ -190,10 +209,6 @@ class BSE {
   ExpectationValues ExpectationValue_Operator(const QMStateType& type,
                                               const Orbitals& orb,
                                               const BSE_OPERATOR& H) const;
-
-  template <typename BSE_OPERATOR>
-  ExpectationValues ExpectationValue_Operator_State(
-      const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const;
 
   tools::EigenSystem& GetBSEEigenSystem(const QMStateType& type,
                                         Orbitals& orb) const;

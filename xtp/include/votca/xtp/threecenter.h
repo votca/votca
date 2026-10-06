@@ -178,6 +178,24 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix);
 
+  /**
+   * \brief Rotate the auxiliary index of only the part of the tensor a
+   * consumer reads: all rows of slices [0, full_slices) and the first
+   * `lead` rows of slices [full_slices, lead).
+   *
+   * The BSE reads slices and rows up to its highest conduction level (lead)
+   * and, for the dielectric matrix, all rows of the occupied slices
+   * (full_slices). Rotating only those is exact for that use and skips the
+   * rows above the BSE window. The rest of the tensor is left in the old
+   * frame and is stale afterwards: AuxFrame() describes the rotated part,
+   * and dressing, which needs the whole tensor in one frame, throws until
+   * the next Fill or Rebuild.
+   */
+  void MultiplyRightWithAuxMatrixLeading(const Eigen::MatrixXd& U,
+                                         Index full_slices, Index lead);
+  /// Whether only a leading part was rotated since the last Fill.
+  bool PartiallyRotated() const { return partially_rotated_; }
+
   // The metric that was folded into the stored integrals at Fill time:
   // T = Pseudo_InvSqrt_GWBSE, with T T^T = V^-1 (pseudo-inverse) and
   // T^T V T the projector onto the retained auxiliary functions. After
@@ -286,6 +304,7 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   Eigen::MatrixXd aux_frame_;  // empty: identity
   bool aux_frame_known_ = true;
+  bool partially_rotated_ = false;
   Eigen::MatrixXd dressing_;  // S of DressAuxIndex; empty: bare
 
   // M_fill -> M_fill A, whatever frame the integrals are in.

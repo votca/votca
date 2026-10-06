@@ -76,6 +76,31 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   }
 }
 
+void TCMatrix_gwbse::MultiplyRightWithAuxMatrixLeading(const Eigen::MatrixXd& U,
+                                                       Index full_slices,
+                                                       Index lead) {
+  if (OpenMP_CUDA::UsingGPUs() > 0 || U.rows() != U.cols()) {
+    // the device kernels work on whole slices
+    MultiplyRightWithAuxMatrix(U);
+    return;
+  }
+  const Index lead_rows = std::clamp<Index>(lead, 0, nsize());
+  const Index lead_slices = std::clamp<Index>(lead, 0, msize());
+  full_slices = std::clamp<Index>(full_slices, 0, lead_slices);
+#pragma omp parallel for schedule(dynamic)
+  for (Index i = 0; i < lead_slices; i++) {
+    const Index rows = (i < full_slices) ? nsize() : lead_rows;
+    Eigen::MatrixXd rotated = matrix_[i].topRows(rows) * U;
+    matrix_[i].topRows(rows) = rotated;
+  }
+  if (aux_frame_known_) {
+    aux_frame_ = (aux_frame_.size() == 0) ? U : aux_frame_ * U;
+  }
+  if (full_slices < msize() && (lead_slices < msize() || lead_rows < nsize())) {
+    partially_rotated_ = true;
+  }
+}
+
 bool TCMatrix_gwbse::AuxFrameIsOrthogonal() const {
   if (!aux_frame_known_) {
     return false;
@@ -90,6 +115,12 @@ bool TCMatrix_gwbse::AuxFrameIsOrthogonal() const {
 }
 
 void TCMatrix_gwbse::MultiplyInFillFrame(const Eigen::MatrixXd& A) {
+  if (partially_rotated_) {
+    throw std::runtime_error(
+        "TCMatrix_gwbse: cannot dress the auxiliary index after only part of "
+        "the tensor was rotated (MultiplyRightWithAuxMatrixLeading). Rebuild "
+        "first.");
+  }
   if (!aux_frame_known_) {
     throw std::runtime_error(
         "TCMatrix_gwbse: cannot dress the auxiliary index after a non-square "
@@ -186,6 +217,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
   // What Fill leaves behind is the reference frame by definition.
   aux_frame_.resize(0, 0);
   aux_frame_known_ = true;
+  partially_rotated_ = false;
   dressing_.resize(0, 0);
 
   return;

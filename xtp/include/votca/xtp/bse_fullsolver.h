@@ -131,22 +131,29 @@ class FullBSEDavidson {
         res(i) = std::max(R1.col(i).norm() / XpY.col(i).norm(),
                           R2.col(i).norm() / XmY.col(i).norm());
       }
-      // requested roots to the tolerance, guard roots to 10 x tolerance
+      // Requested roots to the tolerance. Guard roots are refined towards
+      // 10 x tolerance, but once the requested roots are converged a guard
+      // within 100 x tolerance is enough to stop: a guard in a degenerate
+      // set cut by the guard window can otherwise take several more
+      // iterations without changing the requested roots.
       auto Done = [&](Index i) {
         return res(i) < (i < nroots ? 1.0 : 10.0) * opt_.tolerance;
       };
       Index nconv = 0;
-      bool all_done = true;
-      for (Index i = 0; i < nr; ++i) {
-        nconv += (i < nroots && Done(i)) ? 1 : 0;
-        all_done = all_done && Done(i);
+      for (Index i = 0; i < nroots; ++i) {
+        nconv += Done(i) ? 1 : 0;
       }
-      XTP_LOG(Log::info, log_)
+      const double guard_res =
+          (nr > nroots) ? res.tail(nr - nroots).maxCoeff() : 0.0;
+      const bool all_done =
+          nconv == nroots && guard_res < 100.0 * opt_.tolerance;
+      XTP_LOG(Log::error, log_)
+          << TimeStamp()
           << boost::format(
-                 "   iter %1$3d  subspace %2$5d  max residual "
-                 "%3$4.2e  converged %4$4d/%5$d") %
+                 " iter %1$3d  subspace %2$5d  max residual "
+                 "%3$4.2e  converged %4$4d/%5$d  guard roots %6$4.2e") %
                  iterations_ % V.cols() % res.head(nroots).maxCoeff() % nconv %
-                 nroots
+                 nroots % guard_res
           << std::flush;
       if (all_done) {
         converged = true;

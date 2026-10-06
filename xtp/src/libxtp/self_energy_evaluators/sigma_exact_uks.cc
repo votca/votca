@@ -46,17 +46,16 @@ void Sigma_Exact_UKS::PrepareScreening() {
 
   rpa_omegas_ = *cached_omegas;
   screening_modes_ = *cached_modes;
+  // residues of level m: M_m times the modes, one GEMM per level
+  Eigen::MatrixXd modes(Mmn_.auxsize(), rpa_omegas_.size());
+  for (Index s = 0; s < rpa_omegas_.size(); s++) {
+    modes.col(s) = screening_modes_[std::size_t(s)];
+  }
   residues_ = std::vector<Eigen::MatrixXd>(qptotal_);
+  const Index qpoffset = opt_.qpmin - opt_.rpamin;
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal_; gw_level++) {
-    const Index qpoffset = opt_.qpmin - opt_.rpamin;
-    const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
-
-    Eigen::MatrixXd res = Eigen::MatrixXd::Zero(rpatotal_, rpa_omegas_.size());
-    for (Index s = 0; s < rpa_omegas_.size(); s++) {
-      res.col(s) = Mmn_i * screening_modes_[s];
-    }
-    residues_[gw_level] = std::move(res);
+    residues_[gw_level] = Mmn_[gw_level + qpoffset] * modes;
   }
 }
 

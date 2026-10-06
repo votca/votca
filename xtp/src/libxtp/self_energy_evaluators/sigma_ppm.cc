@@ -30,8 +30,23 @@ namespace votca {
 namespace xtp {
 
 void Sigma_PPM::PrepareScreening() {
-  ppm_.PPM_construct_parameters(rpa_);
+  {
+    // the epsilon builds inside are timed separately by the RPA
+    OptionalTiming t(timings_, "screening: PPM eigensolver, inverse");
+    ppm_.PPM_construct_parameters(rpa_);
+  }
+  OptionalTiming t(timings_, "screening: rotate Mmn (PPM frame)");
   Mmn_.MultiplyRightWithAuxMatrix(ppm_.getPpm_phi());
+}
+
+std::string Sigma_PPM::ScreeningSummary() const {
+  // Sigma_c sees only modes with non-zero weight (weights below 1e-5 are
+  // set to zero in PPM_construct_parameters).
+  const Eigen::ArrayXd w = ppm_.getPpm_weight().array();
+  return "PPM modes with weight > 0: " + std::to_string((w > 0.0).count()) +
+         " of " + std::to_string(w.size()) +
+         " (> 1e-3: " + std::to_string((w > 1e-3).count()) +
+         ", > 1e-2: " + std::to_string((w > 1e-2).count()) + ")";
 }
 
 double Sigma_PPM::CalcCorrelationDiagElement(Index gw_level,

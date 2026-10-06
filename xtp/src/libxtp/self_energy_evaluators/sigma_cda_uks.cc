@@ -51,10 +51,20 @@ void Sigma_CDA_UKS::PrepareScreening() {
   opt.alpha = opt_.alpha;
   opt.quadrature_scheme = opt_.quadrature_scheme;
 
+  // epsilon at zero frequency is positive definite
   kDielMxInv_zero_ =
-      rpa_.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
+      InverseSPD(rpa_.calculate_epsilon_r(std::complex<double>(0.0, 0.0)));
   kDielMxInv_zero_.diagonal().array() -= 1.0;
   gq_.configure(opt, rpa_, kDielMxInv_zero_);
+
+  tail_terms_.assign(std::size_t(qptotal_), Eigen::VectorXd());
+  const Index offset = opt_.qpmin - opt_.rpamin;
+#pragma omp parallel for schedule(dynamic)
+  for (Index level = 0; level < qptotal_; level++) {
+    tail_terms_[std::size_t(level)] =
+        ImaginaryAxisIntegration::RowQuadraticForms(Mmn_[level + offset],
+                                                    kDielMxInv_zero_);
+  }
 }
 
 double Sigma_CDA_UKS::CalcDiagContribution(
@@ -120,8 +130,8 @@ double Sigma_CDA_UKS::CalcResidueContribution(double frequency,
     }
 
     if (abs_delta > kResidueFactorTol) {
-      double tail =
-          CalcDiagContributionValue_tail(Imx.row(i), delta, opt_.alpha);
+      double tail = CalcDiagContributionValue_tail(
+          tail_terms_[std::size_t(gw_level)](i), delta, opt_.alpha);
       sigma_c_tail += tail;
     }
   }
@@ -147,15 +157,14 @@ double Sigma_CDA_UKS::CalcCorrelationDiagElement(Index gw_level,
   return sigma_c_residue + sigma_c_integral;
 }
 
-double Sigma_CDA_UKS::CalcDiagContributionValue_tail(
-    const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
-    double alpha) const {
+double Sigma_CDA_UKS::CalcDiagContributionValue_tail(double row_term,
+                                                     double delta,
+                                                     double alpha) const {
   double erfc_factor = 0.5 * std::copysign(1.0, delta) *
                        std::exp(std::pow(alpha * delta, 2)) *
                        std::erfc(std::abs(alpha * delta));
 
-  double value = (Imx_row * kDielMxInv_zero_).dot(Imx_row);
-  return value * erfc_factor;
+  return row_term * erfc_factor;
 }
 
 }  // namespace xtp

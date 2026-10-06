@@ -27,12 +27,21 @@ namespace votca {
 namespace xtp {
 
 void Sigma_Exact::PrepareScreening() {
-  RPA::rpa_eigensolution rpa_solution = rpa_.Diagonalize_H2p();
+  RPA::rpa_eigensolution rpa_solution;
+  {
+    OptionalTiming t(timings_, "screening: RPA pair eigenproblem");
+    rpa_solution = rpa_.Diagonalize_H2p();
+  }
+  OptionalTiming t(timings_, "screening: residues");
   rpa_omegas_ = rpa_solution.omega;
+  // residues of level m: M_m Z with the screening modes
+  // Z = sum_v M_v,virt^T (X+Y)_v, once for all levels
+  const Eigen::MatrixXd modes = ScreeningModes(rpa_solution.XpY);
   residues_ = std::vector<Eigen::MatrixXd>(qptotal_);
+  const Index qpoffset = opt_.qpmin - opt_.rpamin;
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal_; gw_level++) {
-    residues_[gw_level] = CalcResidues(gw_level, rpa_solution.XpY);
+    residues_[gw_level] = Mmn_[gw_level + qpoffset] * modes;
   }
   return;
 }
@@ -106,16 +115,12 @@ double Sigma_Exact::CalcCorrelationOffDiagElement(Index gw_level1,
   return 2.0 * sigma_c;
 }
 
-Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level,
-                                          const Eigen::MatrixXd& XpY) const {
+Eigen::MatrixXd Sigma_Exact::ScreeningModes(const Eigen::MatrixXd& XpY) const {
   const Index lumo = opt_.homo + 1;
   const Index n_occ = lumo - opt_.rpamin;
   const Index n_unocc = opt_.rpamax - opt_.homo;
   const Index rpasize = n_occ * n_unocc;
-  const Index qpoffset = opt_.qpmin - opt_.rpamin;
   vc2index vc = vc2index(0, 0, n_unocc);
-  const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
-  Eigen::MatrixXd res = Eigen::MatrixXd::Zero(rpatotal_, rpasize);
   // QSGW: apply m-rotation to QP-window hole slices on the fly.
   // The outer v-index is a hole construction index and must use QP
   // wavefunctions.
@@ -127,24 +132,23 @@ Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level,
                                               qp_offset_m_res + qptotal_res)
                                    : 0;
 
-  for (Index v = 0; v < n_occ; v++) {  // Sum over v
-    Eigen::MatrixXd Mmn_v_virt;
+  // rows (v, c) of the virtual rows of the hole slices
+  Eigen::MatrixXd M(rpasize, Mmn_.auxsize());
+#pragma omp parallel for schedule(dynamic)
+  for (Index v = 0; v < n_occ; v++) {
+    auto rows = M.middleRows(vc.I(v, 0), n_unocc);
     if (qsgw_U_ != nullptr && v >= qp_offset_m_res && v < qp_end_occ_res) {
       const Index v_qp = v - qp_offset_m_res;
-      Mmn_v_virt = Eigen::MatrixXd::Zero(n_unocc, Mmn_.auxsize());
+      rows.setZero();
       for (Index vp = 0; vp < qptotal_res; vp++) {
-        Mmn_v_virt.noalias() +=
-            (*qsgw_U_)(vp, v_qp) *
-            Mmn_[vp + qp_offset_m_res].middleRows(n_occ, n_unocc);
+        rows.noalias() += (*qsgw_U_)(vp, v_qp) *
+                          Mmn_[vp + qp_offset_m_res].middleRows(n_occ, n_unocc);
       }
     } else {
-      Mmn_v_virt = Mmn_[v].middleRows(n_occ, n_unocc);
+      rows = Mmn_[v].middleRows(n_occ, n_unocc);
     }
-    auto fc = Mmn_v_virt * Mmn_i.transpose();  // Sum over chi
-    auto XpY_v = XpY.middleRows(vc.I(v, 0), n_unocc);
-    res += fc.transpose() * XpY_v;  // Sum over c
   }
-  return res;
+  return M.transpose() * XpY;
 }
 
 }  // namespace xtp

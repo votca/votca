@@ -44,6 +44,8 @@ void GW::configure(const options& opt) {
   qptotal_ = opt_.qpmax - opt_.qpmin + 1;
   rpa_.configure(opt_.homo, opt_.rpamin, opt_.rpamax);
   sigma_ = SigmaFactory().Create(opt_.sigma_integration, Mmn_, rpa_);
+  sigma_->setTimings(&timings_);
+  rpa_.setTimings(&timings_);
   Sigma_base::options sigma_opt;
   sigma_opt.homo = opt_.homo;
   sigma_opt.qpmax = opt_.qpmax;
@@ -324,8 +326,14 @@ void GW::CalculateGWPerturbation() {
       DressForEnvironment();  // Rebuild leaves them bare
     }
     {
-      auto t = timings_.Measure("screening (RPA, PPM/modes, Mmn frame)");
+      auto t = timings_.Measure("screening: other");
       sigma_->PrepareScreening();
+    }
+    if (const std::string summary = sigma_->ScreeningSummary();
+        !summary.empty()) {
+      const Log::Level level =
+          (i_gw == 0) ? Log::Level::error : Log::Level::info;
+      XTP_LOG(level, log_) << TimeStamp() << " " << summary << std::flush;
     }
     XTP_LOG(Log::info, log_)
         << TimeStamp() << " Calculated screening via RPA" << std::flush;

@@ -55,6 +55,10 @@ class ImaginaryAxisIntegration {
 
   double SigmaGQDiag(double frequency, Index gw_level, double eta) const;
 
+  /// q(i) = M.row(i) K M.row(i)^T for all rows of M.
+  static Eigen::VectorXd RowQuadraticForms(const Eigen::MatrixXd& M,
+                                           const Eigen::MatrixXd& K);
+
  private:
   options opt_;
 
@@ -62,12 +66,16 @@ class ImaginaryAxisIntegration {
 
   // This function calculates and stores inverses of the microscopic dielectric
   // matrix in a matrix vector
-  void CalcDielInvVector(const RPA& rpa,
+  template <class RPAType>
+  void CalcDielInvVector(const RPAType& rpa,
                          const Eigen::MatrixXd& kDielMxInv_zero);
-  void CalcDielInvVector(const RPA_UKS& rpa,
-                         const Eigen::MatrixXd& kDielMxInv_zero);
+  // Imx W_j Imx^T enters the integrand only through its diagonal, so it is
+  // taken once per screening: node_terms_[gw_level](i, j) for the
+  // quadrature node j. The node matrices W_j are not kept.
+  void CalcNodeTerms(const std::vector<Eigen::MatrixXd>& dielinv_matrices);
+
   const Eigen::VectorXd& energies_;
-  std::vector<Eigen::MatrixXd> dielinv_matrices_r_;
+  std::vector<Eigen::MatrixXd> node_terms_;
   const TCMatrix_gwbse& Mmn_;
 };
 }  // namespace xtp

@@ -28,6 +28,7 @@
 
 #include "votca/xtp/ImaginaryAxisIntegration.h"
 #include "votca/xtp/quadrature_factory.h"
+#include "votca/xtp/screening_kernels.h"
 #include "votca/xtp/threecenter.h"
 
 namespace votca {
@@ -85,62 +86,72 @@ void ImaginaryAxisIntegration::configure(
   CalcDielInvVector(rpa, kDielMxInv_zero);
 }
 
-// This function calculates and stores inverses of the microscopic dielectric
-// matrix in a matrix vector
-void ImaginaryAxisIntegration::CalcDielInvVector(
-    const RPA& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
-  dielinv_matrices_r_.resize(gq_->Order());
+Eigen::VectorXd ImaginaryAxisIntegration::RowQuadraticForms(
+    const Eigen::MatrixXd& M, const Eigen::MatrixXd& K) {
+  return (M * K).cwiseProduct(M).rowwise().sum();
+}
 
+// The inverse microscopic dielectric matrix at every quadrature node, with
+// the Gaussian tail of the zero-frequency one subtracted, enters only as
+// Imx W_j Imx^T diagonals (see CalcNodeTerms).
+template <class RPAType>
+void ImaginaryAxisIntegration::CalcDielInvVector(
+    const RPAType& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
+  std::vector<Eigen::MatrixXd> dielinv_matrices(std::size_t(gq_->Order()));
   for (Index j = 0; j < gq_->Order(); j++) {
     double newpoint = gq_->ScaledPoint(j);
-    Eigen::MatrixXd eps_inv_j = rpa.calculate_epsilon_i(newpoint).inverse();
+    Eigen::MatrixXd eps_inv_j = InverseSPD(rpa.calculate_epsilon_i(newpoint));
     eps_inv_j.diagonal().array() -= 1.0;
-    dielinv_matrices_r_[j] =
+    dielinv_matrices[std::size_t(j)] =
         -eps_inv_j +
         kDielMxInv_zero * std::exp(-std::pow(opt_.alpha * newpoint, 2));
   }
+  CalcNodeTerms(dielinv_matrices);
 }
 
-void ImaginaryAxisIntegration::CalcDielInvVector(
-    const RPA_UKS& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
-  dielinv_matrices_r_.resize(gq_->Order());
+template void ImaginaryAxisIntegration::CalcDielInvVector<RPA>(
+    const RPA& rpa, const Eigen::MatrixXd& kDielMxInv_zero);
+template void ImaginaryAxisIntegration::CalcDielInvVector<RPA_UKS>(
+    const RPA_UKS& rpa, const Eigen::MatrixXd& kDielMxInv_zero);
 
-  for (Index j = 0; j < gq_->Order(); j++) {
-    double newpoint = gq_->ScaledPoint(j);
-    Eigen::MatrixXd eps_inv_j = rpa.calculate_epsilon_i(newpoint).inverse();
-    eps_inv_j.diagonal().array() -= 1.0;
-    dielinv_matrices_r_[j] =
-        -eps_inv_j +
-        kDielMxInv_zero * std::exp(-std::pow(opt_.alpha * newpoint, 2));
+void ImaginaryAxisIntegration::CalcNodeTerms(
+    const std::vector<Eigen::MatrixXd>& dielinv_matrices) {
+  const Index order = Index(dielinv_matrices.size());
+  const Index offset = opt_.qpmin - opt_.rpamin;
+  node_terms_.assign(std::size_t(opt_.qptotal), Eigen::MatrixXd());
+#pragma omp parallel for schedule(dynamic)
+  for (Index level = 0; level < opt_.qptotal; level++) {
+    const Eigen::MatrixXd& Imx = Mmn_[level + offset];
+    Eigen::MatrixXd terms(Imx.rows(), order);
+    for (Index j = 0; j < order; j++) {
+      terms.col(j) = RowQuadraticForms(Imx, dielinv_matrices[std::size_t(j)]);
+    }
+    node_terms_[std::size_t(level)] = std::move(terms);
   }
 }
 
 class FunctionEvaluation {
  public:
-  FunctionEvaluation(const Eigen::MatrixXd& Imx, const Eigen::ArrayXcd& DeltaE,
-                     const std::vector<Eigen::MatrixXd>& dielinv_matrices_r)
-      : Imx_(Imx), DeltaE_(DeltaE), dielinv_matrices_r_(dielinv_matrices_r) {};
+  FunctionEvaluation(const Eigen::MatrixXd& node_terms,
+                     const Eigen::ArrayXcd& DeltaE)
+      : node_terms_(node_terms), DeltaE_(DeltaE){};
 
+  // sum_i den_i (Imx W_j Imx^T)_ii, W_j real
   double operator()(Index j, double point, bool symmetry) const {
-    Eigen::VectorXcd denominator;
+    Eigen::ArrayXcd denominator;
     const std::complex<double> cpoint(0.0, point);
     if (symmetry) {
-      denominator =
-          (DeltaE_ + cpoint).cwiseInverse() + (DeltaE_ - cpoint).cwiseInverse();
+      denominator = (DeltaE_ + cpoint).inverse() + (DeltaE_ - cpoint).inverse();
     } else {
-      denominator = (DeltaE_ + cpoint).cwiseInverse();
+      denominator = (DeltaE_ + cpoint).inverse();
     }
     return 0.5 / tools::conv::Pi *
-           ((Imx_ * (dielinv_matrices_r_[j].conjugate()))
-                .cwiseProduct(denominator.asDiagonal() * Imx_))
-               .sum()
-               .real();
+           (denominator.real() * node_terms_.col(j).array()).sum();
   }
 
  private:
-  const Eigen::MatrixXd& Imx_;
+  const Eigen::MatrixXd& node_terms_;
   const Eigen::ArrayXcd& DeltaE_;
-  const std::vector<Eigen::MatrixXd>& dielinv_matrices_r_;
 };
 
 double ImaginaryAxisIntegration::SigmaGQDiag(double frequency, Index gw_level,
@@ -171,7 +182,7 @@ double ImaginaryAxisIntegration::SigmaGQDiag(double frequency, Index gw_level,
     std::cout << std::flush;
   }
 
-  FunctionEvaluation f(Imx, DeltaE, dielinv_matrices_r_);
+  FunctionEvaluation f(node_terms_[std::size_t(gw_level)], DeltaE);
   return gq_->Integrate(f);
 }
 

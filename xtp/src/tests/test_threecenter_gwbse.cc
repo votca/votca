@@ -171,4 +171,61 @@ BOOST_AUTO_TEST_CASE(stored_metric_is_the_one_folded_into_the_integrals) {
 
   libint2::finalize();
 }
+BOOST_AUTO_TEST_CASE(leading_rotation_touches_only_the_leading_block) {
+  libint2::initialize();
+  QMMolecule mol(" ", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/threecenter_gwbse/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) +
+             "/threecenter_gwbse/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, mol);
+  Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/MOs.mm");
+
+  TCMatrix_gwbse tc;
+  tc.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7);
+  tc.Fill(aobasis, aobasis, MOs);
+  std::vector<Eigen::MatrixXd> before;
+  for (votca::Index m = 0; m < tc.msize(); ++m) {
+    before.push_back(tc[m]);
+  }
+  const votca::Index n = tc.auxsize();
+  const Eigen::MatrixXd U =
+      Eigen::MatrixXd::Random(n, n).householderQr().householderQ();
+
+  const votca::Index full = 2;
+  const votca::Index lead = 4;
+  tc.MultiplyRightWithAuxMatrixLeading(U, full, lead);
+  BOOST_CHECK(tc.PartiallyRotated());
+  for (votca::Index m = 0; m < tc.msize(); ++m) {
+    Eigen::MatrixXd expected = before[std::size_t(m)];
+    if (m < full) {
+      expected = before[std::size_t(m)] * U;
+    } else if (m < lead) {
+      expected.topRows(lead) = before[std::size_t(m)].topRows(lead) * U;
+    }
+    BOOST_CHECK_LE((tc[m] - expected).cwiseAbs().maxCoeff(), 1e-12);
+  }
+  // the frame of the rotated part is recorded; dressing needs the whole
+  // tensor in one frame
+  BOOST_CHECK_LE((tc.AuxFrame() - U).cwiseAbs().maxCoeff(), 0.0);
+  BOOST_CHECK_THROW(tc.DressAuxIndex(Eigen::MatrixXd::Identity(n, n)),
+                    std::runtime_error);
+
+  // a rebuild starts over
+  tc.Rebuild();
+  BOOST_CHECK(!tc.PartiallyRotated());
+
+  // leading block covering everything is a full rotation
+  tc.MultiplyRightWithAuxMatrixLeading(U, tc.msize(), tc.nsize());
+  BOOST_CHECK(!tc.PartiallyRotated());
+  for (votca::Index m = 0; m < tc.msize(); ++m) {
+    BOOST_CHECK_LE((tc[m] - before[std::size_t(m)] * U).cwiseAbs().maxCoeff(),
+                   1e-12);
+  }
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

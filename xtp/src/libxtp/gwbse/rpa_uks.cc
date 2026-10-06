@@ -18,6 +18,7 @@
  */
 
 #include "votca/xtp/rpa_uks.h"
+#include "votca/xtp/screening_kernels.h"
 
 #include <algorithm>
 #include <cmath>
@@ -106,34 +107,34 @@ void RPA_UKS::BuildCachedScreeningModes() const {
   const Index auxsize = Mmn_.alpha.auxsize();
   const Index nmodes = Index(omegas.size());
 
+  // modes Z = sum_v M_v,virt^T (X+Y)_v over both spins, as two GEMMs over
+  // the stacked virtual rows of the hole slices
+  auto stacked_rows = [&](const TCMatrix_gwbse& Mmn, Index n_occ,
+                          Index n_unocc) {
+    vc2index vc(0, 0, n_unocc);
+    Eigen::MatrixXd M(n_occ * n_unocc, auxsize);
+#pragma omp parallel for schedule(dynamic)
+    for (Index v = 0; v < n_occ; v++) {
+      M.middleRows(vc.I(v, 0), n_unocc) = Mmn[v].middleRows(n_occ, n_unocc);
+    }
+    return M;
+  };
+  const Index size_beta = n_occ_beta * n_unocc_beta;
+  Eigen::MatrixXd Z =
+      stacked_rows(Mmn_.alpha, n_occ_alpha, n_unocc_alpha).transpose() *
+      XpY.topRows(size_alpha);
+  Z.noalias() += stacked_rows(Mmn_.beta, n_occ_beta, n_unocc_beta).transpose() *
+                 XpY.middleRows(size_alpha, size_beta);
+
   std::vector<Eigen::VectorXd> all_modes;
   all_modes.reserve(nmodes);
   std::vector<double> all_norms;
   all_norms.reserve(nmodes);
-
-  vc2index vc_alpha(0, 0, n_unocc_alpha);
-  vc2index vc_beta(0, 0, n_unocc_beta);
-
   double max_norm = 0.0;
   for (Index s = 0; s < nmodes; s++) {
-    Eigen::VectorXd mode = Eigen::VectorXd::Zero(auxsize);
-
-    for (Index v = 0; v < n_occ_alpha; v++) {
-      const auto Mmn_v = Mmn_.alpha[v].middleRows(n_occ_alpha, n_unocc_alpha);
-      const auto XpY_v = XpY.col(s).segment(vc_alpha.I(v, 0), n_unocc_alpha);
-      mode.noalias() += Mmn_v.transpose() * XpY_v;
-    }
-
-    for (Index v = 0; v < n_occ_beta; v++) {
-      const auto Mmn_v = Mmn_.beta[v].middleRows(n_occ_beta, n_unocc_beta);
-      const auto XpY_v =
-          XpY.col(s).segment(size_alpha + vc_beta.I(v, 0), n_unocc_beta);
-      mode.noalias() += Mmn_v.transpose() * XpY_v;
-    }
-
-    const double norm = mode.norm();
+    const double norm = Z.col(s).norm();
     max_norm = std::max(max_norm, norm);
-    all_modes.push_back(std::move(mode));
+    all_modes.push_back(Z.col(s));
     all_norms.push_back(norm);
   }
 
@@ -199,101 +200,102 @@ double RPA_UKS::getMaxCorrection(const Eigen::VectorXd& energies,
       energies.segment(min - rpamin_, range) - dftenergies.segment(min, range);
   return corrections.cwiseAbs().maxCoeff();
 }
-
-template <bool imag>
-Eigen::MatrixXd RPA_UKS::calculate_epsilon(double frequency) const {
-  // The dielectric matrix lives in the auxiliary basis.
+Eigen::MatrixXd RPA_UKS::ResponseSum(const SpinWeightsFn& weights) const {
+  // The dielectric matrix lives in the auxiliary basis; alpha and beta
+  // channels add, each hole slice v contributing M_v^T diag(w_v) M_v.
   const Index size = Mmn_.alpha.auxsize();
+  const Index n_occ_alpha = std::max<Index>(0, homo_alpha_ + 1 - rpamin_);
+  const Index n_occ_beta = std::max<Index>(0, homo_beta_ + 1 - rpamin_);
+  const Index n_unocc_alpha = std::max<Index>(0, rpamax_ - homo_alpha_);
+  const Index n_unocc_beta = std::max<Index>(0, rpamax_ - homo_beta_);
+  const Index nalpha = (n_unocc_alpha > 0) ? n_occ_alpha : 0;
+  const Index nbeta = (n_unocc_beta > 0) ? n_occ_beta : 0;
+  OptionalTiming timing(timings_, "screening: epsilon (RPA)");
+
+  auto spin_of = [&](Index block, Index& m) {
+    if (block < nalpha) {
+      m = block;
+      return false;
+    }
+    m = block - nalpha;
+    return true;
+  };
+
+  if (OpenMP_CUDA::UsingGPUs() == 0) {
+    return WeightedGram::Compute(
+        nalpha + nbeta, size,
+        [&](Index block, Eigen::VectorXd& w) {
+          Index m = 0;
+          const bool beta = spin_of(block, m);
+          weights(beta, m, w);
+        },
+        [&](Index block, const WeightedGram::RowsVisitor& use) {
+          Index m = 0;
+          const bool beta = spin_of(block, m);
+          if (beta) {
+            use(Mmn_.beta[m].bottomRows(n_unocc_beta));
+          } else {
+            use(Mmn_.alpha[m].bottomRows(n_unocc_alpha));
+          }
+        });
+  }
+
+  // GPU path: per-thread products M^T diag(w) M on the devices
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(size, size);
-
-  // Accumulate the independent-particle polarizability contribution for one
-  // spin channel. The final dielectric matrix is the sum of alpha and beta
-  // contributions.
-  auto accumulate_spin = [&](const TCMatrix_gwbse& Mmn,
-                             const Eigen::VectorXd& energies, Index homo) {
-    const Index lumo = homo + 1;
-
-    // Number of occupied and unoccupied orbitals in the selected RPA window for
-    // this spin channel.
-    const Index n_occ = lumo - rpamin_;
-    const Index n_unocc = rpamax_ - lumo + 1;
-
+  auto accumulate_spin = [&](const TCMatrix_gwbse& Mmn, Index n_occ,
+                             Index n_unocc, bool beta) {
     if (n_occ <= 0 || n_unocc <= 0) {
       return;
     }
-
-    const double freq2 = frequency * frequency;
-    const double eta2 = eta_ * eta_;
-
     OpenMP_CUDA transform;
     transform.createTemporaries(n_unocc, size);
-
 #pragma omp parallel
     {
       const Index threadid = OPENMP::getThreadId();
-
 #pragma omp for schedule(dynamic)
       for (Index m_level = 0; m_level < n_occ; m_level++) {
-        // m_level labels an occupied state within the local [rpamin_, rpamax_]
-        // window. The associated virtual states are taken from the bottom part
-        // of the same local energy ladder.
-        const double qp_energy_m = energies(m_level);
-
-        // Mmn[m_level] stores the three-center objects for a fixed occupied
-        // state m against all n in the selected orbital window. bottomRows(...)
-        // extracts the virtual block n = lumo ... rpamax for this spin.
         Eigen::MatrixXd Mmn_RPA = Mmn[m_level].bottomRows(n_unocc);
         transform.PushMatrix(Mmn_RPA, threadid);
+        Eigen::VectorXd w;
+        weights(beta, m_level, w);
+        transform.A_TDA(w, threadid);
+      }
+    }
+    result += transform.getReductionVar();
+  };
+  accumulate_spin(Mmn_.alpha, n_occ_alpha, n_unocc_alpha, false);
+  accumulate_spin(Mmn_.beta, n_occ_beta, n_unocc_beta, true);
+  return result;
+}
 
-        // Bare particle-hole energy differences Delta_e = e_a - e_i for this
-        // fixed occupied state i = m_level and all virtual states a.
+template <bool imag>
+Eigen::MatrixXd RPA_UKS::calculate_epsilon(double frequency) const {
+  const double freq2 = frequency * frequency;
+  const double eta2 = eta_ * eta_;
+  Eigen::MatrixXd result =
+      ResponseSum([&](bool beta, Index m_level, Eigen::VectorXd& denom) {
+        const Eigen::VectorXd& energies =
+            beta ? energies_beta_ : energies_alpha_;
+        const Index homo = beta ? homo_beta_ : homo_alpha_;
+        const Index n_unocc = rpamax_ - homo;
+        // Bare particle-hole energy differences Delta_e = e_a - e_i
         const Eigen::ArrayXd deltaE =
-            energies.tail(n_unocc).array() - qp_energy_m;
-
-        Eigen::VectorXd denom;
-
+            energies.tail(n_unocc).array() - energies(m_level);
         if (imag) {
-          // Imaginary-frequency expression:
-          //
-          //   contribution ~ 2 * Delta_e / (Delta_e^2 + w^2)
-          //
-          // This matches the algebraic structure used in the restricted code.
-          // The crucial difference is that here alpha and beta channels are
-          // added explicitly instead of being folded into a closed-shell
-          // degeneracy factor.
+          // 2 Delta_e / (Delta_e^2 + w^2) per spin channel (the closed-shell
+          // code has 4: both spins folded into one channel)
           denom = 2.0 * deltaE / (deltaE.square() + freq2);
         } else {
-          // Real-frequency expression with finite broadening eta:
-          //
-          //   2 * [ (Delta_e - w)/((Delta_e - w)^2 + eta^2)
-          //       + (Delta_e + w)/((Delta_e + w)^2 + eta^2) ]
-          //
-          // Again, the explicit spin resolution is handled by summing over the
-          // two channels separately.
+          // (Delta_e - w)/((Delta_e - w)^2 + eta^2)
+          //   + (Delta_e + w)/((Delta_e + w)^2 + eta^2)
           Eigen::ArrayXd deltEf = deltaE - frequency;
           Eigen::ArrayXd sum = deltEf / (deltEf.square() + eta2);
           deltEf = deltaE + frequency;
           sum += deltEf / (deltEf.square() + eta2);
           denom = sum;
         }
-
-        // Contract the virtual-index weights back to the auxiliary basis. This
-        // is the same optimized RI reduction pattern as in the restricted code.
-        transform.A_TDA(denom, threadid);
-      }
-    }
-
-    // Add this spin-channel contribution to the final dielectric matrix.
-    result += transform.getReductionVar();
-  };
-
-  // Total independent-particle response is the sum of alpha and beta channels.
-  accumulate_spin(Mmn_.alpha, energies_alpha_, homo_alpha_);
-  accumulate_spin(Mmn_.beta, energies_beta_, homo_beta_);
-
-  // epsilon = 1 - v chi0  in the present RI convention ultimately appears here
-  // as an identity contribution on the auxiliary-space diagonal added to the
-  // accumulated response matrix, consistent with the restricted implementation.
+      });
+  // epsilon = 1 - v chi0: the identity on the auxiliary-space diagonal
   result.diagonal().array() += 1.0;
   return result;
 }
@@ -305,63 +307,25 @@ template Eigen::MatrixXd RPA_UKS::calculate_epsilon<false>(
 
 Eigen::MatrixXd RPA_UKS::calculate_epsilon_r(
     std::complex<double> frequency) const {
-  const Index size = Mmn_.alpha.auxsize();
-  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(size, size);
-
-  // Same structure as above, but for the real part evaluated at complex
-  // frequency z = w + i*gamma.
-  auto accumulate_spin = [&](const TCMatrix_gwbse& Mmn,
-                             const Eigen::VectorXd& energies, Index homo) {
-    const Index lumo = homo + 1;
-    const Index n_occ = lumo - rpamin_;
-    const Index n_unocc = rpamax_ - lumo + 1;
-
-    if (n_occ <= 0 || n_unocc <= 0) {
-      return;
-    }
-
-    OpenMP_CUDA transform;
-    transform.createTemporaries(n_unocc, size);
-
-#pragma omp parallel
-    {
-      const Index threadid = OPENMP::getThreadId();
-
-#pragma omp for schedule(dynamic)
-      for (Index m_level = 0; m_level < n_occ; m_level++) {
-        const double qp_energy_m = energies(m_level);
-
-        Eigen::MatrixXd Mmn_RPA = Mmn[m_level].bottomRows(n_unocc);
-        transform.PushMatrix(Mmn_RPA, threadid);
-
+  // Real part at complex frequency z = w + i*gamma: terms of
+  // Re[1 / (w + i*gamma - Delta_e)] and its partner at -Delta_e.
+  const double sigma_1 = std::pow(frequency.imag() + eta_, 2);
+  const double sigma_2 = std::pow(frequency.imag() - eta_, 2);
+  Eigen::MatrixXd result =
+      ResponseSum([&](bool beta, Index m_level, Eigen::VectorXd& chi) {
+        const Eigen::VectorXd& energies =
+            beta ? energies_beta_ : energies_alpha_;
+        const Index homo = beta ? homo_beta_ : homo_alpha_;
+        const Index n_unocc = rpamax_ - homo;
         const Eigen::ArrayXd deltaE =
-            energies.tail(n_unocc).array() - qp_energy_m;
-
-        // Terms corresponding to Re[ 1 / (w + i*gamma - Delta_e) ] and its
-        // partner at -Delta_e, written in the same real-valued form as in the
-        // restricted implementation.
+            energies.tail(n_unocc).array() - energies(m_level);
         const Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
         const Eigen::ArrayXd deltaEp = frequency.real() + deltaE;
-
-        const double sigma_1 = std::pow(frequency.imag() + eta_, 2);
-        const double sigma_2 = std::pow(frequency.imag() - eta_, 2);
-
-        const Eigen::VectorXd chi =
-            deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
-            deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
-
-        transform.A_TDA(chi, threadid);
-      }
-    }
-
-    // The overall prefactor follows the existing restricted convention. The
-    // spin resolution still enters explicitly through separate alpha/beta sums.
-    result -= transform.getReductionVar();
-  };
-
-  accumulate_spin(Mmn_.alpha, energies_alpha_, homo_alpha_);
-  accumulate_spin(Mmn_.beta, energies_beta_, homo_beta_);
-
+        // the overall factor -1 (restricted convention per spin channel)
+        // is folded into the weights
+        chi = -(deltaEm * (deltaEm.abs2() + sigma_1).inverse() -
+                deltaEp * (deltaEp.abs2() + sigma_2).inverse());
+      });
   result.diagonal().array() += 1.0;
   return result;
 }
@@ -390,10 +354,10 @@ const RPA_UKS::rpa_eigensolution& RPA_UKS::Diagonalize_H2p() const {
   C.applyOnTheLeft(AmB.cwiseSqrt().asDiagonal());
   C.applyOnTheRight(AmB.cwiseSqrt().asDiagonal());
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es = Diagonalize_H2p_C(C);
+  const SymmetricEigenSystem es = Diagonalize_H2p_C(C);
 
-  sol.omega = Eigen::VectorXd::Zero(es.eigenvalues().size());
-  sol.omega = es.eigenvalues().cwiseSqrt();
+  sol.omega = Eigen::VectorXd::Zero(es.values.size());
+  sol.omega = es.values.cwiseSqrt();
   sol.ERPA_correlation += 0.5 * sol.omega.sum();
 
   XTP_LOG(Log::info, log_) << TimeStamp()
@@ -414,7 +378,7 @@ const RPA_UKS::rpa_eigensolution& RPA_UKS::Diagonalize_H2p() const {
   const Eigen::VectorXd Omega_sqrt_inv = sol.omega.cwiseSqrt().cwiseInverse();
   for (Index s = 0; s < rpasize; s++) {
     sol.XpY.col(s) =
-        Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(es.eigenvectors().col(s));
+        Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(es.vectors.col(s));
   }
 
   h2p_solution_cache_ = std::move(sol);
@@ -557,18 +521,18 @@ Eigen::MatrixXd RPA_UKS::Calculate_H2p_ApB() const {
   return ApB;
 }
 
-Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> RPA_UKS::Diagonalize_H2p_C(
+SymmetricEigenSystem RPA_UKS::Diagonalize_H2p_C(
     const Eigen::MatrixXd& C) const {
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Diagonalizing two-particle Hamiltonian "
       << std::flush;
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(C);
+  const SymmetricEigenSystem es = SymmetricEigen(C);
 
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Diagonalization done " << std::flush;
 
-  const double minCoeff = es.eigenvalues().minCoeff();
+  const double minCoeff = es.values.minCoeff();
   if (minCoeff <= 0.0) {
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " Detected non-positive eigenvalue: " << minCoeff

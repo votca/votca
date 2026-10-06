@@ -32,19 +32,20 @@ void ConstructPPMParametersImpl(const RPAType& rpa, Eigen::MatrixXd& ppm_phi,
                                 Eigen::VectorXd& ppm_weight,
                                 Eigen::VectorXd& ppm_freq, double screening_r,
                                 double screening_i) {
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
-      rpa.calculate_epsilon_r(screening_r));
-  ppm_phi = es.eigenvectors();
+  SymmetricEigenSystem es =
+      SymmetricEigen(rpa.calculate_epsilon_r(screening_r));
+  ppm_phi = std::move(es.vectors);
 
-  ppm_weight = 1 - es.eigenvalues().array().inverse();
+  ppm_weight = 1 - es.values.array().inverse();
 
-  Eigen::MatrixXd ortho =
-      ppm_phi.transpose() * rpa.calculate_epsilon_i(screening_i) * ppm_phi;
-  Eigen::MatrixXd epsilon_1_inv = ortho.inverse();
+  // epsilon at an imaginary frequency is positive definite
+  const Eigen::MatrixXd eps_i = rpa.calculate_epsilon_i(screening_i);
+  const Eigen::MatrixXd half = eps_i * ppm_phi;
+  const Eigen::MatrixXd epsilon_1_inv = InverseSPD(ppm_phi.transpose() * half);
 
-  ppm_freq.resize(es.eigenvalues().size());
+  ppm_freq.resize(es.values.size());
 #pragma omp parallel for
-  for (Index i = 0; i < es.eigenvalues().size(); i++) {
+  for (Index i = 0; i < es.values.size(); i++) {
     if (ppm_weight(i) < 1.e-5) {
       ppm_weight(i) = 0.0;
       ppm_freq(i) = 0.5;

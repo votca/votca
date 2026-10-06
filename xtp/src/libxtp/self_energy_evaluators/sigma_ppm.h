@@ -37,6 +37,8 @@ class Sigma_PPM : public Sigma_base {
 
   // Sets up the screening parametrisation
   void PrepareScreening() final;
+
+  std::string ScreeningSummary() const final;
   // Calculates Sigma_c diagonal elements
   double CalcCorrelationDiagElement(Index gw_level,
                                     double frequency) const final;

@@ -62,12 +62,14 @@ class Sigma_CDA_UKS : public Sigma_base_UKS {
   double CalcResidueContribution(double frequency, Index gw_level) const;
   double CalcDiagContribution(const Eigen::MatrixXd::ConstRowXpr& Imx_row,
                               double delta, double eta) const;
-  double CalcDiagContributionValue_tail(
-      const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
-      double alpha) const;
+  // Imx_row kappa(0) Imx_row^T is tail_terms_[gw_level](i)
+  double CalcDiagContributionValue_tail(double row_term, double delta,
+                                        double alpha) const;
 
   ImaginaryAxisIntegration gq_;
   Eigen::MatrixXd kDielMxInv_zero_;
+  // per GW level: Imx.row(i) kappa(0) Imx.row(i)^T for every level i
+  std::vector<Eigen::VectorXd> tail_terms_;
 };
 
 }  // namespace xtp

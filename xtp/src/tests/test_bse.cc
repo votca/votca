@@ -281,6 +281,19 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_se_dyn_full, true);
 
+  // the per-state matrices do not depend on how many hole levels go into
+  // one pass
+  {
+    const Eigen::VectorXd one_pass = orbitals.BSESinglets_dynamic();
+    BSE::setStateMatrixMemory(1.0);
+    bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
+                                        orbitals);
+    BSE::setStateMatrixMemory(1e9);
+    BOOST_CHECK_LE(
+        (orbitals.BSESinglets_dynamic() - one_pass).cwiseAbs().maxCoeff(),
+        1e-12);
+  }
+
   ////////////////////////////////////////////////////////
   // TDA Triplet davidson
   ////////////////////////////////////////////////////////

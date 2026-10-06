@@ -26,6 +26,7 @@
 
 #include "eigen.h"
 #include "logger.h"
+#include "screening_kernels.h"
 #include "votca/xtp/threecenter.h"
 
 namespace votca {
@@ -101,6 +102,9 @@ class RPA_UKS {
    * \brief Small positive broadening used in the real-frequency response.
    */
   double getEta() const { return eta_; }
+
+  /// Times the dielectric-matrix builds in these timings (optional).
+  void setTimings(DFTTimings* timings) { timings_ = timings; }
 
   /**
    * \brief Dielectric matrix on the imaginary frequency axis.
@@ -310,8 +314,7 @@ class RPA_UKS {
    * This helper mirrors the restricted implementation and performs the final
    * Hermitian diagonalization after symmetrization with sqrt(AmB).
    */
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Diagonalize_H2p_C(
-      const Eigen::MatrixXd& C) const;
+  SymmetricEigenSystem Diagonalize_H2p_C(const Eigen::MatrixXd& C) const;
 
   /**
    * \brief Shift uncorrected states outside the GW window.
@@ -352,6 +355,12 @@ class RPA_UKS {
   // Spin-resolved three-center integrals:
   // Mmn_.alpha for alpha MOs, Mmn_.beta for beta MOs
   const TCMatrix_gwbse_spin& Mmn_;
+  DFTTimings* timings_ = nullptr;
+
+  // weights(beta, v, w): weights of the virtual rows of hole slice v
+  using SpinWeightsFn = std::function<void(bool, Index, Eigen::VectorXd&)>;
+  // sum over both spins and hole slices v of M_v^T diag(w_v) M_v
+  Eigen::MatrixXd ResponseSum(const SpinWeightsFn& weights) const;
 
   mutable bool h2p_cached_ = false;
   mutable rpa_eigensolution h2p_solution_cache_;

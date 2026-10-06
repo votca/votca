@@ -55,6 +55,17 @@ void DFTTimings::Report(Logger& log, Log::Level level,
       << std::flush;
 }
 
+std::string DFTTimings::Format() const {
+  std::string line;
+  for (const Entry& e : entries_) {
+    if (!line.empty()) {
+      line += ", ";
+    }
+    line += (boost::format("%s %.2f s") % e.name % e.seconds).str();
+  }
+  return line;
+}
+
 double DFTTimings::ResidentMemoryGB(bool peak) {
   std::ifstream status("/proc/self/status");
   if (!status.is_open()) {

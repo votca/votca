@@ -27,6 +27,7 @@
 // Local VOTCA includes
 #include "eigen.h"
 #include "logger.h"
+#include "screening_kernels.h"
 
 namespace votca {
 namespace xtp {
@@ -34,7 +35,7 @@ class TCMatrix_gwbse;
 
 class RPA {
  public:
-  RPA(Logger& log, const TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn) {};
+  RPA(Logger& log, const TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn){};
 
   void configure(Index homo, Index rpamin, Index rpamax) {
     homo_ = homo;
@@ -43,6 +44,9 @@ class RPA {
   }
 
   double getEta() const { return eta_; }
+
+  /// Times the dielectric-matrix builds in these timings (optional).
+  void setTimings(DFTTimings* timings) { timings_ = timings; }
 
   Eigen::MatrixXd calculate_epsilon_i(double frequency) const {
     return calculate_epsilon<true>(frequency);
@@ -98,14 +102,21 @@ class RPA {
 
   Logger& log_;
   const TCMatrix_gwbse& Mmn_;
+  DFTTimings* timings_ = nullptr;
+
+  // Calls use() with the virtual rows of hole slice m_level (rotated to the
+  // QP orbitals for QSGW).
+  void VisitHoleVirtualRows(Index m_level,
+                            const WeightedGram::RowsVisitor& use) const;
+  // sum_v M_v^T diag(w_v) M_v over the hole slices v, M_v their virtual rows
+  Eigen::MatrixXd ResponseSum(const WeightedGram::WeightsFn& weights) const;
 
   template <bool imag>
   Eigen::MatrixXd calculate_epsilon(double frequency) const;
 
   Eigen::VectorXd Calculate_H2p_AmB() const;
   Eigen::MatrixXd Calculate_H2p_ApB() const;
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Diagonalize_H2p_C(
-      const Eigen::MatrixXd& C) const;
+  SymmetricEigenSystem Diagonalize_H2p_C(const Eigen::MatrixXd& C) const;
 
   void ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies, Index qpmin,
                                 Index gwsize);

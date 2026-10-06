@@ -96,6 +96,9 @@ class DFTTimings {
   void Report(Logger& log, Log::Level level,
               const std::string& title = "DFT timing summary") const;
 
+  /// The entries on one line, "name 1.23 s, name 4.56 s".
+  std::string Format() const;
+
   /// Resident memory of this process in GB, read from /proc/self/status
   /// (VmRSS, or VmHWM for the peak). Returns a negative value where that
   /// file does not exist.

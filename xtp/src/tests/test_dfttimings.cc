@@ -115,4 +115,13 @@ BOOST_AUTO_TEST_CASE(resident_memory_is_read) {
 #endif
 }
 
+BOOST_AUTO_TEST_CASE(format_lists_entries_in_order) {
+  DFTTimings timings;
+  BOOST_CHECK_EQUAL(timings.Format(), "");
+  timings.Add("first", 1.5);
+  timings.Add("second", 0.25);
+  timings.Add("first", 1.0);
+  BOOST_CHECK_EQUAL(timings.Format(), "first 2.50 s, second 0.25 s");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

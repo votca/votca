@@ -33,7 +33,7 @@ class RPA;
 class Sigma_Exact : public Sigma_base {
 
  public:
-  Sigma_Exact(TCMatrix_gwbse& Mmn, RPA& rpa) : Sigma_base(Mmn, rpa) {};
+  Sigma_Exact(TCMatrix_gwbse& Mmn, RPA& rpa) : Sigma_base(Mmn, rpa){};
 
   // Sets up the screening parametrisation
   void PrepareScreening() final;
@@ -52,8 +52,9 @@ class Sigma_Exact : public Sigma_base {
   Eigen::VectorXd rpa_omegas_;             // Eigenvalues from RPA
   std::vector<Eigen::MatrixXd> residues_;  // Residues
 
-  Eigen::MatrixXd CalcResidues(Index gw_level,
-                               const Eigen::MatrixXd& XpY) const;
+  // Z = sum_v M_v,virt^T (X+Y)_v (aux x RPA modes); the residues of level
+  // m are M_m Z
+  Eigen::MatrixXd ScreeningModes(const Eigen::MatrixXd& XpY) const;
 };
 }  // namespace xtp
 }  // namespace votca

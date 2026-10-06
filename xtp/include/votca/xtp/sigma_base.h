@@ -22,9 +22,11 @@
 #define VOTCA_XTP_SIGMA_BASE_H
 
 #include <functional>
+#include <string>
 
 // Local VOTCA includes
 #include "eigen.h"
+#include "screening_kernels.h"
 
 namespace votca {
 namespace xtp {
@@ -105,6 +107,9 @@ class Sigma_base {
 
   // Sets up the screening parametrisation
   virtual void PrepareScreening() = 0;
+
+  /// One line about the screening just prepared (empty if nothing to say).
+  virtual std::string ScreeningSummary() const { return ""; }
   // Calculates Sigma_c diagonal elements
   virtual double CalcCorrelationDiagElementDerivative(
       Index gw_level, double frequency) const = 0;
@@ -133,6 +138,9 @@ class Sigma_base {
     chunk_bytes_ = chunk_bytes;
   }
 
+  /// Times the parts of PrepareScreening in these timings (optional).
+  void setTimings(DFTTimings* timings) { timings_ = timings; }
+
   void ResetDiagEvalCounter() const { diag_eval_counter_.store(0); }
   std::size_t GetDiagEvalCounter() const { return diag_eval_counter_.load(); }
 
@@ -140,6 +148,7 @@ class Sigma_base {
   options opt_;
   TCMatrix_gwbse& Mmn_;
   const RPA& rpa_;
+  DFTTimings* timings_ = nullptr;
 
   Index qptotal_ = 0;
   Index rpatotal_ = 0;
