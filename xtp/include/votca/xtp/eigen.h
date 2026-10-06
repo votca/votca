@@ -28,6 +28,9 @@
 #include <votca/tools/votca_tools_config.h>
 //clang-format on
 
+// Standard includes
+#include <string>
+
 // VOTCA includes
 #include <votca/tools/eigen.h>
 #include <votca/tools/types.h>
@@ -53,6 +56,20 @@ inline bool XTP_HAS_MKL_OVERLOAD() {
   } else {
     return false;
   }
+}
+
+/// Which library Eigen hands dense linear algebra to in this build, for the
+/// run logs.
+inline std::string EigenBackendDescription() {
+  if (XTP_HAS_MKL_OVERLOAD()) {
+    return "MKL overload for Eigen (BLAS and LAPACK)";
+  }
+#if defined(APPLE_ACCELERATE_FOUND) && defined(EIGEN_USE_BLAS) && \
+    defined(EIGEN_USE_LAPACKE)
+  return "Apple Accelerate BLAS and LAPACKE overload for Eigen";
+#else
+  return "native Eigen implementation, no BLAS overload";
+#endif
 }
 
 // Stores matrix and energy together

@@ -36,68 +36,50 @@ void Sigma_PPM_UKS::PrepareScreening() {
   Mmn_.MultiplyRightWithAuxMatrix(ppm_->getPpm_phi());
 }
 
-double Sigma_PPM_UKS::CalcCorrelationDiagElement(Index gw_level,
-                                                 double frequency) const {
+// As Sigma_PPM::AccumulateDiag: lazily evaluated array expressions, no
+// temporaries per mode (this runs inside the parallel QP solver).
+template <class Term>
+double Sigma_PPM_UKS::AccumulateDiag(Index gw_level, double frequency,
+                                     Term term) const {
   // first virtual level, counted from rpamin like the energies and the
   // rows of Mmn_
   const Index lumo = opt_.homo + 1 - opt_.rpamin;
-  const double eta2 = opt_.eta * opt_.eta;
   const Index levelsum = Mmn_.nsize();
   const Index qpmin_offset = opt_.qpmin - opt_.rpamin;
-  const Eigen::VectorXd& energies = getSpinRPAInputEnergies();
-
-  double sigma = 0.0;
+  const Eigen::MatrixXd& M = Mmn_[gw_level + qpmin_offset];
+  const auto e = getSpinRPAInputEnergies().array();
+  const Eigen::VectorXd& weight = ppm_->getPpm_weight();
+  const Eigen::VectorXd& omega = ppm_->getPpm_freq();
+  double result = 0.0;
   for (Index i_aux = 0; i_aux < Mmn_.auxsize(); i_aux++) {
-    if (ppm_->getPpm_weight()(i_aux) < 1.e-9) {
+    if (weight(i_aux) < 1.e-9) {
       continue;
     }
-
-    const double ppm_freq = ppm_->getPpm_freq()(i_aux);
-    const double fac = 0.5 * ppm_->getPpm_weight()(i_aux) * ppm_freq;
-
-    const Eigen::ArrayXd Mmn2 =
-        Mmn_[gw_level + qpmin_offset].col(i_aux).cwiseAbs2();
-
-    Eigen::ArrayXd temp = frequency - energies.array();
-    temp.segment(0, lumo) += ppm_freq;
-    temp.segment(lumo, levelsum - lumo) -= ppm_freq;
-
-    Eigen::ArrayXd denom = temp.abs2() + eta2;
-    sigma += fac * (Mmn2 * temp / denom).sum();
+    const double ppm_freq = omega(i_aux);
+    const double fac = 0.5 * weight(i_aux) * ppm_freq;
+    const auto m2 = M.col(i_aux).array().square();
+    const auto t_occ = (frequency + ppm_freq) - e.head(lumo);
+    const auto t_virt = (frequency - ppm_freq) - e.tail(levelsum - lumo);
+    result += fac * ((m2.head(lumo) * term(t_occ)).sum() +
+                     (m2.tail(levelsum - lumo) * term(t_virt)).sum());
   }
-  return sigma;
+  return result;
+}
+
+double Sigma_PPM_UKS::CalcCorrelationDiagElement(Index gw_level,
+                                                 double frequency) const {
+  const double eta2 = opt_.eta * opt_.eta;
+  return AccumulateDiag(gw_level, frequency, [eta2](const auto& t) {
+    return t / (t.square() + eta2);
+  });
 }
 
 double Sigma_PPM_UKS::CalcCorrelationDiagElementDerivative(
     Index gw_level, double frequency) const {
-  // first virtual level, counted from rpamin like the energies and the
-  // rows of Mmn_
-  const Index lumo = opt_.homo + 1 - opt_.rpamin;
   const double eta2 = opt_.eta * opt_.eta;
-  const Index levelsum = Mmn_.nsize();
-  const Index qpmin_offset = opt_.qpmin - opt_.rpamin;
-  const Eigen::VectorXd& energies = getSpinRPAInputEnergies();
-
-  double dsigma_domega = 0.0;
-  for (Index i_aux = 0; i_aux < Mmn_.auxsize(); i_aux++) {
-    if (ppm_->getPpm_weight()(i_aux) < 1.e-9) {
-      continue;
-    }
-
-    const double ppm_freq = ppm_->getPpm_freq()(i_aux);
-    const double fac = 0.5 * ppm_->getPpm_weight()(i_aux) * ppm_freq;
-
-    const Eigen::ArrayXd Mmn2 =
-        Mmn_[gw_level + qpmin_offset].col(i_aux).cwiseAbs2();
-
-    Eigen::ArrayXd temp = frequency - energies.array();
-    temp.segment(0, lumo) += ppm_freq;
-    temp.segment(lumo, levelsum - lumo) -= ppm_freq;
-
-    Eigen::ArrayXd denom = temp.abs2() + eta2;
-    dsigma_domega += fac * ((eta2 - temp.abs2()) * Mmn2 / denom.abs2()).sum();
-  }
-  return dsigma_domega;
+  return AccumulateDiag(gw_level, frequency, [eta2](const auto& t) {
+    return (eta2 - t.square()) / (t.square() + eta2).square();
+  });
 }
 
 double Sigma_PPM_UKS::CalcCorrelationOffDiagElement(Index gw_level1,

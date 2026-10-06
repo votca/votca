@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/dftgradient.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/screening_kernels.h"
 
 namespace votca {
 namespace xtp {
@@ -117,7 +118,10 @@ Eigen::MatrixXd DFTGradient::RIJGradient(const Eigen::MatrixXd& density,
   AOCoulomb aocoulomb;
   aocoulomb.Fill(auxbasis);
   const Eigen::MatrixXd& V = aocoulomb.Matrix();
-  Eigen::VectorXd c = V.ldlt().solve(d);
+  // V is positive definite; Cholesky, LDLT as before if it is not
+  const CholeskyFactor V_chol(V);
+  Eigen::VectorXd c = V_chol.ok() ? Eigen::VectorXd(V_chol.Solve(d))
+                                  : Eigen::VectorXd(V.ldlt().solve(d));
 
   // Already-contracted against density (sum_{mu,nu} density(mu,nu) *
   // d(mu,nu|p)/dR_a[xyz], not a per-(mu,nu) tensor) -- see this
@@ -167,7 +171,12 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
   AOCoulomb aocoulomb;
   aocoulomb.Fill(auxbasis);
   const Eigen::MatrixXd& V = aocoulomb.Matrix();
-  Eigen::LDLT<Eigen::MatrixXd> V_ldlt(V);
+  // V is positive definite; Cholesky, LDLT as before if it is not
+  const CholeskyFactor V_chol(V);
+  Eigen::LDLT<Eigen::MatrixXd> V_ldlt;
+  if (!V_chol.ok()) {
+    V_ldlt.compute(V);
+  }
 
   std::vector<AOMatrixDerivative> dV =
       ComputeCoulombMetricDerivatives(auxbasis);
@@ -217,7 +226,8 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
       for (Index p = 0; p < n_aux_bf; ++p) {
         d(p) = occ_mo_coeffs.col(i).dot(tensor_half[p].col(j));
       }
-      c_ij[i][j] = V_ldlt.solve(d);
+      c_ij[i][j] = V_chol.ok() ? Eigen::VectorXd(V_chol.Solve(d))
+                               : Eigen::VectorXd(V_ldlt.solve(d));
     }
   }
 

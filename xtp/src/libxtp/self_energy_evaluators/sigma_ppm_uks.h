@@ -48,6 +48,8 @@ class Sigma_PPM_UKS : public Sigma_base_UKS {
                                        double frequency2) const final;
 
  private:
+  template <class Term>
+  double AccumulateDiag(Index gw_level, double frequency, Term term) const;
   const PPM* ppm_ = nullptr;
 };
 

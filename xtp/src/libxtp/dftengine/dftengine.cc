@@ -3035,15 +3035,8 @@ void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
       << TimeStamp() << " Using " << OPENMP::getMaxThreads() << " threads"
       << std::flush;
 
-  if (XTP_HAS_MKL_OVERLOAD()) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp() << " Using MKL overload for Eigen " << std::flush;
-  } else {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << " Using native Eigen implementation, no BLAS overload "
-        << std::flush;
-  }
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Using " << EigenBackendDescription() << std::flush;
 
   XTP_LOG(Log::error, *pLog_) << " Molecule Coordinates [A] " << std::flush;
   for (const QMAtom& atom : mol) {

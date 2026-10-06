@@ -26,6 +26,7 @@
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/openmp_cuda.h"
+#include "votca/xtp/screening_kernels.h"
 #include "votca/xtp/symmetric_matrix.h"
 namespace votca {
 namespace xtp {
@@ -124,9 +125,9 @@ Eigen::MatrixXd ERIs::CalculateEXX_dmat(const Eigen::MatrixXd& DMAT) const {
          "Please call Initialize before running this");
   Eigen::MatrixXd EXX = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
-  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
-      0.5 * (DMAT + DMAT.transpose()));
-  const Eigen::VectorXd& lambda = es.eigenvalues();
+  const SymmetricEigenSystem es =
+      SymmetricEigen(0.5 * (DMAT + DMAT.transpose()));
+  const Eigen::VectorXd& lambda = es.values;
   if (lambda.size() == 0) {
     return EXX;
   }
@@ -150,11 +151,11 @@ Eigen::MatrixXd ERIs::CalculateEXX_dmat(const Eigen::MatrixXd& DMAT) const {
   Eigen::MatrixXd factors(DMAT.rows(), npos + nneg);
   for (Index c = 0; c < npos; ++c) {
     const Index k = positive[c];
-    factors.col(c) = std::sqrt(lambda(k)) * es.eigenvectors().col(k);
+    factors.col(c) = std::sqrt(lambda(k)) * es.vectors.col(k);
   }
   for (Index c = 0; c < nneg; ++c) {
     const Index k = negative[c];
-    factors.col(npos + c) = std::sqrt(-lambda(k)) * es.eigenvectors().col(k);
+    factors.col(npos + c) = std::sqrt(-lambda(k)) * es.vectors.col(k);
   }
   return ExchangeFromFactors(factors, npos);
 }

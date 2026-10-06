@@ -19,6 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/uks_convergenceacc.h"
+#include "votca/xtp/screening_kernels.h"
 
 #include <algorithm>
 
@@ -46,8 +47,8 @@ void UKSConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
   // As ConvergenceAcc::setOverlap: removed directions are kept out of the
   // occupied and low virtual space via removed_projector_.
   S_ = &S;
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S.Matrix());
-  const Eigen::VectorXd& s_eig = es.eigenvalues();
+  const SymmetricEigenSystem es = SymmetricEigen(S.Matrix());
+  const Eigen::VectorXd& s_eig = es.values;
   Eigen::VectorXd inv_sqrt = Eigen::VectorXd::Zero(s_eig.size());
   Index removed = 0;
   for (Index i = 0; i < s_eig.size(); ++i) {
@@ -57,11 +58,10 @@ void UKSConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
       inv_sqrt(i) = 1.0 / std::sqrt(s_eig(i));
     }
   }
-  Sminusahalf =
-      es.eigenvectors() * inv_sqrt.asDiagonal() * es.eigenvectors().transpose();
+  Sminusahalf = es.vectors * inv_sqrt.asDiagonal() * es.vectors.transpose();
   removed_projector_.resize(0, 0);
   if (removed > 0) {
-    const Eigen::MatrixXd U = es.eigenvectors().leftCols(removed);
+    const Eigen::MatrixXd U = es.vectors.leftCols(removed);
     removed_projector_ = U * U.transpose();
   }
   XTP_LOG(Log::error, *log_)
@@ -86,16 +86,14 @@ tools::EigenSystem UKSConvergenceAcc::SolveFockmatrix(
   if (removed_projector_.size() > 0) {
     H_ortho += kRemovedShift * removed_projector_;
   }
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
-
-  if (es.info() != Eigen::ComputationInfo::Success) {
-    throw std::runtime_error("Matrix Diagonalisation failed. DiagInfo" +
-                             std::to_string(es.info()));
+  const SymmetricEigenSystem es = SymmetricEigen(H_ortho);
+  if (!es.values.allFinite()) {
+    throw std::runtime_error("Matrix Diagonalisation failed");
   }
 
   tools::EigenSystem result;
-  result.eigenvalues() = es.eigenvalues();
-  result.eigenvectors() = Sminusahalf * es.eigenvectors();
+  result.eigenvalues() = es.values;
+  result.eigenvectors() = Sminusahalf * es.vectors;
   return result;
 }
 

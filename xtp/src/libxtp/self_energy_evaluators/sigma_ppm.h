@@ -57,6 +57,9 @@ class Sigma_PPM : public Sigma_base {
       const Eigen::VectorXd& frequencies) const final;
 
  private:
+  template <class Term>
+  void AccumulateDiag(Index gw_level, const double* freqs, Index nfreq,
+                      double* out, Term term) const;
   PPM ppm_;
 };
 }  // namespace xtp

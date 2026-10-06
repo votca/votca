@@ -24,6 +24,7 @@
 #include <vector>
 
 // Local VOTCA includes
+#include "votca/xtp/accelerate_lapack.h"
 #include "votca/xtp/screening_kernels.h"
 
 namespace votca {
@@ -191,29 +192,100 @@ Eigen::MatrixXd WeightedGram::Compute(Index nblocks, Index ncols,
   return S;
 }
 
-SymmetricEigenSystem SymmetricEigen(const Eigen::MatrixXd& A) {
+SymmetricEigenSystem SymmetricEigen(const Eigen::MatrixXd& A, bool vectors) {
   SymmetricEigenSystem result;
+  const char jobz = vectors ? 'V' : 'N';
+  // the routines overwrite their copy of A with the eigenvectors
+  auto finish = [&](Eigen::MatrixXd& work) {
+    if (vectors) {
+      result.vectors = std::move(work);
+    }
+  };
+  if (A.rows() > 0 && accelerate::LapackAvailable()) {
+    Eigen::MatrixXd work = A;
+    result.values.resize(A.rows());
+    if (accelerate::dsyevd(jobz, 'L', long(A.rows()), work.data(),
+                           long(work.outerStride()),
+                           result.values.data()) == 0) {
+      finish(work);
+      return result;
+    }
+  }
 #if defined(EIGEN_USE_MKL_ALL) || defined(EIGEN_USE_LAPACKE)
   const lapack_int n = static_cast<lapack_int>(A.rows());
-  result.vectors = A;
-  result.values.resize(A.rows());
   if (n > 0) {
-    const lapack_int info =
-        LAPACKE_dsyevd(LAPACK_COL_MAJOR, 'V', 'L', n, result.vectors.data(),
-                       static_cast<lapack_int>(result.vectors.outerStride()),
-                       result.values.data());
+    Eigen::MatrixXd work = A;
+    result.values.resize(A.rows());
+    const lapack_int info = LAPACKE_dsyevd(
+        LAPACK_COL_MAJOR, jobz, 'L', n, work.data(),
+        static_cast<lapack_int>(work.outerStride()), result.values.data());
     if (info == 0) {
+      finish(work);
       return result;
     }
   }
 #endif
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
+      A, vectors ? Eigen::ComputeEigenvectors : Eigen::EigenvaluesOnly);
   result.values = es.eigenvalues();
-  result.vectors = es.eigenvectors();
+  if (vectors) {
+    result.vectors = es.eigenvectors();
+  }
   return result;
 }
 
+CholeskyFactor::CholeskyFactor(const Eigen::MatrixXd& A) { compute(A); }
+
+void CholeskyFactor::compute(const Eigen::MatrixXd& A) {
+  ok_ = false;
+  L_ = A;
+  const Index n = A.rows();
+  if (n == 0) {
+    ok_ = true;
+    return;
+  }
+  if (accelerate::LapackAvailable()) {
+    ok_ = accelerate::dpotrf('L', long(n), L_.data(), long(L_.outerStride())) ==
+          0;
+  } else {
+#if defined(EIGEN_USE_MKL_ALL) || defined(EIGEN_USE_LAPACKE)
+    ok_ = LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', static_cast<lapack_int>(n),
+                         L_.data(),
+                         static_cast<lapack_int>(L_.outerStride())) == 0;
+#else
+    Eigen::LLT<Eigen::MatrixXd> llt(A);
+    ok_ = llt.info() == Eigen::Success;
+    if (ok_) {
+      L_ = llt.matrixL();
+    }
+#endif
+  }
+  if (ok_) {
+    // LAPACK leaves the strict upper triangle as it was
+    L_.triangularView<Eigen::StrictlyUpper>().setZero();
+  }
+}
+
+Eigen::MatrixXd CholeskyFactor::SolveL(const Eigen::MatrixXd& B) const {
+  return L_.triangularView<Eigen::Lower>().solve(B);
+}
+
+Eigen::MatrixXd CholeskyFactor::Solve(const Eigen::MatrixXd& B) const {
+  return L_.transpose().triangularView<Eigen::Upper>().solve(SolveL(B));
+}
+
 Eigen::MatrixXd InverseSPD(const Eigen::MatrixXd& A) {
+  if (A.rows() > 0 && accelerate::LapackAvailable()) {
+    Eigen::MatrixXd inv = A;
+    const long n = long(A.rows());
+    const long lda = long(inv.outerStride());
+    if (accelerate::dpotrf('L', n, inv.data(), lda) == 0 &&
+        accelerate::dpotri('L', n, inv.data(), lda) == 0) {
+      inv.triangularView<Eigen::StrictlyUpper>() = inv.transpose();
+      return inv;
+    }
+    return A.partialPivLu().inverse();
+  }
 #if defined(EIGEN_USE_MKL_ALL) || defined(EIGEN_USE_LAPACKE)
   const lapack_int n = static_cast<lapack_int>(A.rows());
   Eigen::MatrixXd inv = A;

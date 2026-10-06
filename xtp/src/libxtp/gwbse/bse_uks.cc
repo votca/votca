@@ -156,17 +156,17 @@ void BSE_UKS::SetupDirectInteractionOperator(
   rpa.configure(homo_alpha_, homo_beta_, opt_.rpamin, opt_.rpamax);
   rpa.setRPAInputEnergies(RPAInputEnergiesAlpha, RPAInputEnergiesBeta);
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
-      rpa.calculate_epsilon_r(energy));
+  const SymmetricEigenSystem es =
+      SymmetricEigen(rpa.calculate_epsilon_r(energy));
 
   Mmn_ = Mmn_raw_;
-  Mmn_.alpha.MultiplyRightWithAuxMatrix(es.eigenvectors());
-  Mmn_.beta.MultiplyRightWithAuxMatrix(es.eigenvectors());
+  Mmn_.alpha.MultiplyRightWithAuxMatrix(es.vectors);
+  Mmn_.beta.MultiplyRightWithAuxMatrix(es.vectors);
 
-  epsilon_0_inv_ = Eigen::VectorXd::Zero(es.eigenvalues().size());
-  for (Index i = 0; i < es.eigenvalues().size(); ++i) {
-    if (es.eigenvalues()(i) > 1e-8) {
-      epsilon_0_inv_(i) = 1.0 / es.eigenvalues()(i);
+  epsilon_0_inv_ = Eigen::VectorXd::Zero(es.values.size());
+  for (Index i = 0; i < es.values.size(); ++i) {
+    if (es.values(i) > 1e-8) {
+      epsilon_0_inv_(i) = 1.0 / es.values(i);
     }
   }
 }

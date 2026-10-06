@@ -31,6 +31,7 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/environmentscreening.h"
+#include "votca/xtp/screening_kernels.h"
 #include "votca/xtp/threecenter.h"
 #include <votca/tools/constants.h>
 
@@ -230,8 +231,8 @@ Eigen::MatrixXd EnvironmentScreening::ReactionFieldKernel(
   }
 
   const Eigen::MatrixXd A = AssembleThole(sites, exp_damp);
-  const Eigen::LLT<Eigen::MatrixXd> llt(A);
-  if (llt.info() != Eigen::Success) {
+  const CholeskyFactor llt(A);
+  if (!llt.ok()) {
     throw std::runtime_error(
         "EnvironmentScreening::ReactionFieldKernel: the Thole interaction "
         "matrix of the polar region (" +
@@ -243,7 +244,7 @@ Eigen::MatrixXd EnvironmentScreening::ReactionFieldKernel(
 
   // B = -F A^-1 F^T = -(L^-1 F^T)^T (L^-1 F^T): symmetric and negative
   // semidefinite by construction.
-  const Eigen::MatrixXd Y = llt.matrixL().solve(Eigen::MatrixXd(F.transpose()));
+  const Eigen::MatrixXd Y = llt.SolveL(F.transpose());
   Eigen::MatrixXd B = Eigen::MatrixXd::Zero(F.rows(), F.rows());
   B.selfadjointView<Eigen::Lower>().rankUpdate(Y.transpose(), -1.0);
   return B.selfadjointView<Eigen::Lower>();
@@ -290,9 +291,8 @@ Eigen::MatrixXd EnvironmentScreening::SymmetrizedReactionField(
   // Exactly symmetric, so the eigensolvers downstream see what they expect.
   R = 0.5 * (R + R.transpose()).eval();
 
-  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
-      R, Eigen::EigenvaluesOnly);
-  const double lowest = es.eigenvalues().minCoeff();
+  const SymmetricEigenSystem es = SymmetricEigen(R, false);
+  const double lowest = es.values.minCoeff();
   if (!(lowest > -1.0)) {
     throw std::runtime_error(
         "EnvironmentScreening::SymmetrizedReactionField: the lowest "
@@ -347,17 +347,16 @@ Eigen::MatrixXd EnvironmentScreening::Kernel(const AOBasis& auxbasis,
 }
 
 Eigen::MatrixXd EnvironmentScreening::DressingMatrix(const Eigen::MatrixXd& R) {
-  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(R);
-  const double lowest = es.eigenvalues().minCoeff();
+  const SymmetricEigenSystem es = SymmetricEigen(R);
+  const double lowest = es.values.minCoeff();
   if (!(lowest > -1.0)) {
     throw std::runtime_error(
         "EnvironmentScreening::DressingMatrix: 1 + R is not positive "
         "definite (lowest eigenvalue of R " +
         std::to_string(lowest) + ").");
   }
-  return es.eigenvectors() *
-         (1.0 + es.eigenvalues().array()).sqrt().matrix().asDiagonal() *
-         es.eigenvectors().transpose();
+  return es.vectors * (1.0 + es.values.array()).sqrt().matrix().asDiagonal() *
+         es.vectors.transpose();
 }
 
 Eigen::MatrixXd EnvironmentScreening::Metric(const AOBasis& auxbasis) {
@@ -478,7 +477,7 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
   const Index naux = auxbasis.AOBasisSize();
   Eigen::MatrixXd B = Eigen::MatrixXd::Zero(naux, naux);
   Eigen::MatrixXd F_exp, F_sh;
-  Eigen::LLT<Eigen::MatrixXd> llt;
+  CholeskyFactor llt;
   {
     std::vector<Eigen::Vector3d> pos;
     for (const SiteInfo& si : info) {
@@ -490,7 +489,7 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
       F_exp = AuxFieldAtPoints(
           auxbasis, pos, SiteWidths(env.explicit_segments, env.site_width));
       llt.compute(AssembleThole(SitesOf(env.explicit_segments), env.exp_damp));
-      if (llt.info() != Eigen::Success) {
+      if (!llt.ok()) {
         out.lowest = -std::numeric_limits<double>::infinity();
         out.report = rep.str() +
                      "  The Thole matrix of the explicit polar sites is not "
@@ -498,8 +497,7 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
                      "the environment itself, independent of the QM region.\n";
         return out;
       }
-      const Eigen::MatrixXd Y =
-          llt.matrixL().solve(Eigen::MatrixXd(F_exp.transpose()));
+      const Eigen::MatrixXd Y = llt.SolveL(F_exp.transpose());
       B.selfadjointView<Eigen::Lower>().rankUpdate(Y.transpose(), -1.0);
       B = B.selfadjointView<Eigen::Lower>();
     }
@@ -518,8 +516,8 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
 
   Eigen::MatrixXd R = T.transpose() * B * T;
   R = 0.5 * (R + R.transpose()).eval();
-  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(R);
-  const Eigen::VectorXd& lam = es.eigenvalues();
+  const SymmetricEigenSystem es = SymmetricEigen(R);
+  const Eigen::VectorXd& lam = es.values;
   out.lowest = lam(0);
   out.n_unstable = (lam.array() <= -1.0).count();
   rep << std::setprecision(2) << "  site_width " << env.site_width
@@ -538,7 +536,7 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
   // c^T V c = 1.
   const Eigen::VectorXd q_aux = AuxCharges(auxbasis);
   for (Index m = 0; m < std::min<Index>(n_modes, lam.size()); ++m) {
-    const Eigen::VectorXd c = T * es.eigenvectors().col(m);
+    const Eigen::VectorXd c = T * es.vectors.col(m);
     rep << std::setprecision(4) << "  mode " << m << ": lambda " << lam(m)
         << ", net charge " << c.dot(q_aux)
         << " (in units where its Coulomb self energy is 1/2)\n";
@@ -574,7 +572,7 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
     double e_total = 0.0;
     if (F_exp.size() > 0) {
       const Eigen::VectorXd g = F_exp.transpose() * c;
-      const Eigen::VectorXd mu = llt.solve(g);
+      const Eigen::VectorXd mu = llt.Solve(g);
       for (Index j = 0; j < n_explicit; ++j) {
         e_site[std::size_t(j)] = g.segment<3>(3 * j).dot(mu.segment<3>(3 * j));
       }

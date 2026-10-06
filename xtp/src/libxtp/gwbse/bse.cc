@@ -252,9 +252,10 @@ SymmetricEigenSystem BSE::ScreenedInteraction(
     // hand its eigenvalues over as epsilon_0_inv_.
     const Index n = screening.rows();
     const Eigen::MatrixXd I = Eigen::MatrixXd::Identity(n, n);
+    // 1 + R and u^-1 + eps - 1 are positive definite (Cholesky, LU if not)
     const Eigen::MatrixXd u_inv =
-        (I + Mmn_.ToCurrentAuxFrame(reaction_field_)).inverse();
-    Eigen::MatrixXd W = (u_inv + screening - I).inverse();
+        InverseSPD(I + Mmn_.ToCurrentAuxFrame(reaction_field_));
+    Eigen::MatrixXd W = InverseSPD(u_inv + screening - I);
     W = 0.5 * (W + W.transpose()).eval();
     return SymmetricEigen(W);
   }

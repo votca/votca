@@ -163,4 +163,19 @@ BOOST_AUTO_TEST_CASE(PCG_test) {
   }
 }
 
+BOOST_AUTO_TEST_CASE(backend_description_matches_the_build) {
+  const std::string description = xtp::EigenBackendDescription();
+#if defined(MKL_FOUND)
+  BOOST_CHECK_EQUAL(description, "MKL overload for Eigen (BLAS and LAPACK)");
+#elif defined(APPLE_ACCELERATE_FOUND)
+  BOOST_CHECK_EQUAL(description,
+                    "Apple Accelerate BLAS and LAPACKE overload for Eigen");
+#else
+  BOOST_CHECK_EQUAL(description,
+                    "native Eigen implementation, no BLAS overload");
+#endif
+  // printed so that the backend of a test run can be read off the test log
+  std::cout << "Eigen backend: " << description << std::endl;
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -19,12 +19,14 @@
 #define BOOST_TEST_MODULE screening_kernels_test
 
 // Standard includes
+#include <iostream>
 #include <vector>
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include "votca/xtp/accelerate_lapack.h"
 #include "votca/xtp/screening_kernels.h"
 
 using namespace votca::xtp;
@@ -102,6 +104,26 @@ BOOST_AUTO_TEST_CASE(weighted_gram_no_blocks) {
   BOOST_CHECK_EQUAL(S.cwiseAbs().maxCoeff(), 0.0);
 }
 
+BOOST_AUTO_TEST_CASE(accelerate_lapack_directly) {
+  // printed so that a test log shows which path the helpers below took
+  std::cout << "Accelerate LAPACK called directly: "
+            << (accelerate::LapackAvailable() ? "yes" : "no") << std::endl;
+  if (!accelerate::LapackAvailable()) {
+    BOOST_CHECK_EQUAL(accelerate::dsyevd('V', 'L', 1, nullptr, 1, nullptr),
+                      accelerate::kAccelerateUnavailable);
+    return;
+  }
+  // 2 x 2 symmetric matrix with eigenvalues 1 and 3
+  double a[4] = {2.0, 1.0, 1.0, 2.0};
+  double w[2] = {0.0, 0.0};
+  BOOST_CHECK_EQUAL(accelerate::dsyevd('V', 'L', 2, a, 2, w), 0);
+  BOOST_CHECK_CLOSE(w[0], 1.0, 1e-10);
+  BOOST_CHECK_CLOSE(w[1], 3.0, 1e-10);
+  // Cholesky of a non-positive-definite matrix reports it
+  double b[4] = {1.0, 2.0, 2.0, 1.0};
+  BOOST_CHECK_GT(accelerate::dpotrf('L', 2, b, 2), 0);
+}
+
 BOOST_AUTO_TEST_CASE(symmetric_eigen_and_spd_inverse) {
   const Index n = 60;
   const Eigen::MatrixXd X = Eigen::MatrixXd::Random(n, n);
@@ -125,6 +147,33 @@ BOOST_AUTO_TEST_CASE(symmetric_eigen_and_spd_inverse) {
   B(0, 0) = -B(0, 0);
   const Eigen::MatrixXd invB = InverseSPD(B);
   BOOST_CHECK_LE((B * invB - Eigen::MatrixXd::Identity(n, n)).norm(), 1e-8);
+}
+
+BOOST_AUTO_TEST_CASE(eigenvalues_only_and_cholesky) {
+  const Index n = 50;
+  const Eigen::MatrixXd X = Eigen::MatrixXd::Random(n, n);
+  const Eigen::MatrixXd A = X.transpose() * X + Eigen::MatrixXd::Identity(n, n);
+  const SymmetricEigenSystem full = SymmetricEigen(A);
+  const SymmetricEigenSystem values = SymmetricEigen(A, false);
+  BOOST_CHECK_EQUAL(values.vectors.size(), 0);
+  BOOST_CHECK_LE((full.values - values.values).cwiseAbs().maxCoeff(), 1e-10);
+
+  const CholeskyFactor chol(A);
+  BOOST_CHECK(chol.ok());
+  const Eigen::MatrixXd& L = chol.matrixL();
+  BOOST_CHECK_LE((L * L.transpose() - A).cwiseAbs().maxCoeff(), 1e-10);
+  BOOST_CHECK_EQUAL(L.triangularView<Eigen::StrictlyUpper>()
+                        .toDenseMatrix()
+                        .cwiseAbs()
+                        .maxCoeff(),
+                    0.0);
+  const Eigen::MatrixXd B = Eigen::MatrixXd::Random(n, 3);
+  BOOST_CHECK_LE((A * chol.Solve(B) - B).cwiseAbs().maxCoeff(), 1e-9);
+  BOOST_CHECK_LE((L * chol.SolveL(B) - B).cwiseAbs().maxCoeff(), 1e-10);
+
+  Eigen::MatrixXd C = A;
+  C(0, 0) = -1.0;
+  BOOST_CHECK(!CholeskyFactor(C).ok());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

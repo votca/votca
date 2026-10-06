@@ -28,6 +28,7 @@
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
+#include "votca/xtp/accelerate_lapack.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/bse.h"
 #include "votca/xtp/ecpbasisset.h"
@@ -36,6 +37,7 @@
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/rpa_uks.h"
+#include "votca/xtp/screening_kernels.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
 
@@ -826,13 +828,13 @@ bool GWBSE::Evaluate() {
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Using "
                               << OPENMP::getMaxThreads() << " threads" << flush;
 
-  if (XTP_HAS_MKL_OVERLOAD()) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp() << " Using MKL overload for Eigen " << flush;
-  } else {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << " Using native Eigen implementation, no BLAS overload " << flush;
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Using " << EigenBackendDescription() << flush;
+  if (accelerate::LapackAvailable()) {
+    XTP_LOG(Log::error, *pLog_) << TimeStamp()
+                                << " Screening eigensolvers and inverses call "
+                                   "Accelerate LAPACK directly"
+                                << flush;
   }
   Index nogpus = OpenMP_CUDA::UsingGPUs();
   if (nogpus > 0) {
@@ -1200,14 +1202,14 @@ bool GWBSE::Evaluate() {
       rpa_uks_bse.setRPAInputEnergies(orbitals_.RPAInputEnergiesAlpha(),
                                       orbitals_.RPAInputEnergiesBeta());
 
-      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_bse(
-          rpa_uks_bse.calculate_epsilon_r(0.0));
+      const SymmetricEigenSystem es_bse =
+          SymmetricEigen(rpa_uks_bse.calculate_epsilon_r(0.0));
 
       Eigen::VectorXd epsilon_0_inv_bse =
-          Eigen::VectorXd::Zero(es_bse.eigenvalues().size());
-      for (Index i = 0; i < es_bse.eigenvalues().size(); ++i) {
-        if (es_bse.eigenvalues()(i) > 1e-8) {
-          epsilon_0_inv_bse(i) = 1.0 / es_bse.eigenvalues()(i);
+          Eigen::VectorXd::Zero(es_bse.values.size());
+      for (Index i = 0; i < es_bse.values.size(); ++i) {
+        if (es_bse.values(i) > 1e-8) {
+          epsilon_0_inv_bse(i) = 1.0 / es_bse.values(i);
         }
       }
 
@@ -1234,7 +1236,7 @@ bool GWBSE::Evaluate() {
         bse_uks.configure_with_precomputed_screening(
             bseopt_uks, orbitals_.getHomoAlpha(), orbitals_.getHomoBeta(),
             orbitals_.RPAInputEnergiesAlpha(), orbitals_.RPAInputEnergiesBeta(),
-            Hqp_alpha, Hqp_beta, epsilon_0_inv_bse, es_bse.eigenvectors());
+            Hqp_alpha, Hqp_beta, epsilon_0_inv_bse, es_bse.vectors);
 
         bse_uks.Solve_excitons_uks(orbitals_);
         XTP_LOG(Log::error, *pLog_)
