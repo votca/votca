@@ -59,10 +59,8 @@ void RPA_UKS::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies_alpha,
   energies_alpha_.segment(qpmin - rpamin_, gwsize_alpha) = gwaenergies_alpha;
   energies_beta_.segment(qpmin - rpamin_, gwsize_beta) = gwaenergies_beta;
 
-  // Outside the explicitly corrected qp window, shift remaining occupied and
-  // virtual states by the largest observed correction in the corresponding
-  // sector. This follows the same idea as the restricted implementation, but
-  // is applied independently to alpha and beta channels.
+  // Outside the explicitly corrected qp window, shift the remaining occupied
+  // and virtual states (OutOfWindowShift), independently for alpha and beta.
   ShiftUncorrectedEnergies(energies_alpha_, dftenergies_alpha, homo_alpha_,
                            qpmin, gwsize_alpha);
   ShiftUncorrectedEnergies(energies_beta_, dftenergies_beta, homo_beta_, qpmin,
@@ -164,41 +162,8 @@ void RPA_UKS::BuildCachedScreeningModes() const {
 void RPA_UKS::ShiftUncorrectedEnergies(Eigen::VectorXd& energies,
                                        const Eigen::VectorXd& dftenergies,
                                        Index homo, Index qpmin, Index gwsize) {
-  const Index lumo = homo + 1;
-  const Index qpmax = qpmin + gwsize - 1;
-
-  // Largest absolute correction seen for occupied states inside the explicitly
-  // corrected GW window.
-  const double max_correction_occ =
-      getMaxCorrection(energies, dftenergies, qpmin, homo);
-
-  // Largest absolute correction seen for virtual states inside the explicitly
-  // corrected GW window.
-  const double max_correction_virt =
-      getMaxCorrection(energies, dftenergies, lumo, qpmax);
-
-  // The local "energies" vector is indexed relative to rpamin_, not relative to
-  // the absolute orbital numbering. Therefore qpmin and qpmax must first be
-  // shifted by rpamin_ when selecting head/tail segments.
-  energies.head(qpmin - rpamin_).array() -= max_correction_occ;
-  energies.tail(rpamax_ - qpmax).array() += max_correction_virt;
-}
-
-double RPA_UKS::getMaxCorrection(const Eigen::VectorXd& energies,
-                                 const Eigen::VectorXd& dftenergies, Index min,
-                                 Index max) const {
-  if (max < min) {
-    return 0.0;
-  }
-
-  const Index range = max - min + 1;
-
-  // Compare the current working energies (possibly partly GW-corrected) to the
-  // original DFT energies over the requested orbital range and return the
-  // largest absolute deviation.
-  const Eigen::VectorXd corrections =
-      energies.segment(min - rpamin_, range) - dftenergies.segment(min, range);
-  return corrections.cwiseAbs().maxCoeff();
+  out_of_window_.Apply(energies, dftenergies, rpamin_, rpamax_, homo, qpmin,
+                       qpmin + gwsize - 1);
 }
 Eigen::MatrixXd RPA_UKS::ResponseSum(const SpinWeightsFn& weights) const {
   // The dielectric matrix lives in the auxiliary basis; alpha and beta

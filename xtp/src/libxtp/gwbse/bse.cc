@@ -19,7 +19,9 @@
 
 // Standard includes
 #include <chrono>
+#include <cmath>
 #include <iostream>
+#include <sstream>
 
 // VOTCA includes
 #include <votca/tools/linalg.h>
@@ -32,6 +34,7 @@
 #include "votca/xtp/bseoperator_btda.h"
 #include "votca/xtp/davidsonsolver.h"
 #include "votca/xtp/environmentscreening.h"
+#include "votca/xtp/memorybudget.h"
 #include "votca/xtp/populationanalysis.h"
 #include "votca/xtp/qmfragment.h"
 #include "votca/xtp/rpa.h"
@@ -283,7 +286,8 @@ void BSE::SetupDirectInteractionOperator(
 }
 
 template <typename BSE_OPERATOR>
-void BSE::configureBSEOperator(BSE_OPERATOR& H) const {
+void BSE::configureBSEOperator(BSE_OPERATOR& H,
+                               double direct_cache_bytes) const {
   BSEOperator_Options opt;
   opt.cmax = opt_.cmax;
   opt.homo = opt_.homo;
@@ -291,13 +295,43 @@ void BSE::configureBSEOperator(BSE_OPERATOR& H) const {
   opt.rpamin = opt_.rpamin;
   opt.vmin = opt_.vmin;
   H.configure(opt);
-  H.set_direct_cache_limit(opt_.direct_cache_gb * 1e9);
+  H.set_direct_cache_limit(direct_cache_bytes);
+}
+
+std::vector<double> BSE::DirectCacheLimits(Index nmatrices) const {
+  const double n = double(opt_.homo - opt_.vmin + 1) *
+                   double(opt_.cmax - opt_.homo);  // pairs
+  const double need = 8.0 * n * n;
+  double available = MemoryBudget::AvailableBytes();
+  std::vector<double> limits(std::size_t(nmatrices), 0.0);
+  Index cached = 0;
+  for (double& limit : limits) {
+    if (need <= available) {
+      limit = need;
+      available -= need;
+      ++cached;
+    }
+  }
+  std::ostringstream msg;
+  msg.precision(3);
+  msg << " BSE direct term" << ((nmatrices > 1) ? "s" : "") << ": " << cached
+      << " of " << nmatrices << " kept as dense matrices (" << need * 1e-9
+      << " GB each; " << MemoryBudget::Describe() << ")";
+  if (cached < nmatrices) {
+    // what the process holds now plus the matrices, with the margin
+    const double resident = std::max(0.0, MemoryBudget::ResidentBytes());
+    const double wanted = resident + double(nmatrices) * need;
+    msg << "; --memory " << std::ceil(1.1 * wanted * 1e-9 + 1.0)
+        << " or more would keep all";
+  }
+  XTP_LOG(Log::error, log_) << TimeStamp() << msg.str() << flush;
+  return limits;
 }
 
 tools::EigenSystem BSE::Solve_triplets_TDA() const {
 
   TripletOperator_TDA Ht(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(Ht);
+  configureBSEOperator(Ht, DirectCacheLimits(1)[0]);
   return solve_hermitian(Ht);
 }
 
@@ -371,7 +405,7 @@ void BSE::Solve_triplets(Orbitals& orb) const {
 tools::EigenSystem BSE::Solve_singlets_TDA() const {
 
   SingletOperator_TDA Hs(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(Hs);
+  configureBSEOperator(Hs, DirectCacheLimits(1)[0]);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
   return solve_hermitian(Hs);
@@ -421,20 +455,22 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 }
 
 tools::EigenSystem BSE::Solve_singlets_BTDA() const {
+  const std::vector<double> cache = DirectCacheLimits(2);
   SingletOperator_TDA A(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(A);
+  configureBSEOperator(A, cache[0]);
   SingletOperator_BTDA_B B(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(B);
+  configureBSEOperator(B, cache[1]);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
   return Solve_nonhermitian_Davidson(A, B);
 }
 
 tools::EigenSystem BSE::Solve_triplets_BTDA() const {
+  const std::vector<double> cache = DirectCacheLimits(2);
   TripletOperator_TDA A(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(A);
+  configureBSEOperator(A, cache[0]);
   Hd2Operator B(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(B);
+  configureBSEOperator(B, cache[1]);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
   return Solve_nonhermitian_Davidson(A, B);
@@ -484,14 +520,15 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   Eigen::MatrixXd tmpX = DS.eigenvectors().topRows(Aop.rows());
   Eigen::MatrixXd tmpY = DS.eigenvectors().bottomRows(Bop.rows());
 
-  // // normalization so that eigenvector^2 - eigenvector2^2 = 1
-  Eigen::VectorXd normX = tmpX.colwise().squaredNorm();
-  Eigen::VectorXd normY = tmpY.colwise().squaredNorm();
-
-  Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
-
-  result.eigenvectors() = tmpX * sqinvnorm.matrix().asDiagonal();
-  result.eigenvectors2() = tmpY * sqinvnorm.matrix().asDiagonal();
+  // normalization so that X^T X - Y^T Y = 1
+  if (const Index bad = NormalizeExcitationVectors(tmpX, tmpY); bad > 0) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " WARNING: " << bad
+        << " BSE root(s) without positive X^2 - Y^2 norm (not converged?)"
+        << flush;
+  }
+  result.eigenvectors() = tmpX;
+  result.eigenvectors2() = tmpY;
 
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();

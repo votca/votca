@@ -52,10 +52,12 @@ class Sigma_CDA_UKS : public Sigma_base_UKS {
     return (plus - minus) / (2 * h);
   }
 
+  // Off-diagonal elements are not implemented for CDA: zero
   double CalcCorrelationOffDiagElement(Index, Index, double,
                                        double) const final {
     return 0.0;
   }
+  bool HasOffDiagonal() const final { return false; }
 
  private:
   double CalcResiduePrefactor(double e_f, double e_m, double frequency) const;

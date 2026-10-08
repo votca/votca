@@ -65,14 +65,26 @@ class BSE_OPERATOR final : public MatrixFreeOperator {
   /// it needs at most this many bytes (0, the default, disables it).
   void set_direct_cache_limit(double bytes) { direct_cache_limit_ = bytes; }
   bool direct_term_cached() const { return direct_built_; }
+  /// Without the dense cache the screened direct term is applied in large
+  /// products, one block of Hamiltonian rows (all v1 for one c1) at a time;
+  /// true selects the older row-by-row kernel (always used with GPUs).
+  void use_row_kernel(bool rows) { row_kernel_ = rows; }
 
  private:
   // the screened direct term (cd or cd2 part, with prefactor) as a dense
   // matrix, row-major so each Hamiltonian row is contiguous
   void BuildDirectMatrix() const;
+  // the screened direct term applied block by block (see use_row_kernel)
+  Eigen::MatrixXd ApplyDirectBlocks(const Eigen::MatrixXd& input) const;
+  Eigen::MatrixXd ApplyDirectRows(const Eigen::MatrixXd& input) const;
 
   double direct_cache_limit_ = 0.0;
+  bool row_kernel_ = false;
   mutable bool direct_built_ = false;
+  // stacked slices for the block kernel: for cd the vv blocks of the
+  // occupied slices (row v1*n_v + v2), for cd2 the cv blocks of the virtual
+  // slices (row c1*n_v + v2)
+  mutable Eigen::MatrixXd stacked_;
   mutable Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
       direct_;
   BSEOperator_Options opt_;

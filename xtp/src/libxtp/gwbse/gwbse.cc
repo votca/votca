@@ -244,7 +244,6 @@ void GWBSE::Initialize(tools::Property& options) {
       options.get("bse.davidson.update").as<std::string>();
 
   bseopt_.davidson_maxiter = options.get("bse.davidson.maxiter").as<Index>();
-  bseopt_.direct_cache_gb = options.get("bse.direct_cache_memory").as<double>();
 
   bseopt_.useTDA = options.get("bse.useTDA").as<bool>();
   orbitals_.setTDAApprox(bseopt_.useTDA);
@@ -289,22 +288,19 @@ void GWBSE::Initialize(tools::Property& options) {
       BasisSet b;
       b.Load(auxbasis_name_);
     } catch (std::runtime_error&) {
-      std::runtime_error(
+      throw std::runtime_error(
           "There is no auxbasis from the dftcalculation nor did you specify an "
           "auxbasisset for the gwbse calculation. Also no auxiliary basisset "
           "for basisset " +
           dftbasis_name_ + " could be found!");
     }
     XTP_LOG(Log::error, *pLog_)
-        << " Could not find an auxbasisset using " << auxbasis_name_ << flush;
+        << " No auxbasisset given, using " << auxbasis_name_ << flush;
   }
 
   std::string mode = options.get("gw.mode").as<std::string>();
   if (mode == "G0W0") {
     gwopt_.gw_sc_max_iterations = 1;
-  } else if (mode == "evGW") {
-    gwopt_.g_sc_limit = 0.1 * gwopt_.gw_sc_limit;
-    gwopt_.eta = 0.1;
   }
 
   XTP_LOG(Log::error, *pLog_) << " Running GW as: " << mode << flush;
@@ -527,6 +523,8 @@ void GWBSE::Initialize(tools::Property& options) {
   gwopt_.qp_grid_search_mode =
       options.get("gw.qp_grid_search_mode").as<std::string>();
   gwopt_.qp_restrict_search = options.get("gw.qp_restrict_search").as<bool>();
+  gwopt_.qp_root_continuity = options.ifExistsReturnElseReturnDefault<bool>(
+      "gw.qp_root_continuity", false);
   gwopt_.qp_zero_margin = options.get("gw.qp_zero_margin").as<double>();
   gwopt_.qp_virtual_min_energy =
       options.get("gw.qp_virtual_min_energy").as<double>();
@@ -535,12 +533,29 @@ void GWBSE::Initialize(tools::Property& options) {
   gwopt_.do_qsgw =
       options.ifExistsReturnElseReturnDefault<bool>("gw.do_qsgw", false);
   gwopt_.qsgw_max_iterations = options.ifExistsReturnElseReturnDefault<Index>(
-      "gw.qsgw_max_iterations", 20);
+      "gw.qsgw_max_iterations", 50);
   gwopt_.qsgw_sc_limit =
       options.ifExistsReturnElseReturnDefault<double>("gw.qsgw_sc_limit", 1e-5);
   gwopt_.qsgw_max_virt_correction =
       options.ifExistsReturnElseReturnDefault<double>(
           "gw.qsgw_max_virt_correction", 0.5);
+  gwopt_.out_of_window_shift.mode = OutOfWindowShift::Parse(
+      options.ifExistsReturnElseReturnDefault<std::string>(
+          "gw.out_of_window_shift", "max"));
+  gwopt_.out_of_window_shift.fit_fraction =
+      options.ifExistsReturnElseReturnDefault<double>(
+          "gw.out_of_window_fit_fraction", 0.3);
+  if (gwopt_.out_of_window_shift.mode != OutOfWindowShift::Mode::Max) {
+    XTP_LOG(Log::error, *pLog_)
+        << " Levels outside the GW window shifted by: "
+        << OutOfWindowShift::Name(gwopt_.out_of_window_shift.mode)
+        << ((gwopt_.out_of_window_shift.mode == OutOfWindowShift::Mode::Linear)
+                ? " (fit fraction " +
+                      std::to_string(gwopt_.out_of_window_shift.fit_fraction) +
+                      ")"
+                : std::string())
+        << flush;
+  }
   if (gwopt_.do_qsgw) {
     XTP_LOG(Log::error, *pLog_)
         << " QSGW enabled: max_iter=" << gwopt_.qsgw_max_iterations
@@ -973,6 +988,11 @@ bool GWBSE::Evaluate() {
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();
     if (is_uks) {
+      if (gwopt_.do_qsgw) {
+        throw std::runtime_error(
+            "QSGW (gw.do_qsgw) is not implemented for open-shell (UKS) "
+            "references.");
+      }
       auto vxc = CalculateVXCSpinResolved(dftbasis);
       GW_UKS::options gwopt_uks;
       gwopt_uks.homo_alpha = orbitals_.getHomoAlpha();
@@ -1007,7 +1027,9 @@ bool GWBSE::Evaluate() {
       gwopt_uks.quadrature_scheme = gwopt_.quadrature_scheme;
       gwopt_uks.order = gwopt_.order;
       gwopt_uks.alpha = gwopt_.alpha;
+      gwopt_uks.out_of_window_shift = gwopt_.out_of_window_shift;
       gwopt_uks.qp_restrict_search = gwopt_.qp_restrict_search;
+      gwopt_uks.qp_root_continuity = gwopt_.qp_root_continuity;
       gwopt_uks.qp_zero_margin = gwopt_.qp_zero_margin;
       gwopt_uks.qp_virtual_min_energy = gwopt_.qp_virtual_min_energy;
       gwopt_uks.qp_root_finder = gwopt_.qp_root_finder;
@@ -1069,52 +1091,30 @@ bool GWBSE::Evaluate() {
                               qsgw_energies);
         gw.PrintQSGW_Composition();
 
-        // ── BSE hookup
-        // ──────────────────────────────────────────────────────── Rebuild Mmn_
-        // in the QP wavefunction basis so the BSE Hamiltonian is expressed
-        // directly in the QP basis. Only QP-window columns of the MO
-        // coefficient matrix are rotated by U = qsgw_rotation_; columns outside
-        // the QP window (deep occupied / high virtual states that were not
-        // corrected by QSGW) remain as DFT-MOs, consistent with the
-        // scissor-shift treatment in UpdateRPAInputEnergies and AdjustHqpSize.
-        //
-        // orbitals_.MOs().eigenvectors() is NOT modified — the original DFT-MO
-        // coefficients in the AO basis are preserved for postprocessing
-        // (transition dipoles, population analysis, density matrices etc.)
-        {
-          const Index qptotal = gwopt_.qpmax - gwopt_.qpmin + 1;
-          const Eigen::MatrixXd& U = gw.getQSGWRotation();
-          Eigen::MatrixXd C_qp = orbitals_.MOs().eigenvectors();
-          C_qp.middleCols(gwopt_.qpmin, qptotal) =
-              orbitals_.MOs().eigenvectors().middleCols(gwopt_.qpmin, qptotal) *
-              U;
-          XTP_LOG(Log::error, *pLog_)
-              << TimeStamp() << " Rebuilding Mmn in QSGW QP wavefunction basis"
-              << flush;
-          Mmn.Fill(auxbasis, dftbasis, C_qp);
-          XTP_LOG(Log::error, *pLog_)
-              << TimeStamp()
-              << " Rebuilt Mmn (3-center-repulsion x QP orbitals)" << flush;
-        }
-
-        // In the QP basis H_QSGW is diagonal — Hqp = diag(qsgw_energies).
-        // AdjustHqpSize (in bse.cc) pads states outside the QP window with
-        // scissor-shifted DFT energies from RPAInputEnergies automatically.
-        Hqp = qsgw_energies.asDiagonal();
-
-        // Store converged QSGW eigensystem in QPdiag.
-        // eigenvalues  = QSGW QP energies (used by BSE for energy differences)
-        // eigenvectors = U (DFT-MOs -> QP wavefunctions), stored so that a
-        //                BSE-only run loading from .orb can rebuild Mmn_ with
-        //                the correct rotated MO coefficients C_qp = C_dft * U.
-        // QPpertEnergies() is intentionally left holding the G0W0/evGW seed
-        // energies — it should only contain perturbative QP corrections.
+        // The QSGW orbitals and energies: QPdiag holds U (DFT MOs -> QSGW
+        // orbitals, columns) and the energies, so that BSE-only runs from the
+        // .orb file and everything built from the BSE vectors (transition
+        // dipoles, densities) use C_qp = C_dft U (Orbitals::BSEOrbitals).
+        // QPpertEnergies() keeps the G0W0/evGW seed. The RPA energies are
+        // the QSGW ones in the window.
         orbitals_.QPdiag().eigenvalues() = qsgw_energies;
         orbitals_.QPdiag().eigenvectors() = gw.getQSGWRotation();
-
-        // Flag the orbitals object so BSE-only runs know to use the QP basis.
         orbitals_.setQSGW(true);
+        orbitals_.RPAInputEnergies() = gw.RPAInputEnergies();
+
+        // The BSE in the QSGW orbitals: integrals refilled with C_qp (levels
+        // outside the GW window stay DFT MOs, scissor-shifted in the RPA
+        // energies and in AdjustHqpSize), and H_qp is diagonal.
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Rebuilding Mmn in QSGW QP wavefunction basis"
+            << flush;
+        Mmn.Fill(auxbasis, dftbasis, orbitals_.BSEOrbitals());
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Rebuilt Mmn (3-center-repulsion x QP orbitals)"
+            << flush;
+        Hqp = qsgw_energies.asDiagonal();
       } else {
+        orbitals_.setQSGW(false);
         gw.CalculateHQP();
         XTP_LOG(Log::error, *pLog_)
             << TimeStamp() << " Calculated offdiagonal part of Sigma  "
@@ -1162,18 +1162,13 @@ bool GWBSE::Evaluate() {
                  orbitals_.QPdiagBeta().eigenvalues().asDiagonal() *
                  qpcoeff_beta.transpose();
     } else if (orbitals_.isQSGW()) {
-      // QSGW BSE-only run: rebuild Mmn_ in the QP basis using the stored
-      // rotation U = QPdiag().eigenvectors(). Hqp is diagonal in the QP basis.
-      const Eigen::MatrixXd& U = orbitals_.QPdiag().eigenvectors();
-      const Index qptotal = gwopt_.qpmax - gwopt_.qpmin + 1;
-      Eigen::MatrixXd C_qp = orbitals_.MOs().eigenvectors();
-      C_qp.middleCols(gwopt_.qpmin, qptotal) =
-          orbitals_.MOs().eigenvectors().middleCols(gwopt_.qpmin, qptotal) * U;
+      // QSGW BSE-only run: rebuild Mmn_ in the QSGW orbitals stored in
+      // QPdiag. Hqp is diagonal in that basis.
       XTP_LOG(Log::error, *pLog_)
           << TimeStamp()
           << " Rebuilding Mmn in QSGW QP wavefunction basis (BSE-only)"
           << flush;
-      Mmn.Fill(auxbasis, dftbasis, C_qp);
+      Mmn.Fill(auxbasis, dftbasis, orbitals_.BSEOrbitals());
       XTP_LOG(Log::error, *pLog_)
           << TimeStamp() << " Rebuilt Mmn (3-center-repulsion x QP orbitals)"
           << flush;

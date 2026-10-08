@@ -121,32 +121,11 @@ Eigen::MatrixXd Sigma_Exact::ScreeningModes(const Eigen::MatrixXd& XpY) const {
   const Index n_unocc = opt_.rpamax - opt_.homo;
   const Index rpasize = n_occ * n_unocc;
   vc2index vc = vc2index(0, 0, n_unocc);
-  // QSGW: apply m-rotation to QP-window hole slices on the fly.
-  // The outer v-index is a hole construction index and must use QP
-  // wavefunctions.
-  const Index qp_offset_m_res =
-      (qsgw_U_ != nullptr) ? (qsgw_qpmin_ - opt_.rpamin) : -1;
-  const Index qptotal_res = (qsgw_U_ != nullptr) ? Index(qsgw_U_->cols()) : 0;
-  const Index qp_end_occ_res = (qsgw_U_ != nullptr)
-                                   ? std::min(qsgw_homo_ - opt_.rpamin + 1,
-                                              qp_offset_m_res + qptotal_res)
-                                   : 0;
-
   // rows (v, c) of the virtual rows of the hole slices
   Eigen::MatrixXd M(rpasize, Mmn_.auxsize());
 #pragma omp parallel for schedule(dynamic)
   for (Index v = 0; v < n_occ; v++) {
-    auto rows = M.middleRows(vc.I(v, 0), n_unocc);
-    if (qsgw_U_ != nullptr && v >= qp_offset_m_res && v < qp_end_occ_res) {
-      const Index v_qp = v - qp_offset_m_res;
-      rows.setZero();
-      for (Index vp = 0; vp < qptotal_res; vp++) {
-        rows.noalias() += (*qsgw_U_)(vp, v_qp) *
-                          Mmn_[vp + qp_offset_m_res].middleRows(n_occ, n_unocc);
-      }
-    } else {
-      rows = Mmn_[v].middleRows(n_occ, n_unocc);
-    }
+    M.middleRows(vc.I(v, 0), n_unocc) = Mmn_[v].middleRows(n_occ, n_unocc);
   }
   return M.transpose() * XpY;
 }

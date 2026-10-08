@@ -459,12 +459,14 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
   Eigen::MatrixXd tmpX = DS.eigenvectors().topRows(A.rows());
   Eigen::MatrixXd tmpY = DS.eigenvectors().bottomRows(B.rows());
 
-  Eigen::VectorXd normX = tmpX.colwise().squaredNorm();
-  Eigen::VectorXd normY = tmpY.colwise().squaredNorm();
-  Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
-
-  result.eigenvectors() = tmpX * sqinvnorm.matrix().asDiagonal();
-  result.eigenvectors2() = tmpY * sqinvnorm.matrix().asDiagonal();
+  if (const Index bad = NormalizeExcitationVectors(tmpX, tmpY); bad > 0) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " WARNING: " << bad
+        << " BSE root(s) without positive X^2 - Y^2 norm (not converged?)"
+        << flush;
+  }
+  result.eigenvectors() = tmpX;
+  result.eigenvectors2() = tmpY;
 
   return result;
 }
@@ -530,12 +532,14 @@ tools::EigenSystem BSE_UKS::Solve_nonhermitian_Davidson(
   Eigen::MatrixXd tmpX = DS.eigenvectors().topRows(Aop.rows());
   Eigen::MatrixXd tmpY = DS.eigenvectors().bottomRows(Bop.rows());
 
-  Eigen::VectorXd normX = tmpX.colwise().squaredNorm();
-  Eigen::VectorXd normY = tmpY.colwise().squaredNorm();
-  Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
-
-  result.eigenvectors() = tmpX * sqinvnorm.matrix().asDiagonal();
-  result.eigenvectors2() = tmpY * sqinvnorm.matrix().asDiagonal();
+  if (const Index bad = NormalizeExcitationVectors(tmpX, tmpY); bad > 0) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " WARNING: " << bad
+        << " BSE root(s) without positive X^2 - Y^2 norm (not converged?)"
+        << flush;
+  }
+  result.eigenvectors() = tmpX;
+  result.eigenvectors2() = tmpY;
 
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();

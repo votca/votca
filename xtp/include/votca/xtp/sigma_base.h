@@ -52,15 +52,6 @@ class Sigma_base {
     double alpha;
   };
 
-  // QSGW: set the rotation matrix U (DFT-MOs -> QP wavefunctions) so that
-  // PrepareScreening can apply the m-rotation to hole slices used by the RPA.
-  // Call with U=nullptr to disable (default: G0W0/evGW, no rotation needed).
-  void setQSGWRotation(const Eigen::MatrixXd* U, Index qpmin, Index homo) {
-    qsgw_U_ = U;
-    qsgw_qpmin_ = qpmin;
-    qsgw_homo_ = homo;
-  }
-
   void configure(options opt) {
     opt_ = opt;
     qptotal_ = opt.qpmax - opt.qpmin + 1;
@@ -110,6 +101,8 @@ class Sigma_base {
 
   /// One line about the screening just prepared (empty if nothing to say).
   virtual std::string ScreeningSummary() const { return ""; }
+  /// False if CalcCorrelationOffDiag only returns zeros (CDA).
+  virtual bool HasOffDiagonal() const { return true; }
   // Calculates Sigma_c diagonal elements
   virtual double CalcCorrelationDiagElementDerivative(
       Index gw_level, double frequency) const = 0;
@@ -152,11 +145,6 @@ class Sigma_base {
 
   Index qptotal_ = 0;
   Index rpatotal_ = 0;
-
-  // QSGW rotation (nullptr in G0W0/evGW, set in QSGW PrepareScreening)
-  const Eigen::MatrixXd* qsgw_U_ = nullptr;
-  Index qsgw_qpmin_ = 0;
-  Index qsgw_homo_ = 0;
 
   void CountDiagEval() const { diag_eval_counter_.fetch_add(1); }
 

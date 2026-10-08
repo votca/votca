@@ -95,6 +95,10 @@ class GW {
     Index order;   // only needed for complex integration sigma CDA
     double alpha;  // smooth tail in complex integration sigma CDA
     bool qp_restrict_search = true;
+    // evGW: after the first iteration keep each level on the root branch of
+    // the previous iteration (closest accepted root) instead of re-choosing
+    // by weight
+    bool qp_root_continuity = false;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
     std::string qp_root_finder = "bisection";
@@ -105,7 +109,7 @@ class GW {
     // The three-centre integrals are rotated at each iteration so that W and
     // Sigma are evaluated in the basis of the current QP wavefunctions.
     bool do_qsgw = false;
-    Index qsgw_max_iterations = 20;
+    Index qsgw_max_iterations = 50;
     double qsgw_sc_limit = 1e-5;  // Ha; convergence threshold on QP energies
 
     // Maximum allowed perturbative QP correction for virtual states to be
@@ -118,6 +122,8 @@ class GW {
     // unlikely to be physically meaningful for typical molecular systems.
     // Set to a large value (e.g. 1e10) to disable the threshold entirely.
     double qsgw_max_virt_correction = 0.5;  // Ha
+    // RPA energies of levels outside the GW window (OutOfWindowShift)
+    OutOfWindowShift out_of_window_shift;
   };
 
   void configure(const options& opt);
@@ -366,6 +372,19 @@ class GW {
   // HOMO-LUMO midpoint of the current QP guesses, set by SolveQP before
   // its parallel loop and only read inside it (SolveQP_Grid).
   mutable double qp_midgap_ = 0.0;
+  // per level of the last SolveQP: whether two accepted roots carry
+  // comparable weight (see qp_solver::CheckCompetingRoots)
+  mutable std::vector<qp_solver::CompetingRoots> competing_roots_;
+  void RecordCompetingRoots(Index gw_level,
+                            const std::vector<QPRootCandidate>& roots,
+                            double chosen) const {
+    if (gw_level < Index(competing_roots_.size())) {
+      competing_roots_[std::size_t(gw_level)] =
+          qp_solver::CheckCompetingRoots(roots, chosen);
+    }
+  }
+  // logs the levels with competing roots of the last SolveQP
+  void PrintCompetingRoots(Log::Level level) const;
   boost::optional<double> SolveQP_Grid(double intercept0, double frequency0,
                                        Index gw_level,
                                        QPStats* stats = nullptr) const;

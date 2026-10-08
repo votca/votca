@@ -390,8 +390,13 @@ Index DavidsonSolver::extendProjection(
     proj.V.col(oldsize + k) = w.normalized();
     k++;
   }
-  orthogonalize(proj.V, nupdate);
-  return nupdate;
+  const Index added = orthogonalize(proj.V, nupdate);
+  if (added == 0) {
+    throw std::runtime_error(
+        "Davidson: no new search direction, all corrections are linearly "
+        "dependent on the search space");
+  }
+  return added;
 }
 
 Eigen::MatrixXd DavidsonSolver::extract_vectors(const Eigen::MatrixXd &V,
@@ -434,8 +439,13 @@ Eigen::VectorXd DavidsonSolver::dpr(const Eigen::VectorXd &r,
                                     double lambda) const {
   /* \brief Compute the diagonal preconditoned residue :
   \delta = -r/(D - lambda)
+  with |D - lambda| floored, so that a diagonal element at the Ritz value
+  gives a large but finite component instead of inf/nan
    */
-  return (-r.array() / (Adiag_.array() - lambda));
+  constexpr double floor = 1e-8;
+  return -r.array() / (Adiag_.array() - lambda).unaryExpr([](double d) {
+    return (std::abs(d) < floor) ? (d < 0 ? -floor : floor) : d;
+  });
 }
 
 Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
@@ -447,51 +457,63 @@ Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
   Eigen::VectorXd delta = DavidsonSolver::dpr(r, lambda);
   double num = -x.transpose() * delta;
   double denom = -x.transpose() * dpr(x, lambda);
+  if (!(std::abs(denom) > 1e-14 * std::abs(num)) || !std::isfinite(denom)) {
+    return delta;  // no usable Olsen term: DPR
+  }
   double eps = num / denom;
   delta += eps * x;
   return delta;
 }
 
-void DavidsonSolver::orthogonalize(Eigen::MatrixXd &V, Index nupdate) const {
-  DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
+Index DavidsonSolver::orthogonalize(Eigen::MatrixXd &V, Index nupdate) const {
+  return DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
 }
 
-void DavidsonSolver::gramschmidt(Eigen::MatrixXd &Q, Index nstart) const {
-  Index nupdate = Q.cols() - nstart;
-  Eigen::VectorXd norms = Q.rightCols(nupdate).colwise().norm();
-  // orthogonalize with respect to already existing vectors
-  if (nstart > 0) {
-    Q.rightCols(nupdate) -=
-        Q.leftCols(nstart) *
-        (Q.leftCols(nstart).transpose() * Q.rightCols(nupdate));
-    Q.rightCols(nupdate).colwise().normalize();
+// Orthonormalises the columns from nstart on against the first nstart
+// (assumed orthonormal) and against each other, classical Gram-Schmidt twice.
+// Columns that are linearly dependent (less than 1e-10 of their norm left)
+// are dropped; returns the number of columns kept from nstart on.
+Index DavidsonSolver::gramschmidt(Eigen::MatrixXd &Q, Index nstart) const {
+  const Index nupdate = Q.cols() - nstart;
+  if (nupdate <= 0) {
+    return 0;
   }
-  // orthogonalize vectors to each other
-  for (Index j = nstart + 1; j < Q.cols(); ++j) {
-    Index range = j - nstart;
-    Q.col(j) -= Q.middleCols(nstart, range) *
-                (Q.middleCols(nstart, range).transpose() * Q.col(j));
-    Q.col(j).normalize();
-  }
-  // repeat again two is enough GS
-  // http://stoppels.blog/posts/orthogonalization-performance
-  if (nstart > 0) {
-    Q.rightCols(nupdate) -=
-        Q.leftCols(nstart) *
-        (Q.leftCols(nstart).transpose() * Q.rightCols(nupdate));
-    Q.rightCols(nupdate).colwise().normalize();
-  }
-
-  for (Index j = nstart + 1; j < Q.cols(); ++j) {
-    Index range = j - nstart;
-    Q.col(j) -= Q.middleCols(nstart, range) *
-                (Q.middleCols(nstart, range).transpose() * Q.col(j));
-    if (Q.col(j).norm() <= 1E-12 * norms(range)) {
-      // info_ = Eigen::ComputationInfo::NumericalIssue;
-      throw std::runtime_error("Linear dependencies in Gram-Schmidt.");
+  const Eigen::VectorXd norms = Q.rightCols(nupdate).colwise().norm();
+  auto project_out_old = [&](Index first, Index n) {
+    if (nstart > 0 && n > 0) {
+      Q.middleCols(first, n) -=
+          Q.leftCols(nstart) *
+          (Q.leftCols(nstart).transpose() * Q.middleCols(first, n));
     }
-    Q.col(j).normalize();
+  };
+  // against the existing vectors, as blocks
+  project_out_old(nstart, nupdate);
+  project_out_old(nstart, nupdate);
+  // against each other, dropping dependent vectors
+  Index kept = 0;
+  for (Index j = 0; j < nupdate; ++j) {
+    Eigen::VectorXd v = Q.col(nstart + j);
+    for (Index pass = 0; pass < 2 && kept > 0; ++pass) {
+      v -= Q.middleCols(nstart, kept) *
+           (Q.middleCols(nstart, kept).transpose() * v);
+    }
+    const double norm = v.norm();
+    if (!(norm > 1e-10 * norms(j))) {
+      continue;
+    }
+    Q.col(nstart + kept) = v / norm;
+    ++kept;
   }
+  Q.conservativeResize(Eigen::NoChange, nstart + kept);
+  // the normalisation can amplify what is left of the existing vectors
+  project_out_old(nstart, kept);
+  Q.rightCols(kept).colwise().normalize();
+  if (kept < nupdate) {
+    XTP_LOG(Log::info, log_)
+        << TimeStamp() << " Davidson: dropped " << nupdate - kept
+        << " linearly dependent search vector(s)" << std::flush;
+  }
+  return kept;
 }
 
 Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {

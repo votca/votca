@@ -42,64 +42,17 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
   ShiftUncorrectedEnergies(dftenergies, qpmin, gwsize);
 }
 
-// Shifts energies of levels that are not QP corrected but
-// used in the RPA:
-// between rpamin and qpmin: by maximum abs of explicit QP corrections
-//                           from qpmin to HOMO
-// between qpmax and rpamax: by maximum abs of explicit QP corrections
-//                           from LUMO to qpmax
+// Shifts the energies of levels in the RPA but outside the QP window, see
+// OutOfWindowShift.
 void RPA::ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
                                    Index qpmin, Index gwsize) {
-
-  Index lumo = homo_ + 1;
-  Index qpmax = qpmin + gwsize - 1;
-
-  // get max abs QP corrections for occupied/virtual levels
-  double max_correction_occ = getMaxCorrection(dftenergies, qpmin, homo_);
-  double max_correction_virt = getMaxCorrection(dftenergies, lumo, qpmax);
-
-  // shift energies; energies_ is indexed from rpamin_, the level numbers
-  // qpmin and qpmax are absolute
-  energies_.head(qpmin - rpamin_).array() -= max_correction_occ;
-  energies_.tail(rpamax_ - qpmax).array() += max_correction_virt;
-}
-
-double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
-                             Index max) const {
-  if (max < min) {
-    return 0.0;
-  }
-  // energies_ is indexed from rpamin_, dftenergies by absolute level number
-  Index range = max - min + 1;
-  Eigen::VectorXd corrections =
-      energies_.segment(min - rpamin_, range) - dftenergies.segment(min, range);
-
-  return (corrections.cwiseAbs()).maxCoeff();
+  out_of_window_.Apply(energies_, dftenergies, rpamin_, rpamax_, homo_, qpmin,
+                       qpmin + gwsize - 1);
 }
 
 void RPA::VisitHoleVirtualRows(Index m_level,
                                const WeightedGram::RowsVisitor& use) const {
   const Index n_unocc = rpamax_ - homo_;
-  // QSGW: for hole slices in the QP window, apply the m-rotation on the fly.
-  // This makes the RPA hole states consistent with the current QP
-  // wavefunctions while keeping Mmn_ unmodified (its m-index remains in the
-  // DFT-MO basis for correct sigma matrix element evaluation).
-  if (qsgw_U_ != nullptr) {
-    const Index qp_offset_m = qsgw_qpmin_ - rpamin_;
-    const Index qptotal = Index(qsgw_U_->cols());
-    const Index qp_end_occ =
-        std::min(qsgw_homo_ - rpamin_ + 1, qp_offset_m + qptotal);
-    if (m_level >= qp_offset_m && m_level < qp_end_occ) {
-      const Index v_qp = m_level - qp_offset_m;
-      Eigen::MatrixXd rotated = Eigen::MatrixXd::Zero(n_unocc, Mmn_.auxsize());
-      for (Index vp = 0; vp < qptotal; vp++) {
-        rotated.noalias() +=
-            (*qsgw_U_)(vp, v_qp) * Mmn_[vp + qp_offset_m].bottomRows(n_unocc);
-      }
-      use(rotated);
-      return;
-    }
-  }
   use(Mmn_[m_level].bottomRows(n_unocc));
 }
 
@@ -263,40 +216,16 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
   const Index rpasize = n_occ * n_unocc;
   vc2index vc = vc2index(0, 0, n_unocc);
   Eigen::MatrixXd ApB = Eigen::MatrixXd::Zero(rpasize, rpasize);
-  // QSGW: pre-compute m-rotated slices for QP-window hole states
-  // to avoid repeated on-the-fly rotation inside the double loop.
-  const Index qp_offset_m_apb =
-      (qsgw_U_ != nullptr) ? (qsgw_qpmin_ - rpamin_) : -1;
-  const Index qptotal_apb = (qsgw_U_ != nullptr) ? Index(qsgw_U_->cols()) : 0;
-  const Index qp_end_occ_apb =
-      (qsgw_U_ != nullptr)
-          ? std::min(qsgw_homo_ - rpamin_ + 1, qp_offset_m_apb + qptotal_apb)
-          : 0;
-
-  // Pre-build rotated virtual-row blocks for occupied QP-window slices
-  std::vector<Eigen::MatrixXd> Mmn_virt_rotated(n_occ);
-  for (Index v = 0; v < n_occ; v++) {
-    if (qsgw_U_ != nullptr && v >= qp_offset_m_apb && v < qp_end_occ_apb) {
-      const Index v_qp = v - qp_offset_m_apb;
-      Mmn_virt_rotated[v] = Eigen::MatrixXd::Zero(n_unocc, Mmn_.auxsize());
-      for (Index vp = 0; vp < qptotal_apb; vp++) {
-        Mmn_virt_rotated[v].noalias() +=
-            (*qsgw_U_)(vp, v_qp) *
-            Mmn_[vp + qp_offset_m_apb].middleRows(n_occ, n_unocc);
-      }
-    } else {
-      Mmn_virt_rotated[v] = Mmn_[v].middleRows(n_occ, n_unocc);
-    }
-  }
 #pragma omp parallel for schedule(guided)
   for (Index v2 = 0; v2 < n_occ; v2++) {
     Index i2 = vc.I(v2, 0);
-    const Eigen::MatrixXd Mmn_v2T = Mmn_virt_rotated[v2].transpose();
+    const Eigen::MatrixXd Mmn_v2T =
+        Mmn_[v2].middleRows(n_occ, n_unocc).transpose();
     for (Index v1 = v2; v1 < n_occ; v1++) {
       Index i1 = vc.I(v1, 0);
       // Multiply with factor 2 to sum over both (identical) spin states
       ApB.block(i1, i2, n_unocc, n_unocc) =
-          2 * 2 * Mmn_virt_rotated[v1] * Mmn_v2T;
+          2 * 2 * Mmn_[v1].middleRows(n_occ, n_unocc) * Mmn_v2T;
     }
   }
   ApB.diagonal() += Calculate_H2p_AmB();

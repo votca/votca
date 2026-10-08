@@ -313,4 +313,65 @@ BOOST_AUTO_TEST_CASE(direct_term_cache_equals_row_loop) {
   libint2::finalize();
 }
 
+// The block kernel of the direct term (all v1 for one c1 at a time) must give
+// the same products as the row kernel, for the direct (cd) and coupling (cd2)
+// parts and for BSE windows that do not start at the lowest level.
+BOOST_AUTO_TEST_CASE(direct_term_blocks_equal_rows) {
+  libint2::initialize();
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/bse/molecule.xyz");
+  orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/bse/3-21G.xml");
+  AOBasis aobasis = orbitals.getDftBasis();
+  Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse_operator/MOs.mm");
+  const Eigen::MatrixXd Hqp_full =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse_operator/Hqp.mm");
+  Eigen::VectorXd epsilon_inv(aobasis.AOBasisSize());
+  for (votca::Index i = 0; i < epsilon_inv.size(); ++i) {
+    epsilon_inv(i) = 0.3 + 0.6 * double(i) / double(epsilon_inv.size());
+  }
+  std::srand(11);
+  for (votca::Index rpamin : {0, 1}) {
+    TCMatrix_gwbse Mmn;
+    Mmn.Initialize(aobasis.AOBasisSize(), rpamin, 16, rpamin, 16);
+    Mmn.Fill(aobasis, aobasis, MOs);
+    for (auto [vmin, cmax] : {std::pair<votca::Index, votca::Index>{1, 8},
+                              std::pair<votca::Index, votca::Index>{2, 13}}) {
+      BSEOperator_Options opt;
+      opt.cmax = cmax;
+      opt.homo = 4;
+      opt.qpmin = vmin;
+      opt.rpamin = rpamin;
+      opt.vmin = vmin;
+      const votca::Index nqp = cmax - vmin + 1;
+      const Eigen::MatrixXd Hqp = Hqp_full.topLeftCorner(nqp, nqp);
+      auto Compare = [&](auto& rows, auto& blocks) {
+        rows.configure(opt);
+        blocks.configure(opt);
+        rows.use_row_kernel(true);
+        const Eigen::MatrixXd X = Eigen::MatrixXd::Random(rows.rows(), 7);
+        const Eigen::MatrixXd ref = rows.matmul(X);
+        const Eigen::MatrixXd first = blocks.matmul(X);
+        const Eigen::MatrixXd second = blocks.matmul(X);  // stacked reused
+        BOOST_CHECK_SMALL((first - ref).cwiseAbs().maxCoeff(),
+                          1e-12 * ref.cwiseAbs().maxCoeff());
+        BOOST_CHECK_SMALL((second - ref).cwiseAbs().maxCoeff(),
+                          1e-12 * ref.cwiseAbs().maxCoeff());
+      };
+      SingletOperator_TDA s_rows(epsilon_inv, Mmn, Hqp);
+      SingletOperator_TDA s_blocks(epsilon_inv, Mmn, Hqp);
+      Compare(s_rows, s_blocks);
+      SingletOperator_BTDA_B b_rows(epsilon_inv, Mmn, Hqp);
+      SingletOperator_BTDA_B b_blocks(epsilon_inv, Mmn, Hqp);
+      Compare(b_rows, b_blocks);
+      Hd2Operator d2_rows(epsilon_inv, Mmn, Hqp);
+      Hd2Operator d2_blocks(epsilon_inv, Mmn, Hqp);
+      Compare(d2_rows, d2_blocks);
+    }
+  }
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

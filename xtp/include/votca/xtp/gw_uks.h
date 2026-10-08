@@ -31,6 +31,8 @@ class GW_UKS {
 
  public:
   struct options {
+    // RPA energies of levels outside the GW window (OutOfWindowShift)
+    OutOfWindowShift out_of_window_shift;
     Index homo_alpha;
     Index homo_beta;
     Index qpmin;
@@ -72,6 +74,10 @@ class GW_UKS {
     Index order;
     double alpha;
     bool qp_restrict_search = true;
+    // evGW: after the first iteration keep each level on the root branch of
+    // the previous iteration (closest accepted root) instead of re-choosing
+    // by weight
+    bool qp_root_continuity = false;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
     std::string qp_root_finder = "bisection";
@@ -195,6 +201,19 @@ class GW_UKS {
   void PrintQP_Energies(Spin spin,
                         const Eigen::VectorXd& qp_diag_energies) const;
   Eigen::VectorXd SolveQP(Spin spin, const Eigen::VectorXd& frequencies) const;
+  // per spin and level of the last SolveQP: whether two accepted roots carry
+  // comparable weight (see qp_solver::CheckCompetingRoots)
+  mutable std::vector<qp_solver::CompetingRoots> competing_roots_[2];
+  void RecordCompetingRoots(Spin spin, Index gw_level,
+                            const std::vector<QPRootCandidate>& roots,
+                            double chosen) const {
+    auto& list = competing_roots_[spin == Spin::Alpha ? 0 : 1];
+    if (gw_level < Index(list.size())) {
+      list[std::size_t(gw_level)] =
+          qp_solver::CheckCompetingRoots(roots, chosen);
+    }
+  }
+  void PrintCompetingRoots(Spin spin, Log::Level level) const;
 
   boost::optional<double> SolveQP_Grid(Spin spin, double intercept0,
                                        double frequency0, Index gw_level,

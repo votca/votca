@@ -97,4 +97,24 @@ BOOST_AUTO_TEST_CASE(unstable_reference_throws) {
   BOOST_CHECK_THROW(solver.Solve(A, B, 4), std::runtime_error);
 }
 
+// X^T X - Y^T Y = 1 for regular roots; the zero vectors of unconverged
+// roots stay zero (were nan), a wrong-sign root is scaled with |norm|.
+BOOST_AUTO_TEST_CASE(normalize_excitation_vectors) {
+  Eigen::MatrixXd X = Eigen::MatrixXd::Zero(4, 3);
+  Eigen::MatrixXd Y = Eigen::MatrixXd::Zero(4, 3);
+  X.col(0) << 1, 2, 0, 1;
+  Y.col(0) << 0.1, 0, 0.2, 0;
+  // column 1: zero
+  X.col(2) << 0.1, 0, 0, 0;
+  Y.col(2) << 1, 0, 0, 0;
+  const Index bad = NormalizeExcitationVectors(X, Y);
+  BOOST_CHECK_EQUAL(bad, 2);
+  BOOST_CHECK(X.allFinite() && Y.allFinite());
+  BOOST_CHECK_CLOSE(X.col(0).squaredNorm() - Y.col(0).squaredNorm(), 1.0,
+                    1e-10);
+  BOOST_CHECK_EQUAL(X.col(1).norm(), 0.0);
+  BOOST_CHECK_CLOSE(Y.col(2).squaredNorm() - X.col(2).squaredNorm(), 1.0,
+                    1e-10);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

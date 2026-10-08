@@ -59,9 +59,6 @@ class BSE {
     std::string davidson_tolerance;
     std::string davidson_update;
     Index davidson_maxiter;
-    // memory (GB) up to which the screened direct BSE term is kept as a
-    // dense matrix while the BSE is solved
-    double direct_cache_gb = 4.0;
     double min_print_weight;  // minimium contribution for state to print it
     bool use_Hqp_offdiag;
     Index max_dyn_iter;
@@ -171,7 +168,12 @@ class BSE {
   void PrintWeights(const Eigen::VectorXd& weights) const;
 
   template <typename BSE_OPERATOR>
-  void configureBSEOperator(BSE_OPERATOR& H) const;
+  void configureBSEOperator(BSE_OPERATOR& H,
+                            double direct_cache_bytes = 0.0) const;
+  // Memory (bytes) for the dense direct terms of the nmatrices operators of
+  // a solve (1: TDA, 2: A and B), in that order, from the memory budget;
+  // logs the decision.
+  std::vector<double> DirectCacheLimits(Index nmatrices) const;
 
   template <typename BSE_OPERATOR>
   tools::EigenSystem solve_hermitian(BSE_OPERATOR& h) const;

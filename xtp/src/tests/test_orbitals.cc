@@ -268,6 +268,78 @@ BOOST_AUTO_TEST_CASE(qsgw_setget) {
   BOOST_CHECK_EQUAL(check_isQSGW, true);
 }
 
+// After QSGW the BSE vectors refer to the QSGW orbitals C_dft U. Everything
+// built from them must be what one gets with those orbitals stored as MOs.
+BOOST_AUTO_TEST_CASE(qsgw_bse_quantities_use_qsgw_orbitals) {
+  libint2::initialize();
+  auto setup = [](Orbitals& orb, const Eigen::MatrixXd& mos) {
+    orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                               "/orbitals/molecule.xyz");
+    orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                      "/orbitals/3-21G.xml");
+    orb.setNumberOfOccupiedLevels(4);
+    orb.setNumberOfAlphaElectrons(4);
+    orb.setNumberOfBetaElectrons(4);
+    orb.setChargeAndSpin(0, 1);
+    orb.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
+    orb.MOs().eigenvectors() = mos;
+    orb.setBSEindices(0, 16);
+    orb.setTDAApprox(true);
+    orb.BSESinglets().eigenvectors() =
+        votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+            std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/spsi_ref.mm");
+    orb.BSESinglets().eigenvalues() =
+        Eigen::VectorXd::Ones(orb.BSESinglets().eigenvectors().cols());
+  };
+  const Eigen::MatrixXd C = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/MOs2.mm");
+  const Index qpmin = 1;
+  const Index qpmax = 12;
+  const Index window = qpmax - qpmin + 1;
+  std::srand(3);
+  const Eigen::MatrixXd U =
+      Eigen::MatrixXd::Random(window, window).householderQr().householderQ();
+  Eigen::MatrixXd C_qp = C;
+  C_qp.middleCols(qpmin, window) = C.middleCols(qpmin, window) * U;
+
+  Orbitals qsgw;
+  setup(qsgw, C);
+  qsgw.setGWindices(qpmin, qpmax);
+  qsgw.QPdiag().eigenvalues() = Eigen::VectorXd::LinSpaced(window, -1, 1);
+  qsgw.QPdiag().eigenvectors() = U;
+  qsgw.setQSGW(true);
+  Orbitals ref;
+  setup(ref, C_qp);
+
+  BOOST_CHECK_LE((qsgw.BSEOrbitals() - C_qp).cwiseAbs().maxCoeff(), 1e-14);
+  BOOST_CHECK_LE((ref.BSEOrbitals() - C_qp).cwiseAbs().maxCoeff(), 0.0);
+
+  const QMState trans("n2s1");
+  BOOST_CHECK_LE((qsgw.CalcElDipole(trans) - ref.CalcElDipole(trans))
+                     .cwiseAbs()
+                     .maxCoeff(),
+                 1e-12);
+  const QMState s1("s1");
+  const auto d_qsgw = qsgw.DensityMatrixExcitedState(s1);
+  const auto d_ref = ref.DensityMatrixExcitedState(s1);
+  for (std::size_t i = 0; i < 2; ++i) {
+    BOOST_CHECK_LE((d_qsgw[i] - d_ref[i]).cwiseAbs().maxCoeff(), 1e-12);
+  }
+  qsgw.CalcCoupledTransition_Dipoles();
+  ref.CalcCoupledTransition_Dipoles();
+  BOOST_CHECK_LE((qsgw.TransitionDipoles()[0] - ref.TransitionDipoles()[0])
+                     .cwiseAbs()
+                     .maxCoeff(),
+                 1e-12);
+  // the rotation matters: without the QSGW flag the dipole differs
+  qsgw.setQSGW(false);
+  BOOST_CHECK_GT((qsgw.CalcElDipole(trans) - ref.CalcElDipole(trans))
+                     .cwiseAbs()
+                     .maxCoeff(),
+                 1e-4);
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_CASE(forces_setget) {
   Orbitals orb;
   BOOST_CHECK_EQUAL(orb.hasForces(), false);

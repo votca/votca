@@ -31,7 +31,7 @@ class RPA_UKS;
 
 class PPM {
  public:
-  PPM() : screening_r(0.0), screening_i(0.5) {};
+  PPM() : screening_r(0.0), screening_i(0.5){};
 
   void PPM_construct_parameters(const RPA& rpa);
   void PPM_construct_parameters(const RPA_UKS& rpa);
@@ -39,6 +39,9 @@ class PPM {
   const Eigen::VectorXd& getPpm_weight() const { return ppm_weight_; }
   const Eigen::VectorXd& getPpm_freq() const { return ppm_freq_; }
   const Eigen::MatrixXd& getPpm_phi() const { return ppm_phi_; }
+  /// Modes with weight > 0 whose fit gives a negative squared frequency
+  /// (their frequency is taken from the absolute value).
+  Index InvalidModes() const { return invalid_modes_; }
 
   void FreeMatrix() { ppm_phi_.resize(0, 0); }
 
@@ -49,6 +52,7 @@ class PPM {
   Eigen::MatrixXd ppm_phi_;
   Eigen::VectorXd ppm_freq_;
   Eigen::VectorXd ppm_weight_;
+  Index invalid_modes_ = 0;
 };
 
 }  // namespace xtp

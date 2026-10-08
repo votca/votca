@@ -46,7 +46,11 @@ std::string Sigma_PPM::ScreeningSummary() const {
   return "PPM modes with weight > 0: " + std::to_string((w > 0.0).count()) +
          " of " + std::to_string(w.size()) +
          " (> 1e-3: " + std::to_string((w > 1e-3).count()) +
-         ", > 1e-2: " + std::to_string((w > 1e-2).count()) + ")";
+         ", > 1e-2: " + std::to_string((w > 1e-2).count()) + ")" +
+         ((ppm_.InvalidModes() > 0)
+              ? "; WARNING: " + std::to_string(ppm_.InvalidModes()) +
+                    " with negative squared frequency (|.| used)"
+              : std::string());
 }
 
 // sum over modes P and levels n of

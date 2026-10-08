@@ -24,6 +24,7 @@
 // Standard includes
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <numeric>
 #include <stdexcept>
 #include <vector>
@@ -38,6 +39,32 @@
 
 namespace votca {
 namespace xtp {
+
+/// Scales each column pair of (X, Y) to X^T X - Y^T Y = 1. Columns whose
+/// norm is not positive (the zero vectors of unconverged roots, or a root of
+/// the wrong sign) are not scaled to nan: zero ones stay zero, negative ones
+/// are scaled with |X^T X - Y^T Y|. Returns the number of such columns.
+inline Index NormalizeExcitationVectors(Eigen::MatrixXd& X,
+                                        Eigen::MatrixXd& Y) {
+  Index problems = 0;
+  for (Index i = 0; i < X.cols(); ++i) {
+    const double norm = X.col(i).squaredNorm() - Y.col(i).squaredNorm();
+    const double scale = X.col(i).squaredNorm() + Y.col(i).squaredNorm();
+    if (norm > 1e-12 * scale && scale > 0.0) {
+      const double f = 1.0 / std::sqrt(norm);
+      X.col(i) *= f;
+      Y.col(i) *= f;
+      continue;
+    }
+    ++problems;
+    if (std::abs(norm) > 1e-12 * scale && scale > 0.0) {
+      const double f = 1.0 / std::sqrt(std::abs(norm));
+      X.col(i) *= f;
+      Y.col(i) *= f;
+    }
+  }
+  return problems;
+}
 
 /**
  * \brief Lowest roots of the full (non-TDA) BSE

@@ -44,9 +44,6 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
   static_assert(!(cd2 != 0 && cd != 0),
                 "Hamiltonian cannot contain Hd and Hd2 at the same time");
 
-  Index auxsize = Mmn_.auxsize();
-  vc2index vc = vc2index(0, 0, bse_ctotal_);
-
   Index vmin = opt_.vmin - opt_.rpamin;
   Index cmin = bse_cmin_ - opt_.rpamin;
 
@@ -58,50 +55,9 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
   if (direct_built_) {
     result = direct_ * input;
   } else if (cd != 0 || cd2 != 0) {
-    // screened direct terms, one Hamiltonian row per (v1,c1)
-    OpenMP_CUDA transform;
-    if (cd != 0) {
-      transform.createTemporaries(epsilon_0_inv_, input, bse_ctotal_,
-                                  bse_vtotal_, auxsize);
-    } else {
-      transform.createTemporaries(epsilon_0_inv_, input, bse_vtotal_,
-                                  bse_ctotal_, auxsize);
-    }
-
-#pragma omp parallel
-    {
-      Index threadid = OPENMP::getThreadId();
-#pragma omp for schedule(dynamic)
-      for (Index c1 = 0; c1 < bse_ctotal_; c1++) {
-
-        // Temp matrix has to stay in this scope, because transform only
-        // holds a reference to it
-        Eigen::MatrixXd Temp;
-        if (cd != 0) {
-          Temp = -cd * (Mmn_[c1 + cmin].middleRows(cmin, bse_ctotal_));
-          transform.PrepareMatrix1(Temp, threadid);
-        } else if (cd2 != 0) {
-          Temp = -cd2 * (Mmn_[c1 + cmin].middleRows(vmin, bse_vtotal_));
-          transform.PrepareMatrix1(Temp, threadid);
-        }
-
-        for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
-          transform.SetTempZero(threadid);
-          if (cd != 0) {
-            transform.PrepareMatrix2(
-                Mmn_[v1 + vmin].middleRows(vmin, bse_vtotal_), cd2 != 0,
-                threadid);
-          }
-          if (cd2 != 0) {
-            transform.PrepareMatrix2(
-                Mmn_[v1 + vmin].middleRows(cmin, bse_ctotal_), cd2 != 0,
-                threadid);
-          }
-          transform.MultiplyRow(vc.I(v1, c1), threadid);
-        }
-      }
-    }
-    result = transform.getReductionVar();
+    result = (row_kernel_ || OpenMP_CUDA::UsingGPUs() > 0)
+                 ? ApplyDirectRows(input)
+                 : ApplyDirectBlocks(input);
   } else {
     result = Eigen::MatrixXd::Zero(bse_size_, input.cols());
   }
@@ -114,6 +70,119 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
     const BSEWindow window{vmin, cmin, bse_vtotal_, bse_ctotal_};
     result += ApplyBSEExchange(Mmn_, window, Mmn_, window, input,
                                static_cast<double>(cx));
+  }
+  return result;
+}
+
+template <Index cqp, Index cx, Index cd, Index cd2>
+Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::ApplyDirectRows(
+    const Eigen::MatrixXd& input) const {
+  Index auxsize = Mmn_.auxsize();
+  vc2index vc = vc2index(0, 0, bse_ctotal_);
+  Index vmin = opt_.vmin - opt_.rpamin;
+  Index cmin = bse_cmin_ - opt_.rpamin;
+  // screened direct terms, one Hamiltonian row per (v1,c1)
+  OpenMP_CUDA transform;
+  if (cd != 0) {
+    transform.createTemporaries(epsilon_0_inv_, input, bse_ctotal_, bse_vtotal_,
+                                auxsize);
+  } else {
+    transform.createTemporaries(epsilon_0_inv_, input, bse_vtotal_, bse_ctotal_,
+                                auxsize);
+  }
+
+#pragma omp parallel
+  {
+    Index threadid = OPENMP::getThreadId();
+#pragma omp for schedule(dynamic)
+    for (Index c1 = 0; c1 < bse_ctotal_; c1++) {
+
+      // Temp matrix has to stay in this scope, because transform only
+      // holds a reference to it
+      Eigen::MatrixXd Temp;
+      if (cd != 0) {
+        Temp = -cd * (Mmn_[c1 + cmin].middleRows(cmin, bse_ctotal_));
+        transform.PrepareMatrix1(Temp, threadid);
+      } else if (cd2 != 0) {
+        Temp = -cd2 * (Mmn_[c1 + cmin].middleRows(vmin, bse_vtotal_));
+        transform.PrepareMatrix1(Temp, threadid);
+      }
+
+      for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
+        transform.SetTempZero(threadid);
+        if (cd != 0) {
+          transform.PrepareMatrix2(
+              Mmn_[v1 + vmin].middleRows(vmin, bse_vtotal_), cd2 != 0,
+              threadid);
+        }
+        if (cd2 != 0) {
+          transform.PrepareMatrix2(
+              Mmn_[v1 + vmin].middleRows(cmin, bse_ctotal_), cd2 != 0,
+              threadid);
+        }
+        transform.MultiplyRow(vc.I(v1, c1), threadid);
+      }
+    }
+  }
+  return transform.getReductionVar();
+}
+
+// The screened direct term in blocks of Hamiltonian rows,
+//   cd:  K(v1c1, v2c2) = -cd  sum_P M_{c1}(c2,P) w_P M_{v1}(v2,P)
+//   cd2: K(v1c1, v2c2) = -cd2 sum_P M_{c1}(v2,P) w_P M_{v1}(c2,P)
+// cd:  for each c1, the rows (v1, c1) of all v1 as one (n_v x N) matrix
+//      R = stacked_vv * S^T, S = -cd M_{c1}(c,:) diag(w);
+// cd2: for each v1, the rows (v1, c1) of all c1 as one (n_c x N) matrix
+//      R = stacked_cv * S^T, S = -cd2 M_{v1}(c,:) diag(w).
+// R comes out row-major in the order of the BSE vectors and multiplies all
+// input vectors at once: the same flops as the row kernel, but in large
+// products, and the input is read once per block.
+template <Index cqp, Index cx, Index cd, Index cd2>
+Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::ApplyDirectBlocks(
+    const Eigen::MatrixXd& input) const {
+  using RowMajorMatrix =
+      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+  const Index vmin = opt_.vmin - opt_.rpamin;
+  const Index cmin = bse_cmin_ - opt_.rpamin;
+  const Index nv = bse_vtotal_;
+  const Index nc = bse_ctotal_;
+  const Index aux = Mmn_.auxsize();
+  const double prefactor = -double((cd != 0) ? cd : cd2);
+
+  // cd: the vv blocks of the occupied slices, row v1*n_v + v2;
+  // cd2: the cv blocks of the virtual slices, row c1*n_v + v2
+  const Index nblocks = (cd != 0) ? nc : nv;
+  const Index blockrows = (cd != 0) ? nv : nc;
+  if (stacked_.size() == 0) {
+    const Index nslice = (cd != 0) ? nv : nc;
+    const Index first_slice = (cd != 0) ? vmin : cmin;
+    stacked_.resize(nslice * nv, aux);
+#pragma omp parallel for
+    for (Index m = 0; m < nslice; m++) {
+      stacked_.middleRows(m * nv, nv) =
+          Mmn_[m + first_slice].middleRows(vmin, nv);
+    }
+  }
+
+  Eigen::MatrixXd result(bse_size_, input.cols());
+  Eigen::MatrixXd S(stacked_.rows() / blockrows, aux);
+  RowMajorMatrix T(stacked_.rows(), S.rows());
+  Eigen::MatrixXd out(blockrows, input.cols());
+  for (Index b = 0; b < nblocks; b++) {
+    // cd: b = c1, S = M_{c1}(c,:); cd2: b = v1, S = M_{v1}(c,:)
+    const Index slice = (cd != 0) ? b + cmin : b + vmin;
+    S.noalias() = prefactor * Mmn_[slice].middleRows(cmin, nc) *
+                  epsilon_0_inv_.asDiagonal();
+    T.noalias() = stacked_ * S.transpose();
+    const Eigen::Map<const RowMajorMatrix> R(T.data(), blockrows, bse_size_);
+    out.noalias() = R * input;
+    if (cd != 0) {
+      for (Index v1 = 0; v1 < nv; v1++) {
+        result.row(v1 * nc + b) = out.row(v1);
+      }
+    } else {
+      result.middleRows(b * nc, nc) = out;
+    }
   }
   return result;
 }

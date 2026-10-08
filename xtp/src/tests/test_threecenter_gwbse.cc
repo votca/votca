@@ -228,4 +228,42 @@ BOOST_AUTO_TEST_CASE(leading_rotation_touches_only_the_leading_block) {
   libint2::finalize();
 }
 
+// Rotating the orbitals of a window is the same as filling the integrals
+// with the rotated MO coefficients, for slices and rows in and outside the
+// window.
+BOOST_AUTO_TEST_CASE(rotate_orbitals_equals_fill_with_rotated_mos) {
+  libint2::initialize();
+  QMMolecule mol(" ", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/threecenter_gwbse/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) +
+             "/threecenter_gwbse/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, mol);
+  Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/MOs.mm");
+
+  const votca::Index first = 1;
+  const votca::Index last = 4;
+  const votca::Index window = last - first + 1;
+  std::srand(7);
+  const Eigen::MatrixXd U =
+      Eigen::MatrixXd::Random(window, window).householderQr().householderQ();
+  Eigen::MatrixXd MOs_rotated = MOs;
+  MOs_rotated.middleCols(first, window) = MOs.middleCols(first, window) * U;
+
+  TCMatrix_gwbse tc;
+  tc.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7);
+  tc.Fill(aobasis, aobasis, MOs);
+  tc.RotateOrbitals(U, first, last);
+  TCMatrix_gwbse ref;
+  ref.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7);
+  ref.Fill(aobasis, aobasis, MOs_rotated);
+  for (votca::Index m = 0; m < tc.msize(); ++m) {
+    BOOST_CHECK_LE((tc[m] - ref[m]).cwiseAbs().maxCoeff(), 1e-12);
+  }
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

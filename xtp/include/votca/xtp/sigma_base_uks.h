@@ -60,6 +60,8 @@ class Sigma_base_UKS {
       const Eigen::VectorXd& frequencies) const;
 
   virtual void PrepareScreening() = 0;
+  /// False if CalcCorrelationOffDiag only returns zeros (CDA).
+  virtual bool HasOffDiagonal() const { return true; }
   virtual double CalcCorrelationDiagElementDerivative(
       Index gw_level, double frequency) const = 0;
   virtual double CalcCorrelationDiagElement(Index gw_level,

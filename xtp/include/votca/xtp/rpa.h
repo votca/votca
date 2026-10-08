@@ -27,6 +27,7 @@
 // Local VOTCA includes
 #include "eigen.h"
 #include "logger.h"
+#include "out_of_window_shift.h"
 #include "screening_kernels.h"
 
 namespace votca {
@@ -45,6 +46,11 @@ class RPA {
 
   double getEta() const { return eta_; }
 
+  /// How levels outside the GW window are shifted by UpdateRPAInputEnergies.
+  void setOutOfWindowShift(const OutOfWindowShift& shift) {
+    out_of_window_ = shift;
+  }
+
   /// Times the dielectric-matrix builds in these timings (optional).
   void setTimings(DFTTimings* timings) { timings_ = timings; }
 
@@ -59,15 +65,6 @@ class RPA {
   Eigen::MatrixXd calculate_epsilon_r(std::complex<double> frequency) const;
 
   const Eigen::VectorXd& getRPAInputEnergies() const { return energies_; }
-
-  // QSGW: provide the rotation matrix so that calculate_epsilon and
-  // Calculate_H2p_ApB can apply the m-rotation to QP-window hole slices.
-  // Call with nullptr to disable (default behaviour for G0W0/evGW).
-  void setQSGWRotation(const Eigen::MatrixXd* U, Index qpmin, Index homo) {
-    qsgw_U_ = U;
-    qsgw_qpmin_ = qpmin;
-    qsgw_homo_ = homo;
-  }
 
   void setRPAInputEnergies(const Eigen::VectorXd& rpaenergies) {
     energies_ = rpaenergies;
@@ -93,19 +90,13 @@ class RPA {
   Index rpamax_;
   const double eta_ = 0.0001;
 
-  // QSGW m-rotation (nullptr = disabled, i.e. G0W0/evGW)
-  const Eigen::MatrixXd* qsgw_U_ = nullptr;
-  Index qsgw_qpmin_ = 0;
-  Index qsgw_homo_ = 0;
-
   Eigen::VectorXd energies_;
 
   Logger& log_;
   const TCMatrix_gwbse& Mmn_;
   DFTTimings* timings_ = nullptr;
 
-  // Calls use() with the virtual rows of hole slice m_level (rotated to the
-  // QP orbitals for QSGW).
+  // Calls use() with the virtual rows of hole slice m_level.
   void VisitHoleVirtualRows(Index m_level,
                             const WeightedGram::RowsVisitor& use) const;
   // sum_v M_v^T diag(w_v) M_v over the hole slices v, M_v their virtual rows
@@ -121,8 +112,7 @@ class RPA {
   void ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies, Index qpmin,
                                 Index gwsize);
 
-  double getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
-                          Index max) const;
+  OutOfWindowShift out_of_window_;
 };
 
 }  // namespace xtp

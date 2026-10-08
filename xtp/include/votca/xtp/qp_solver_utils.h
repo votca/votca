@@ -121,6 +121,11 @@ struct SolverOptions {
 
   double min_accepted_Z = 0.05;
   double max_accepted_Z = 1.5;
+
+  // Among accepted roots take the one closest to the reference frequency
+  // (the previous iteration's solution) instead of the largest weight; set
+  // for evGW iterations after the first with gw.qp_root_continuity.
+  bool prefer_nearest_root = false;
 };
 
 // Legacy mapping helpers preserve the old qp_grid_steps / qp_grid_spacing
@@ -363,6 +368,60 @@ inline bool AcceptRoot(const RootCandidate& cand, const SolverOptions& opt) {
 
 inline double ScoreRoot(const RootCandidate& cand) {
   return cand.Z - 0.1 * cand.distance_to_ref;
+}
+
+/// The accepted root to use: the largest weight (ScoreRoot), or with
+/// prefer_nearest_root the one closest to the reference. roots not empty.
+inline const RootCandidate& SelectRoot(const std::vector<RootCandidate>& roots,
+                                       const SolverOptions& opt) {
+  if (opt.prefer_nearest_root) {
+    return *std::min_element(
+        roots.begin(), roots.end(),
+        [](const RootCandidate& a, const RootCandidate& b) {
+          return a.distance_to_ref < b.distance_to_ref;
+        });
+  }
+  return *std::max_element(roots.begin(), roots.end(),
+                           [](const RootCandidate& a, const RootCandidate& b) {
+                             return ScoreRoot(a) < ScoreRoot(b);
+                           });
+}
+
+/// Two accepted roots carry comparable weight when the second largest Z is
+/// at least half the largest: the QP picture of the level is ambiguous and
+/// the choice between them sensitive to small changes.
+struct CompetingRoots {
+  bool competing = false;
+  double omega = 0.0;  // chosen root
+  double Z = 0.0;
+  double omega_alt = 0.0;  // the largest-weight other root
+  double Z_alt = 0.0;
+};
+
+inline CompetingRoots CheckCompetingRoots(
+    const std::vector<RootCandidate>& roots, double chosen) {
+  CompetingRoots result;
+  if (roots.size() < 2) {
+    return result;
+  }
+  std::vector<RootCandidate> sorted = roots;
+  std::sort(
+      sorted.begin(), sorted.end(),
+      [](const RootCandidate& a, const RootCandidate& b) { return a.Z > b.Z; });
+  if (sorted[1].Z < 0.5 * sorted[0].Z) {
+    return result;
+  }
+  result.competing = true;
+  for (const RootCandidate& r : sorted) {
+    if (r.omega == chosen) {
+      result.omega = r.omega;
+      result.Z = r.Z;
+    } else if (result.Z_alt == 0.0) {
+      result.omega_alt = r.omega;
+      result.Z_alt = r.Z;
+    }
+  }
+  return result;
 }
 
 template <typename QPFunc>
@@ -685,11 +744,7 @@ boost::optional<double> SolveQP_Grid_Windowed(
   // only succeed on accepted roots; otherwise it escalates to a full dense
   // scan.
   if (!accepted_roots.empty()) {
-    auto best =
-        std::max_element(accepted_roots.begin(), accepted_roots.end(),
-                         [](const RootCandidate& a, const RootCandidate& b) {
-                           return ScoreRoot(a) < ScoreRoot(b);
-                         });
+    const RootCandidate* best = &SelectRoot(accepted_roots, opt);
 
     local_diag.chosen_shell = static_cast<int>(
         std::llround(std::abs(best->omega - center) / shell_width));

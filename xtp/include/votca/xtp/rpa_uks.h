@@ -26,6 +26,7 @@
 
 #include "eigen.h"
 #include "logger.h"
+#include "out_of_window_shift.h"
 #include "screening_kernels.h"
 #include "votca/xtp/threecenter.h"
 
@@ -89,6 +90,11 @@ class RPA_UKS {
    * This keeps the interface close to the restricted implementation while still
    * allowing different alpha and beta occupations.
    */
+  /// How levels outside the GW window are shifted by UpdateRPAInputEnergies.
+  void setOutOfWindowShift(const OutOfWindowShift& shift) {
+    out_of_window_ = shift;
+  }
+
   void configure(Index homo_alpha, Index homo_beta, Index rpamin,
                  Index rpamax) {
     homo_alpha_ = homo_alpha;
@@ -319,21 +325,15 @@ class RPA_UKS {
   /**
    * \brief Shift uncorrected states outside the GW window.
    *
-   * Occupied states below qpmin are shifted by the largest occupied correction
-   * found within the GW window, and virtual states above qpmax are shifted by
-   * the largest virtual correction. This is done independently for each spin
-   * channel.
+   * Occupied states below qpmin and virtual states above qpmax are shifted
+   * as set by setOutOfWindowShift (OutOfWindowShift), independently for each
+   * spin channel.
    */
   void ShiftUncorrectedEnergies(Eigen::VectorXd& energies,
                                 const Eigen::VectorXd& dftenergies, Index homo,
                                 Index qpmin, Index gwsize);
 
-  /**
-   * \brief Return the largest absolute GW correction in a given index range.
-   */
-  double getMaxCorrection(const Eigen::VectorXd& energies,
-                          const Eigen::VectorXd& dftenergies, Index min,
-                          Index max) const;
+  OutOfWindowShift out_of_window_;
 
   // Spin-resolved HOMO indices in the full orbital numbering
   Index homo_alpha_;

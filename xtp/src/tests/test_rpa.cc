@@ -139,54 +139,6 @@ BOOST_AUTO_TEST_CASE(rpa_full) {
   libint2::finalize();
 }
 
-BOOST_AUTO_TEST_CASE(rpa_qsgw_rotation) {
-  // Test the QSGW m-rotation code path in rpa.cc (Calculate_H2p_ApB).
-  // With U = Identity the dielectric matrix must match the non-QSGW result.
-  libint2::initialize();
-  Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/rpa/molecule.xyz");
-  BasisSet basis;
-  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/rpa/3-21G.xml");
-  AOBasis aobasis;
-  aobasis.Fill(basis, orbitals.QMAtoms());
-
-  Eigen::VectorXd eigenvals = votca::tools::EigenIO_MatrixMarket::ReadVector(
-      std::string(XTP_TEST_DATA_FOLDER) + "/rpa/eigenvals.mm");
-  Eigen::MatrixXd eigenvectors = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/rpa/eigenvectors.mm");
-
-  Logger log;
-  TCMatrix_gwbse Mmn;
-  Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
-  Mmn.Fill(aobasis, aobasis, eigenvectors);
-
-  RPA rpa(log, Mmn);
-  rpa.configure(4, 0, 16);
-  rpa.setRPAInputEnergies(eigenvals);
-
-  // Reference: compute epsilon_i without QSGW rotation
-  Eigen::MatrixXd e_i_ref = rpa.calculate_epsilon_i(0.5);
-
-  // Set QSGW rotation to identity -- exercises the m-rotation branch in
-  // rpa.cc (Calculate_H2p_ApB lines 302-309) while giving the same result.
-  Eigen::MatrixXd U = Eigen::MatrixXd::Identity(17, 17);
-  rpa.setQSGWRotation(&U, 0, 4);
-
-  Eigen::MatrixXd e_i_qsgw = rpa.calculate_epsilon_i(0.5);
-
-  rpa.setQSGWRotation(nullptr, 0, 0);
-
-  bool check = e_i_ref.isApprox(e_i_qsgw, 1e-5);
-  if (!check) {
-    cout << "epsilon_i with identity QSGW rotation differs from reference"
-         << endl;
-    cout << "Max diff: " << (e_i_qsgw - e_i_ref).cwiseAbs().maxCoeff() << endl;
-  }
-  BOOST_CHECK_EQUAL(check, true);
-
-  libint2::finalize();
-}
 // With rpamin > 0 the RPA energies are stored from rpamin on, while qpmin and
 // homo are absolute level numbers.
 BOOST_AUTO_TEST_CASE(rpa_calcenergies_with_rpamin) {
@@ -206,6 +158,64 @@ BOOST_AUTO_TEST_CASE(rpa_calcenergies_with_rpamin) {
   BOOST_CHECK_SMALL(
       (rpa.getRPAInputEnergies() - rpaenergies_ref).cwiseAbs().maxCoeff(),
       1e-12);
+}
+
+// Levels outside the GW window: nearest takes the boundary correction,
+// linear fits the corrections next to the boundary and extrapolates over at
+// most the fitted span.
+BOOST_AUTO_TEST_CASE(out_of_window_shift_modes) {
+  // levels 0..11, homo 5, GW window 2..9, RPA 0..11
+  Eigen::VectorXd dft = Eigen::VectorXd::LinSpaced(12, -1.1, 1.1);
+  const Index homo = 5;
+  const Index qpmin = 2;
+  const Index qpmax = 9;
+  // corrections linear in the DFT energy, separately occupied and virtual
+  auto occ = [](double e) { return -0.1 + 0.2 * (e + 0.7); };
+  auto virt = [](double e) { return 0.2 + 0.3 * (e - 0.7); };
+  Eigen::VectorXd gw(qpmax - qpmin + 1);
+  for (Index l = qpmin; l <= qpmax; ++l) {
+    gw(l - qpmin) = dft(l) + ((l <= homo) ? occ(dft(l)) : virt(dft(l)));
+  }
+  auto run = [&](OutOfWindowShift::Mode mode, double fraction) {
+    Logger log;
+    TCMatrix_gwbse Mmn;
+    RPA rpa(log, Mmn);
+    rpa.configure(homo, 0, 11);
+    OutOfWindowShift shift;
+    shift.mode = mode;
+    shift.fit_fraction = fraction;
+    rpa.setOutOfWindowShift(shift);
+    rpa.UpdateRPAInputEnergies(dft, gw, qpmin);
+    return Eigen::VectorXd(rpa.getRPAInputEnergies() - dft);
+  };
+  const double h = dft(1) - dft(0);
+
+  const Eigen::VectorXd nearest = run(OutOfWindowShift::Mode::Nearest, 0.3);
+  BOOST_CHECK_CLOSE(nearest(0), occ(dft(2)), 1e-10);
+  BOOST_CHECK_CLOSE(nearest(1), occ(dft(2)), 1e-10);
+  BOOST_CHECK_CLOSE(nearest(10), virt(dft(9)), 1e-10);
+  BOOST_CHECK_CLOSE(nearest(11), virt(dft(9)), 1e-10);
+
+  // fit over 2 levels per side (span h): level 1 and 10 on the line, levels
+  // 0 and 11 held at one span beyond the boundary
+  const Eigen::VectorXd linear = run(OutOfWindowShift::Mode::Linear, 0.3);
+  BOOST_CHECK_CLOSE(linear(1), occ(dft(1)), 1e-8);
+  BOOST_CHECK_CLOSE(linear(0), occ(dft(2) - h), 1e-8);
+  BOOST_CHECK_CLOSE(linear(10), virt(dft(10)), 1e-8);
+  BOOST_CHECK_CLOSE(linear(11), virt(dft(9) + h), 1e-8);
+  // fit over all window levels (span 3h): both levels on the line
+  const Eigen::VectorXd linear_all = run(OutOfWindowShift::Mode::Linear, 1.0);
+  BOOST_CHECK_CLOSE(linear_all(0), occ(dft(0)), 1e-8);
+  BOOST_CHECK_CLOSE(linear_all(11), virt(dft(11)), 1e-8);
+
+  // max: largest |correction| per side, downwards / upwards
+  const Eigen::VectorXd max = run(OutOfWindowShift::Mode::Max, 0.3);
+  BOOST_CHECK_CLOSE(max(0), -std::abs(occ(dft(2))), 1e-10);
+  BOOST_CHECK_CLOSE(max(11), virt(dft(9)), 1e-10);
+  // window levels untouched
+  for (Index l = qpmin; l <= qpmax; ++l) {
+    BOOST_CHECK_CLOSE(linear(l), gw(l - qpmin) - dft(l), 1e-10);
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

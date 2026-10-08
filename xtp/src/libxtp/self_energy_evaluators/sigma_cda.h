@@ -60,11 +60,12 @@ class Sigma_CDA : public Sigma_base {
     double minus = CalcCorrelationDiagElement(gw_level, frequency - h);
     return (plus - minus) / (2 * h);
   }
-  // Calculates Sigma_c off-diagonal elements
+  // Off-diagonal elements are not implemented for CDA: zero
   double CalcCorrelationOffDiagElement(Index, Index, double,
                                        double) const final {
     return 0;
   }
+  bool HasOffDiagonal() const final { return false; }
 
  private:
   // Theta-function weight of a residue

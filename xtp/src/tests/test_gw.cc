@@ -20,6 +20,7 @@
 
 // Standard includes
 #include <fstream>
+#include <sstream>
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
@@ -687,6 +688,147 @@ BOOST_AUTO_TEST_CASE(exchange_is_bare_on_dressed_integrals) {
   BOOST_CHECK(!system.Mmn.AuxFrameIsOrthogonal());
   BOOST_CHECK_SMALL(
       (sigma->CalcExchangeMatrix() - sx_bare).cwiseAbs().maxCoeff(), 1e-11);
+  libint2::finalize();
+}
+
+// With mixing, the evGW energies must solve the QP equation with the
+// screening of the last iteration, E = e_DFT + Sigma_x - V_xc + Sigma_c(E),
+// not be Sigma_c at the mixed energies. Two iterations: the screening of the
+// second is built from the G0W0 energies.
+BOOST_AUTO_TEST_CASE(evgw_energies_solve_their_qp_equation) {
+  if (!libint2::initialized()) libint2::initialize();
+  GW::options opt = MakeGWTestOptions();
+  opt.gw_mixing_order = 20;
+  opt.gw_mixing_alpha = 0.5;
+  opt.g_sc_limit = 1e-8;
+
+  GWTestSystem g0w0_system("mo_eigenvectors.mm", "vxc.mm");
+  const Eigen::VectorXd e_g0w0 = RunGWPerturbation(g0w0_system, opt);
+  opt.gw_sc_max_iterations = 2;
+  GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+  const Eigen::VectorXd E = RunGWPerturbation(system, opt);
+
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  QMMolecule mol("methane", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/gw/molecule.xyz");
+  AOBasis aobasis;
+  aobasis.Fill(basis, mol);
+  TCMatrix_gwbse M;
+  M.Initialize(aobasis.AOBasisSize(), opt.rpamin, opt.rpamax, opt.rpamin,
+               opt.rpamax);
+  M.Fill(aobasis, aobasis, system.mo_eigenvectors);
+  Logger log;
+  RPA rpa(log, M);
+  rpa.configure(opt.homo, opt.rpamin, opt.rpamax);
+  rpa.UpdateRPAInputEnergies(system.mo_eigenvalues, e_g0w0, opt.qpmin);
+  std::unique_ptr<Sigma_base> sigma =
+      SigmaFactory().Create(opt.sigma_integration, M, rpa);
+  Sigma_base::options sopt;
+  sopt.homo = opt.homo;
+  sopt.qpmin = opt.qpmin;
+  sopt.qpmax = opt.qpmax;
+  sopt.rpamin = opt.rpamin;
+  sopt.rpamax = opt.rpamax;
+  sopt.eta = opt.eta;
+  sigma->configure(sopt);
+  const Eigen::VectorXd sigma_x = sigma->CalcExchangeMatrix().diagonal();
+  sigma->PrepareScreening();
+  const Eigen::VectorXd residual =
+      system.mo_eigenvalues.head(E.size()) + sigma_x -
+      system.vxc.diagonal().head(E.size()) + sigma->CalcCorrelationDiag(E) - E;
+  BOOST_TEST_MESSAGE("evGW QP equation residual "
+                     << residual.cwiseAbs().maxCoeff());
+  BOOST_CHECK_SMALL(residual.cwiseAbs().maxCoeff(), 1e-6);
+  libint2::finalize();
+}
+
+// The QSGW fixed point, checked from scratch in the converged QP basis
+// phi = psi U: with the integrals refilled for those orbitals and the QP
+// energies E in the RPA, H = U^T H0 U + Sigma_x + 1/2 [Sigma_c(E_i) +
+// Sigma_c(E_j)] must be diagonal with eigenvalues E. qpmin > rpamin, so the
+// core level is in the screening but not in the QP window.
+namespace {
+double QSGWFixedPointResidual(const std::string& sigma_integration) {
+  GW::options opt = MakeGWTestOptions();
+  opt.sigma_integration = sigma_integration;
+  opt.do_qsgw = true;
+  opt.qsgw_max_iterations = 40;
+  opt.qsgw_sc_limit = 1e-9;
+  opt.gw_mixing_order = 20;
+  opt.gw_mixing_alpha = 0.7;
+  opt.qpmin = 1;
+  opt.qpmax = 13;
+  opt.qsgw_max_virt_correction = 10.0;  // no trimming
+  const votca::Index qptotal = opt.qpmax - opt.qpmin + 1;
+
+  GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+  const Eigen::MatrixXd vxc_gw =
+      system.vxc.block(opt.qpmin, opt.qpmin, qptotal, qptotal);
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  QMMolecule mol("methane", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/gw/molecule.xyz");
+  AOBasis aobasis;
+  aobasis.Fill(basis, mol);
+
+  GW gw(system.log, system.Mmn, vxc_gw, system.mo_eigenvalues);
+  gw.configure(opt);
+  gw.CalculateGWPerturbation();
+  system.Mmn.Fill(aobasis, aobasis, system.mo_eigenvectors);
+  gw.CalculateQSGW();
+  const Eigen::VectorXd E = gw.getGWAResults();
+  const Eigen::MatrixXd U = gw.getQSGWRotation();
+  {
+    std::stringstream log_text;
+    log_text << system.log;
+    const std::string text = log_text.str();
+    const std::size_t pos = text.find("QSGW converged in");
+    BOOST_REQUIRE(pos != std::string::npos);
+    BOOST_TEST_MESSAGE(sigma_integration
+                       << ": " << text.substr(pos, text.find('\n', pos) - pos));
+  }
+
+  Eigen::MatrixXd C_qp = system.mo_eigenvectors;
+  C_qp.middleCols(opt.qpmin, qptotal) =
+      system.mo_eigenvectors.middleCols(opt.qpmin, qptotal) * U;
+  TCMatrix_gwbse M;
+  M.Initialize(aobasis.AOBasisSize(), opt.rpamin, opt.rpamax, opt.rpamin,
+               opt.rpamax);
+  M.Fill(aobasis, aobasis, C_qp);
+  Logger log;
+  RPA rpa(log, M);
+  rpa.configure(opt.homo, opt.rpamin, opt.rpamax);
+  rpa.UpdateRPAInputEnergies(system.mo_eigenvalues, E, opt.qpmin);
+  std::unique_ptr<Sigma_base> sigma =
+      SigmaFactory().Create(opt.sigma_integration, M, rpa);
+  Sigma_base::options sopt;
+  sopt.homo = opt.homo;
+  sopt.qpmin = opt.qpmin;
+  sopt.qpmax = opt.qpmax;
+  sopt.rpamin = opt.rpamin;
+  sopt.rpamax = opt.rpamax;
+  sopt.eta = opt.eta;
+  sigma->configure(sopt);
+  sigma->PrepareScreening();
+  Eigen::MatrixXd H0 = -vxc_gw;
+  H0.diagonal() += system.mo_eigenvalues.segment(opt.qpmin, qptotal);
+  Eigen::MatrixXd H = U.transpose() * H0 * U + sigma->CalcExchangeMatrix() +
+                      sigma->CalcCorrelationOffDiag(E);
+  H.diagonal() += sigma->CalcCorrelationDiag(E);
+  H.diagonal() -= E;
+  return H.cwiseAbs().maxCoeff();
+}
+}  // namespace
+
+BOOST_AUTO_TEST_CASE(qsgw_fixed_point_in_qp_basis) {
+  if (!libint2::initialized()) libint2::initialize();
+  for (const std::string sigma : {"ppm", "exact"}) {
+    const double residual = QSGWFixedPointResidual(sigma);
+    BOOST_TEST_MESSAGE("QSGW fixed-point residual (" << sigma
+                                                     << "): " << residual);
+    BOOST_CHECK_SMALL(residual, 1e-6);
+  }
   libint2::finalize();
 }
 

@@ -451,4 +451,52 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_complex_ritz_pairs) {
   }
 }
 
+// All diagonal elements equal: the first Ritz values hit them exactly, so
+// the DPR denominators D - lambda vanish. They are floored, not inf/nan.
+BOOST_AUTO_TEST_CASE(davidson_degenerate_diagonal) {
+  const Index size = 60;
+  const Index neigen = 4;
+  Eigen::MatrixXd A = init_matrix(size, 0.05);
+  A.diagonal().setOnes();
+  Logger log;
+  DavidsonSolver DS(log);
+  DS.set_tolerance("strict");
+  DS.set_max_search_space(size);
+  DS.set_iter_max(100);
+  DS.solve(A, neigen);
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+  BOOST_CHECK(DS.eigenvalues().allFinite());
+  BOOST_CHECK_SMALL(
+      (DS.eigenvalues() - es.eigenvalues().head(neigen)).cwiseAbs().maxCoeff(),
+      1e-8);
+}
+
+// Linearly dependent columns of an initial guess are dropped, not fatal, as
+// long as neigen independent ones remain.
+BOOST_AUTO_TEST_CASE(davidson_dependent_initial_guess) {
+  const Index size = 60;
+  const Index neigen = 4;
+  const Eigen::MatrixXd A = init_matrix(size, 0.01);
+  Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(size, 2 * neigen);
+  for (Index j = 0; j < neigen; ++j) {
+    guess(j, 2 * j) = 1.0;
+    guess(j, 2 * j + 1) = 2.0;  // the same direction again
+  }
+  Logger log;
+  DavidsonSolver DS(log);
+  DS.solve(A, neigen, guess);
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+  BOOST_CHECK_SMALL(
+      (DS.eigenvalues() - es.eigenvalues().head(neigen)).cwiseAbs().maxCoeff(),
+      1e-5);
+
+  Eigen::MatrixXd too_few = Eigen::MatrixXd::Zero(size, neigen);
+  too_few.col(0)(0) = 1.0;
+  too_few.col(1)(0) = 1.0;
+  too_few.col(2)(1) = 1.0;
+  too_few.col(3)(2) = 1.0;
+  DavidsonSolver DS2(log);
+  BOOST_CHECK_THROW(DS2.solve(A, neigen, too_few), std::runtime_error);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

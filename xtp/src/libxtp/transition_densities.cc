@@ -64,15 +64,12 @@ void TransitionDensities::configure() {
   bse_vtotal_ = bse_vmax_ - bse_vmin_ + 1;
   bse_ctotal_ = bse_cmax_ - bse_cmin_ + 1;
 
-  occlevels1_ = orbitals1_.MOs().eigenvectors().block(0, bse_vmin_, basissize_,
-                                                      bse_vtotal_);
-  virtlevels1_ = orbitals1_.MOs().eigenvectors().block(0, bse_cmin_, basissize_,
-                                                       bse_ctotal_);
-
-  occlevels2_ = orbitals2_.MOs().eigenvectors().block(0, bse_vmin_, basissize_,
-                                                      bse_vtotal_);
-  virtlevels2_ = orbitals2_.MOs().eigenvectors().block(0, bse_cmin_, basissize_,
-                                                       bse_ctotal_);
+  const Eigen::MatrixXd mos1 = orbitals1_.BSEOrbitals();
+  const Eigen::MatrixXd mos2 = orbitals2_.BSEOrbitals();
+  occlevels1_ = mos1.block(0, bse_vmin_, basissize_, bse_vtotal_);
+  virtlevels1_ = mos1.block(0, bse_cmin_, basissize_, bse_ctotal_);
+  occlevels2_ = mos2.block(0, bse_vmin_, basissize_, bse_vtotal_);
+  virtlevels2_ = mos2.block(0, bse_cmin_, basissize_, bse_ctotal_);
 }
 
 Eigen::MatrixXd TransitionDensities::Matrix(QMState state1, QMState state2) {

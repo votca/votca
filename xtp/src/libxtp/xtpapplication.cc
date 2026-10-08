@@ -32,6 +32,7 @@
 // Local VOTCA includes
 #include "votca/tools/property.h"
 #include "votca/tools/tokenizer.h"
+#include "votca/xtp/memorybudget.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/version.h"
 #include "votca/xtp/xtpapplication.h"
@@ -57,6 +58,10 @@ void XtpApplication::Initialize(void) {
 
   AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
                       "  number of threads to create");
+  AddProgramOptions()(
+      "memory,M", propt::value<double>()->default_value(0.0),
+      "  memory in GB for the whole process, used to choose caches and batch "
+      "sizes (shared equally by concurrent jobs; 0: built-in defaults)");
 
   AddProgramOptions()(
       "execute,e", propt::value<std::string>(),
@@ -86,6 +91,7 @@ void XtpApplication::Initialize(void) {
 }
 
 bool XtpApplication::EvaluateOptions() {
+  MemoryBudget::Set(OptionsMap()["memory"].as<double>());
 
   if (OptionsMap().count("list")) {
     std::cout << "Available XTP" + CalculatorType() + "s: \n";

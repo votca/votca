@@ -223,44 +223,46 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
   return;
 }
 
-// =============================================================================
-// TCMatrix_gwbse::Rotate
-//
-// Rotates only the n-index (inner rows) of ALL m-slices for the QP window.
-//
-// In QSGW the self-energy matrix element indices (outer m) stay in the
-// DFT-MO basis. Only the construction sum indices (inner n-rows) need to be
-// in the QP wavefunction basis. This method applies:
-//
-//   new_M[m].middleRows(qp_offset_n, qptotal) =
-//       U^T * old_M[m].middleRows(qp_offset_n, qptotal)
-//
-// for ALL m-slices in the full RPA range (because every sigma calculation
-// uses every m-slice as a matrix element index and needs updated n-rows).
-// Rows outside the QP window remain as DFT-MOs.
-// =============================================================================
-void TCMatrix_gwbse::Rotate(const Eigen::MatrixXd& U, Index qpmin,
-                            Index qpmax) {
-  const Index qptotal = qpmax - qpmin + 1;
-  const Index qp_offset_n = qpmin - nmin_;  // row offset in n-storage
-  const Index qp_offset_m = qpmin - mmin_;  // slice offset in m-storage
+void TCMatrix_gwbse::RotateOrbitals(const Eigen::MatrixXd& U, Index first,
+                                    Index last) {
+  const Index window = last - first + 1;
+  assert(first >= nmin_ && last <= nmax_);
+  assert(first >= mmin_ && last <= mmax_);
+  assert(U.rows() == window && U.cols() == window);
+  const Index row0 = first - nmin_;
+  const Index slice0 = first - mmin_;
+  const Index rows = matrix_.empty() ? 0 : Index(matrix_[0].rows());
+  const Index aux = matrix_.empty() ? 0 : Index(matrix_[0].cols());
 
-  assert(qpmin >= nmin_ && qpmax <= nmax_);
-  assert(qpmin >= mmin_ && qpmax <= mmax_);
-  assert(U.rows() == qptotal && U.cols() == qptotal);
-
-  // Rotate the n-rows of ONLY the QP-window m-slices [qpmin, qpmax].
-  // Slices outside this range (e.g. core levels below qpmin, or high virtuals
-  // above qpmax) are always DFT-MOs and must NOT be touched -- they are not
-  // saved/restored by Mmn_orig in gw.cc and would accumulate drift if rotated.
-  // Only the QP-window n-row block [qp_offset_n, qp_offset_n+qptotal) is
-  // rotated; rows outside remain as DFT-MOs (consistent with evGW treatment).
-  // new_rows = U^T * old_rows
+  // second index, every slice
+  const Eigen::MatrixXd Ut = U.transpose();
 #pragma omp parallel for schedule(dynamic)
-  for (Index m = 0; m < qptotal; m++) {
-    matrix_[m + qp_offset_m].middleRows(qp_offset_n, qptotal) =
-        U.transpose() *
-        matrix_[m + qp_offset_m].middleRows(qp_offset_n, qptotal);
+  for (Index m = 0; m < Index(matrix_.size()); m++) {
+    auto block = matrix_[m].middleRows(row0, window);
+    block = Ut * block;
+  }
+
+  // first index: the slices of the window as columns of one matrix, in
+  // chunks of auxiliary columns (contiguous in each slice) of about 64 MB
+  const Index chunk = std::max<Index>(
+      1, std::min<Index>(aux, Index(8e6 / double(rows * window + 1))));
+  Eigen::MatrixXd X;
+  Eigen::MatrixXd Y;
+  for (Index c0 = 0; c0 < aux; c0 += chunk) {
+    const Index nc = std::min(chunk, aux - c0);
+    const Index len = rows * nc;
+    X.resize(len, window);
+#pragma omp parallel for
+    for (Index k = 0; k < window; k++) {
+      X.col(k) = Eigen::Map<const Eigen::VectorXd>(
+          matrix_[slice0 + k].col(c0).data(), len);
+    }
+    Y.noalias() = X * U;
+#pragma omp parallel for
+    for (Index i = 0; i < window; i++) {
+      Eigen::Map<Eigen::VectorXd>(matrix_[slice0 + i].col(c0).data(), len) =
+          Y.col(i);
+    }
   }
 }
 

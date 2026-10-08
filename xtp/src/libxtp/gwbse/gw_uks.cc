@@ -43,6 +43,7 @@ void GW_UKS::configure(const options& opt) {
   qp_solver::NormalizeGridSearchOptions(opt_);
   qptotal_ = opt_.qpmax - opt_.qpmin + 1;
   rpa_.configure(opt_.homo_alpha, opt_.homo_beta, opt_.rpamin, opt_.rpamax);
+  rpa_.setOutOfWindowShift(opt_.out_of_window_shift);
 
   sigma_alpha_ = SigmaFactory_UKS().Create(opt_.sigma_integration, Mmn_, rpa_,
                                            TCMatrix::SpinChannel::Alpha);
@@ -216,6 +217,12 @@ void GW_UKS::CalculateGWPerturbation() {
   Anderson mixing_beta;
   mixing_alpha.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
   mixing_beta.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
+  // The QP energies of the last QP solve and the RPA energies it saw; see
+  // GW::CalculateGWPerturbation.
+  Eigen::VectorXd qp_solution_alpha = frequencies_alpha;
+  Eigen::VectorXd qp_solution_beta = frequencies_beta;
+  Eigen::VectorXd rpa_solved_alpha = rpa_.getRPAInputEnergiesAlpha();
+  Eigen::VectorXd rpa_solved_beta = rpa_.getRPAInputEnergiesBeta();
 
   for (Index i_gw = 0; i_gw < opt_.gw_sc_max_iterations; ++i_gw) {
     gw_sc_iteration_ = i_gw;
@@ -228,6 +235,12 @@ void GW_UKS::CalculateGWPerturbation() {
 
     if (opt_.sigma_integration == "ppm") {
       ppm_.PPM_construct_parameters(rpa_);
+      if (ppm_.InvalidModes() > 0) {
+        XTP_LOG(Log::error, log_)
+            << TimeStamp() << " WARNING: " << ppm_.InvalidModes()
+            << " PPM modes with negative squared frequency (|.| used)"
+            << std::flush;
+      }
       sigma_alpha_->PrepareScreening();
       sigma_beta_->PrepareScreening();
     } else {
@@ -246,6 +259,10 @@ void GW_UKS::CalculateGWPerturbation() {
 
     frequencies_alpha = SolveQP(Spin::Alpha, frequencies_alpha);
     frequencies_beta = SolveQP(Spin::Beta, frequencies_beta);
+    qp_solution_alpha = frequencies_alpha;
+    qp_solution_beta = frequencies_beta;
+    rpa_solved_alpha = rpa_.getRPAInputEnergiesAlpha();
+    rpa_solved_beta = rpa_.getRPAInputEnergiesBeta();
 
     if (opt_.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_alpha_old = rpa_.getRPAInputEnergiesAlpha();
@@ -287,9 +304,17 @@ void GW_UKS::CalculateGWPerturbation() {
     }
   }
 
+  // Sigma_c of the last QP solve, at its solution and with the energies in
+  // G it saw; the RPA energies updated after the solve stay.
+  PrintCompetingRoots(Spin::Alpha, Log::error);
+  PrintCompetingRoots(Spin::Beta, Log::error);
+  const Eigen::VectorXd rpa_next_alpha = rpa_.getRPAInputEnergiesAlpha();
+  const Eigen::VectorXd rpa_next_beta = rpa_.getRPAInputEnergiesBeta();
+  rpa_.setRPAInputEnergies(rpa_solved_alpha, rpa_solved_beta);
   Sigma_c_alpha_.diagonal() =
-      sigma_alpha_->CalcCorrelationDiag(frequencies_alpha);
-  Sigma_c_beta_.diagonal() = sigma_beta_->CalcCorrelationDiag(frequencies_beta);
+      sigma_alpha_->CalcCorrelationDiag(qp_solution_alpha);
+  Sigma_c_beta_.diagonal() = sigma_beta_->CalcCorrelationDiag(qp_solution_beta);
+  rpa_.setRPAInputEnergies(rpa_next_alpha, rpa_next_beta);
   PrintGWA_Energies(Spin::Alpha);
   PrintGWA_Energies(Spin::Beta);
 }
@@ -311,8 +336,36 @@ const Eigen::VectorXd& GW_UKS::RPAInputEnergiesBeta() const {
   return rpa_.getRPAInputEnergiesBeta();
 }
 
+void GW_UKS::PrintCompetingRoots(Spin spin, Log::Level level) const {
+  const auto& list = competing_roots_[spin == Spin::Alpha ? 0 : 1];
+  Index n = 0;
+  for (const auto& c : list) {
+    n += c.competing ? 1 : 0;
+  }
+  if (n == 0) {
+    return;
+  }
+  XTP_LOG(level, log_) << TimeStamp() << " " << SpinName(spin) << ": " << n
+                       << " QP level(s) with two roots of comparable weight "
+                          "(second Z at least half the largest):"
+                       << std::flush;
+  for (Index i = 0; i < Index(list.size()); ++i) {
+    const auto& c = list[std::size_t(i)];
+    if (c.competing) {
+      XTP_LOG(level, log_)
+          << (boost::format("   Level = %1$4d chosen %2$+1.6f (Z = %3$.3f), "
+                            "other %4$+1.6f (Z = %5$.3f)") %
+              (i + opt_.qpmin) % c.omega % c.Z % c.omega_alt % c.Z_alt)
+                 .str()
+          << std::flush;
+    }
+  }
+}
+
 Eigen::VectorXd GW_UKS::SolveQP(Spin spin,
                                 const Eigen::VectorXd& frequencies) const {
+  competing_roots_[spin == Spin::Alpha ? 0 : 1].assign(
+      std::size_t(qptotal_), qp_solver::CompetingRoots{});
   const Eigen::VectorXd intercepts =
       DftEnergies(spin).segment(opt_.qpmin, qptotal_) +
       SigmaX(spin).diagonal() - Vxc(spin).diagonal();
@@ -488,6 +541,8 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Adaptive(
   solver_opt.qp_dense_spacing = opt_.qp_dense_spacing;
   solver_opt.qp_adaptive_shell_width = opt_.qp_adaptive_shell_width;
   solver_opt.qp_adaptive_shell_count = opt_.qp_adaptive_shell_count;
+  solver_opt.prefer_nearest_root =
+      opt_.qp_root_continuity && gw_sc_iteration_ > 0;
   QPWindowDiagnostics wdiag;
   std::vector<QPRootCandidate> accepted_roots;
   std::vector<QPRootCandidate> rejected_roots;
@@ -526,6 +581,9 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Adaptive(
   }
 
   if (!accepted_roots.empty()) {
+    if (result) {
+      RecordCompetingRoots(spin, gw_level, accepted_roots, result.value());
+    }
     return result;
   }
 
@@ -563,6 +621,8 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
   solver_opt.qp_dense_spacing = opt_.qp_dense_spacing;
   solver_opt.qp_adaptive_shell_width = opt_.qp_adaptive_shell_width;
   solver_opt.qp_adaptive_shell_count = opt_.qp_adaptive_shell_count;
+  solver_opt.prefer_nearest_root =
+      opt_.qp_root_continuity && gw_sc_iteration_ > 0;
 
   const bool use_brent = (opt_.qp_root_finder == "brent");
 
@@ -636,12 +696,9 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
   }
 
   if (!accepted_roots.empty()) {
-    auto best = std::max_element(
-        accepted_roots.begin(), accepted_roots.end(),
-        [](const QPRootCandidate& a, const QPRootCandidate& b) {
-          return qp_solver::ScoreRoot(a) < qp_solver::ScoreRoot(b);
-        });
-    return best->omega;
+    const double best = qp_solver::SelectRoot(accepted_roots, solver_opt).omega;
+    RecordCompetingRoots(spin, gw_level, accepted_roots, best);
+    return best;
   }
 
   if (!rejected_roots.empty()) {
@@ -756,6 +813,13 @@ bool GW_UKS::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
 }
 
 void GW_UKS::CalculateHQP() {
+  if (!sigma_alpha_->HasOffDiagonal()) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " WARNING: no off-diagonal Sigma_c for sigma "
+        << "integration " << opt_.sigma_integration
+        << "; the DQP Hamiltonian has no off-diagonal correlation"
+        << std::flush;
+  }
   Eigen::VectorXd diag_backup_alpha = Sigma_c_alpha_.diagonal();
   Eigen::VectorXd diag_backup_beta = Sigma_c_beta_.diagonal();
   Sigma_c_alpha_ = sigma_alpha_->CalcCorrelationOffDiag(getGWAResultsAlpha());

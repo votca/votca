@@ -314,4 +314,35 @@ BOOST_AUTO_TEST_CASE(
   BOOST_CHECK_EQUAL(diag.intervals_found, 1);
 }
 
+// Largest weight by default; with prefer_nearest_root the root closest to
+// the reference (the previous solution). Two roots with Z within a factor
+// two are reported as competing.
+BOOST_AUTO_TEST_CASE(select_root_and_competing_roots) {
+  RootCandidate a;
+  a.omega = 0.1;
+  a.Z = 0.6;
+  a.distance_to_ref = 0.4;
+  RootCandidate b;
+  b.omega = 0.5;
+  b.Z = 0.4;
+  b.distance_to_ref = 0.0;
+  const std::vector<RootCandidate> roots{a, b};
+
+  SolverOptions opt;
+  BOOST_CHECK_CLOSE(SelectRoot(roots, opt).omega, 0.1, 1e-12);
+  opt.prefer_nearest_root = true;
+  BOOST_CHECK_CLOSE(SelectRoot(roots, opt).omega, 0.5, 1e-12);
+
+  const CompetingRoots c = CheckCompetingRoots(roots, 0.1);
+  BOOST_CHECK(c.competing);
+  BOOST_CHECK_CLOSE(c.omega, 0.1, 1e-12);
+  BOOST_CHECK_CLOSE(c.Z, 0.6, 1e-12);
+  BOOST_CHECK_CLOSE(c.omega_alt, 0.5, 1e-12);
+  BOOST_CHECK_CLOSE(c.Z_alt, 0.4, 1e-12);
+
+  b.Z = 0.2;  // less than half: one clear quasiparticle
+  BOOST_CHECK(!CheckCompetingRoots({a, b}, 0.1).competing);
+  BOOST_CHECK(!CheckCompetingRoots({a}, 0.1).competing);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
