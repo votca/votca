@@ -33,7 +33,6 @@
 #include "votca/tools/property.h"
 #include "votca/tools/tokenizer.h"
 #include "votca/xtp/memorybudget.h"
-#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/version.h"
 #include "votca/xtp/xtpapplication.h"
 
@@ -82,11 +81,6 @@ void XtpApplication::Initialize(void) {
       "printoptions,p", propt::value<std::string>(),
       std::string("Prints xml options of a " + CalculatorType()).c_str());
 
-#ifdef USE_CUDA
-  AddProgramOptions()("gpus,g", propt::value<Index>()->default_value(-1),
-                      "  Number of gpus to use");
-#endif
-
   AddCommandLineOptions();
 }
 
@@ -101,9 +95,6 @@ bool XtpApplication::EvaluateOptions() {
     StopExecution();
     return true;
   }
-#ifdef USE_CUDA
-  OpenMP_CUDA::SetNoGPUs(OptionsMap()["gpus"].as<Index>());
-#endif
 
   if (OptionsMap().count("description")) {
     std::string calcname = OptionsMap()["description"].as<std::string>();

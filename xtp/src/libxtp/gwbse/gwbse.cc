@@ -34,7 +34,7 @@
 #include "votca/xtp/ecpbasisset.h"
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/logger.h"
-#include "votca/xtp/openmp_cuda.h"
+#include "votca/xtp/memorybudget.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/rpa_uks.h"
 #include "votca/xtp/screening_kernels.h"
@@ -851,13 +851,6 @@ bool GWBSE::Evaluate() {
                                    "Accelerate LAPACK directly"
                                 << flush;
   }
-  Index nogpus = OpenMP_CUDA::UsingGPUs();
-  if (nogpus > 0) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp() << " Using CUDA support for tensor multiplication with "
-        << nogpus << " GPUs." << flush;
-  }
-
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Molecule Coordinates [A] " << flush;
   for (QMAtom& atom : orbitals_.QMAtoms()) {
@@ -942,6 +935,10 @@ bool GWBSE::Evaluate() {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Calculated Mmn (3-center-repulsion x orbitals)  "
         << flush;
+  }
+  if (const std::string usage = MemoryBudget::Usage(); !usage.empty()) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " After Mmn: " << usage << flush;
   }
 
   // The environment's reaction field in the metric of Mmn. Needs only the

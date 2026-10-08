@@ -62,6 +62,13 @@ class MemoryBudget {
   /// Resident memory of the process (-1 if unknown on this platform)
   static double ResidentBytes();
 
+  /// Peak resident memory of the process so far (-1 if unknown)
+  static double PeakResidentBytes();
+
+  /// e.g. "memory in use 203 GB, peak 231 GB" (empty if unknown), for the
+  /// logs of the large steps
+  static std::string Usage();
+
   /// e.g. "budget 400 GB, 46.1 GB in use" or "no --memory given"
   static std::string Describe();
 

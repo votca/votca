@@ -12,8 +12,8 @@
 #include "votca/xtp/IndexParser.h"
 #include "votca/xtp/anderson_mixing.h"
 #include "votca/xtp/gw_uks.h"
+#include "votca/xtp/memorybudget.h"
 #include "votca/xtp/newton_rapson.h"
-#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/rpa_uks.h"
 #include "votca/xtp/sigmafactory_uks.h"
 
@@ -233,6 +233,10 @@ void GW_UKS::CalculateGWPerturbation() {
           << TimeStamp() << " Rebuilding alpha/beta 3c integrals" << std::flush;
     }
 
+    if (i_gw == 0) {
+      XTP_LOG(Log::error, log_) << TimeStamp() << " Building the screening; "
+                                << MemoryBudget::Usage() << std::flush;
+    }
     if (opt_.sigma_integration == "ppm") {
       ppm_.PPM_construct_parameters(rpa_);
       if (ppm_.InvalidModes() > 0) {
@@ -248,9 +252,11 @@ void GW_UKS::CalculateGWPerturbation() {
       sigma_beta_->PrepareScreening();
     }
 
-    XTP_LOG(Log::info, log_)
-        << TimeStamp() << " Calculated unrestricted screening via RPA"
-        << std::flush;
+    const Log::Level screening_level =
+        (i_gw == 0) ? Log::Level::error : Log::Level::info;
+    XTP_LOG(screening_level, log_)
+        << TimeStamp() << " Calculated unrestricted screening via RPA; "
+        << MemoryBudget::Usage() << std::flush;
 
     if (opt_.gw_mixing_order > 0 && i_gw > 0) {
       mixing_alpha.UpdateInput(frequencies_alpha);

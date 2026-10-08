@@ -94,15 +94,10 @@ if(HDF5_VERSION VERSION_GREATER_EQUAL 1.10.4 AND HDF5_VERSION VERSION_LESS_EQUAL
   endif()
 endif()
 
-option(USE_CUDA "Use a Nvidia GPU to speed up computations" OFF)
-add_feature_info(USE_CUDA USE_CUDA "Use CUDA for GPU acceleration")
-########################################################################
-#Find external packages
-########################################################################
 if(USE_CUDA)
-  find_package(CUDA REQUIRED)
-  set_package_properties(CUDA PROPERTIES TYPE REQUIRED PURPOSE "Used for GPU acceleration")
-endif(USE_CUDA)
+  message(FATAL_ERROR "USE_CUDA: GPU offloading with CUDA has been removed "
+    "from xtp; configure without -DUSE_CUDA=ON.")
+endif()
 
 ########################################################################
 # Checks what linear algebra packages are installed                    #

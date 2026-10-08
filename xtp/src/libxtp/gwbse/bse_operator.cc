@@ -20,7 +20,6 @@
 // Local VOTCA includes
 #include "votca/xtp/bse_operator.h"
 #include "votca/xtp/bse_operator_kernels.h"
-#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/vc2index.h"
 
 namespace votca {
@@ -55,9 +54,7 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
   if (direct_built_) {
     result = direct_ * input;
   } else if (cd != 0 || cd2 != 0) {
-    result = (row_kernel_ || OpenMP_CUDA::UsingGPUs() > 0)
-                 ? ApplyDirectRows(input)
-                 : ApplyDirectBlocks(input);
+    result = row_kernel_ ? ApplyDirectRows(input) : ApplyDirectBlocks(input);
   } else {
     result = Eigen::MatrixXd::Zero(bse_size_, input.cols());
   }
@@ -77,54 +74,38 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
 template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::ApplyDirectRows(
     const Eigen::MatrixXd& input) const {
-  Index auxsize = Mmn_.auxsize();
   vc2index vc = vc2index(0, 0, bse_ctotal_);
   Index vmin = opt_.vmin - opt_.rpamin;
   Index cmin = bse_cmin_ - opt_.rpamin;
-  // screened direct terms, one Hamiltonian row per (v1,c1)
-  OpenMP_CUDA transform;
-  if (cd != 0) {
-    transform.createTemporaries(epsilon_0_inv_, input, bse_ctotal_, bse_vtotal_,
-                                auxsize);
-  } else {
-    transform.createTemporaries(epsilon_0_inv_, input, bse_vtotal_, bse_ctotal_,
-                                auxsize);
-  }
-
-#pragma omp parallel
-  {
-    Index threadid = OPENMP::getThreadId();
-#pragma omp for schedule(dynamic)
-    for (Index c1 = 0; c1 < bse_ctotal_; c1++) {
-
-      // Temp matrix has to stay in this scope, because transform only
-      // holds a reference to it
-      Eigen::MatrixXd Temp;
+  // screened direct terms, one Hamiltonian row per (v1,c1):
+  //   cd:  K(c2,v2) = sum_P S(c2,P) M_{v1}(v2,P), S = -cd  M_{c1}(c,:) diag(w)
+  //   cd2: K(c2,v2) = sum_P M_{v1}(c2,P) S(v2,P), S = -cd2 M_{c1}(v,:) diag(w)
+  // with K flattened column-major as the row's (v2,c2) index v2*n_c + c2.
+  Eigen::MatrixXd result(bse_size_, input.cols());
+#pragma omp parallel for schedule(dynamic)
+  for (Index c1 = 0; c1 < bse_ctotal_; c1++) {
+    const Eigen::MatrixXd S =
+        (cd != 0)
+            ? Eigen::MatrixXd(-double(cd) *
+                              Mmn_[c1 + cmin].middleRows(cmin, bse_ctotal_) *
+                              epsilon_0_inv_.asDiagonal())
+            : Eigen::MatrixXd(-double(cd2) *
+                              Mmn_[c1 + cmin].middleRows(vmin, bse_vtotal_) *
+                              epsilon_0_inv_.asDiagonal());
+    Eigen::MatrixXd K(bse_ctotal_, bse_vtotal_);
+    for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
       if (cd != 0) {
-        Temp = -cd * (Mmn_[c1 + cmin].middleRows(cmin, bse_ctotal_));
-        transform.PrepareMatrix1(Temp, threadid);
-      } else if (cd2 != 0) {
-        Temp = -cd2 * (Mmn_[c1 + cmin].middleRows(vmin, bse_vtotal_));
-        transform.PrepareMatrix1(Temp, threadid);
+        K.noalias() =
+            S * Mmn_[v1 + vmin].middleRows(vmin, bse_vtotal_).transpose();
+      } else {
+        K.noalias() =
+            Mmn_[v1 + vmin].middleRows(cmin, bse_ctotal_) * S.transpose();
       }
-
-      for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
-        transform.SetTempZero(threadid);
-        if (cd != 0) {
-          transform.PrepareMatrix2(
-              Mmn_[v1 + vmin].middleRows(vmin, bse_vtotal_), cd2 != 0,
-              threadid);
-        }
-        if (cd2 != 0) {
-          transform.PrepareMatrix2(
-              Mmn_[v1 + vmin].middleRows(cmin, bse_ctotal_), cd2 != 0,
-              threadid);
-        }
-        transform.MultiplyRow(vc.I(v1, c1), threadid);
-      }
+      const Eigen::Map<const Eigen::VectorXd> row(K.data(), K.size());
+      result.row(vc.I(v1, c1)).noalias() = row.transpose() * input;
     }
   }
-  return transform.getReductionVar();
+  return result;
 }
 
 // The screened direct term in blocks of Hamiltonian rows,

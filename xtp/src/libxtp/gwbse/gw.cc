@@ -27,6 +27,7 @@
 #include "votca/xtp/anderson_mixing.h"
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/gw.h"
+#include "votca/xtp/memorybudget.h"
 #include "votca/xtp/newton_rapson.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigmafactory.h"
@@ -332,6 +333,10 @@ void GW::CalculateGWPerturbation() {
           << TimeStamp() << " Rebuilding 3c integrals" << std::flush;
       DressForEnvironment();  // Rebuild leaves them bare
     }
+    if (i_gw == 0) {
+      XTP_LOG(Log::error, log_) << TimeStamp() << " Building the screening; "
+                                << MemoryBudget::Usage() << std::flush;
+    }
     {
       auto t = timings_.Measure("screening: other");
       sigma_->PrepareScreening();
@@ -341,6 +346,10 @@ void GW::CalculateGWPerturbation() {
       const Log::Level level =
           (i_gw == 0) ? Log::Level::error : Log::Level::info;
       XTP_LOG(level, log_) << TimeStamp() << " " << summary << std::flush;
+    }
+    if (i_gw == 0) {
+      XTP_LOG(Log::error, log_) << TimeStamp() << " Screening built; "
+                                << MemoryBudget::Usage() << std::flush;
     }
     XTP_LOG(Log::info, log_)
         << TimeStamp() << " Calculated screening via RPA" << std::flush;

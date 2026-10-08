@@ -32,6 +32,24 @@
 namespace votca {
 namespace xtp {
 
+namespace {
+#if !defined(__APPLE__)
+// A "<key> <n> kB" entry of /proc/self/status in bytes, -1 if not there
+double ProcStatusBytes(const std::string& key) {
+  std::ifstream status("/proc/self/status");
+  std::string word;
+  while (status >> word) {
+    if (word == key) {
+      double kb = 0.0;
+      status >> kb;
+      return kb * 1024.0;
+    }
+  }
+  return -1.0;
+}
+#endif
+}  // namespace
+
 double MemoryBudget::total_bytes_ = 0.0;
 Index MemoryBudget::concurrent_jobs_ = 1;
 
@@ -58,17 +76,37 @@ double MemoryBudget::ResidentBytes() {
   }
   return -1.0;
 #else
-  std::ifstream status("/proc/self/status");
-  std::string word;
-  while (status >> word) {
-    if (word == "VmRSS:") {
-      double kb = 0.0;
-      status >> kb;
-      return kb * 1024.0;
-    }
+  return ProcStatusBytes("VmRSS:");
+#endif
+}
+
+double MemoryBudget::PeakResidentBytes() {
+#if defined(__APPLE__)
+  mach_task_basic_info_data_t info;
+  mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+  if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+                reinterpret_cast<task_info_t>(&info), &count) == KERN_SUCCESS) {
+    return double(info.resident_size_max);
   }
   return -1.0;
+#else
+  return ProcStatusBytes("VmHWM:");
 #endif
+}
+
+std::string MemoryBudget::Usage() {
+  const double resident = ResidentBytes();
+  if (resident < 0.0) {
+    return "";
+  }
+  std::ostringstream out;
+  out.precision(4);
+  out << "memory in use " << resident * 1e-9 << " GB";
+  const double peak = PeakResidentBytes();
+  if (peak >= 0.0) {
+    out << ", peak " << peak * 1e-9 << " GB";
+  }
+  return out.str();
 }
 
 double MemoryBudget::AvailableBytes() {

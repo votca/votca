@@ -25,7 +25,6 @@
 #include <string>
 
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/symmetric_matrix.h"
 #include "votca/xtp/threecenter.h"
 
@@ -55,18 +54,12 @@ void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
 
 /*
  * Modify 3-center matrix elements consistent with use of symmetrized
- * Coulomb interaction using either CUDA or Openmp.
+ * Coulomb interaction.
  */
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
-  OpenMP_CUDA gemm;
-  gemm.setOperators(matrix_, matrix);
-#pragma omp parallel
-  {
-    Index threadid = OPENMP::getThreadId();
-#pragma omp for schedule(dynamic)
-    for (Index i = 0; i < msize(); i++) {
-      gemm.MultiplyRight(matrix_[i], threadid);
-    }
+#pragma omp parallel for schedule(dynamic)
+  for (Index i = 0; i < msize(); i++) {
+    matrix_[i] *= matrix;
   }
   if (matrix.rows() != matrix.cols()) {
     aux_frame_known_ = false;  // a projection, not a change of frame
@@ -79,8 +72,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrixLeading(const Eigen::MatrixXd& U,
                                                        Index full_slices,
                                                        Index lead) {
-  if (OpenMP_CUDA::UsingGPUs() > 0 || U.rows() != U.cols()) {
-    // the device kernels work on whole slices
+  if (U.rows() != U.cols()) {
     MultiplyRightWithAuxMatrix(U);
     return;
   }

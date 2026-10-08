@@ -20,7 +20,6 @@
 // Local VOTCA includes
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/screening_kernels.h"
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
@@ -59,33 +58,12 @@ void RPA::VisitHoleVirtualRows(Index m_level,
 Eigen::MatrixXd RPA::ResponseSum(const WeightedGram::WeightsFn& weights) const {
   const Index size = Mmn_.auxsize();
   const Index n_occ = homo_ + 1 - rpamin_;
-  const Index n_unocc = rpamax_ - homo_;
   OptionalTiming timing(timings_, "screening: epsilon (RPA)");
-  if (OpenMP_CUDA::UsingGPUs() == 0) {
-    return WeightedGram::Compute(
-        n_occ, size, weights,
-        [this](Index m, const WeightedGram::RowsVisitor& use) {
-          VisitHoleVirtualRows(m, use);
-        });
-  }
-  // GPU path: per-thread products M^T diag(w) M on the devices
-  OpenMP_CUDA transform;
-  transform.createTemporaries(n_unocc, size);
-#pragma omp parallel
-  {
-    Index threadid = OPENMP::getThreadId();
-#pragma omp for schedule(dynamic)
-    for (Index m_level = 0; m_level < n_occ; m_level++) {
-      Eigen::VectorXd w;
-      weights(m_level, w);
-      VisitHoleVirtualRows(m_level,
-                           [&](const Eigen::Ref<const Eigen::MatrixXd>& rows) {
-                             transform.PushMatrix(rows, threadid);
-                           });
-      transform.A_TDA(w, threadid);
-    }
-  }
-  return transform.getReductionVar();
+  return WeightedGram::Compute(
+      n_occ, size, weights,
+      [this](Index m, const WeightedGram::RowsVisitor& use) {
+        VisitHoleVirtualRows(m, use);
+      });
 }
 
 template <bool imag>

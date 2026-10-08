@@ -20,6 +20,10 @@
 // Third party includes
 #include <boost/test/unit_test.hpp>
 
+// Standard includes
+#include <algorithm>
+#include <vector>
+
 // Local VOTCA includes
 #include "votca/xtp/memorybudget.h"
 
@@ -51,6 +55,26 @@ BOOST_AUTO_TEST_CASE(budget_shares_and_defaults) {
   MemoryBudget::Set(1e-3);
   BOOST_CHECK_EQUAL(MemoryBudget::AvailableBytes(), 0.0);
   MemoryBudget::Set(0.0);
+}
+
+BOOST_AUTO_TEST_CASE(peak_resident_memory) {
+  const double resident = MemoryBudget::ResidentBytes();
+  if (resident < 0) {
+    return;  // not known on this platform
+  }
+  // touch 200 MB so that the peak is at least that far above the start
+  const double before = MemoryBudget::PeakResidentBytes();
+  {
+    std::vector<char> block(std::size_t(2e8), 1);
+    BOOST_CHECK(block.back() == 1);
+    BOOST_CHECK(MemoryBudget::PeakResidentBytes() >=
+                std::max(before, resident + 1.9e8));
+  }
+  BOOST_CHECK(MemoryBudget::PeakResidentBytes() >=
+              MemoryBudget::ResidentBytes());
+  const std::string usage = MemoryBudget::Usage();
+  BOOST_CHECK(usage.find("memory in use") != std::string::npos);
+  BOOST_CHECK(usage.find("peak") != std::string::npos);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

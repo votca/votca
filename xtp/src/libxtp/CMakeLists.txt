@@ -1,6 +1,4 @@
 file(GLOB_RECURSE VOTCA_SOURCES *.cc *.cpp)
-file(GLOB_RECURSE NOT_VOTCA_SOURCES cudapipeline.cc cudamatrix.cc)
-list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 get_filename_component(_PARENT_PATH "${CMAKE_CURRENT_BINARY_DIR}" DIRECTORY)
 
@@ -40,12 +38,6 @@ target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost
 # not this project's own code at all, and genuinely out of this
 # project's own control to fix directly.
 target_include_directories(votca_xtp SYSTEM PRIVATE ${OpenBabel3_INCLUDE_DIRS})
-
-if(USE_CUDA)
-  target_link_libraries(votca_xtp PUBLIC ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
-  target_include_directories(votca_xtp PUBLIC ${CUDA_INCLUDE_DIRS})
-  target_sources(votca_xtp PRIVATE cudapipeline.cc cudamatrix.cc)
-endif()
 
 # PROJECT_BINARY_DIR/xtp/include/votca/xtp for votca_xtp_config.h
 target_include_directories(votca_xtp PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

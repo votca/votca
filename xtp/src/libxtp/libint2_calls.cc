@@ -26,7 +26,6 @@
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/threecenter.h"
 
 // include libint last otherwise it overrides eigen
@@ -702,6 +701,27 @@ std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
   return ao3c;
 }
 
+namespace {
+// L * A * R evaluated in the cheaper order. For the AO->MO transformation of
+// the three-centre integrals L = C_n^T (n x N), A = (mu nu|P) (N x N) and
+// R = C_m (N x m) with m < n, so A * R first saves a factor of about n/m on
+// the dominant product.
+Eigen::MatrixXd MultiplyLeftRight(const Eigen::MatrixXd& L,
+                                  const Eigen::MatrixXd& A,
+                                  const Eigen::MatrixXd& R) {
+  const double left_first =
+      double(L.rows()) * double(A.rows()) * double(A.cols()) +
+      double(L.rows()) * double(A.cols()) * double(R.cols());
+  const double right_first =
+      double(A.rows()) * double(A.cols()) * double(R.cols()) +
+      double(L.rows()) * double(A.rows()) * double(R.cols());
+  if (right_first < left_first) {
+    return L * (A * R);
+  }
+  return (L * A) * R;
+}
+}  // namespace
+
 void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
                               const Eigen::MatrixXd& dft_orbitals) {
 
@@ -709,8 +729,6 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
   const Eigen::MatrixXd dftn =
       dft_orbitals.middleCols(nmin_, ntotal_).transpose();
 
-  OpenMP_CUDA transform;
-  transform.setOperators(dftn, dftm);
   Index nthreads = OPENMP::getMaxThreads();
 
   std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
@@ -741,7 +759,7 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
       const Index dim = static_cast<Index>(ao3c.size());
       const Index aux0 = auxshell2bf[aux];
       for (Index k = 0; k < dim; ++k) {
-        transform.MultiplyLeftRight(ao3c[k], threadid);
+        ao3c[k] = MultiplyLeftRight(dftn, ao3c[k], dftm);
         for (Index m_level = 0; m_level < mtotal_; m_level++) {
           matrix_[m_level].col(aux0 + k) = ao3c[k].col(m_level);
         }

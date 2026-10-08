@@ -67,7 +67,7 @@ class BSE_OPERATOR final : public MatrixFreeOperator {
   bool direct_term_cached() const { return direct_built_; }
   /// Without the dense cache the screened direct term is applied in large
   /// products, one block of Hamiltonian rows (all v1 for one c1) at a time;
-  /// true selects the older row-by-row kernel (always used with GPUs).
+  /// true selects the row-by-row kernel (one Hamiltonian row at a time).
   void use_row_kernel(bool rows) { row_kernel_ = rows; }
 
  private:

@@ -26,6 +26,4 @@
 #include <omp.h>
 #endif
 
-#cmakedefine USE_CUDA
-
 #endif  // _VOTCA_XTP_CONFIG_H

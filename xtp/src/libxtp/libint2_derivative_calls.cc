@@ -119,7 +119,6 @@
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/votca_xtp_config.h"
 #include <atomic>

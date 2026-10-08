@@ -26,7 +26,6 @@
 #include <sstream>
 
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
 
@@ -186,51 +185,22 @@ Eigen::MatrixXd RPA_UKS::ResponseSum(const SpinWeightsFn& weights) const {
     return true;
   };
 
-  if (OpenMP_CUDA::UsingGPUs() == 0) {
-    return WeightedGram::Compute(
-        nalpha + nbeta, size,
-        [&](Index block, Eigen::VectorXd& w) {
-          Index m = 0;
-          const bool beta = spin_of(block, m);
-          weights(beta, m, w);
-        },
-        [&](Index block, const WeightedGram::RowsVisitor& use) {
-          Index m = 0;
-          const bool beta = spin_of(block, m);
-          if (beta) {
-            use(Mmn_.beta[m].bottomRows(n_unocc_beta));
-          } else {
-            use(Mmn_.alpha[m].bottomRows(n_unocc_alpha));
-          }
-        });
-  }
-
-  // GPU path: per-thread products M^T diag(w) M on the devices
-  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(size, size);
-  auto accumulate_spin = [&](const TCMatrix_gwbse& Mmn, Index n_occ,
-                             Index n_unocc, bool beta) {
-    if (n_occ <= 0 || n_unocc <= 0) {
-      return;
-    }
-    OpenMP_CUDA transform;
-    transform.createTemporaries(n_unocc, size);
-#pragma omp parallel
-    {
-      const Index threadid = OPENMP::getThreadId();
-#pragma omp for schedule(dynamic)
-      for (Index m_level = 0; m_level < n_occ; m_level++) {
-        Eigen::MatrixXd Mmn_RPA = Mmn[m_level].bottomRows(n_unocc);
-        transform.PushMatrix(Mmn_RPA, threadid);
-        Eigen::VectorXd w;
-        weights(beta, m_level, w);
-        transform.A_TDA(w, threadid);
-      }
-    }
-    result += transform.getReductionVar();
-  };
-  accumulate_spin(Mmn_.alpha, n_occ_alpha, n_unocc_alpha, false);
-  accumulate_spin(Mmn_.beta, n_occ_beta, n_unocc_beta, true);
-  return result;
+  return WeightedGram::Compute(
+      nalpha + nbeta, size,
+      [&](Index block, Eigen::VectorXd& w) {
+        Index m = 0;
+        const bool beta = spin_of(block, m);
+        weights(beta, m, w);
+      },
+      [&](Index block, const WeightedGram::RowsVisitor& use) {
+        Index m = 0;
+        const bool beta = spin_of(block, m);
+        if (beta) {
+          use(Mmn_.beta[m].bottomRows(n_unocc_beta));
+        } else {
+          use(Mmn_.alpha[m].bottomRows(n_unocc_alpha));
+        }
+      });
 }
 
 template <bool imag>
