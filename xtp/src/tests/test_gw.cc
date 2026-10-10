@@ -743,6 +743,76 @@ BOOST_AUTO_TEST_CASE(evgw_energies_solve_their_qp_equation) {
   libint2::finalize();
 }
 
+// Adaptive screening updates (G iterated with W fixed, W rebuilt when the
+// energies have settled for it) reach the same evGW solution as rebuilding
+// W in every iteration, with fewer screening builds: the energies solve the
+// QP equation with W built from themselves.
+BOOST_AUTO_TEST_CASE(evgw_adaptive_screening_update_same_fixed_point) {
+  if (!libint2::initialized()) libint2::initialize();
+  for (const std::string integration : {"ppm", "exact"}) {
+    GW::options opt = MakeGWTestOptions();
+    opt.sigma_integration = integration;
+    opt.reset_3c = 0;
+    opt.gw_sc_max_iterations = 100;
+    opt.gw_sc_limit = 1e-7;
+    opt.g_sc_limit = 1e-10;
+    // a short history: with 5 or 20 the classic scheme stalls at 1e-5..1e-6
+    // on the top level with exact Sigma here (the adaptive one does not)
+    opt.gw_mixing_order = 3;
+    opt.gw_mixing_alpha = 0.7;
+
+    auto run = [&](const std::string& mode, votca::Index& builds,
+                   votca::Index& iters) {
+      GW::options o = opt;
+      o.screening_update = mode;
+      GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+      GW gw(system.log, system.Mmn, system.vxc, system.mo_eigenvalues);
+      gw.configure(o);
+      gw.CalculateGWPerturbation();
+      builds = gw.ScreeningBuilds();
+      iters = gw.QPIterations();
+      return Eigen::VectorXd(gw.getGWAResults());
+    };
+    votca::Index builds_every = 0, iters_every = 0, builds_adaptive = 0,
+                 iters_adaptive = 0;
+    const Eigen::VectorXd e_every = run("every", builds_every, iters_every);
+    const Eigen::VectorXd e_adaptive =
+        run("adaptive", builds_adaptive, iters_adaptive);
+    BOOST_TEST_MESSAGE(integration << ": every " << iters_every
+                                   << " iterations / " << builds_every
+                                   << " builds, adaptive " << iters_adaptive
+                                   << " / " << builds_adaptive);
+    BOOST_CHECK_EQUAL(builds_every, iters_every);
+    BOOST_CHECK_LT(builds_adaptive, builds_every);
+    BOOST_CHECK_SMALL((e_every - e_adaptive).cwiseAbs().maxCoeff(), 1e-6);
+
+    // the adaptive energies solve the QP equation with W from themselves
+    GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+    Logger log;
+    RPA rpa(log, system.Mmn);
+    rpa.configure(opt.homo, opt.rpamin, opt.rpamax);
+    rpa.UpdateRPAInputEnergies(system.mo_eigenvalues, e_adaptive, opt.qpmin);
+    std::unique_ptr<Sigma_base> sigma =
+        SigmaFactory().Create(opt.sigma_integration, system.Mmn, rpa);
+    Sigma_base::options sopt;
+    sopt.homo = opt.homo;
+    sopt.qpmin = opt.qpmin;
+    sopt.qpmax = opt.qpmax;
+    sopt.rpamin = opt.rpamin;
+    sopt.rpamax = opt.rpamax;
+    sopt.eta = opt.eta;
+    sigma->configure(sopt);
+    const Eigen::VectorXd sigma_x = sigma->CalcExchangeMatrix().diagonal();
+    sigma->PrepareScreening();
+    const Eigen::VectorXd residual =
+        system.mo_eigenvalues.head(e_adaptive.size()) + sigma_x -
+        system.vxc.diagonal().head(e_adaptive.size()) +
+        sigma->CalcCorrelationDiag(e_adaptive) - e_adaptive;
+    BOOST_CHECK_SMALL(residual.cwiseAbs().maxCoeff(), 1e-6);
+  }
+  libint2::finalize();
+}
+
 // The QSGW fixed point, checked from scratch in the converged QP basis
 // phi = psi U: with the integrals refilled for those orbitals and the QP
 // energies E in the RPA, H = U^T H0 U + Sigma_x + 1/2 [Sigma_c(E_i) +

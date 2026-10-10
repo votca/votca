@@ -99,6 +99,10 @@ class GW {
     // the previous iteration (closest accepted root) instead of re-choosing
     // by weight
     bool qp_root_continuity = false;
+    // evGW: when W is rebuilt (see ScreeningUpdate): "every" or "adaptive"
+    std::string screening_update = "every";
+    double screening_update_ratio = 0.25;
+    Index screening_update_max_inner = 10;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
     std::string qp_root_finder = "bisection";
@@ -128,6 +132,9 @@ class GW {
 
   void configure(const options& opt);
 
+  /// Screening builds and QP iterations of the last evGW run
+  Index ScreeningBuilds() const { return screening_builds_; }
+  Index QPIterations() const { return qp_iterations_; }
   Eigen::VectorXd getGWAResults() const;
 
   /**
@@ -257,6 +264,8 @@ class GW {
   const Eigen::MatrixXd& vxc_;
   const Eigen::VectorXd& dft_energies_;
 
+  Index screening_builds_ = 0;
+  Index qp_iterations_ = 0;
   Index gw_sc_iteration_;
 
   RPA rpa_;

@@ -21,6 +21,7 @@
 #define VOTCA_XTP_SIGMA_EXACT_H
 
 // Local VOTCA includes
+#include "votca/xtp/exact_pole_sums.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_base.h"
 
@@ -43,14 +44,28 @@ class Sigma_Exact : public Sigma_base {
 
   double CalcCorrelationDiagElementDerivative(Index gw_level,
                                               double frequency) const final;
+  /// All frequencies of a level in one pass (far poles via Chebyshev
+  /// interpolation, see exact_pole_sums)
+  Eigen::VectorXd CalcCorrelationDiagElements(
+      Index gw_level, const Eigen::VectorXd& frequencies) const final;
   // Calculates Sigma_c off-diagonal elements
   double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
                                        double frequency1,
                                        double frequency2) const final;
+  /// All off-diagonal elements as blocked matrix products
+  Eigen::MatrixXd CalcCorrelationOffDiag(
+      const Eigen::VectorXd& frequencies) const final;
 
  private:
-  Eigen::VectorXd rpa_omegas_;             // Eigenvalues from RPA
-  std::vector<Eigen::MatrixXd> residues_;  // Residues
+  Eigen::VectorXd rpa_omegas_;  // Eigenvalues from RPA
+  // residues of GW level n (column n): the RPA levels x modes array
+  // M_n Z, column-major (pole m + B s)
+  Eigen::MatrixXd residues_;
+
+  ExactPoles Poles() const;
+  const double* Residues(Index gw_level) const {
+    return residues_.col(gw_level).data();
+  }
 
   // Z = sum_v M_v,virt^T (X+Y)_v (aux x RPA modes); the residues of level
   // m are M_m Z

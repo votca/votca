@@ -30,6 +30,7 @@
 #include "votca/xtp/memorybudget.h"
 #include "votca/xtp/newton_rapson.h"
 #include "votca/xtp/rpa.h"
+#include "votca/xtp/screening_update.h"
 #include "votca/xtp/sigmafactory.h"
 
 namespace votca {
@@ -324,6 +325,16 @@ void GW::CalculateGWPerturbation() {
   Eigen::VectorXd qp_solution = frequencies;
   Eigen::VectorXd rpa_energies_solved = rpa_.getRPAInputEnergies();
 
+  ScreeningUpdate screening;
+  screening.Configure(ScreeningUpdate::Parse(opt_.screening_update),
+                      opt_.screening_update_ratio,
+                      opt_.screening_update_max_inner);
+  bool rebuild_screening = true;
+  // QP iterations since the mixing history was (re)started: it restarts when
+  // an adaptive update rebuilds W, since the fixed-point map changes then
+  Index mixing_iteration = 0;
+  Index n_iterations = 0;
+
   for (Index i_gw = 0; i_gw < opt_.gw_sc_max_iterations; ++i_gw) {
     gw_sc_iteration_ = i_gw;
     if (opt_.reset_3c > 0 && i_gw % opt_.reset_3c == 0 && i_gw != 0) {
@@ -331,31 +342,43 @@ void GW::CalculateGWPerturbation() {
       Mmn_.Rebuild();
       XTP_LOG(Log::info, log_)
           << TimeStamp() << " Rebuilding 3c integrals" << std::flush;
-      DressForEnvironment();  // Rebuild leaves them bare
+      DressForEnvironment();     // Rebuild leaves them bare
+      rebuild_screening = true;  // the screening frame is gone too
     }
-    if (i_gw == 0) {
-      XTP_LOG(Log::error, log_) << TimeStamp() << " Building the screening; "
-                                << MemoryBudget::Usage() << std::flush;
+    if (rebuild_screening) {
+      if (i_gw == 0) {
+        XTP_LOG(Log::error, log_) << TimeStamp() << " Building the screening; "
+                                  << MemoryBudget::Usage() << std::flush;
+      }
+      {
+        auto t = timings_.Measure("screening: other");
+        sigma_->PrepareScreening();
+      }
+      screening.Built(rpa_.getRPAInputEnergies());
+      if (screening.mode() == ScreeningUpdate::Mode::Adaptive &&
+          screening.builds() > 1) {
+        mixing_ = Anderson();
+        mixing_.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
+        mixing_iteration = 0;
+      }
+      if (const std::string summary = sigma_->ScreeningSummary();
+          !summary.empty()) {
+        const Log::Level level =
+            (i_gw == 0) ? Log::Level::error : Log::Level::info;
+        XTP_LOG(level, log_) << TimeStamp() << " " << summary << std::flush;
+      }
+      if (i_gw == 0) {
+        XTP_LOG(Log::error, log_) << TimeStamp() << " Screening built; "
+                                  << MemoryBudget::Usage() << std::flush;
+      }
+      XTP_LOG(Log::info, log_)
+          << TimeStamp() << " Calculated screening via RPA (build "
+          << screening.builds() << ")" << std::flush;
     }
-    {
-      auto t = timings_.Measure("screening: other");
-      sigma_->PrepareScreening();
-    }
-    if (const std::string summary = sigma_->ScreeningSummary();
-        !summary.empty()) {
-      const Log::Level level =
-          (i_gw == 0) ? Log::Level::error : Log::Level::info;
-      XTP_LOG(level, log_) << TimeStamp() << " " << summary << std::flush;
-    }
-    if (i_gw == 0) {
-      XTP_LOG(Log::error, log_) << TimeStamp() << " Screening built; "
-                                << MemoryBudget::Usage() << std::flush;
-    }
-    XTP_LOG(Log::info, log_)
-        << TimeStamp() << " Calculated screening via RPA" << std::flush;
     XTP_LOG(Log::info, log_)
         << TimeStamp() << " Solving QP equations " << std::flush;
-    if (opt_.gw_mixing_order > 0 && i_gw > 0) {
+    const bool mix = opt_.gw_mixing_order > 0 && mixing_iteration > 0;
+    if (mix) {
       mixing_.UpdateInput(frequencies);
     }
 
@@ -365,10 +388,12 @@ void GW::CalculateGWPerturbation() {
     }
     qp_solution = frequencies;
     rpa_energies_solved = rpa_.getRPAInputEnergies();
+    ++mixing_iteration;
+    ++n_iterations;
 
     if (opt_.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = rpa_.getRPAInputEnergies();
-      if (opt_.gw_mixing_order > 0 && i_gw > 0) {
+      if (mix) {
         if (opt_.gw_mixing_order == 1) {
           XTP_LOG(Log::debug, log_)
               << "GWSC using linear mixing with alpha: " << opt_.gw_mixing_alpha
@@ -399,8 +424,21 @@ void GW::CalculateGWPerturbation() {
       XTP_LOG(Log::info, log_)
           << TimeStamp() << " GW_Iteration:" << i_gw
           << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
-      if (Converged(rpa_.getRPAInputEnergies(), rpa_energies_old,
-                    opt_.gw_sc_limit)) {
+      // logs the largest change; the decision is ScreeningUpdate's
+      Converged(rpa_.getRPAInputEnergies(), rpa_energies_old, opt_.gw_sc_limit);
+      double drift = 0.0;
+      const ScreeningUpdate::Next next =
+          screening.Decide(rpa_energies_old, rpa_.getRPAInputEnergies(),
+                           opt_.gw_sc_limit, &drift);
+      if (screening.mode() == ScreeningUpdate::Mode::Adaptive) {
+        XTP_LOG(Log::info, log_)
+            << TimeStamp() << " Change since the screening was built: " << drift
+            << " Hrt after " << screening.inner() << " iteration(s)"
+            << ((next == ScreeningUpdate::Next::Rebuild) ? "; rebuilding W"
+                                                         : "")
+            << std::flush;
+      }
+      if (next == ScreeningUpdate::Next::Converged) {
         XTP_LOG(Log::info, log_) << TimeStamp() << " Converged after "
                                  << i_gw + 1 << " GW iterations." << std::flush;
         break;
@@ -414,7 +452,16 @@ void GW::CalculateGWPerturbation() {
             << std::flush;
         break;
       }
+      rebuild_screening = (next == ScreeningUpdate::Next::Rebuild);
     }
+  }
+  screening_builds_ = screening.builds();
+  qp_iterations_ = n_iterations;
+  if (opt_.gw_sc_max_iterations > 1) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " evGW: " << n_iterations << " QP iterations, "
+        << screening.builds() << " screening builds ("
+        << ScreeningUpdate::Name(screening.mode()) << ")" << std::flush;
   }
   {
     // Sigma_c of the last QP solve, at its solution and with the energies in

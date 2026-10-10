@@ -38,6 +38,7 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/rpa_uks.h"
 #include "votca/xtp/screening_kernels.h"
+#include "votca/xtp/screening_update.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
 
@@ -525,6 +526,16 @@ void GWBSE::Initialize(tools::Property& options) {
   gwopt_.qp_restrict_search = options.get("gw.qp_restrict_search").as<bool>();
   gwopt_.qp_root_continuity = options.ifExistsReturnElseReturnDefault<bool>(
       "gw.qp_root_continuity", false);
+  gwopt_.screening_update =
+      options.ifExistsReturnElseReturnDefault<std::string>(
+          "gw.screening_update", "every");
+  ScreeningUpdate::Parse(gwopt_.screening_update);  // validates
+  gwopt_.screening_update_ratio =
+      options.ifExistsReturnElseReturnDefault<double>(
+          "gw.screening_update_ratio", 0.25);
+  gwopt_.screening_update_max_inner =
+      options.ifExistsReturnElseReturnDefault<Index>(
+          "gw.screening_update_max_inner", 10);
   gwopt_.qp_zero_margin = options.get("gw.qp_zero_margin").as<double>();
   gwopt_.qp_virtual_min_energy =
       options.get("gw.qp_virtual_min_energy").as<double>();
@@ -574,6 +585,16 @@ void GWBSE::Initialize(tools::Property& options) {
       XTP_LOG(Log::error, *pLog_) << " evGW with Anderson update with history "
                                   << gwopt_.gw_mixing_order << " using alpha "
                                   << gwopt_.gw_mixing_alpha << std::flush;
+    }
+    if (gwopt_.screening_update == "adaptive") {
+      XTP_LOG(Log::error, *pLog_)
+          << " evGW screening update: adaptive (ratio "
+          << gwopt_.screening_update_ratio << ", at most "
+          << gwopt_.screening_update_max_inner << " iterations per W)"
+          << std::flush;
+    } else {
+      XTP_LOG(Log::error, *pLog_)
+          << " evGW screening update: every iteration" << std::flush;
     }
   }
 
@@ -1027,6 +1048,9 @@ bool GWBSE::Evaluate() {
       gwopt_uks.out_of_window_shift = gwopt_.out_of_window_shift;
       gwopt_uks.qp_restrict_search = gwopt_.qp_restrict_search;
       gwopt_uks.qp_root_continuity = gwopt_.qp_root_continuity;
+      gwopt_uks.screening_update = gwopt_.screening_update;
+      gwopt_uks.screening_update_ratio = gwopt_.screening_update_ratio;
+      gwopt_uks.screening_update_max_inner = gwopt_.screening_update_max_inner;
       gwopt_uks.qp_zero_margin = gwopt_.qp_zero_margin;
       gwopt_uks.qp_virtual_min_energy = gwopt_.qp_virtual_min_energy;
       gwopt_uks.qp_root_finder = gwopt_.qp_root_finder;

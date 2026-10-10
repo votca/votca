@@ -15,6 +15,7 @@
 #include "votca/xtp/memorybudget.h"
 #include "votca/xtp/newton_rapson.h"
 #include "votca/xtp/rpa_uks.h"
+#include "votca/xtp/screening_update.h"
 #include "votca/xtp/sigmafactory_uks.h"
 
 #include "self_energy_evaluators/sigma_ppm_uks.h"
@@ -224,6 +225,22 @@ void GW_UKS::CalculateGWPerturbation() {
   Eigen::VectorXd rpa_solved_alpha = rpa_.getRPAInputEnergiesAlpha();
   Eigen::VectorXd rpa_solved_beta = rpa_.getRPAInputEnergiesBeta();
 
+  // alpha and beta RPA energies as one vector, for the screening update
+  auto rpa_both = [this]() {
+    const Eigen::VectorXd& a = rpa_.getRPAInputEnergiesAlpha();
+    const Eigen::VectorXd& b = rpa_.getRPAInputEnergiesBeta();
+    Eigen::VectorXd both(a.size() + b.size());
+    both << a, b;
+    return both;
+  };
+  ScreeningUpdate screening;
+  screening.Configure(ScreeningUpdate::Parse(opt_.screening_update),
+                      opt_.screening_update_ratio,
+                      opt_.screening_update_max_inner);
+  bool rebuild_screening = true;
+  Index mixing_iteration = 0;  // see GW::CalculateGWPerturbation
+  Index n_iterations = 0;
+
   for (Index i_gw = 0; i_gw < opt_.gw_sc_max_iterations; ++i_gw) {
     gw_sc_iteration_ = i_gw;
     if (opt_.reset_3c > 0 && i_gw % opt_.reset_3c == 0 && i_gw != 0) {
@@ -231,34 +248,44 @@ void GW_UKS::CalculateGWPerturbation() {
       Mmn_.beta.Rebuild();
       XTP_LOG(Log::info, log_)
           << TimeStamp() << " Rebuilding alpha/beta 3c integrals" << std::flush;
+      rebuild_screening = true;
     }
 
-    if (i_gw == 0) {
-      XTP_LOG(Log::error, log_) << TimeStamp() << " Building the screening; "
-                                << MemoryBudget::Usage() << std::flush;
-    }
-    if (opt_.sigma_integration == "ppm") {
-      ppm_.PPM_construct_parameters(rpa_);
-      if (ppm_.InvalidModes() > 0) {
-        XTP_LOG(Log::error, log_)
-            << TimeStamp() << " WARNING: " << ppm_.InvalidModes()
-            << " PPM modes with negative squared frequency (|.| used)"
-            << std::flush;
+    if (rebuild_screening) {
+      if (i_gw == 0) {
+        XTP_LOG(Log::error, log_) << TimeStamp() << " Building the screening; "
+                                  << MemoryBudget::Usage() << std::flush;
+      }
+      if (opt_.sigma_integration == "ppm") {
+        ppm_.PPM_construct_parameters(rpa_);
+        if (ppm_.InvalidModes() > 0) {
+          XTP_LOG(Log::error, log_)
+              << TimeStamp() << " WARNING: " << ppm_.InvalidModes()
+              << " PPM modes with negative squared frequency (|.| used)"
+              << std::flush;
+        }
       }
       sigma_alpha_->PrepareScreening();
       sigma_beta_->PrepareScreening();
-    } else {
-      sigma_alpha_->PrepareScreening();
-      sigma_beta_->PrepareScreening();
+      screening.Built(rpa_both());
+      if (screening.mode() == ScreeningUpdate::Mode::Adaptive &&
+          screening.builds() > 1) {
+        mixing_alpha = Anderson();
+        mixing_beta = Anderson();
+        mixing_alpha.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
+        mixing_beta.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
+        mixing_iteration = 0;
+      }
+
+      const Log::Level screening_level =
+          (i_gw == 0) ? Log::Level::error : Log::Level::info;
+      XTP_LOG(screening_level, log_)
+          << TimeStamp() << " Calculated unrestricted screening via RPA; "
+          << MemoryBudget::Usage() << std::flush;
     }
 
-    const Log::Level screening_level =
-        (i_gw == 0) ? Log::Level::error : Log::Level::info;
-    XTP_LOG(screening_level, log_)
-        << TimeStamp() << " Calculated unrestricted screening via RPA; "
-        << MemoryBudget::Usage() << std::flush;
-
-    if (opt_.gw_mixing_order > 0 && i_gw > 0) {
+    const bool mix = opt_.gw_mixing_order > 0 && mixing_iteration > 0;
+    if (mix) {
       mixing_alpha.UpdateInput(frequencies_alpha);
       mixing_beta.UpdateInput(frequencies_beta);
     }
@@ -269,12 +296,15 @@ void GW_UKS::CalculateGWPerturbation() {
     qp_solution_beta = frequencies_beta;
     rpa_solved_alpha = rpa_.getRPAInputEnergiesAlpha();
     rpa_solved_beta = rpa_.getRPAInputEnergiesBeta();
+    ++mixing_iteration;
+    ++n_iterations;
 
     if (opt_.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_alpha_old = rpa_.getRPAInputEnergiesAlpha();
       Eigen::VectorXd rpa_beta_old = rpa_.getRPAInputEnergiesBeta();
+      const Eigen::VectorXd rpa_both_old = rpa_both();
 
-      if (opt_.gw_mixing_order > 0 && i_gw > 0) {
+      if (mix) {
         mixing_alpha.UpdateOutput(frequencies_alpha);
         mixing_beta.UpdateOutput(frequencies_beta);
         frequencies_alpha = mixing_alpha.MixHistory();
@@ -291,11 +321,22 @@ void GW_UKS::CalculateGWPerturbation() {
           << " Shift_beta[Hrt]:"
           << CalcSpinHomoLumoShift(frequencies_beta, Spin::Beta) << std::flush;
 
-      const bool converged_alpha = Converged(rpa_.getRPAInputEnergiesAlpha(),
-                                             rpa_alpha_old, opt_.gw_sc_limit);
-      const bool converged_beta = Converged(rpa_.getRPAInputEnergiesBeta(),
-                                            rpa_beta_old, opt_.gw_sc_limit);
-      if (converged_alpha && converged_beta) {
+      // log the largest changes per spin; the decision is ScreeningUpdate's
+      Converged(rpa_.getRPAInputEnergiesAlpha(), rpa_alpha_old,
+                opt_.gw_sc_limit);
+      Converged(rpa_.getRPAInputEnergiesBeta(), rpa_beta_old, opt_.gw_sc_limit);
+      double drift = 0.0;
+      const ScreeningUpdate::Next next =
+          screening.Decide(rpa_both_old, rpa_both(), opt_.gw_sc_limit, &drift);
+      if (screening.mode() == ScreeningUpdate::Mode::Adaptive) {
+        XTP_LOG(Log::info, log_)
+            << TimeStamp() << " Change since the screening was built: " << drift
+            << " Hrt after " << screening.inner() << " iteration(s)"
+            << ((next == ScreeningUpdate::Next::Rebuild) ? "; rebuilding W"
+                                                         : "")
+            << std::flush;
+      }
+      if (next == ScreeningUpdate::Next::Converged) {
         XTP_LOG(Log::info, log_)
             << TimeStamp() << " Converged after " << i_gw + 1
             << " unrestricted GW iterations." << std::flush;
@@ -307,7 +348,14 @@ void GW_UKS::CalculateGWPerturbation() {
             << opt_.gw_sc_max_iterations << " iterations." << std::flush;
         break;
       }
+      rebuild_screening = (next == ScreeningUpdate::Next::Rebuild);
     }
+  }
+  if (opt_.gw_sc_max_iterations > 1) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " evGW (UKS): " << n_iterations << " QP iterations, "
+        << screening.builds() << " screening builds ("
+        << ScreeningUpdate::Name(screening.mode()) << ")" << std::flush;
   }
 
   // Sigma_c of the last QP solve, at its solution and with the energies in
