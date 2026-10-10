@@ -43,6 +43,11 @@ class Sigma_PPM_UKS : public Sigma_base_UKS {
   double CalcCorrelationDiagElementDerivative(Index gw_level,
                                               double frequency) const final;
 
+  // All frequencies in one pass (far poles via Chebyshev interpolation, see
+  // exact_pole_sums)
+  Eigen::VectorXd CalcCorrelationDiagElements(
+      Index gw_level, const Eigen::VectorXd& frequencies) const final;
+
   double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
                                        double frequency1,
                                        double frequency2) const final;
@@ -51,6 +56,9 @@ class Sigma_PPM_UKS : public Sigma_base_UKS {
   template <class Term>
   double AccumulateDiag(Index gw_level, double frequency, Term term) const;
   const PPM* ppm_ = nullptr;
+  // per PPM mode: 0.5 weight omega, 0 for weights below 1e-9 (see
+  // Sigma_PPM; set in PrepareScreening)
+  Eigen::VectorXd mode_factors_;
 };
 
 }  // namespace xtp

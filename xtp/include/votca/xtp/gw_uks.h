@@ -143,7 +143,32 @@ class GW_UKS {
       }
 
       CountSigmaStage(stage);
+      auto cached = cache_.find(key);
+      if (cached != cache_.end()) {
+        return cached->second;
+      }
       return sigma_c_func_.CalcCorrelationDiagElement(gw_level_, frequency);
+    }
+
+    /// Evaluates Sigma_c at these frequencies in one batch and keeps the
+    /// values for later sigma() calls at exactly these frequencies (as
+    /// GW::QPFunc::Prefetch).
+    void Prefetch(const std::vector<double>& frequencies) const {
+      std::vector<double> todo;
+      for (double f : frequencies) {
+        if (cache_.find(FrequencyKey(f)) == cache_.end()) {
+          todo.push_back(f);
+        }
+      }
+      if (todo.empty()) {
+        return;
+      }
+      const Eigen::VectorXd values = sigma_c_func_.CalcCorrelationDiagElements(
+          gw_level_,
+          Eigen::Map<const Eigen::VectorXd>(todo.data(), Index(todo.size())));
+      for (std::size_t i = 0; i < todo.size(); ++i) {
+        cache_[FrequencyKey(todo[i])] = values(Index(i));
+      }
     }
 
     double value(double frequency, EvalStage stage = EvalStage::Other) const {
@@ -191,6 +216,7 @@ class GW_UKS {
     const Sigma_base_UKS& sigma_c_func_;
 
     mutable std::unordered_set<std::uint64_t> seen_frequencies_;
+    mutable std::unordered_map<std::uint64_t, double> cache_;
     mutable QPStats stats_;
   };
 

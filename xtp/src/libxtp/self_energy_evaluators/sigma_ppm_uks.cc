@@ -21,6 +21,7 @@
 #include <votca/tools/globals.h>
 
 #include "sigma_ppm_uks.h"
+#include "votca/xtp/exact_pole_sums.h"
 #include "votca/xtp/ppm.h"
 #include "votca/xtp/threecenter.h"
 
@@ -34,6 +35,12 @@ void Sigma_PPM_UKS::PrepareScreening() {
         "PrepareScreening().");
   }
   Mmn_.MultiplyRightWithAuxMatrix(ppm_->getPpm_phi());
+  const Eigen::VectorXd& weight = ppm_->getPpm_weight();
+  const Eigen::VectorXd& omega = ppm_->getPpm_freq();
+  mode_factors_.resize(weight.size());
+  for (Index i = 0; i < weight.size(); ++i) {
+    mode_factors_(i) = (weight(i) < 1.e-9) ? 0.0 : 0.5 * weight(i) * omega(i);
+  }
 }
 
 // As Sigma_PPM::AccumulateDiag: lazily evaluated array expressions, no
@@ -72,6 +79,15 @@ double Sigma_PPM_UKS::CalcCorrelationDiagElement(Index gw_level,
   return AccumulateDiag(gw_level, frequency, [eta2](const auto& t) {
     return t / (t.square() + eta2);
   });
+}
+
+Eigen::VectorXd Sigma_PPM_UKS::CalcCorrelationDiagElements(
+    Index gw_level, const Eigen::VectorXd& frequencies) const {
+  const Index qpmin_offset = opt_.qpmin - opt_.rpamin;
+  const ExactPoles poles{getSpinRPAInputEnergies(), opt_.homo + 1 - opt_.rpamin,
+                         ppm_->getPpm_freq(), opt_.eta};
+  return exact_pole_sums::Values(poles, Mmn_[gw_level + qpmin_offset].data(),
+                                 frequencies, mode_factors_.data());
 }
 
 double Sigma_PPM_UKS::CalcCorrelationDiagElementDerivative(

@@ -19,6 +19,7 @@
 #define BOOST_TEST_MODULE gw_test
 
 // Standard includes
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
@@ -29,6 +30,12 @@
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/gw.h"
 #include "votca/xtp/gw_uks.h"
+#include "votca/xtp/ppm.h"
+#include "votca/xtp/rpa_uks.h"
+#include "votca/xtp/sigmafactory_uks.h"
+
+// for SetSharedPPM
+#include "../libxtp/self_energy_evaluators/sigma_ppm_uks.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_base.h"
 #include "votca/xtp/sigmafactory.h"
@@ -979,6 +986,68 @@ BOOST_AUTO_TEST_CASE(evgw_uks_closed_shell_equals_rks) {
     BOOST_TEST_MESSAGE("UKS " << integration << ": every " << every.iterations
                               << " iterations, adaptive " << adaptive.iterations
                               << " / " << adaptive.builds << " builds");
+  }
+  libint2::finalize();
+}
+
+// Batched UKS Sigma_c (as used by the QP scan through Prefetch) equals the
+// element-wise sums: in chunks too small for the Chebyshev split to 1e-13,
+// and single frequencies to 1e-11 (rounded differently near poles, see
+// test_sigma_exact.cc).
+BOOST_AUTO_TEST_CASE(sigma_uks_batched_equals_direct) {
+  if (!libint2::initialized()) libint2::initialize();
+  for (const std::string integration : {"ppm", "exact"}) {
+    GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+    TCMatrix_gwbse_spin Mmn;
+    Mmn.alpha = system.Mmn;
+    Mmn.beta = system.Mmn;
+    Logger log;
+    RPA_UKS rpa(log, Mmn);
+    rpa.configure(4, 4, 0, 16);
+    rpa.setRPAInputEnergies(system.mo_eigenvalues, system.mo_eigenvalues);
+    PPM ppm;
+    std::unique_ptr<Sigma_base_UKS> sigma = SigmaFactory_UKS().Create(
+        integration, Mmn, rpa, TCMatrix::SpinChannel::Beta);
+    if (integration == "ppm") {
+      ppm.PPM_construct_parameters(rpa);
+      dynamic_cast<Sigma_PPM_UKS&>(*sigma).SetSharedPPM(ppm);
+    }
+    Sigma_base_UKS::options opt;
+    opt.homo = 4;
+    opt.qpmin = 0;
+    opt.qpmax = 16;
+    opt.rpamin = 0;
+    opt.rpamax = 16;
+    opt.eta = 1e-3;
+    sigma->configure(opt);
+    sigma->PrepareScreening();
+    for (votca::Index level = 0; level < 17; ++level) {
+      for (double halfwidth : {0.75, 3.0}) {
+        const votca::Index n = (halfwidth < 1.0) ? 63 : 1001;
+        const double e = system.mo_eigenvalues(level);
+        const Eigen::VectorXd w =
+            Eigen::VectorXd::LinSpaced(n, e - halfwidth, e + halfwidth);
+        const Eigen::VectorXd batched =
+            sigma->CalcCorrelationDiagElements(level, w);
+        double cheb = 0.0;
+        double single = 0.0;
+        double scale = 0.0;
+        for (votca::Index i0 = 0; i0 < n; i0 += 16) {
+          const votca::Index len = std::min<votca::Index>(16, n - i0);
+          const Eigen::VectorXd chunk =
+              sigma->CalcCorrelationDiagElements(level, w.segment(i0, len));
+          for (votca::Index i = 0; i < len; ++i) {
+            const double direct =
+                sigma->CalcCorrelationDiagElement(level, w(i0 + i));
+            cheb = std::max(cheb, std::abs(batched(i0 + i) - chunk(i)));
+            single = std::max(single, std::abs(batched(i0 + i) - direct));
+            scale = std::max(scale, std::abs(direct));
+          }
+        }
+        BOOST_CHECK_SMALL(cheb, 1e-13 * std::max(1.0, scale));
+        BOOST_CHECK_SMALL(single, 1e-11 * std::max(1.0, scale));
+      }
+    }
   }
   libint2::finalize();
 }

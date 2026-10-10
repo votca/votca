@@ -40,6 +40,9 @@ class Sigma_Exact_UKS : public Sigma_base_UKS {
 
   double CalcCorrelationDiagElementDerivative(Index gw_level,
                                               double frequency) const final;
+  /// All frequencies of a level in one pass (see exact_pole_sums)
+  Eigen::VectorXd CalcCorrelationDiagElements(
+      Index gw_level, const Eigen::VectorXd& frequencies) const final;
 
   double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
                                        double frequency1,

@@ -75,6 +75,15 @@ double Sigma_Exact_UKS::CalcCorrelationDiagElement(Index gw_level,
   return exact_pole_sums::Value(poles, residues_[gw_level].data(), frequency);
 }
 
+Eigen::VectorXd Sigma_Exact_UKS::CalcCorrelationDiagElements(
+    Index gw_level, const Eigen::VectorXd& frequencies) const {
+  const ExactPoles poles =
+      UKSPoles(getSpinRPAInputEnergies(), opt_.homo + 1 - opt_.rpamin,
+               rpa_omegas_, opt_.eta);
+  return exact_pole_sums::Values(poles, residues_[gw_level].data(),
+                                 frequencies);
+}
+
 double Sigma_Exact_UKS::CalcCorrelationDiagElementDerivative(
     Index gw_level, double frequency) const {
   const ExactPoles poles =
