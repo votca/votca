@@ -40,12 +40,18 @@ namespace xtp {
  * of an iteration.
  *
  *  - every:    rebuild W in every iteration (the classic scheme);
- *  - adaptive: iterate G with W fixed and rebuild W once the last change of
- *              the energies is small against how far they have moved since
- *              W was built (below ratio times that drift), or after
- *              max_inner iterations. Converged when the energies change by
- *              less than the limit AND differ from those W was built with by
- *              less than the limit, i.e. at the same evGW fixed point.
+ *  - adaptive: iterate G with W fixed and rebuild W once the residual of
+ *              the QP solve is small against how far the energies have
+ *              moved since W was built (below ratio times that drift), or
+ *              after max_inner iterations. Converged when the residual is
+ *              below the limit AND the energies differ from those W was
+ *              built with by less than the limit, i.e. at the same evGW
+ *              fixed point.
+ *
+ * The residual is that of the fixed-point map, QP solutions minus the
+ * energies they were solved with, not the change of the mixed energies:
+ * with Anderson mixing the latter can become small while the energies are
+ * not a fixed point (stagnation).
  */
 class ScreeningUpdate {
  public:
@@ -82,14 +88,14 @@ class ScreeningUpdate {
   /// QP iterations since W was last built (before the current one)
   Index inner() const { return inner_; }
 
-  /// After a QP iteration: old and new energies (the input of this and of
-  /// the next iteration). Returns what to do next and the drift since W was
-  /// built (largest change of an energy).
-  Next Decide(const Eigen::VectorXd& old_energies,
-              const Eigen::VectorXd& new_energies, double limit,
-              double* drift_out = nullptr) {
+  /// After a QP iteration: its residual (largest difference between the QP
+  /// solutions and the energies they were solved with, i.e. before any
+  /// mixing) and the energies for the next iteration. Returns what to do
+  /// next and the drift since W was built (largest change of an energy).
+  Next Decide(double residual, const Eigen::VectorXd& new_energies,
+              double limit, double* drift_out = nullptr) {
     ++inner_;
-    const double step = (new_energies - old_energies).cwiseAbs().maxCoeff();
+    const double step = residual;
     const double drift = (new_energies - built_from_).cwiseAbs().maxCoeff();
     if (drift_out != nullptr) {
       *drift_out = drift;

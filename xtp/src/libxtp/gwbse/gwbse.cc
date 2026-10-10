@@ -526,6 +526,8 @@ void GWBSE::Initialize(tools::Property& options) {
   gwopt_.qp_restrict_search = options.get("gw.qp_restrict_search").as<bool>();
   gwopt_.qp_root_continuity = options.ifExistsReturnElseReturnDefault<bool>(
       "gw.qp_root_continuity", false);
+  gwopt_.qp_root_tracking = options.ifExistsReturnElseReturnDefault<bool>(
+      "gw.qp_root_tracking", false);
   gwopt_.screening_update =
       options.ifExistsReturnElseReturnDefault<std::string>(
           "gw.screening_update", "every");
@@ -1049,6 +1051,7 @@ bool GWBSE::Evaluate() {
       gwopt_uks.qp_restrict_search = gwopt_.qp_restrict_search;
       gwopt_uks.qp_root_continuity = gwopt_.qp_root_continuity;
       gwopt_uks.screening_update = gwopt_.screening_update;
+      gwopt_uks.qp_root_tracking = gwopt_.qp_root_tracking;
       gwopt_uks.screening_update_ratio = gwopt_.screening_update_ratio;
       gwopt_uks.screening_update_max_inner = gwopt_.screening_update_max_inner;
       gwopt_uks.qp_zero_margin = gwopt_.qp_zero_margin;

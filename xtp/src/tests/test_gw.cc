@@ -28,6 +28,7 @@
 // Local VOTCA includes
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/gw.h"
+#include "votca/xtp/gw_uks.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_base.h"
 #include "votca/xtp/sigmafactory.h"
@@ -809,6 +810,175 @@ BOOST_AUTO_TEST_CASE(evgw_adaptive_screening_update_same_fixed_point) {
         system.vxc.diagonal().head(e_adaptive.size()) +
         sigma->CalcCorrelationDiag(e_adaptive) - e_adaptive;
     BOOST_CHECK_SMALL(residual.cwiseAbs().maxCoeff(), 1e-6);
+  }
+  libint2::finalize();
+}
+
+// Root tracking (local QP search near the previous root after the first
+// iteration, verified by a full search after convergence) gives the same
+// evGW energies as the full search in every iteration, with and without
+// adaptive screening updates, and actually solves levels locally.
+BOOST_AUTO_TEST_CASE(evgw_root_tracking_same_result) {
+  if (!libint2::initialized()) libint2::initialize();
+  for (const std::string integration : {"ppm", "exact"}) {
+    for (const std::string update : {"every", "adaptive"}) {
+      GW::options opt = MakeGWTestOptions();
+      opt.sigma_integration = integration;
+      opt.screening_update = update;
+      opt.reset_3c = 0;
+      opt.gw_sc_max_iterations = 100;
+      opt.gw_sc_limit = 1e-7;
+      opt.g_sc_limit = 1e-10;
+      opt.gw_mixing_order = 3;
+      opt.gw_mixing_alpha = 0.7;
+      auto run = [&](bool tracking, votca::Index& local, votca::Index& iters) {
+        GW::options o = opt;
+        o.qp_root_tracking = tracking;
+        GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+        GW gw(system.log, system.Mmn, system.vxc, system.mo_eigenvalues);
+        gw.configure(o);
+        gw.CalculateGWPerturbation();
+        local = gw.TrackedLocalSolves();
+        iters = gw.QPIterations();
+        return Eigen::VectorXd(gw.getGWAResults());
+      };
+      votca::Index local_off = 0, iters_off = 0, local_on = 0, iters_on = 0;
+      const Eigen::VectorXd e_full = run(false, local_off, iters_off);
+      const Eigen::VectorXd e_tracked = run(true, local_on, iters_on);
+      BOOST_TEST_MESSAGE(integration << "/" << update << ": full search "
+                                     << iters_off << " iterations, tracking "
+                                     << iters_on << " iterations, " << local_on
+                                     << " local level solves");
+      BOOST_CHECK_EQUAL(local_off, 0);
+      BOOST_CHECK_GT(local_on, 0);
+      BOOST_CHECK_SMALL((e_full - e_tracked).cwiseAbs().maxCoeff(), 1e-6);
+    }
+  }
+  libint2::finalize();
+}
+
+// GW_UKS on a closed shell (alpha = beta) is evGW of GW: same energies for
+// both spins as the restricted code, also with adaptive screening updates
+// and root tracking, which in addition must reproduce the "every" / full
+// search energies of GW_UKS itself.
+namespace {
+GW_UKS::options ToUKS(const GW::options& opt) {
+  GW_UKS::options u;
+  u.homo_alpha = opt.homo;
+  u.homo_beta = opt.homo;
+  u.qpmin = opt.qpmin;
+  u.qpmax = opt.qpmax;
+  u.rpamin = opt.rpamin;
+  u.rpamax = opt.rpamax;
+  u.eta = opt.eta;
+  u.g_sc_limit = opt.g_sc_limit;
+  u.g_sc_max_iterations = opt.g_sc_max_iterations;
+  u.gw_sc_limit = opt.gw_sc_limit;
+  u.gw_sc_max_iterations = opt.gw_sc_max_iterations;
+  u.shift = opt.shift;
+  u.ScaHFX = opt.ScaHFX;
+  u.sigma_integration = opt.sigma_integration;
+  u.reset_3c = opt.reset_3c;
+  u.qp_solver = opt.qp_solver;
+  u.qp_solver_alpha = opt.qp_solver_alpha;
+  u.qp_grid_steps = opt.qp_grid_steps;
+  u.qp_grid_spacing = opt.qp_grid_spacing;
+  u.qp_full_window_half_width = opt.qp_full_window_half_width;
+  u.qp_dense_spacing = opt.qp_dense_spacing;
+  u.qp_adaptive_shell_width = opt.qp_adaptive_shell_width;
+  u.qp_adaptive_shell_count = opt.qp_adaptive_shell_count;
+  u.gw_mixing_order = opt.gw_mixing_order;
+  u.gw_mixing_alpha = opt.gw_mixing_alpha;
+  u.quadrature_scheme = opt.quadrature_scheme;
+  u.order = opt.order;
+  u.alpha = opt.alpha;
+  u.out_of_window_shift = opt.out_of_window_shift;
+  u.qp_restrict_search = opt.qp_restrict_search;
+  u.qp_root_continuity = opt.qp_root_continuity;
+  u.screening_update = opt.screening_update;
+  u.qp_root_tracking = opt.qp_root_tracking;
+  u.screening_update_ratio = opt.screening_update_ratio;
+  u.screening_update_max_inner = opt.screening_update_max_inner;
+  u.qp_zero_margin = opt.qp_zero_margin;
+  u.qp_virtual_min_energy = opt.qp_virtual_min_energy;
+  u.qp_root_finder = opt.qp_root_finder;
+  u.qp_grid_search_mode = opt.qp_grid_search_mode;
+  return u;
+}
+
+struct UKSRun {
+  Eigen::VectorXd alpha;
+  Eigen::VectorXd beta;
+  votca::Index builds = 0;
+  votca::Index iterations = 0;
+  votca::Index local = 0;
+};
+
+UKSRun RunEvGW_UKS(const GW::options& opt) {
+  GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+  TCMatrix_gwbse_spin Mmn;
+  Mmn.alpha = system.Mmn;
+  Mmn.beta = system.Mmn;
+  GW_UKS gw(system.log, Mmn, system.vxc, system.vxc, system.mo_eigenvalues,
+            system.mo_eigenvalues);
+  gw.configure(ToUKS(opt));
+  gw.CalculateGWPerturbation();
+  UKSRun r;
+  r.alpha = gw.getGWAResultsAlpha();
+  r.beta = gw.getGWAResultsBeta();
+  r.builds = gw.ScreeningBuilds();
+  r.iterations = gw.QPIterations();
+  r.local = gw.TrackedLocalSolves();
+  return r;
+}
+}  // namespace
+
+BOOST_AUTO_TEST_CASE(evgw_uks_closed_shell_equals_rks) {
+  if (!libint2::initialized()) libint2::initialize();
+  for (const std::string integration : {"ppm", "exact"}) {
+    GW::options opt = MakeGWTestOptions();
+    opt.sigma_integration = integration;
+    opt.reset_3c = 0;
+    opt.gw_sc_max_iterations = 100;
+    opt.gw_sc_limit = 1e-7;
+    opt.g_sc_limit = 1e-10;
+    opt.gw_mixing_order = 3;
+    opt.gw_mixing_alpha = 0.7;
+
+    const Eigen::VectorXd e_rks = [&]() {
+      GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+      return RunGWPerturbation(system, opt);
+    }();
+
+    const UKSRun every = RunEvGW_UKS(opt);
+    BOOST_CHECK_EQUAL(every.builds, every.iterations);
+    BOOST_CHECK_SMALL((every.alpha - every.beta).cwiseAbs().maxCoeff(), 1e-10);
+    BOOST_CHECK_SMALL((every.alpha - e_rks).cwiseAbs().maxCoeff(), 1e-6);
+
+    GW::options o = opt;
+    o.screening_update = "adaptive";
+    const UKSRun adaptive = RunEvGW_UKS(o);
+    BOOST_CHECK_LT(adaptive.builds, every.builds);
+    BOOST_CHECK_EQUAL(adaptive.local, 0);
+    BOOST_CHECK_SMALL((adaptive.alpha - e_rks).cwiseAbs().maxCoeff(), 1e-6);
+    BOOST_CHECK_SMALL((adaptive.beta - e_rks).cwiseAbs().maxCoeff(), 1e-6);
+
+    for (const std::string update : {"every", "adaptive"}) {
+      GW::options t = opt;
+      t.screening_update = update;
+      t.qp_root_tracking = true;
+      const UKSRun tracked = RunEvGW_UKS(t);
+      BOOST_TEST_MESSAGE("UKS " << integration << "/" << update << " tracking: "
+                                << tracked.iterations << " iterations, "
+                                << tracked.builds << " builds, "
+                                << tracked.local << " local level solves");
+      BOOST_CHECK_GT(tracked.local, 0);
+      BOOST_CHECK_SMALL((tracked.alpha - e_rks).cwiseAbs().maxCoeff(), 1e-6);
+      BOOST_CHECK_SMALL((tracked.beta - e_rks).cwiseAbs().maxCoeff(), 1e-6);
+    }
+    BOOST_TEST_MESSAGE("UKS " << integration << ": every " << every.iterations
+                              << " iterations, adaptive " << adaptive.iterations
+                              << " / " << adaptive.builds << " builds");
   }
   libint2::finalize();
 }

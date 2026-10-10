@@ -345,4 +345,17 @@ BOOST_AUTO_TEST_CASE(select_root_and_competing_roots) {
   BOOST_CHECK(!CheckCompetingRoots({a}, 0.1).competing);
 }
 
+BOOST_AUTO_TEST_CASE(largest_residuals_lists_levels_by_residual) {
+  Eigen::VectorXd input(4);
+  Eigen::VectorXd solution(4);
+  input << -0.5, -0.3, 0.1, 0.4;
+  solution << -0.5001, -0.3, 0.13, 0.399;
+  BOOST_CHECK_EQUAL(LargestResiduals(solution, input, 9, 2),
+                    "11: +0.100000 -> +0.130000 (+3.0e-02), "
+                    "12: +0.400000 -> +0.399000 (-1.0e-03)");
+  // fewer levels than requested
+  BOOST_CHECK_EQUAL(LargestResiduals(solution.head(1), input.head(1), 0, 5),
+                    "0: -0.500000 -> -0.500100 (-1.0e-04)");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

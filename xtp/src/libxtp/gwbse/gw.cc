@@ -334,9 +334,19 @@ void GW::CalculateGWPerturbation() {
   // an adaptive update rebuilds W, since the fixed-point map changes then
   Index mixing_iteration = 0;
   Index n_iterations = 0;
+  // root tracking: off in the first iteration and for the verifying full
+  // search after convergence (and for the rest of the run if that search
+  // moves a level)
+  tracked_root_.resize(0);
+  tracking_active_ = false;
+  tracked_local_total_ = 0;
+  bool tracking_verified = false;
+  bool verifying = false;  // this iteration is the verifying full search
 
   for (Index i_gw = 0; i_gw < opt_.gw_sc_max_iterations; ++i_gw) {
     gw_sc_iteration_ = i_gw;
+    tracking_active_ = opt_.qp_root_tracking && i_gw > 0 && !tracking_verified;
+    const Eigen::VectorXd roots_before = tracked_root_;
     if (opt_.reset_3c > 0 && i_gw % opt_.reset_3c == 0 && i_gw != 0) {
       auto t = timings_.Measure("rebuild Mmn");
       Mmn_.Rebuild();
@@ -382,6 +392,7 @@ void GW::CalculateGWPerturbation() {
       mixing_.UpdateInput(frequencies);
     }
 
+    const Eigen::VectorXd qp_input = frequencies;
     {
       auto t = timings_.Measure("QP equations (Sigma_c diagonal)");
       frequencies = SolveQP(frequencies);
@@ -424,12 +435,19 @@ void GW::CalculateGWPerturbation() {
       XTP_LOG(Log::info, log_)
           << TimeStamp() << " GW_Iteration:" << i_gw
           << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
-      // logs the largest change; the decision is ScreeningUpdate's
+      // logs the largest change of the (mixed) energies; the decision is
+      // ScreeningUpdate's, on the residual of the QP solve
       Converged(rpa_.getRPAInputEnergies(), rpa_energies_old, opt_.gw_sc_limit);
+      const double residual = (qp_solution - qp_input).cwiseAbs().maxCoeff();
+      XTP_LOG(Log::info, log_) << TimeStamp() << " QP residual (solution - "
+                               << "input) max=" << residual << std::flush;
+      XTP_LOG(Log::info, log_)
+          << TimeStamp() << " Largest QP residuals (level: input -> solution): "
+          << qp_solver::LargestResiduals(qp_solution, qp_input, opt_.qpmin)
+          << std::flush;
       double drift = 0.0;
-      const ScreeningUpdate::Next next =
-          screening.Decide(rpa_energies_old, rpa_.getRPAInputEnergies(),
-                           opt_.gw_sc_limit, &drift);
+      const ScreeningUpdate::Next next = screening.Decide(
+          residual, rpa_.getRPAInputEnergies(), opt_.gw_sc_limit, &drift);
       if (screening.mode() == ScreeningUpdate::Mode::Adaptive) {
         XTP_LOG(Log::info, log_)
             << TimeStamp() << " Change since the screening was built: " << drift
@@ -437,6 +455,41 @@ void GW::CalculateGWPerturbation() {
             << ((next == ScreeningUpdate::Next::Rebuild) ? "; rebuilding W"
                                                          : "")
             << std::flush;
+      }
+      if (verifying && roots_before.size() == qptotal_) {
+        // the full search after a converged tracked run: report levels it
+        // put on another root than tracking did
+        std::vector<Index> moved;
+        for (Index l = 0; l < qptotal_; ++l) {
+          if (std::abs(tracked_root_(l) - roots_before(l)) >
+              10.0 * opt_.gw_sc_limit) {
+            moved.push_back(l + opt_.qpmin);
+          }
+        }
+        if (!moved.empty() && next != ScreeningUpdate::Next::Converged) {
+          IndexParser rp;
+          XTP_LOG(Log::error, log_)
+              << TimeStamp() << " QP root tracking: the full search chose "
+              << "other roots for levels " << rp.CreateIndexString(moved)
+              << "; continuing with the full search" << std::flush;
+        }
+        verifying = false;
+      }
+      if (next == ScreeningUpdate::Next::Converged && opt_.qp_root_tracking &&
+          !tracking_verified && i_gw > 0) {
+        // converged on the tracked roots: one QP solve with the full search
+        // (same G and W) checks that they are the roots the full search
+        // chooses; if so it converges at once
+        tracking_verified = true;
+        verifying = true;
+        rebuild_screening = false;
+        XTP_LOG(Log::info, log_)
+            << TimeStamp()
+            << " QP root tracking converged; verifying with a full search"
+            << std::flush;
+        if (i_gw < opt_.gw_sc_max_iterations - 1) {
+          continue;
+        }
       }
       if (next == ScreeningUpdate::Next::Converged) {
         XTP_LOG(Log::info, log_) << TimeStamp() << " Converged after "
@@ -457,11 +510,19 @@ void GW::CalculateGWPerturbation() {
   }
   screening_builds_ = screening.builds();
   qp_iterations_ = n_iterations;
+  tracking_active_ = false;
   if (opt_.gw_sc_max_iterations > 1) {
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " evGW: " << n_iterations << " QP iterations, "
         << screening.builds() << " screening builds ("
-        << ScreeningUpdate::Name(screening.mode()) << ")" << std::flush;
+        << ScreeningUpdate::Name(screening.mode()) << ")"
+        << (opt_.qp_root_tracking
+                ? "; root tracking solved " +
+                      std::to_string(tracked_local_total_) + " of " +
+                      std::to_string(n_iterations * qptotal_) +
+                      " level solves locally"
+                : std::string())
+        << std::flush;
   }
   {
     // Sigma_c of the last QP solve, at its solution and with the energies in
@@ -528,6 +589,12 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
       Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(qptotal_);
 
   QPStats total_stats;
+  const bool track = opt_.qp_root_tracking;
+  const bool use_tracked =
+      track && tracking_active_ && tracked_root_.size() == qptotal_;
+  Eigen::VectorXd roots_new = frequencies;
+  Eigen::VectorXd Z_new = Eigen::VectorXd::Zero(qptotal_);
+  Index n_local = 0;
 
   // HOMO-LUMO midpoint of the current QP guesses (DFT energies where a
   // level is outside the QP range), for SolveQP_Grid's restricted window.
@@ -555,29 +622,70 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     double intercept = intercepts[gw_level];
     boost::optional<double> newf;
     QPStats local_stats;
+    double Z_root = 0.0;
 
-    if (opt_.qp_solver == "fixedpoint") {
+    if (use_tracked) {
+      auto cand = SolveQP_Tracked(intercept, initial_f, gw_level, &local_stats);
+      if (cand) {
+        newf = cand->omega;
+        Z_root = cand->Z;
+#pragma omp atomic
+        ++n_local;
+      }
+    }
+    if (!newf && opt_.qp_solver == "fixedpoint") {
       newf = SolveQP_FixedPoint(intercept, initial_f, gw_level, &local_stats);
     }
     if (newf) {
       frequencies_new[gw_level] = newf.value();
       converged[gw_level] = true;
     } else {
-      newf = SolveQP_Grid(intercept, initial_f, gw_level, &local_stats);
+      QPStats grid_stats;
+      newf = SolveQP_Grid(intercept, initial_f, gw_level, &grid_stats);
+      local_stats.Add(grid_stats);
       if (newf) {
         frequencies_new[gw_level] = newf.value();
         converged[gw_level] = true;
       } else {
+        QPStats lin_stats;
         newf =
-            SolveQP_Linearisation(intercept, initial_f, gw_level, &local_stats);
+            SolveQP_Linearisation(intercept, initial_f, gw_level, &lin_stats);
+        local_stats.Add(lin_stats);
         if (newf) {
           frequencies_new[gw_level] = newf.value();
         }
       }
     }
+    if (track && newf) {
+      roots_new[gw_level] = newf.value();
+      if (Z_root <= 0.0) {
+        // weight of a root from the full search, for the next local one
+        QPFunc fqp(gw_level, *sigma_.get(), intercept);
+        const double d = fqp.deriv(newf.value());
+        Z_root = (std::abs(d) > 1e-14) ? -1.0 / d : 0.0;
+      }
+      Z_new[gw_level] = Z_root;
+    }
 
 #pragma omp critical
     { total_stats.Add(local_stats); }
+  }
+
+  if (track) {
+    tracked_change_ =
+        (tracked_root_.size() == qptotal_)
+            ? Eigen::VectorXd((roots_new - tracked_root_).cwiseAbs())
+            : Eigen::VectorXd::Zero(qptotal_);
+    tracked_root_ = roots_new;
+    tracked_Z_ = Z_new;
+    tracked_local_ = n_local;
+    tracked_local_total_ += n_local;
+    if (use_tracked) {
+      XTP_LOG(Log::info, log_)
+          << TimeStamp() << " QP root tracking: " << n_local << " of "
+          << qptotal_ << " levels solved near their previous root"
+          << std::flush;
+    }
   }
 
   if (!converged.all()) {
@@ -612,6 +720,28 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
                            << std::flush;
 
   return frequencies_new;
+}
+
+boost::optional<qp_solver::RootCandidate> GW::SolveQP_Tracked(
+    double intercept0, double frequency0, Index gw_level,
+    QPStats* stats) const {
+  const double center = tracked_root_(gw_level);
+  // a few times the last change of the root or of the input, within limits
+  const double moved =
+      std::max(tracked_change_(gw_level), std::abs(frequency0 - center));
+  const double halfwidth = std::clamp(4.0 * moved, 0.01, 0.1);
+  QPFunc fqp(gw_level, *sigma_.get(), intercept0);
+  qp_solver::SolverOptions solver_opt;
+  solver_opt.g_sc_limit = opt_.g_sc_limit;
+  solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
+  solver_opt.qp_dense_spacing = opt_.qp_dense_spacing;
+  auto cand = qp_solver::SolveQP_Tracked(fqp, center, halfwidth,
+                                         tracked_Z_(gw_level), 0.5, solver_opt,
+                                         opt_.qp_root_finder == "brent");
+  if (stats != nullptr) {
+    *stats = fqp.GetStats();
+  }
+  return cand;
 }
 
 boost::optional<double> GW::SolveQP_Linearisation(double intercept0,

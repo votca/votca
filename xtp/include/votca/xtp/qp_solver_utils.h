@@ -24,11 +24,16 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdio>
 #include <limits>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include <boost/optional.hpp>
+
+// Local VOTCA includes
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {
@@ -483,6 +488,45 @@ boost::optional<RootCandidate> RefineQPInterval(
   return cand;
 }
 
+/// Root tracking: the root of the branch found in the previous iteration,
+/// searched only in [center - halfwidth, center + halfwidth] with the dense
+/// spacing. Returns the accepted root closest to center whose weight is at
+/// least min_Z_fraction of the previous one (the branch has not faded into a
+/// satellite); none if there is no such root, so that the caller falls back
+/// to the full search.
+template <typename QPFunc>
+boost::optional<RootCandidate> SolveQP_Tracked(
+    QPFunc& fqp, double center, double halfwidth, double Z_previous,
+    double min_Z_fraction, const SolverOptions& opt, bool use_brent = false) {
+  const double spacing = opt.qp_dense_spacing;
+  const Index n_steps = std::max<Index>(
+      2, static_cast<Index>(std::ceil(2.0 * halfwidth / spacing)) + 1);
+  const double left = center - halfwidth;
+  const double dx = 2.0 * halfwidth / static_cast<double>(n_steps - 1);
+  std::vector<double> nodes(static_cast<std::size_t>(n_steps));
+  for (Index i = 0; i < n_steps; ++i) {
+    nodes[std::size_t(i)] = left + static_cast<double>(i) * dx;
+  }
+  PrefetchIfAvailable(fqp, nodes, 0);
+
+  boost::optional<RootCandidate> best;
+  double f_prev = fqp.value(nodes[0], EvalStage::Scan);
+  for (Index i = 1; i < n_steps; ++i) {
+    const double x = nodes[std::size_t(i)];
+    const double f = fqp.value(x, EvalStage::Scan);
+    if (f_prev * f <= 0.0) {
+      auto cand = RefineQPInterval(nodes[std::size_t(i - 1)], f_prev, x, f, fqp,
+                                   center, opt, use_brent);
+      if (cand && cand->accepted && cand->Z >= min_Z_fraction * Z_previous &&
+          (!best || cand->distance_to_ref < best->distance_to_ref)) {
+        best = cand;
+      }
+    }
+    f_prev = f;
+  }
+  return best;
+}
+
 template <typename QPFunc>
 boost::optional<double> SolveQP_Grid_Windowed(
     QPFunc& fqp, double frequency0, double left_limit, double right_limit,
@@ -793,6 +837,35 @@ boost::optional<double> SolveQP_Grid_Windowed(
     *rejected_roots_out = rejected_roots;
   }
   return boost::none;
+}
+
+/// The n levels with the largest QP residual |solution - input| (largest
+/// first) as "level: input -> solution (residual)", for the evGW log.
+/// Levels are numbered from first_level.
+inline std::string LargestResiduals(const Eigen::VectorXd& solution,
+                                    const Eigen::VectorXd& input,
+                                    Index first_level, Index n = 5) {
+  const Index size = std::min(solution.size(), input.size());
+  std::vector<Index> order(static_cast<std::size_t>(size));
+  for (Index i = 0; i < size; ++i) {
+    order[std::size_t(i)] = i;
+  }
+  const Index shown = std::min(n, size);
+  std::partial_sort(order.begin(), order.begin() + shown, order.end(),
+                    [&](Index a, Index b) {
+                      return std::abs(solution(a) - input(a)) >
+                             std::abs(solution(b) - input(b));
+                    });
+  std::string out;
+  char buffer[96];
+  for (Index k = 0; k < shown; ++k) {
+    const Index i = order[std::size_t(k)];
+    std::snprintf(buffer, sizeof(buffer), "%s%ld: %+.6f -> %+.6f (%+.1e)",
+                  (k == 0) ? "" : ", ", static_cast<long>(i + first_level),
+                  input(i), solution(i), solution(i) - input(i));
+    out += buffer;
+  }
+  return out;
 }
 
 }  // namespace qp_solver

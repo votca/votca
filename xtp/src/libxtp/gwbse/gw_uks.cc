@@ -5,9 +5,11 @@
  *      Licensed under the Apache License, Version 2.0 (the "License")
  */
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <vector>
 
 #include "votca/xtp/IndexParser.h"
 #include "votca/xtp/anderson_mixing.h"
@@ -240,9 +242,19 @@ void GW_UKS::CalculateGWPerturbation() {
   bool rebuild_screening = true;
   Index mixing_iteration = 0;  // see GW::CalculateGWPerturbation
   Index n_iterations = 0;
+  // root tracking per spin, as in GW::CalculateGWPerturbation
+  tracked_root_[0].resize(0);
+  tracked_root_[1].resize(0);
+  tracking_active_ = false;
+  tracked_local_total_ = 0;
+  bool tracking_verified = false;
+  bool verifying = false;  // this iteration is the verifying full search
 
   for (Index i_gw = 0; i_gw < opt_.gw_sc_max_iterations; ++i_gw) {
     gw_sc_iteration_ = i_gw;
+    tracking_active_ = opt_.qp_root_tracking && i_gw > 0 && !tracking_verified;
+    const Eigen::VectorXd roots_before_alpha = tracked_root_[0];
+    const Eigen::VectorXd roots_before_beta = tracked_root_[1];
     if (opt_.reset_3c > 0 && i_gw % opt_.reset_3c == 0 && i_gw != 0) {
       Mmn_.alpha.Rebuild();
       Mmn_.beta.Rebuild();
@@ -290,6 +302,8 @@ void GW_UKS::CalculateGWPerturbation() {
       mixing_beta.UpdateInput(frequencies_beta);
     }
 
+    const Eigen::VectorXd qp_input_alpha = frequencies_alpha;
+    const Eigen::VectorXd qp_input_beta = frequencies_beta;
     frequencies_alpha = SolveQP(Spin::Alpha, frequencies_alpha);
     frequencies_beta = SolveQP(Spin::Beta, frequencies_beta);
     qp_solution_alpha = frequencies_alpha;
@@ -302,7 +316,6 @@ void GW_UKS::CalculateGWPerturbation() {
     if (opt_.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_alpha_old = rpa_.getRPAInputEnergiesAlpha();
       Eigen::VectorXd rpa_beta_old = rpa_.getRPAInputEnergiesBeta();
-      const Eigen::VectorXd rpa_both_old = rpa_both();
 
       if (mix) {
         mixing_alpha.UpdateOutput(frequencies_alpha);
@@ -325,9 +338,25 @@ void GW_UKS::CalculateGWPerturbation() {
       Converged(rpa_.getRPAInputEnergiesAlpha(), rpa_alpha_old,
                 opt_.gw_sc_limit);
       Converged(rpa_.getRPAInputEnergiesBeta(), rpa_beta_old, opt_.gw_sc_limit);
+      const double residual =
+          std::max((qp_solution_alpha - qp_input_alpha).cwiseAbs().maxCoeff(),
+                   (qp_solution_beta - qp_input_beta).cwiseAbs().maxCoeff());
+      XTP_LOG(Log::info, log_) << TimeStamp() << " QP residual (solution - "
+                               << "input) max=" << residual << std::flush;
+      XTP_LOG(Log::info, log_)
+          << TimeStamp() << " Largest QP residuals alpha (level: input -> "
+          << "solution): "
+          << qp_solver::LargestResiduals(qp_solution_alpha, qp_input_alpha,
+                                         opt_.qpmin)
+          << std::flush;
+      XTP_LOG(Log::info, log_)
+          << TimeStamp() << " Largest QP residuals beta: "
+          << qp_solver::LargestResiduals(qp_solution_beta, qp_input_beta,
+                                         opt_.qpmin)
+          << std::flush;
       double drift = 0.0;
       const ScreeningUpdate::Next next =
-          screening.Decide(rpa_both_old, rpa_both(), opt_.gw_sc_limit, &drift);
+          screening.Decide(residual, rpa_both(), opt_.gw_sc_limit, &drift);
       if (screening.mode() == ScreeningUpdate::Mode::Adaptive) {
         XTP_LOG(Log::info, log_)
             << TimeStamp() << " Change since the screening was built: " << drift
@@ -335,6 +364,48 @@ void GW_UKS::CalculateGWPerturbation() {
             << ((next == ScreeningUpdate::Next::Rebuild) ? "; rebuilding W"
                                                          : "")
             << std::flush;
+      }
+      if (verifying && roots_before_alpha.size() == qptotal_ &&
+          roots_before_beta.size() == qptotal_) {
+        // levels the verifying full search put on another root
+        std::vector<Index> moved_alpha;
+        std::vector<Index> moved_beta;
+        for (Index l = 0; l < qptotal_; ++l) {
+          if (std::abs(tracked_root_[0](l) - roots_before_alpha(l)) >
+              10.0 * opt_.gw_sc_limit) {
+            moved_alpha.push_back(l + opt_.qpmin);
+          }
+          if (std::abs(tracked_root_[1](l) - roots_before_beta(l)) >
+              10.0 * opt_.gw_sc_limit) {
+            moved_beta.push_back(l + opt_.qpmin);
+          }
+        }
+        if ((!moved_alpha.empty() || !moved_beta.empty()) &&
+            next != ScreeningUpdate::Next::Converged) {
+          IndexParser rp;
+          XTP_LOG(Log::error, log_)
+              << TimeStamp() << " QP root tracking: the full search chose "
+              << "other roots for levels alpha ["
+              << rp.CreateIndexString(moved_alpha) << "] beta ["
+              << rp.CreateIndexString(moved_beta)
+              << "]; continuing with the full search" << std::flush;
+        }
+        verifying = false;
+      }
+      if (next == ScreeningUpdate::Next::Converged && opt_.qp_root_tracking &&
+          !tracking_verified && i_gw > 0) {
+        // converged on the tracked roots: one QP solve with the full search
+        // (same G and W) checks them; see GW::CalculateGWPerturbation
+        tracking_verified = true;
+        verifying = true;
+        rebuild_screening = false;
+        XTP_LOG(Log::info, log_)
+            << TimeStamp()
+            << " QP root tracking converged; verifying with a full search"
+            << std::flush;
+        if (i_gw < opt_.gw_sc_max_iterations - 1) {
+          continue;
+        }
       }
       if (next == ScreeningUpdate::Next::Converged) {
         XTP_LOG(Log::info, log_)
@@ -351,11 +422,21 @@ void GW_UKS::CalculateGWPerturbation() {
       rebuild_screening = (next == ScreeningUpdate::Next::Rebuild);
     }
   }
+  screening_builds_ = screening.builds();
+  qp_iterations_ = n_iterations;
+  tracking_active_ = false;
   if (opt_.gw_sc_max_iterations > 1) {
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " evGW (UKS): " << n_iterations << " QP iterations, "
         << screening.builds() << " screening builds ("
-        << ScreeningUpdate::Name(screening.mode()) << ")" << std::flush;
+        << ScreeningUpdate::Name(screening.mode()) << ")"
+        << (opt_.qp_root_tracking
+                ? "; root tracking solved " +
+                      std::to_string(tracked_local_total_) + " of " +
+                      std::to_string(2 * n_iterations * qptotal_) +
+                      " level solves locally"
+                : "")
+        << std::flush;
   }
 
   // Sigma_c of the last QP solve, at its solution and with the energies in
@@ -432,6 +513,14 @@ Eigen::VectorXd GW_UKS::SolveQP(Spin spin,
       OPENMP::getMaxThreads() > qptotal_ ? qptotal_ : OPENMP::getMaxThreads();
 #endif
 
+  const std::size_t si = (spin == Spin::Alpha) ? 0 : 1;
+  const bool track = opt_.qp_root_tracking;
+  const bool use_tracked =
+      track && tracking_active_ && tracked_root_[si].size() == qptotal_;
+  Eigen::VectorXd roots_new = frequencies;
+  Eigen::VectorXd Z_new = Eigen::VectorXd::Zero(qptotal_);
+  Index n_local = 0;
+
 #pragma omp parallel for schedule(dynamic) num_threads(use_threads)
   for (Index gw_level = 0; gw_level < qptotal_; ++gw_level) {
     const double initial_f = frequencies[gw_level];
@@ -441,8 +530,31 @@ Eigen::VectorXd GW_UKS::SolveQP(Spin spin,
     QPStats fixed_stats;
     QPStats grid_stats;
     QPStats lin_stats;
+    double Z_root = 0.0;
 
-    if (opt_.qp_solver == "fixedpoint") {
+    if (use_tracked) {
+      const double center = tracked_root_[si](gw_level);
+      const double moved =
+          std::max(tracked_change_[si](gw_level), std::abs(initial_f - center));
+      const double halfwidth = std::clamp(4.0 * moved, 0.01, 0.1);
+      QPFunc fqp(gw_level, SigmaEvaluator(spin), intercept);
+      qp_solver::SolverOptions solver_opt;
+      solver_opt.g_sc_limit = opt_.g_sc_limit;
+      solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
+      solver_opt.qp_dense_spacing = opt_.qp_dense_spacing;
+      auto cand = qp_solver::SolveQP_Tracked(
+          fqp, center, halfwidth, tracked_Z_[si](gw_level), 0.5, solver_opt,
+          opt_.qp_root_finder == "brent");
+      fixed_stats = fqp.GetStats();
+      if (cand) {
+        newf = cand->omega;
+        Z_root = cand->Z;
+#pragma omp atomic
+        ++n_local;
+      }
+    }
+
+    if (!newf && opt_.qp_solver == "fixedpoint") {
       newf = SolveQP_FixedPoint(spin, intercept, initial_f, gw_level,
                                 &fixed_stats);
     }
@@ -460,6 +572,15 @@ Eigen::VectorXd GW_UKS::SolveQP(Spin spin,
           frequencies_new[gw_level] = newf.value();
         }
       }
+    }
+    if (track && newf) {
+      roots_new[gw_level] = newf.value();
+      if (Z_root <= 0.0) {
+        QPFunc fqp(gw_level, SigmaEvaluator(spin), intercept);
+        const double d = fqp.deriv(newf.value());
+        Z_root = (std::abs(d) > 1e-14) ? -1.0 / d : 0.0;
+      }
+      Z_new[gw_level] = Z_root;
     }
 
     if (Log::current_level > Log::error) {
@@ -486,6 +607,15 @@ Eigen::VectorXd GW_UKS::SolveQP(Spin spin,
     }
   }
 
+  if (track) {
+    tracked_change_[si] =
+        (tracked_root_[si].size() == qptotal_)
+            ? Eigen::VectorXd((roots_new - tracked_root_[si]).cwiseAbs())
+            : Eigen::VectorXd::Zero(qptotal_);
+    tracked_root_[si] = roots_new;
+    tracked_Z_[si] = Z_new;
+    tracked_local_total_ += n_local;
+  }
   return frequencies_new;
 }
 

@@ -18,7 +18,9 @@
 #define BOOST_TEST_MODULE anderson_test
 
 // Standard includes
+#include <cmath>
 #include <iostream>
+#include <vector>
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
@@ -96,6 +98,126 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   }
 
   BOOST_CHECK_EQUAL(check_nonlinear_order3, 1);
+}
+
+namespace {
+// g(x) = M x + b with a symmetric M of spectral radius 0.9
+struct AffineMap {
+  Eigen::MatrixXd M;
+  Eigen::VectorXd b;
+  explicit AffineMap(votca::Index n) {
+    Eigen::MatrixXd Q =
+        Eigen::HouseholderQR<Eigen::MatrixXd>(
+            Eigen::MatrixXd::NullaryExpr(n, n,
+                                         [](votca::Index i, votca::Index j) {
+                                           return std::sin(1.3 * double(i + 1) +
+                                                           0.7 * double(j * j));
+                                         }))
+            .householderQ();
+    Eigen::VectorXd lambda(n);
+    for (votca::Index i = 0; i < n; ++i) {
+      lambda(i) = -0.9 + 1.8 * double(i) / double(n - 1);
+    }
+    M = Q * lambda.asDiagonal() * Q.transpose();
+    b = Eigen::VectorXd::LinSpaced(n, -1.0, 1.0);
+  }
+  Eigen::VectorXd operator()(const Eigen::VectorXd& x) const {
+    return M * x + b;
+  }
+  Eigen::VectorXd FixedPoint() const {
+    const votca::Index n = b.size();
+    return (Eigen::MatrixXd::Identity(n, n) - M).lu().solve(b);
+  }
+};
+
+// iterations until |g(x) - x| < tol (or max_iter)
+votca::Index Iterate(const AffineMap& g, votca::Index order, double alpha,
+                     double tol, votca::Index max_iter, Eigen::VectorXd& x) {
+  Anderson mixing;
+  mixing.Configure(order, alpha);
+  x = Eigen::VectorXd::Zero(g.b.size());
+  for (votca::Index it = 1; it <= max_iter; ++it) {
+    mixing.UpdateInput(x);
+    const Eigen::VectorXd gx = g(x);
+    if ((gx - x).cwiseAbs().maxCoeff() < tol) {
+      return it;
+    }
+    mixing.UpdateOutput(gx);
+    x = mixing.MixHistory();
+  }
+  return max_iter + 1;
+}
+}  // namespace
+
+// On an affine map Anderson with a history at least the dimension is a
+// Krylov method: it reaches the fixed point in about n steps, where plain
+// mixing needs hundreds (spectral radius 0.9).
+BOOST_AUTO_TEST_CASE(affine_map_converges_in_dimension_steps) {
+  const votca::Index n = 6;
+  AffineMap g(n);
+  Eigen::VectorXd x;
+  const votca::Index it_anderson = Iterate(g, n, 1.0, 1e-10, 100, x);
+  BOOST_CHECK_LE(it_anderson, n + 3);
+  BOOST_CHECK_SMALL((x - g.FixedPoint()).cwiseAbs().maxCoeff(), 1e-9);
+
+  const votca::Index it_linear = Iterate(g, 0, 0.5, 1e-10, 1000, x);
+  BOOST_CHECK_GT(it_linear, 10 * it_anderson);
+
+  // a short history still converges, more slowly
+  const votca::Index it_short = Iterate(g, 2, 0.7, 1e-10, 500, x);
+  BOOST_CHECK_LE(it_short, 500);
+  BOOST_CHECK_SMALL((x - g.FixedPoint()).cwiseAbs().maxCoeff(), 1e-9);
+}
+
+// Only the last order + 1 input/output pairs are used.
+BOOST_AUTO_TEST_CASE(history_is_bounded) {
+  const votca::Index n = 5;
+  const votca::Index order = 2;
+  AffineMap g(n);
+  std::vector<Eigen::VectorXd> in;
+  std::vector<Eigen::VectorXd> out;
+  Anderson long_run;
+  long_run.Configure(order, 0.7);
+  Eigen::VectorXd x = Eigen::VectorXd::Constant(n, 0.3);
+  Eigen::VectorXd mixed;
+  for (votca::Index it = 0; it < 8; ++it) {
+    in.push_back(x);
+    out.push_back(g(x));
+    long_run.UpdateInput(in.back());
+    long_run.UpdateOutput(out.back());
+    mixed = long_run.MixHistory();
+    x = mixed;
+  }
+  Anderson fresh;
+  fresh.Configure(order, 0.7);
+  for (std::size_t k = in.size() - std::size_t(order + 1); k < in.size(); ++k) {
+    fresh.UpdateInput(in[k]);
+    fresh.UpdateOutput(out[k]);
+  }
+  BOOST_CHECK_SMALL((fresh.MixHistory() - mixed).cwiseAbs().maxCoeff(), 1e-14);
+}
+
+// A stagnating history (the same input/output pair twice, as when evGW
+// stalls) makes the coefficient problem singular: the mix must stay finite
+// and must not increase the residual of the latest pair.
+BOOST_AUTO_TEST_CASE(repeated_history_stays_finite) {
+  const votca::Index n = 4;
+  AffineMap g(n);
+  Anderson mixing;
+  mixing.Configure(5, 1.0);
+  const Eigen::VectorXd x0 = Eigen::VectorXd::Constant(n, 0.1);
+  const Eigen::VectorXd x1 = Eigen::VectorXd::Constant(n, -0.2);
+  for (const Eigen::VectorXd* x : {&x0, &x1, &x1, &x1}) {
+    mixing.UpdateInput(*x);
+    mixing.UpdateOutput(g(*x));
+  }
+  const Eigen::VectorXd mixed = mixing.MixHistory();
+  BOOST_CHECK(mixed.allFinite());
+  // with alpha = 1 on an affine map, the mixed output is g of the mixed
+  // input; its residual is the least-squares one, at most the latest
+  BOOST_CHECK_LE(
+      (g(mixed) - mixed).norm(),
+      (g(x1) - x1).norm() * (1.0 + 1e-12) + (g.M.norm() + 1.0) * 1e-12);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

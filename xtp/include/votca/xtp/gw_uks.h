@@ -80,6 +80,10 @@ class GW_UKS {
     bool qp_root_continuity = false;
     // evGW: when W is rebuilt (see ScreeningUpdate): "every" or "adaptive"
     std::string screening_update = "every";
+    // evGW: after the first iteration search each level's root only near
+    // its previous one (falling back to the full search), verified by one
+    // full search after convergence
+    bool qp_root_tracking = false;
     double screening_update_ratio = 0.25;
     Index screening_update_max_inner = 10;
     double qp_zero_margin = 1e-6;
@@ -107,6 +111,11 @@ class GW_UKS {
       const;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonianBeta()
       const;
+  /// Of the last evGW run: screening builds, QP iterations (one solve of
+  /// both spins each) and level solves done by root tracking (locally)
+  Index ScreeningBuilds() const { return screening_builds_; }
+  Index QPIterations() const { return qp_iterations_; }
+  Index TrackedLocalSolves() const { return tracked_local_total_; }
 
  private:
   enum class Spin { Alpha, Beta };
@@ -208,6 +217,14 @@ class GW_UKS {
   // per spin and level of the last SolveQP: whether two accepted roots carry
   // comparable weight (see qp_solver::CheckCompetingRoots)
   mutable std::vector<qp_solver::CompetingRoots> competing_roots_[2];
+  // root tracking per spin (see GW): roots, weights, last changes
+  mutable Eigen::VectorXd tracked_root_[2];
+  mutable Eigen::VectorXd tracked_Z_[2];
+  mutable Eigen::VectorXd tracked_change_[2];
+  mutable bool tracking_active_ = false;
+  mutable Index tracked_local_total_ = 0;
+  Index screening_builds_ = 0;
+  Index qp_iterations_ = 0;
   void RecordCompetingRoots(Spin spin, Index gw_level,
                             const std::vector<QPRootCandidate>& roots,
                             double chosen) const {

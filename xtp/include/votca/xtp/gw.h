@@ -101,6 +101,10 @@ class GW {
     bool qp_root_continuity = false;
     // evGW: when W is rebuilt (see ScreeningUpdate): "every" or "adaptive"
     std::string screening_update = "every";
+    // evGW: after the first iteration search each level's root only near
+    // its previous one (falling back to the full search), verified by one
+    // full search after convergence
+    bool qp_root_tracking = false;
     double screening_update_ratio = 0.25;
     Index screening_update_max_inner = 10;
     double qp_zero_margin = 1e-6;
@@ -135,6 +139,8 @@ class GW {
   /// Screening builds and QP iterations of the last evGW run
   Index ScreeningBuilds() const { return screening_builds_; }
   Index QPIterations() const { return qp_iterations_; }
+  /// Level solves of the last evGW run done by root tracking (locally)
+  Index TrackedLocalSolves() const { return tracked_local_total_; }
   Eigen::VectorXd getGWAResults() const;
 
   /**
@@ -384,6 +390,18 @@ class GW {
   // per level of the last SolveQP: whether two accepted roots carry
   // comparable weight (see qp_solver::CheckCompetingRoots)
   mutable std::vector<qp_solver::CompetingRoots> competing_roots_;
+  // root tracking (opt_.qp_root_tracking): the roots of the last QP solve,
+  // their weights and their last change; active from the second iteration
+  // on until the verifying full search
+  mutable Eigen::VectorXd tracked_root_;
+  mutable Eigen::VectorXd tracked_Z_;
+  mutable Eigen::VectorXd tracked_change_;
+  mutable bool tracking_active_ = false;
+  mutable Index tracked_local_ = 0;  // levels solved locally in the last solve
+  mutable Index tracked_local_total_ = 0;
+  boost::optional<qp_solver::RootCandidate> SolveQP_Tracked(
+      double intercept0, double frequency0, Index gw_level,
+      QPStats* stats) const;
   void RecordCompetingRoots(Index gw_level,
                             const std::vector<QPRootCandidate>& roots,
                             double chosen) const {
