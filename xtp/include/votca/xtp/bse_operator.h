@@ -21,9 +21,13 @@
 #ifndef VOTCA_XTP_BSE_OPERATOR_H
 #define VOTCA_XTP_BSE_OPERATOR_H
 
+// Standard includes
+#include <memory>
+
 // Local VOTCA includes
 #include "eigen.h"
 #include "matrixfreeoperator.h"
+#include "symmetric_tiles.h"
 #include "threecenter.h"
 
 namespace votca {
@@ -61,32 +65,39 @@ class BSE_OPERATOR final : public MatrixFreeOperator {
    */
   Eigen::MatrixXd matmul(const Eigen::MatrixXd& input) const;
 
-  /// Keep the screened direct term as a dense matrix, built on first use, if
-  /// it needs at most this many bytes (0, the default, disables it).
-  void set_direct_cache_limit(double bytes) { direct_cache_limit_ = bytes; }
-  bool direct_term_cached() const { return direct_built_; }
+  /// Keep the screened direct term (Hd for cd, Hd2 for cd2; unit
+  /// prefactor) in this matrix, which is built on first use unless it
+  /// already holds it. Operators of the same BSE can share it (e.g. the
+  /// singlet and triplet A, or Hd for the analysis); null disables it.
+  void set_direct_cache(std::shared_ptr<SymmetricTiles> cache) {
+    direct_cache_ = std::move(cache);
+  }
+  bool direct_term_cached() const {
+    return direct_cache_ != nullptr && direct_cache_->built();
+  }
+  /// Tag of the direct term an operator caches: 1 for Hd, 2 for Hd2
+  static constexpr Index DirectKind() {
+    return (cd != 0) ? 1 : ((cd2 != 0) ? 2 : 0);
+  }
   /// Without the dense cache the screened direct term is applied in large
   /// products, one block of Hamiltonian rows (all v1 for one c1) at a time;
   /// true selects the row-by-row kernel (one Hamiltonian row at a time).
   void use_row_kernel(bool rows) { row_kernel_ = rows; }
 
  private:
-  // the screened direct term (cd or cd2 part, with prefactor) as a dense
-  // matrix, row-major so each Hamiltonian row is contiguous
+  // the screened direct term (cd or cd2 part, unit prefactor) as the lower
+  // triangle of a symmetric matrix
   void BuildDirectMatrix() const;
   // the screened direct term applied block by block (see use_row_kernel)
   Eigen::MatrixXd ApplyDirectBlocks(const Eigen::MatrixXd& input) const;
   Eigen::MatrixXd ApplyDirectRows(const Eigen::MatrixXd& input) const;
 
-  double direct_cache_limit_ = 0.0;
+  std::shared_ptr<SymmetricTiles> direct_cache_;
   bool row_kernel_ = false;
-  mutable bool direct_built_ = false;
   // stacked slices for the block kernel: for cd the vv blocks of the
   // occupied slices (row v1*n_v + v2), for cd2 the cv blocks of the virtual
   // slices (row c1*n_v + v2)
   mutable Eigen::MatrixXd stacked_;
-  mutable Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-      direct_;
   BSEOperator_Options opt_;
   Index bse_size_;
   Index bse_vtotal_;

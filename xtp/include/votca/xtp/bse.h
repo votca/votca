@@ -21,6 +21,9 @@
 #ifndef VOTCA_XTP_BSE_H
 #define VOTCA_XTP_BSE_H
 
+// Standard includes
+#include <memory>
+
 // Local VOTCA includes
 #include "logger.h"
 #include "orbitals.h"
@@ -30,6 +33,7 @@
 
 namespace votca {
 namespace xtp {
+class SymmetricTiles;
 struct BSE_Population;
 template <Index cqp, Index cx, Index cd, Index cd2>
 class BSE_OPERATOR;
@@ -168,12 +172,24 @@ class BSE {
   void PrintWeights(const Eigen::VectorXd& weights) const;
 
   template <typename BSE_OPERATOR>
-  void configureBSEOperator(BSE_OPERATOR& H,
-                            double direct_cache_bytes = 0.0) const;
-  // Memory (bytes) for the dense direct terms of the nmatrices operators of
-  // a solve (1: TDA, 2: A and B), in that order, from the memory budget;
-  // logs the decision.
-  std::vector<double> DirectCacheLimits(Index nmatrices) const;
+  void configureBSEOperator(
+      BSE_OPERATOR& H, std::shared_ptr<SymmetricTiles> cache = nullptr) const;
+
+  // The screened direct terms Hd and Hd2 kept as symmetric matrices (lower
+  // triangle) for all operators of this BSE that contain them: the singlet
+  // and triplet solves and the analysis. Null if not kept. Decided from the
+  // memory budget the first time a solve needs them, then reused; dropped
+  // when the screening changes.
+  struct DirectCaches {
+    std::shared_ptr<SymmetricTiles> hd;
+    std::shared_ptr<SymmetricTiles> hd2;
+    bool hd_decided = false;
+    bool hd2_decided = false;
+  };
+  mutable DirectCaches direct_caches_;
+  // Decides (and logs) whether Hd (and, with coupling, Hd2) are kept.
+  void DecideDirectCaches(bool coupling) const;
+  void ReleaseDirectCaches() const;
 
   template <typename BSE_OPERATOR>
   tools::EigenSystem solve_hermitian(BSE_OPERATOR& h) const;

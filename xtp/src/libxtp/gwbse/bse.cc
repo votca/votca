@@ -95,6 +95,7 @@ void BSE::configure_with_precomputed_screening(
     Hqp_ = AdjustHqpSize(Hqp_in, RPAInputEnergies).diagonal().asDiagonal();
   }
   epsilon_0_inv_ = epsilon_0_inv;
+  ReleaseDirectCaches();
 }
 
 tools::EigenSystem& BSE::GetBSEEigenSystem(const QMStateType& type,
@@ -272,6 +273,7 @@ SymmetricEigenSystem BSE::ScreenedInteraction(
 
 void BSE::SetupDirectInteractionOperator(
     const Eigen::VectorXd& RPAInputEnergies, double energy) {
+  ReleaseDirectCaches();  // the integrals and the screening change
   MatchDressingToRoute();
   DFTTimings timings;
   SymmetricEigenSystem W =
@@ -287,7 +289,7 @@ void BSE::SetupDirectInteractionOperator(
 
 template <typename BSE_OPERATOR>
 void BSE::configureBSEOperator(BSE_OPERATOR& H,
-                               double direct_cache_bytes) const {
+                               std::shared_ptr<SymmetricTiles> cache) const {
   BSEOperator_Options opt;
   opt.cmax = opt_.cmax;
   opt.homo = opt_.homo;
@@ -295,43 +297,71 @@ void BSE::configureBSEOperator(BSE_OPERATOR& H,
   opt.rpamin = opt_.rpamin;
   opt.vmin = opt_.vmin;
   H.configure(opt);
-  H.set_direct_cache_limit(direct_cache_bytes);
+  H.set_direct_cache(std::move(cache));
 }
 
-std::vector<double> BSE::DirectCacheLimits(Index nmatrices) const {
-  const double n = double(opt_.homo - opt_.vmin + 1) *
-                   double(opt_.cmax - opt_.homo);  // pairs
-  const double need = 8.0 * n * n;
-  double available = MemoryBudget::AvailableBytes();
-  std::vector<double> limits(std::size_t(nmatrices), 0.0);
-  Index cached = 0;
-  for (double& limit : limits) {
-    if (need <= available) {
-      limit = need;
-      available -= need;
-      ++cached;
+void BSE::ReleaseDirectCaches() const { direct_caches_ = DirectCaches(); }
+
+void BSE::DecideDirectCaches(bool coupling) const {
+  const Index n = bse_size_;
+  const double need = SymmetricTiles::Bytes(n);
+  // what is kept but not built yet does not show in the resident memory
+  double pending = 0.0;
+  for (const auto* c : {&direct_caches_.hd, &direct_caches_.hd2}) {
+    if (*c != nullptr && !(*c)->built()) {
+      pending += need;
     }
   }
+  double available = MemoryBudget::AvailableBytes() - pending;
   std::ostringstream msg;
   msg.precision(3);
-  msg << " BSE direct term" << ((nmatrices > 1) ? "s" : "") << ": " << cached
-      << " of " << nmatrices << " kept as dense matrices (" << need * 1e-9
-      << " GB each; " << MemoryBudget::Describe() << ")";
-  if (cached < nmatrices) {
+  msg << " BSE direct terms (lower triangle, " << need * 1e-9 << " GB each):";
+  auto decide = [&](std::shared_ptr<SymmetricTiles>& cache, bool& decided,
+                    const char* name) {
+    if (decided) {
+      msg << " " << name << (cache ? " kept (reused)" : " not kept") << ";";
+      return;
+    }
+    decided = true;
+    if (need <= available) {
+      cache = std::make_shared<SymmetricTiles>();
+      available -= need;
+      msg << " " << name << " kept;";
+    } else {
+      msg << " " << name << " not kept;";
+    }
+  };
+  decide(direct_caches_.hd, direct_caches_.hd_decided, "Hd");
+  if (coupling) {
+    decide(direct_caches_.hd2, direct_caches_.hd2_decided, "Hd2");
+  }
+  msg << " " << MemoryBudget::Describe();
+  const Index missing = Index(direct_caches_.hd == nullptr) +
+                        Index(coupling && direct_caches_.hd2 == nullptr);
+  if (missing > 0) {
     // what the process holds now plus the matrices, with the margin
     const double resident = std::max(0.0, MemoryBudget::ResidentBytes());
-    const double wanted = resident + double(nmatrices) * need;
+    // the needed terms not built yet, and one kept but unbuilt otherwise
+    auto unbuilt = [](const std::shared_ptr<SymmetricTiles>& c) {
+      return c == nullptr || !c->built();
+    };
+    double extra = unbuilt(direct_caches_.hd) ? need : 0.0;
+    if (coupling ? unbuilt(direct_caches_.hd2)
+                 : (direct_caches_.hd2 && !direct_caches_.hd2->built())) {
+      extra += need;
+    }
+    const double wanted = resident + extra;
     msg << "; --memory " << std::ceil(1.1 * wanted * 1e-9 + 1.0)
         << " or more would keep all";
   }
   XTP_LOG(Log::error, log_) << TimeStamp() << msg.str() << flush;
-  return limits;
 }
 
 tools::EigenSystem BSE::Solve_triplets_TDA() const {
 
+  DecideDirectCaches(false);
   TripletOperator_TDA Ht(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(Ht, DirectCacheLimits(1)[0]);
+  configureBSEOperator(Ht, direct_caches_.hd);
   return solve_hermitian(Ht);
 }
 
@@ -404,8 +434,9 @@ void BSE::Solve_triplets(Orbitals& orb) const {
 
 tools::EigenSystem BSE::Solve_singlets_TDA() const {
 
+  DecideDirectCaches(false);
   SingletOperator_TDA Hs(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(Hs, DirectCacheLimits(1)[0]);
+  configureBSEOperator(Hs, direct_caches_.hd);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
   return solve_hermitian(Hs);
@@ -455,22 +486,22 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 }
 
 tools::EigenSystem BSE::Solve_singlets_BTDA() const {
-  const std::vector<double> cache = DirectCacheLimits(2);
+  DecideDirectCaches(true);
   SingletOperator_TDA A(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(A, cache[0]);
+  configureBSEOperator(A, direct_caches_.hd);
   SingletOperator_BTDA_B B(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(B, cache[1]);
+  configureBSEOperator(B, direct_caches_.hd2);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
   return Solve_nonhermitian_Davidson(A, B);
 }
 
 tools::EigenSystem BSE::Solve_triplets_BTDA() const {
-  const std::vector<double> cache = DirectCacheLimits(2);
+  DecideDirectCaches(true);
   TripletOperator_TDA A(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(A, cache[0]);
+  configureBSEOperator(A, direct_caches_.hd);
   Hd2Operator B(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(B, cache[1]);
+  configureBSEOperator(B, direct_caches_.hd2);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
   return Solve_nonhermitian_Davidson(A, B);
@@ -719,6 +750,15 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator(
 //  <FT> = A*.H_qp.A + B*.H_qp.B
 //  <Kx> = eta.(A*.H_x.A + B*.H_x.B + 2A*.H_x.B)
 //  <Kd> = A*.H_d.A + B*.H_d.B + 2A*.H_d2.B
+namespace {
+// A kept direct term for the analysis only if it is built already: building
+// it for the few states of the analysis would cost more than it saves.
+std::shared_ptr<SymmetricTiles> ReusableCache(
+    const std::shared_ptr<SymmetricTiles>& cache) {
+  return (cache != nullptr && cache->built()) ? cache : nullptr;
+}
+}  // namespace
+
 BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
                                              const Orbitals& orb) const {
   Interaction analysis;
@@ -730,18 +770,20 @@ BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
     analysis.qp_contrib = expectation_values.direct_term;
   }
   {
+    // the direct terms of the solve, if kept, are not rebuilt here
     HdOperator hd(epsilon_0_inv_, Mmn_, Hqp_);
-    configureBSEOperator(hd);
+    configureBSEOperator(hd, ReusableCache(direct_caches_.hd));
     ExpectationValues expectation_values =
         ExpectationValue_Operator(type, orb, hd);
     analysis.direct_contrib = expectation_values.direct_term;
   }
   if (!orb.getTDAApprox()) {
+    // only the cross term 2 Y.Hd2.X: Hd2 on X alone
     Hd2Operator hd2(epsilon_0_inv_, Mmn_, Hqp_);
-    configureBSEOperator(hd2);
-    ExpectationValues expectation_values =
-        ExpectationValue_Operator(type, orb, hd2);
-    analysis.direct_contrib += expectation_values.cross_term;
+    configureBSEOperator(hd2, ReusableCache(direct_caches_.hd2));
+    const tools::EigenSystem& coefs = GetBSEEigenSystem(type, orb);
+    analysis.direct_contrib +=
+        2 * ExpValue(coefs.eigenvectors2(), hd2 * coefs.eigenvectors());
   }
 
   double xpref = ExchangePrefactor(type);
@@ -891,6 +933,8 @@ Eigen::MatrixXd BSE::CouplingTermDensity(const Eigen::VectorXd& Avec,
 // and no rotation of the integrals per state and step.
 void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
                                           Orbitals& orb) {
+  // no BSE operators from here on: free the kept direct terms
+  ReleaseDirectCaches();
 
   const tools::EigenSystem& BSECoefs = GetBSEEigenSystem(type, orb);
   const Eigen::VectorXd& RPAInputEnergies = orb.RPAInputEnergies();

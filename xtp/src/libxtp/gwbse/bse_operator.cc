@@ -17,6 +17,9 @@
  *
  */
 
+// Standard includes
+#include <stdexcept>
+
 // Local VOTCA includes
 #include "votca/xtp/bse_operator.h"
 #include "votca/xtp/bse_operator_kernels.h"
@@ -47,12 +50,12 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
   Index cmin = bse_cmin_ - opt_.rpamin;
 
   Eigen::MatrixXd result;
-  if ((cd != 0 || cd2 != 0) && !direct_built_ && direct_cache_limit_ > 0.0 &&
-      8.0 * double(bse_size_) * double(bse_size_) <= direct_cache_limit_) {
+  if ((cd != 0 || cd2 != 0) && direct_cache_ != nullptr &&
+      !direct_cache_->built()) {
     BuildDirectMatrix();
   }
-  if (direct_built_) {
-    result = direct_ * input;
+  if (direct_term_cached()) {
+    result = direct_cache_->Multiply(input, -double((cd != 0) ? cd : cd2));
   } else if (cd != 0 || cd2 != 0) {
     result = row_kernel_ ? ApplyDirectRows(input) : ApplyDirectBlocks(input);
   } else {
@@ -168,38 +171,49 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::ApplyDirectBlocks(
   return result;
 }
 
+// The lower triangle of the direct term with unit prefactor,
+//   cd:  K(v1c1, v2c2) = sum_P M_{c1}(c2,P) w_P M_{v1}(v2,P)
+//   cd2: K(v1c1, v2c2) = sum_P M_{c1}(v2,P) w_P M_{v1}(c2,P),
+// both symmetric since M_a(b,P) = M_b(a,P). Row r = (v1,c1) needs the
+// columns s = (v2,c2) <= r, i.e. v2 <= v1: per (c1, v1) one product over
+// v2 = 0..v1, half the flops of the full rows.
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR<cqp, cx, cd, cd2>::BuildDirectMatrix() const {
+  const Index kind = DirectKind();
+  if (direct_cache_->allocated() &&
+      (direct_cache_->kind() != kind || direct_cache_->size() != bse_size_)) {
+    throw std::runtime_error(
+        "BSE_OPERATOR: the shared direct-term cache holds a different "
+        "matrix");
+  }
   const Index vmin = opt_.vmin - opt_.rpamin;
   const Index cmin = bse_cmin_ - opt_.rpamin;
-  vc2index vc = vc2index(0, 0, bse_ctotal_);
-  direct_.resize(bse_size_, bse_size_);
-  // Same contractions as the row loop in matmul; rows are contiguous in the
-  // row-major matrix.
+  const Index nv = bse_vtotal_;
+  const Index nc = bse_ctotal_;
+  vc2index vc = vc2index(0, 0, nc);
+  direct_cache_->Allocate(bse_size_, kind);
 #pragma omp parallel for schedule(dynamic)
-  for (Index c1 = 0; c1 < bse_ctotal_; c1++) {
-    Eigen::MatrixXd Temp;
-    if (cd != 0) {
-      Temp = -double(cd) * (Mmn_[c1 + cmin].middleRows(cmin, bse_ctotal_)) *
-             epsilon_0_inv_.asDiagonal();
-    } else {
-      Temp = -double(cd2) * (Mmn_[c1 + cmin].middleRows(vmin, bse_vtotal_)) *
-             epsilon_0_inv_.asDiagonal();
-    }
-    for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
-      Eigen::Map<Eigen::MatrixXd> row(direct_.row(vc.I(v1, c1)).data(),
-                                      bse_ctotal_, bse_vtotal_);
+  for (Index c1 = 0; c1 < nc; c1++) {
+    const Eigen::MatrixXd S =
+        (cd != 0) ? Eigen::MatrixXd(Mmn_[c1 + cmin].middleRows(cmin, nc) *
+                                    epsilon_0_inv_.asDiagonal())
+                  : Eigen::MatrixXd(Mmn_[c1 + cmin].middleRows(vmin, nv) *
+                                    epsilon_0_inv_.asDiagonal());
+    Eigen::MatrixXd K(nc, nv);
+    for (Index v1 = 0; v1 < nv; v1++) {
+      // K(c2, v2) for v2 <= v1, column-major: element (v2, c2) of the row
+      // at v2*n_c + c2
+      auto Kv = K.leftCols(v1 + 1);
       if (cd != 0) {
-        // (c2, v2) block of row (v1, c1)
-        row.noalias() =
-            Temp * Mmn_[v1 + vmin].middleRows(vmin, bse_vtotal_).transpose();
+        Kv.noalias() = S * Mmn_[v1 + vmin].middleRows(vmin, v1 + 1).transpose();
       } else {
-        row.noalias() =
-            Mmn_[v1 + vmin].middleRows(cmin, bse_ctotal_) * Temp.transpose();
+        Kv.noalias() = Mmn_[v1 + vmin].middleRows(cmin, nc) *
+                       S.topRows(v1 + 1).transpose();
       }
+      direct_cache_->SetRowLower(vc.I(v1, c1), K.data());
     }
   }
-  direct_built_ = true;
+  direct_cache_->FinishBuild();
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>

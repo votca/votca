@@ -29,6 +29,7 @@
 #include "votca/xtp/bse_operator_uks.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/symmetric_tiles.h"
 #include "xtp_libint2.h"
 #include <votca/tools/eigenio_matrixmarket.h>
 using namespace votca::xtp;
@@ -294,7 +295,7 @@ BOOST_AUTO_TEST_CASE(direct_term_cache_equals_row_loop) {
   auto Compare = [&](auto& plain, auto& cached) {
     plain.configure(opt);
     cached.configure(opt);
-    cached.set_direct_cache_limit(1e9);
+    cached.set_direct_cache(std::make_shared<SymmetricTiles>());
     const Eigen::MatrixXd X = Eigen::MatrixXd::Random(plain.rows(), 5);
     const Eigen::MatrixXd ref = plain.matmul(X);
     const Eigen::MatrixXd first = cached.matmul(X);
@@ -310,7 +311,70 @@ BOOST_AUTO_TEST_CASE(direct_term_cache_equals_row_loop) {
   SingletOperator_BTDA_B b_plain(epsilon_inv, Mmn, Hqp);
   SingletOperator_BTDA_B b_cached(epsilon_inv, Mmn, Hqp);
   Compare(b_plain, b_cached);
+
+  // one kept Hd shared by the singlet and triplet A and the analysis
+  // operator, built once; Hd2 shared by B and its analysis operator; a
+  // cache holding the other term is refused
+  auto hd = std::make_shared<SymmetricTiles>();
+  auto hd2 = std::make_shared<SymmetricTiles>();
+  const Eigen::MatrixXd X = Eigen::MatrixXd::Random(s_plain.rows(), 3);
+  auto CheckShared = [&](auto& plain, auto& shared,
+                         std::shared_ptr<SymmetricTiles> cache) {
+    plain.configure(opt);
+    shared.configure(opt);
+    shared.set_direct_cache(cache);
+    BOOST_CHECK_SMALL(
+        (shared.matmul(X) - plain.matmul(X)).cwiseAbs().maxCoeff(), 1e-13);
+  };
+  SingletOperator_TDA s1(epsilon_inv, Mmn, Hqp), s2(epsilon_inv, Mmn, Hqp);
+  CheckShared(s1, s2, hd);
+  BOOST_CHECK(hd->built());  // the next operators use it as it is
+  TripletOperator_TDA t1(epsilon_inv, Mmn, Hqp), t2(epsilon_inv, Mmn, Hqp);
+  CheckShared(t1, t2, hd);
+  HdOperator d1(epsilon_inv, Mmn, Hqp), d2(epsilon_inv, Mmn, Hqp);
+  CheckShared(d1, d2, hd);
+  SingletOperator_BTDA_B b1(epsilon_inv, Mmn, Hqp), b2(epsilon_inv, Mmn, Hqp);
+  CheckShared(b1, b2, hd2);
+  Hd2Operator e1(epsilon_inv, Mmn, Hqp), e2(epsilon_inv, Mmn, Hqp);
+  CheckShared(e1, e2, hd2);
+  Hd2Operator wrong(epsilon_inv, Mmn, Hqp);
+  wrong.configure(opt);
+  auto fresh_hd = std::make_shared<SymmetricTiles>();
+  fresh_hd->Allocate(s1.rows(), HdOperator::DirectKind());
+  wrong.set_direct_cache(fresh_hd);
+  BOOST_CHECK_THROW(wrong.matmul(X), std::runtime_error);
   libint2::finalize();
+}
+
+// Lower-triangle tile storage: products and elements equal those of the
+// dense symmetric matrix, for sizes that are and are not multiples of the
+// tile size, and the byte count matches the tiles.
+BOOST_AUTO_TEST_CASE(symmetric_tiles_equal_dense) {
+  std::srand(5);
+  BOOST_CHECK_EQUAL(SymmetricTiles::Bytes(37, 8), 8.0 * 825.0);
+  for (votca::Index n : {1, 16, 37}) {
+    Eigen::MatrixXd A = Eigen::MatrixXd::Random(n, n);
+    A = (A + A.transpose()).eval();
+    SymmetricTiles S;
+    S.Allocate(n, 1, 8);
+    for (votca::Index r = 0; r < n; ++r) {
+      const Eigen::VectorXd row = A.row(r).transpose();
+      S.SetRowLower(r, row.data());
+    }
+    BOOST_CHECK(!S.built());
+    S.FinishBuild();
+    BOOST_CHECK(S.built());
+    double maxdiff = 0.0;
+    for (votca::Index i = 0; i < n; ++i) {
+      for (votca::Index j = 0; j < n; ++j) {
+        maxdiff = std::max(maxdiff, std::abs(S(i, j) - A(i, j)));
+      }
+    }
+    BOOST_CHECK_EQUAL(maxdiff, 0.0);
+    const Eigen::MatrixXd X = Eigen::MatrixXd::Random(n, 4);
+    BOOST_CHECK_SMALL((S.Multiply(X, -2.0) + 2.0 * A * X).cwiseAbs().maxCoeff(),
+                      1e-13);
+  }
 }
 
 // The block kernel of the direct term (all v1 for one c1 at a time) must give
