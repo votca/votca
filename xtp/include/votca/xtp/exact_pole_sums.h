@@ -57,17 +57,27 @@ double Value(const ExactPoles& poles, const double* residues, double w);
 /// dS_n/dw at one frequency
 double Derivative(const ExactPoles& poles, const double* residues, double w);
 
-/// S_n at many frequencies. For larger batches the poles far from the
-/// frequencies (more than the half-width of their range away from it) are
-/// summed at Chebyshev nodes of the range and interpolated, which converges
-/// exponentially (error far below 1e-14 relative); the near poles are summed
-/// at every frequency.
+/// S_n at many frequencies. For batches of 24 or more, the poles far from
+/// the frequencies (more than twice the half-width h of their range away
+/// from its centre) are summed at Chebyshev nodes of the range and
+/// interpolated; the number of nodes falls with the distance (48 down to
+/// 16 beyond 10 h), always with an interpolation error far below rounding.
+/// The near poles are summed at every frequency.
 Eigen::VectorXd Values(const ExactPoles& poles, const double* residues,
                        const Eigen::VectorXd& w);
+
+/// The same with a factor per mode s: sum_{m,s} c_s r(m,s)^2 f(w - z_ms)
+/// (c_s >= 0; modes with c_s = 0 are skipped; nullptr means all 1). Used by
+/// the plasmon-pole self-energy, whose poles have the same form.
+Eigen::VectorXd Values(const ExactPoles& poles, const double* residues,
+                       const Eigen::VectorXd& w, const double* mode_factors);
 
 /// The same sum term by term at every frequency (reference for tests)
 Eigen::VectorXd ValuesDirect(const ExactPoles& poles, const double* residues,
                              const Eigen::VectorXd& w);
+Eigen::VectorXd ValuesDirect(const ExactPoles& poles, const double* residues,
+                             const Eigen::VectorXd& w,
+                             const double* mode_factors);
 
 /// sum_p a_p f(w - z_p) with given weights a_p (e.g. r_n1 r_n2)
 Eigen::VectorXd ValuesDirectWeighted(const ExactPoles& poles,

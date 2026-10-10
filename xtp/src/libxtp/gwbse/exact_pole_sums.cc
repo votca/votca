@@ -33,12 +33,23 @@ namespace exact_pole_sums {
 namespace {
 
 // Batches smaller than this are summed directly
-constexpr Index min_batch_for_split = 64;
-// Chebyshev nodes for the far poles. Their singularities (z +- i eta) lie at
-// least one half-width outside the range, i.e. outside the Bernstein ellipse
-// with rho = 2 + sqrt(3); with rho = 3 the error is below 3^-48 ~ 1e-23 of
-// the far sum's magnitude on that ellipse.
-constexpr Index cheb_nodes = 48;
+constexpr Index min_batch_for_split = 24;
+
+// Far poles are summed at Chebyshev nodes of the frequency range [c-h, c+h]
+// and interpolated. For a pole at distance d = u h from the centre the
+// kernel is analytic inside the Bernstein ellipse with
+// rho = u + sqrt(u^2 - 1), and n-node interpolation converges like
+// rho^-n. Poles are grouped by u; each group uses enough nodes for
+// rho^-n < 1e-17 with a margin of about 1.5 in n:
+//   u in [2, 3):  rho >= 3.73, 48 nodes  (rho^-48 ~ 3e-28)
+//   u in [3, 5):  rho >= 5.83, 32 nodes  (~ 3e-25)
+//   u in [5, 10): rho >= 9.90, 24 nodes  (~ 8e-25)
+//   u >= 10:      rho >= 19.9, 16 nodes  (~ 2e-21)
+// Poles closer than 2 h are summed at every frequency.
+constexpr int n_classes = 4;
+constexpr std::array<double, n_classes> class_umin = {2.0, 3.0, 5.0, 10.0};
+constexpr std::array<Index, n_classes> class_nodes = {48, 32, 24, 16};
+constexpr Index max_nodes = 48;
 
 inline double Kernel(double t, double eta2) { return t / (t * t + eta2); }
 
@@ -138,68 +149,125 @@ Eigen::VectorXd ValuesDirectWeighted(const ExactPoles& poles,
   return DirectSum(poles, weights, w, [](double a) { return a; });
 }
 
+Eigen::VectorXd ValuesDirect(const ExactPoles& poles, const double* residues,
+                             const Eigen::VectorXd& w,
+                             const double* mode_factors) {
+  if (mode_factors == nullptr) {
+    return ValuesDirect(poles, residues, w);
+  }
+  const double eta2 = poles.eta * poles.eta;
+  const Index B = poles.nlevels();
+  const Index F = w.size();
+  Eigen::VectorXd acc = Eigen::VectorXd::Zero(F);
+  double* out = acc.data();
+  const double* x = w.data();
+  for (Index s = 0; s < poles.nmodes(); ++s) {
+    const double factor = mode_factors[s];
+    if (factor == 0.0) {
+      continue;
+    }
+    const double omega = poles.omegas(s);
+    const double* r = residues + B * s;
+    for (Index m = 0; m < B; ++m) {
+      const double a = factor * r[m] * r[m];
+      const double z = poles.energies(m) + PoleSign(m, poles.n_occ) * omega;
+#pragma omp simd
+      for (Index f = 0; f < F; ++f) {
+        out[f] += a * Kernel(x[f] - z, eta2);
+      }
+    }
+  }
+  return acc;
+}
+
 Eigen::VectorXd Values(const ExactPoles& poles, const double* residues,
                        const Eigen::VectorXd& w) {
+  return Values(poles, residues, w, nullptr);
+}
+
+Eigen::VectorXd Values(const ExactPoles& poles, const double* residues,
+                       const Eigen::VectorXd& w, const double* mode_factors) {
   const Index F = w.size();
   if (F < min_batch_for_split) {
-    return ValuesDirect(poles, residues, w);
+    return ValuesDirect(poles, residues, w, mode_factors);
   }
   const double lo = w.minCoeff();
   const double hi = w.maxCoeff();
   const double c = 0.5 * (lo + hi);
   const double h = 0.5 * (hi - lo);
   if (!(h > 0.0)) {
-    return ValuesDirect(poles, residues, w);
+    return ValuesDirect(poles, residues, w, mode_factors);
   }
-  const double near = 2.0 * h;  // |z - c| below this: near pole
   const double eta2 = poles.eta * poles.eta;
   const Index B = poles.nlevels();
+  const double inv_h = 1.0 / h;
 
-  std::array<double, cheb_nodes> node;
-  std::array<double, cheb_nodes> theta;
-  for (Index k = 0; k < cheb_nodes; ++k) {
-    theta[std::size_t(k)] = M_PI * (double(k) + 0.5) / double(cheb_nodes);
-    node[std::size_t(k)] = c + h * std::cos(theta[std::size_t(k)]);
+  // nodes and their angles per class
+  std::array<std::array<double, max_nodes>, n_classes> node{};
+  std::array<std::array<double, max_nodes>, n_classes> theta{};
+  for (int k = 0; k < n_classes; ++k) {
+    const Index n = class_nodes[std::size_t(k)];
+    for (Index j = 0; j < n; ++j) {
+      theta[std::size_t(k)][std::size_t(j)] =
+          M_PI * (double(j) + 0.5) / double(n);
+      node[std::size_t(k)][std::size_t(j)] =
+          c + h * std::cos(theta[std::size_t(k)][std::size_t(j)]);
+    }
   }
-  std::array<double, cheb_nodes> far{};
+  std::array<std::array<double, max_nodes>, n_classes> far{};
   Eigen::VectorXd acc = Eigen::VectorXd::Zero(F);
   double* out = acc.data();
   const double* x = w.data();
   for (Index s = 0; s < poles.nmodes(); ++s) {
+    const double factor = (mode_factors == nullptr) ? 1.0 : mode_factors[s];
+    if (factor == 0.0) {
+      continue;
+    }
     const double omega = poles.omegas(s);
     const double* r = residues + B * s;
     for (Index m = 0; m < B; ++m) {
-      const double a = r[m] * r[m];
+      const double a = factor * r[m] * r[m];
       const double z = poles.energies(m) + PoleSign(m, poles.n_occ) * omega;
-      if (std::abs(z - c) < near) {
+      const double u = std::abs(z - c) * inv_h;
+      if (u < class_umin[0]) {
 #pragma omp simd
         for (Index f = 0; f < F; ++f) {
           out[f] += a * Kernel(x[f] - z, eta2);
         }
-      } else {
+        continue;
+      }
+      const int k = (u >= class_umin[3])   ? 3
+                    : (u >= class_umin[2]) ? 2
+                    : (u >= class_umin[1]) ? 1
+                                           : 0;
+      const Index n = class_nodes[std::size_t(k)];
+      const double* nk = node[std::size_t(k)].data();
+      double* fk = far[std::size_t(k)].data();
 #pragma omp simd
-        for (Index k = 0; k < cheb_nodes; ++k) {
-          far[std::size_t(k)] += a * Kernel(node[std::size_t(k)] - z, eta2);
-        }
+      for (Index j = 0; j < n; ++j) {
+        fk[j] += a * Kernel(nk[j] - z, eta2);
       }
     }
   }
-  // Chebyshev coefficients of the far part on [lo, hi]
-  std::array<double, cheb_nodes> coef{};
-  for (Index j = 0; j < cheb_nodes; ++j) {
-    double sum = 0.0;
-    for (Index k = 0; k < cheb_nodes; ++k) {
-      sum += far[std::size_t(k)] * std::cos(double(j) * theta[std::size_t(k)]);
+  // per class: Chebyshev coefficients of the far part on [lo, hi], summed
+  // into one series of max_nodes terms, evaluated by Clenshaw
+  std::array<double, max_nodes> coef{};
+  for (int k = 0; k < n_classes; ++k) {
+    const Index n = class_nodes[std::size_t(k)];
+    for (Index j = 0; j < n; ++j) {
+      double sum = 0.0;
+      for (Index i = 0; i < n; ++i) {
+        sum += far[std::size_t(k)][std::size_t(i)] *
+               std::cos(double(j) * theta[std::size_t(k)][std::size_t(i)]);
+      }
+      coef[std::size_t(j)] += 2.0 * sum / double(n) * ((j == 0) ? 0.5 : 1.0);
     }
-    coef[std::size_t(j)] = 2.0 * sum / double(cheb_nodes);
   }
-  coef[0] *= 0.5;
-  // Clenshaw
   for (Index f = 0; f < F; ++f) {
-    const double u = (x[f] - c) / h;
+    const double u = (x[f] - c) * inv_h;
     double b1 = 0.0;
     double b2 = 0.0;
-    for (Index j = cheb_nodes - 1; j >= 1; --j) {
+    for (Index j = max_nodes - 1; j >= 1; --j) {
       const double b0 = 2.0 * u * b1 - b2 + coef[std::size_t(j)];
       b2 = b1;
       b1 = b0;

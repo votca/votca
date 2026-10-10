@@ -358,4 +358,43 @@ BOOST_AUTO_TEST_CASE(largest_residuals_lists_levels_by_residual) {
                     "0: -0.500000 -> -0.500100 (-1.0e-04)");
 }
 
+// A root with small weight (Z = 0.1, slope -10) inside a satellite-like
+// curvature: the refinement must locate it well enough to pass the residual
+// test of AcceptRoot, with bisection and with Brent, wherever the root lies
+// in the bracket. (Stopping at a bracket of g_sc_limit left residuals up to
+// 10 g_sc_limit and rejected such roots, Brent more often than bisection.)
+struct SteepRootFunc {
+  explicit SteepRootFunc(double root_) : root(root_) {}
+  double value(double omega, EvalStage /*stage*/) const {
+    const double x = omega - root;
+    return -10.0 * x - 400.0 * x * x * x;
+  }
+  double deriv(double omega) const {
+    const double x = omega - root;
+    return -10.0 - 1200.0 * x * x;
+  }
+  double root;
+};
+
+BOOST_AUTO_TEST_CASE(refinement_accepts_small_weight_roots) {
+  SolverOptions opt;
+  opt.g_sc_limit = 1e-5;
+  for (bool brent : {false, true}) {
+    for (int k = 0; k < 50; ++k) {
+      const double root = 0.3 + 0.002 * (double(k) + 0.37) / 50.0;
+      SteepRootFunc f(root);
+      const double a = 0.3;
+      const double b = 0.302;
+      auto cand =
+          RefineQPInterval(a, f.value(a, EvalStage::Scan), b,
+                           f.value(b, EvalStage::Scan), f, root, opt, brent);
+      BOOST_REQUIRE(cand);
+      BOOST_CHECK_LE(std::abs(cand->residual), opt.g_sc_limit);
+      BOOST_CHECK(cand->accepted);
+      BOOST_CHECK_CLOSE(cand->Z, 0.1, 1e-3);
+      BOOST_CHECK_SMALL(cand->omega - root, 1.1e-6);
+    }
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

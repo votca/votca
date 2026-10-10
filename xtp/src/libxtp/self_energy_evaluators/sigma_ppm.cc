@@ -23,6 +23,7 @@
 
 // Local VOTCA includes
 #include "sigma_ppm.h"
+#include "votca/xtp/exact_pole_sums.h"
 #include "votca/xtp/ppm.h"
 #include "votca/xtp/threecenter.h"
 
@@ -37,6 +38,12 @@ void Sigma_PPM::PrepareScreening() {
   }
   OptionalTiming t(timings_, "screening: rotate Mmn (PPM frame)");
   Mmn_.MultiplyRightWithAuxMatrix(ppm_.getPpm_phi());
+  const Eigen::VectorXd& weight = ppm_.getPpm_weight();
+  const Eigen::VectorXd& omega = ppm_.getPpm_freq();
+  mode_factors_.resize(weight.size());
+  for (Index i = 0; i < weight.size(); ++i) {
+    mode_factors_(i) = (weight(i) < 1.e-9) ? 0.0 : 0.5 * weight(i) * omega(i);
+  }
 }
 
 std::string Sigma_PPM::ScreeningSummary() const {
@@ -118,12 +125,15 @@ Eigen::VectorXd Sigma_PPM::CalcCorrelationDiagElements(
   for (Index i = 0; i < nfreq; ++i) {
     CountDiagEval();
   }
-  const double eta2 = opt_.eta * opt_.eta;
-  // the integrals of the level are read once for all frequencies
-  Eigen::VectorXd sigma = Eigen::VectorXd::Zero(nfreq);
-  AccumulateDiag(gw_level, frequencies.data(), nfreq, sigma.data(),
-                 [eta2](const auto& t) { return t / (t.square() + eta2); });
-  return sigma;
+  // the poles e_n -+ Omega_P with weights fac_P |M(n,P)|^2 have the form
+  // of the exact self-energy: far poles via Chebyshev interpolation (see
+  // exact_pole_sums), the integrals of the level read once
+  const Index qpmin_offset = opt_.qpmin - opt_.rpamin;
+  const ExactPoles poles{rpa_.getRPAInputEnergies(),
+                         opt_.homo + 1 - opt_.rpamin, ppm_.getPpm_freq(),
+                         opt_.eta};
+  return exact_pole_sums::Values(poles, Mmn_[gw_level + qpmin_offset].data(),
+                                 frequencies, mode_factors_.data());
 }
 
 double Sigma_PPM::CalcCorrelationOffDiagElement(Index gw_level1,

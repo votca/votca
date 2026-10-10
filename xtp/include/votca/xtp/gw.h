@@ -109,7 +109,7 @@ class GW {
     Index screening_update_max_inner = 10;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
-    std::string qp_root_finder = "bisection";
+    std::string qp_root_finder = "brent";
     std::string qp_grid_search_mode = "adaptive_with_dense_fallback";
 
     // QSGW options

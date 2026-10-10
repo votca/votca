@@ -216,6 +216,16 @@ inline double EffectiveAdaptiveShellWidth(const SolverOptions& opt) {
   return opt.qp_adaptive_shell_width;
 }
 
+/// Bracket width at which the interval refinement stops if |f| has not yet
+/// dropped below g_sc_limit. Roots are accepted only with |f| <= g_sc_limit
+/// (AcceptRoot), and |f'| = 1/Z <= 1/min_accepted_Z near a root, so a root
+/// located to within this width has an acceptable residual even for the
+/// smallest accepted weight: the refinement does not throw away roots by
+/// stopping early.
+inline double RootBracketTolerance(const SolverOptions& opt) {
+  return 0.5 * std::max(opt.min_accepted_Z, 1e-3) * opt.g_sc_limit;
+}
+
 template <typename QPFunc>
 double SolveQP_Bisection(double lowerbound, double f_lowerbound,
                          double upperbound, double f_upperbound,
@@ -225,9 +235,10 @@ double SolveQP_Bisection(double lowerbound, double f_lowerbound,
         "Bisection needs a positive and negative function value");
   }
 
+  const double xtol = RootBracketTolerance(opt);
   while (true) {
     const double c = 0.5 * (lowerbound + upperbound);
-    if (std::abs(upperbound - lowerbound) < opt.g_sc_limit) {
+    if (std::abs(upperbound - lowerbound) < xtol) {
       return c;
     }
 
@@ -287,7 +298,10 @@ double SolveQP_Brent(double lowerbound, double f_lowerbound, double upperbound,
       fc = fa;
     }
 
-    const double tol = opt.g_sc_limit;
+    // stop on the acceptance criterion |f| < g_sc_limit, or once the
+    // bracket [b, c] is narrower than RootBracketTolerance (b is returned,
+    // an end of the bracket, so its distance to the root is below that)
+    const double tol = 0.5 * RootBracketTolerance(opt);
     const double m = 0.5 * (c - b);
 
     if (std::abs(m) < tol || std::abs(fb) < opt.g_sc_limit) {

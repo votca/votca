@@ -159,34 +159,35 @@ BOOST_AUTO_TEST_CASE(sigma_exact_batched_equals_direct) {
   // grids like the QP scans: 1001 points of 0.001 Ha around each level, and
   // a wide one of 3001 points over 6 Ha
   for (votca::Index level = 0; level < 17; ++level) {
-    for (double halfwidth : {0.5, 3.0}) {
-      const votca::Index n = (halfwidth < 1.0) ? 1001 : 3001;
+    for (double halfwidth : {0.5, 3.0, 0.75}) {
+      // the last like the coarse shell scan of the QP search (63 points)
+      const votca::Index n =
+          (halfwidth == 0.75) ? 63 : ((halfwidth < 1.0) ? 1001 : 3001);
       const Eigen::VectorXd w = Eigen::VectorXd::LinSpaced(
           n, mo_energy(level) - halfwidth, mo_energy(level) + halfwidth);
       const Eigen::VectorXd batched =
           sigma->CalcCorrelationDiagElements(level, w);
-      double maxdiff = 0.0;
+      // reference: the same sums term by term in chunks too small for the
+      // Chebyshev split; and the single-frequency sums, which round
+      // t = w - z differently: near a pole (|t| ~ eta) that alone moves a
+      // term by up to r^2 eps |w| / eta^2
+      double cheb = 0.0;    // batched - chunked
+      double single = 0.0;  // batched - single
       double scale = 0.0;
-      for (votca::Index i = 0; i < n; ++i) {
-        const double direct = sigma->CalcCorrelationDiagElement(level, w(i));
-        maxdiff = std::max(maxdiff, std::abs(batched(i) - direct));
-        scale = std::max(scale, std::abs(direct));
-      }
-      // reference for the rounding: the same direct sums in batches too
-      // small for the Chebyshev split, i.e. only summed in another order
-      // (terms near a pole reach r^2 / (2 eta), eta = 1e-3)
-      double reorder = 0.0;
-      for (votca::Index i0 = 0; i0 + 32 <= n; i0 += 32) {
+      for (votca::Index i0 = 0; i0 < n; i0 += 16) {
+        const votca::Index len = std::min<votca::Index>(16, n - i0);
         const Eigen::VectorXd chunk =
-            sigma->CalcCorrelationDiagElements(level, w.segment(i0, 32));
-        for (votca::Index i = 0; i < 32; ++i) {
-          reorder = std::max(
-              reorder, std::abs(chunk(i) - sigma->CalcCorrelationDiagElement(
-                                               level, w(i0 + i))));
+            sigma->CalcCorrelationDiagElements(level, w.segment(i0, len));
+        for (votca::Index i = 0; i < len; ++i) {
+          const double direct =
+              sigma->CalcCorrelationDiagElement(level, w(i0 + i));
+          cheb = std::max(cheb, std::abs(batched(i0 + i) - chunk(i)));
+          single = std::max(single, std::abs(batched(i0 + i) - direct));
+          scale = std::max(scale, std::abs(direct));
         }
       }
-      BOOST_CHECK_LE(maxdiff, 2.0 * reorder + 1e-13 * std::max(1.0, scale));
-      BOOST_CHECK_SMALL(maxdiff, 1e-11 * std::max(1.0, scale));
+      BOOST_CHECK_SMALL(cheb, 1e-13 * std::max(1.0, scale));
+      BOOST_CHECK_SMALL(single, 1e-11 * std::max(1.0, scale));
     }
   }
   // derivative against a central difference

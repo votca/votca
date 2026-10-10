@@ -19,7 +19,7 @@
     <quadrature_order help="Quadrature order if CDA is used for sigma integration" default="12" choices="8,10,12,14,16,18,20,40,100" />
     <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid" />
     <qp_grid_search_mode help="grid-search backend for QP root detection" default="adaptive_with_dense_fallback" choices="adaptive,dense,adaptive_with_dense_fallback" />
-    <qp_root_finder help="rootfinder used to refine a sign-change interval" default="bisection" choices="bisection,brent"/>
+    <qp_root_finder help="method to refine a sign-change interval of the QP equation to a root: brent (inverse quadratic interpolation with bisection safeguard, fewer Sigma evaluations) or bisection; both stop when the QP residual is below qp_sc_limit" default="brent" choices="bisection,brent"/>
 
     <qp_full_window_half_width help="half-width of the full QP search window around the reference energy" unit="Hartree" default="OPTIONAL" choices="float+" />
     <qp_dense_spacing help="spacing of the dense QP scan used for robust sign-change detection" unit="Hartree" default="OPTIONAL" choices="float+" />
