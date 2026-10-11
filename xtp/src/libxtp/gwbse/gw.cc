@@ -755,12 +755,10 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
 
   QPFunc fqp(gw_level, *sigma_.get(), intercept0);
 
-  double sigma = fqp.sigma(frequency0, EvalStage::Other);
-  double dsigma_domega = fqp.deriv(frequency0);
-  double Z = 1.0 - dsigma_domega;
-  if (std::abs(Z) > 1e-9) {
-    newf = frequency0 + (intercept0 - frequency0 + sigma) / Z;
-  }
+  // fqp.deriv is f'(w) = dSigma_c/dw - 1
+  newf = qp_solver::LinearisedRoot(frequency0,
+                                   fqp.value(frequency0, EvalStage::Other),
+                                   fqp.deriv(frequency0));
 
   if (stats != nullptr) {
     *stats = fqp.GetStats();

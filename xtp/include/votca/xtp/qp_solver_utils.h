@@ -853,6 +853,17 @@ boost::optional<double> SolveQP_Grid_Windowed(
   return boost::none;
 }
 
+/// One Newton step of the QP equation f(w) = 0 from w0, with f0 = f(w0) and
+/// fprime = f'(w0) = dSigma_c/dw - 1: w0 - f0 / fprime = w0 + Z f0, with
+/// the quasiparticle weight Z = 1 / (1 - dSigma_c/dw). None if f' vanishes.
+inline boost::optional<double> LinearisedRoot(double w0, double f0,
+                                              double fprime) {
+  if (std::abs(fprime) <= 1e-9) {
+    return boost::none;
+  }
+  return w0 - f0 / fprime;
+}
+
 /// The n levels with the largest QP residual |solution - input| (largest
 /// first) as "level: input -> solution (residual)", for the evGW log.
 /// Levels are numbered from first_level.

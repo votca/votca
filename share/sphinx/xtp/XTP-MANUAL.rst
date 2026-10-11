@@ -15,6 +15,7 @@ software and manual versions match.
    xtp_introduction
    elstruc_theory
    implementation_notes
+   gwbse_numerics
    transfer_theory
    transport_theory
    ewald_embedding

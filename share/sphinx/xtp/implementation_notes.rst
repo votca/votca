@@ -142,7 +142,7 @@ The :math:`GW` and Bethe-Salpeter equation implementations, described theoretica
 :doc:`elstruc_theory`, are built on top of the ground-state DFT orbitals and Fock matrix
 produced by the machinery above -- either from the internal DFT engine or from the
 ORCA interface -- and do not themselves depend on which SCF convergence path (ordinary
-DIIS-family, direct-minimization, or CDFT) produced that reference. Consult the code
-reference for implementation-level detail on the GW self-energy and BSE Hamiltonian
-construction; this page focuses specifically on the ground-state SCF machinery that
-CDFT and difficult open-shell systems most directly exercise.
+DIIS-family, direct-minimization, or CDFT) produced that reference. The methods,
+numerics and settings of the GW and BSE steps -- level windows, self-energy models,
+the solution of the quasiparticle equation, evGW self-consistency and its pitfalls --
+are described in detail in :doc:`gwbse_numerics`.

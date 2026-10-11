@@ -397,4 +397,13 @@ BOOST_AUTO_TEST_CASE(refinement_accepts_small_weight_roots) {
   }
 }
 
+BOOST_AUTO_TEST_CASE(linearised_root_is_a_newton_step) {
+  // f(w) = 0.3 - 1.25 (w - 0.1): f' = -1.25 (Z = 0.8), root at 0.34
+  const double w0 = 0.1;
+  auto w = LinearisedRoot(w0, 0.3, -1.25);
+  BOOST_REQUIRE(w);
+  BOOST_CHECK_CLOSE(*w, 0.34, 1e-12);
+  BOOST_CHECK(!LinearisedRoot(w0, 0.3, 0.0));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
