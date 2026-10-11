@@ -21,14 +21,19 @@
 #ifndef VOTCA_XTP_BSE_H
 #define VOTCA_XTP_BSE_H
 
+// Standard includes
+#include <memory>
+
 // Local VOTCA includes
 #include "logger.h"
 #include "orbitals.h"
 #include "qmstate.h"
+#include "screening_kernels.h"
 #include "threecenter.h"
 
 namespace votca {
 namespace xtp {
+class SymmetricTiles;
 struct BSE_Population;
 template <Index cqp, Index cx, Index cd, Index cd2>
 class BSE_OPERATOR;
@@ -110,12 +115,18 @@ class BSE {
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
 
-  void Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
+  void Analyze_singlets(std::vector<QMFragment<BSE_Population>> fragments,
                         const Orbitals& orb) const;
-  void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
+  void Analyze_triplets(std::vector<QMFragment<BSE_Population>> fragments,
                         const Orbitals& orb) const;
 
   void Perturbative_DynamicalScreening(const QMStateType& type, Orbitals& orb);
+
+  /// Bytes for the intermediates of one pass when the dynamical screening
+  /// builds its per-state matrices; smaller values only mean more passes.
+  static void setStateMatrixMemory(double bytes) {
+    state_matrix_bytes_ = bytes;
+  }
 
  private:
   options opt_;
@@ -130,6 +141,8 @@ class BSE {
     Eigen::VectorXd direct_term;
     Eigen::VectorXd cross_term;
   };
+
+  static double state_matrix_bytes_;
 
   Logger& log_;
   Index bse_vmax_;
@@ -159,7 +172,24 @@ class BSE {
   void PrintWeights(const Eigen::VectorXd& weights) const;
 
   template <typename BSE_OPERATOR>
-  void configureBSEOperator(BSE_OPERATOR& H) const;
+  void configureBSEOperator(
+      BSE_OPERATOR& H, std::shared_ptr<SymmetricTiles> cache = nullptr) const;
+
+  // The screened direct terms Hd and Hd2 kept as symmetric matrices (lower
+  // triangle) for all operators of this BSE that contain them: the singlet
+  // and triplet solves and the analysis. Null if not kept. Decided from the
+  // memory budget the first time a solve needs them, then reused; dropped
+  // when the screening changes.
+  struct DirectCaches {
+    std::shared_ptr<SymmetricTiles> hd;
+    std::shared_ptr<SymmetricTiles> hd2;
+    bool hd_decided = false;
+    bool hd2_decided = false;
+  };
+  mutable DirectCaches direct_caches_;
+  // Decides (and logs) whether Hd (and, with coupling, Hd2) are kept.
+  void DecideDirectCaches(bool coupling) const;
+  void ReleaseDirectCaches() const;
 
   template <typename BSE_OPERATOR>
   tools::EigenSystem solve_hermitian(BSE_OPERATOR& h) const;
@@ -172,9 +202,19 @@ class BSE {
   tools::EigenSystem Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
                                                  BSE_OPERATOR_B& Bop) const;
 
-  void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
+  void printFragInfo(const std::vector<QMFragment<BSE_Population>>& frags,
                      Index state) const;
   void printWeights(Index i_bse, double weight) const;
+  void RotateIntoScreeningFrame(const Eigen::MatrixXd& U);
+  void MatchDressingToRoute();
+  SymmetricEigenSystem ScreenedInteraction(
+      const Eigen::VectorXd& RPAInputEnergies, double energy,
+      DFTTimings& timings) const;
+  Eigen::MatrixXd DirectTermDensity(
+      const std::vector<std::pair<const Eigen::VectorXd*,
+                                  const Eigen::VectorXd*>>& pairs) const;
+  Eigen::MatrixXd CouplingTermDensity(const Eigen::VectorXd& Avec,
+                                      const Eigen::VectorXd& Bvec) const;
   void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies,
                                       double energy);
 
@@ -187,10 +227,6 @@ class BSE {
   ExpectationValues ExpectationValue_Operator(const QMStateType& type,
                                               const Orbitals& orb,
                                               const BSE_OPERATOR& H) const;
-
-  template <typename BSE_OPERATOR>
-  ExpectationValues ExpectationValue_Operator_State(
-      const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const;
 
   tools::EigenSystem& GetBSEEigenSystem(const QMStateType& type,
                                         Orbitals& orb) const;

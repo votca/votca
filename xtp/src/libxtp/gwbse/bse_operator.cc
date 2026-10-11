@@ -17,9 +17,12 @@
  *
  */
 
+// Standard includes
+#include <stdexcept>
+
 // Local VOTCA includes
 #include "votca/xtp/bse_operator.h"
-#include "votca/xtp/openmp_cuda.h"
+#include "votca/xtp/bse_operator_kernels.h"
 #include "votca/xtp/vc2index.h"
 
 namespace votca {
@@ -43,91 +46,174 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
   static_assert(!(cd2 != 0 && cd != 0),
                 "Hamiltonian cannot contain Hd and Hd2 at the same time");
 
-  Index auxsize = Mmn_.auxsize();
-  vc2index vc = vc2index(0, 0, bse_ctotal_);
-
   Index vmin = opt_.vmin - opt_.rpamin;
   Index cmin = bse_cmin_ - opt_.rpamin;
 
-  OpenMP_CUDA transform;
-  if (cd != 0) {
-    transform.createTemporaries(epsilon_0_inv_, input, bse_ctotal_, bse_vtotal_,
-                                auxsize);
+  Eigen::MatrixXd result;
+  if ((cd != 0 || cd2 != 0) && direct_cache_ != nullptr &&
+      !direct_cache_->built()) {
+    BuildDirectMatrix();
+  }
+  if (direct_term_cached()) {
+    result = direct_cache_->Multiply(input, -double((cd != 0) ? cd : cd2));
+  } else if (cd != 0 || cd2 != 0) {
+    result = row_kernel_ ? ApplyDirectRows(input) : ApplyDirectBlocks(input);
   } else {
-    transform.createTemporaries(epsilon_0_inv_, input, bse_vtotal_, bse_ctotal_,
-                                auxsize);
+    result = Eigen::MatrixXd::Zero(bse_size_, input.cols());
   }
 
-#pragma omp parallel
-  {
-    Index threadid = OPENMP::getThreadId();
-#pragma omp for schedule(dynamic)
-    for (Index c1 = 0; c1 < bse_ctotal_; c1++) {
-
-      // Temp matrix has to stay in this scope, because it has transform only
-      // holds a reference to it
-      Eigen::MatrixXd Temp;
-      if (cd != 0) {
-        Temp = -cd * (Mmn_[c1 + cmin].middleRows(cmin, bse_ctotal_));
-        transform.PrepareMatrix1(Temp, threadid);
-      } else if (cd2 != 0) {
-        Temp = -cd2 * (Mmn_[c1 + cmin].middleRows(vmin, bse_vtotal_));
-        transform.PrepareMatrix1(Temp, threadid);
-      }
-
-      for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
-        transform.SetTempZero(threadid);
-        if (cd != 0) {
-          transform.PrepareMatrix2(
-              Mmn_[v1 + vmin].middleRows(vmin, bse_vtotal_), cd2 != 0,
-              threadid);
-        }
-        if (cd2 != 0) {
-          transform.PrepareMatrix2(
-              Mmn_[v1 + vmin].middleRows(cmin, bse_ctotal_), cd2 != 0,
-              threadid);
-        }
-        if (cqp != 0) {
-          Eigen::VectorXd vec = Hqp_row(v1, c1);
-          transform.Addvec(vec, threadid);
-        }
-        transform.MultiplyRow(vc.I(v1, c1), threadid);
-      }
-    }
+  if (cqp != 0) {
+    result += ApplyBSEQuasiparticle(Hqp_, bse_vtotal_, bse_ctotal_, input,
+                                    static_cast<double>(cqp));
   }
-  if (cx > 0) {
-
-    transform.createAdditionalTemporaries(bse_ctotal_, auxsize);
-#pragma omp parallel
-    {
-      Index threadid = OPENMP::getThreadId();
-#pragma omp for schedule(dynamic)
-      for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
-        Index va = v1 + vmin;
-        Eigen::MatrixXd Mmn1 = cx * Mmn_[va].middleRows(cmin, bse_ctotal_);
-        transform.PushMatrix1(Mmn1, threadid);
-        for (Index v2 = v1; v2 < bse_vtotal_; v2++) {
-          Index vb = v2 + vmin;
-          transform.MultiplyBlocks(Mmn_[vb].middleRows(cmin, bse_ctotal_), v1,
-                                   v2, threadid);
-        }
-      }
-    }
+  if (cx != 0) {
+    const BSEWindow window{vmin, cmin, bse_vtotal_, bse_ctotal_};
+    result += ApplyBSEExchange(Mmn_, window, Mmn_, window, input,
+                               static_cast<double>(cx));
   }
-
-  return transform.getReductionVar();
+  return result;
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
-Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index v1,
-                                                        Index c1) const {
-  Eigen::MatrixXd Result = Eigen::MatrixXd::Zero(bse_ctotal_, bse_vtotal_);
-  Index cmin = bse_vtotal_;
-  // v->c
-  Result.col(v1) += cqp * Hqp_.col(c1 + cmin).segment(cmin, bse_ctotal_);
-  // c-> v
-  Result.row(c1) -= cqp * Hqp_.col(v1).head(bse_vtotal_);
-  return Eigen::Map<Eigen::VectorXd>(Result.data(), Result.size());
+Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::ApplyDirectRows(
+    const Eigen::MatrixXd& input) const {
+  vc2index vc = vc2index(0, 0, bse_ctotal_);
+  Index vmin = opt_.vmin - opt_.rpamin;
+  Index cmin = bse_cmin_ - opt_.rpamin;
+  // screened direct terms, one Hamiltonian row per (v1,c1):
+  //   cd:  K(c2,v2) = sum_P S(c2,P) M_{v1}(v2,P), S = -cd  M_{c1}(c,:) diag(w)
+  //   cd2: K(c2,v2) = sum_P M_{v1}(c2,P) S(v2,P), S = -cd2 M_{c1}(v,:) diag(w)
+  // with K flattened column-major as the row's (v2,c2) index v2*n_c + c2.
+  Eigen::MatrixXd result(bse_size_, input.cols());
+#pragma omp parallel for schedule(dynamic)
+  for (Index c1 = 0; c1 < bse_ctotal_; c1++) {
+    const Eigen::MatrixXd S =
+        (cd != 0)
+            ? Eigen::MatrixXd(-double(cd) *
+                              Mmn_[c1 + cmin].middleRows(cmin, bse_ctotal_) *
+                              epsilon_0_inv_.asDiagonal())
+            : Eigen::MatrixXd(-double(cd2) *
+                              Mmn_[c1 + cmin].middleRows(vmin, bse_vtotal_) *
+                              epsilon_0_inv_.asDiagonal());
+    Eigen::MatrixXd K(bse_ctotal_, bse_vtotal_);
+    for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
+      if (cd != 0) {
+        K.noalias() =
+            S * Mmn_[v1 + vmin].middleRows(vmin, bse_vtotal_).transpose();
+      } else {
+        K.noalias() =
+            Mmn_[v1 + vmin].middleRows(cmin, bse_ctotal_) * S.transpose();
+      }
+      const Eigen::Map<const Eigen::VectorXd> row(K.data(), K.size());
+      result.row(vc.I(v1, c1)).noalias() = row.transpose() * input;
+    }
+  }
+  return result;
+}
+
+// The screened direct term in blocks of Hamiltonian rows,
+//   cd:  K(v1c1, v2c2) = -cd  sum_P M_{c1}(c2,P) w_P M_{v1}(v2,P)
+//   cd2: K(v1c1, v2c2) = -cd2 sum_P M_{c1}(v2,P) w_P M_{v1}(c2,P)
+// cd:  for each c1, the rows (v1, c1) of all v1 as one (n_v x N) matrix
+//      R = stacked_vv * S^T, S = -cd M_{c1}(c,:) diag(w);
+// cd2: for each v1, the rows (v1, c1) of all c1 as one (n_c x N) matrix
+//      R = stacked_cv * S^T, S = -cd2 M_{v1}(c,:) diag(w).
+// R comes out row-major in the order of the BSE vectors and multiplies all
+// input vectors at once: the same flops as the row kernel, but in large
+// products, and the input is read once per block.
+template <Index cqp, Index cx, Index cd, Index cd2>
+Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::ApplyDirectBlocks(
+    const Eigen::MatrixXd& input) const {
+  using RowMajorMatrix =
+      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+  const Index vmin = opt_.vmin - opt_.rpamin;
+  const Index cmin = bse_cmin_ - opt_.rpamin;
+  const Index nv = bse_vtotal_;
+  const Index nc = bse_ctotal_;
+  const Index aux = Mmn_.auxsize();
+  const double prefactor = -double((cd != 0) ? cd : cd2);
+
+  // cd: the vv blocks of the occupied slices, row v1*n_v + v2;
+  // cd2: the cv blocks of the virtual slices, row c1*n_v + v2
+  const Index nblocks = (cd != 0) ? nc : nv;
+  const Index blockrows = (cd != 0) ? nv : nc;
+  if (stacked_.size() == 0) {
+    const Index nslice = (cd != 0) ? nv : nc;
+    const Index first_slice = (cd != 0) ? vmin : cmin;
+    stacked_.resize(nslice * nv, aux);
+#pragma omp parallel for
+    for (Index m = 0; m < nslice; m++) {
+      stacked_.middleRows(m * nv, nv) =
+          Mmn_[m + first_slice].middleRows(vmin, nv);
+    }
+  }
+
+  Eigen::MatrixXd result(bse_size_, input.cols());
+  Eigen::MatrixXd S(stacked_.rows() / blockrows, aux);
+  RowMajorMatrix T(stacked_.rows(), S.rows());
+  Eigen::MatrixXd out(blockrows, input.cols());
+  for (Index b = 0; b < nblocks; b++) {
+    // cd: b = c1, S = M_{c1}(c,:); cd2: b = v1, S = M_{v1}(c,:)
+    const Index slice = (cd != 0) ? b + cmin : b + vmin;
+    S.noalias() = prefactor * Mmn_[slice].middleRows(cmin, nc) *
+                  epsilon_0_inv_.asDiagonal();
+    T.noalias() = stacked_ * S.transpose();
+    const Eigen::Map<const RowMajorMatrix> R(T.data(), blockrows, bse_size_);
+    out.noalias() = R * input;
+    if (cd != 0) {
+      for (Index v1 = 0; v1 < nv; v1++) {
+        result.row(v1 * nc + b) = out.row(v1);
+      }
+    } else {
+      result.middleRows(b * nc, nc) = out;
+    }
+  }
+  return result;
+}
+
+// The lower triangle of the direct term with unit prefactor,
+//   cd:  K(v1c1, v2c2) = sum_P M_{c1}(c2,P) w_P M_{v1}(v2,P)
+//   cd2: K(v1c1, v2c2) = sum_P M_{c1}(v2,P) w_P M_{v1}(c2,P),
+// both symmetric since M_a(b,P) = M_b(a,P). Row r = (v1,c1) needs the
+// columns s = (v2,c2) <= r, i.e. v2 <= v1: per (c1, v1) one product over
+// v2 = 0..v1, half the flops of the full rows.
+template <Index cqp, Index cx, Index cd, Index cd2>
+void BSE_OPERATOR<cqp, cx, cd, cd2>::BuildDirectMatrix() const {
+  const Index kind = DirectKind();
+  if (direct_cache_->allocated() &&
+      (direct_cache_->kind() != kind || direct_cache_->size() != bse_size_)) {
+    throw std::runtime_error(
+        "BSE_OPERATOR: the shared direct-term cache holds a different "
+        "matrix");
+  }
+  const Index vmin = opt_.vmin - opt_.rpamin;
+  const Index cmin = bse_cmin_ - opt_.rpamin;
+  const Index nv = bse_vtotal_;
+  const Index nc = bse_ctotal_;
+  vc2index vc = vc2index(0, 0, nc);
+  direct_cache_->Allocate(bse_size_, kind);
+#pragma omp parallel for schedule(dynamic)
+  for (Index c1 = 0; c1 < nc; c1++) {
+    const Eigen::MatrixXd S =
+        (cd != 0) ? Eigen::MatrixXd(Mmn_[c1 + cmin].middleRows(cmin, nc) *
+                                    epsilon_0_inv_.asDiagonal())
+                  : Eigen::MatrixXd(Mmn_[c1 + cmin].middleRows(vmin, nv) *
+                                    epsilon_0_inv_.asDiagonal());
+    Eigen::MatrixXd K(nc, nv);
+    for (Index v1 = 0; v1 < nv; v1++) {
+      // K(c2, v2) for v2 <= v1, column-major: element (v2, c2) of the row
+      // at v2*n_c + c2
+      auto Kv = K.leftCols(v1 + 1);
+      if (cd != 0) {
+        Kv.noalias() = S * Mmn_[v1 + vmin].middleRows(vmin, v1 + 1).transpose();
+      } else {
+        Kv.noalias() = Mmn_[v1 + vmin].middleRows(cmin, nc) *
+                       S.topRows(v1 + 1).transpose();
+      }
+      direct_cache_->SetRowLower(vc.I(v1, c1), K.data());
+    }
+  }
+  direct_cache_->FinishBuild();
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>

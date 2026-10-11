@@ -314,4 +314,125 @@ BOOST_AUTO_TEST_CASE(
   BOOST_CHECK_EQUAL(diag.intervals_found, 1);
 }
 
+// Largest weight by default; with prefer_nearest_root the root closest to
+// the reference (the previous solution). Two roots with Z within a factor
+// two are reported as competing.
+BOOST_AUTO_TEST_CASE(select_root_and_competing_roots) {
+  RootCandidate a;
+  a.omega = 0.1;
+  a.Z = 0.6;
+  a.distance_to_ref = 0.4;
+  RootCandidate b;
+  b.omega = 0.5;
+  b.Z = 0.4;
+  b.distance_to_ref = 0.0;
+  const std::vector<RootCandidate> roots{a, b};
+
+  SolverOptions opt;
+  BOOST_CHECK_CLOSE(SelectRoot(roots, opt).omega, 0.1, 1e-12);
+  opt.prefer_nearest_root = true;
+  BOOST_CHECK_CLOSE(SelectRoot(roots, opt).omega, 0.5, 1e-12);
+
+  const CompetingRoots c = CheckCompetingRoots(roots, 0.1);
+  BOOST_CHECK(c.competing);
+  BOOST_CHECK_CLOSE(c.omega, 0.1, 1e-12);
+  BOOST_CHECK_CLOSE(c.Z, 0.6, 1e-12);
+  BOOST_CHECK_CLOSE(c.omega_alt, 0.5, 1e-12);
+  BOOST_CHECK_CLOSE(c.Z_alt, 0.4, 1e-12);
+
+  b.Z = 0.2;  // less than half: one clear quasiparticle
+  BOOST_CHECK(!CheckCompetingRoots({a, b}, 0.1).competing);
+  BOOST_CHECK(!CheckCompetingRoots({a}, 0.1).competing);
+}
+
+BOOST_AUTO_TEST_CASE(largest_residuals_lists_levels_by_residual) {
+  Eigen::VectorXd input(4);
+  Eigen::VectorXd solution(4);
+  input << -0.5, -0.3, 0.1, 0.4;
+  solution << -0.5001, -0.3, 0.13, 0.399;
+  BOOST_CHECK_EQUAL(LargestResiduals(solution, input, 9, 2),
+                    "11: +0.100000 -> +0.130000 (+3.0e-02), "
+                    "12: +0.400000 -> +0.399000 (-1.0e-03)");
+  // fewer levels than requested
+  BOOST_CHECK_EQUAL(LargestResiduals(solution.head(1), input.head(1), 0, 5),
+                    "0: -0.500000 -> -0.500100 (-1.0e-04)");
+}
+
+// A root with small weight (Z = 0.1, slope -10) inside a satellite-like
+// curvature: the refinement must locate it well enough to pass the residual
+// test of AcceptRoot, with bisection and with Brent, wherever the root lies
+// in the bracket. (Stopping at a bracket of g_sc_limit left residuals up to
+// 10 g_sc_limit and rejected such roots, Brent more often than bisection.)
+struct SteepRootFunc {
+  explicit SteepRootFunc(double root_) : root(root_) {}
+  double value(double omega, EvalStage /*stage*/) const {
+    const double x = omega - root;
+    return -10.0 * x - 400.0 * x * x * x;
+  }
+  double deriv(double omega) const {
+    const double x = omega - root;
+    return -10.0 - 1200.0 * x * x;
+  }
+  double root;
+};
+
+BOOST_AUTO_TEST_CASE(refinement_accepts_small_weight_roots) {
+  SolverOptions opt;
+  opt.g_sc_limit = 1e-5;
+  for (bool brent : {false, true}) {
+    for (int k = 0; k < 50; ++k) {
+      const double root = 0.3 + 0.002 * (double(k) + 0.37) / 50.0;
+      SteepRootFunc f(root);
+      const double a = 0.3;
+      const double b = 0.302;
+      auto cand =
+          RefineQPInterval(a, f.value(a, EvalStage::Scan), b,
+                           f.value(b, EvalStage::Scan), f, root, opt, brent);
+      BOOST_REQUIRE(cand);
+      BOOST_CHECK_LE(std::abs(cand->residual), opt.g_sc_limit);
+      BOOST_CHECK(cand->accepted);
+      BOOST_CHECK_CLOSE(cand->Z, 0.1, 1e-3);
+      BOOST_CHECK_SMALL(cand->omega - root, 1.1e-6);
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(linearised_root_is_a_newton_step) {
+  // f(w) = 0.3 - 1.25 (w - 0.1): f' = -1.25 (Z = 0.8), root at 0.34
+  const double w0 = 0.1;
+  auto w = LinearisedRoot(w0, 0.3, -1.25);
+  BOOST_REQUIRE(w);
+  BOOST_CHECK_CLOSE(*w, 0.34, 1e-12);
+  BOOST_CHECK(!LinearisedRoot(w0, 0.3, 0.0));
+}
+
+// A sign change without a zero (a pole of Sigma_c between two grid points)
+// and a tolerance that the bracket cannot reach: both refinements must stop
+// and return a candidate that AcceptRoot rejects. Non-finite brackets are
+// skipped.
+struct JumpFunc {
+  double value(double omega, EvalStage /*stage*/) const {
+    return omega < 0.3 ? 1.0 : -1.0;
+  }
+  double deriv(double /*omega*/) const { return -1.0; }
+};
+
+BOOST_AUTO_TEST_CASE(refinement_terminates_without_root) {
+  SolverOptions opt;
+  opt.g_sc_limit = 0.0;
+  opt.qp_bisection_max_iter = 200;
+  JumpFunc f;
+  for (bool brent : {false, true}) {
+    auto cand = RefineQPInterval(0.25, 1.0, 0.35, -1.0, f, 0.3, opt, brent);
+    if (cand) {
+      BOOST_CHECK(!cand->accepted);
+    }
+  }
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  for (bool brent : {false, true}) {
+    BOOST_CHECK(!RefineQPInterval(0.25, nan, 0.35, -1.0, f, 0.3, opt, brent));
+    BOOST_CHECK(!RefineQPInterval(nan, 1.0, 0.35, -1.0, f, 0.3, opt, brent));
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -60,11 +60,12 @@ class Sigma_CDA : public Sigma_base {
     double minus = CalcCorrelationDiagElement(gw_level, frequency - h);
     return (plus - minus) / (2 * h);
   }
-  // Calculates Sigma_c off-diagonal elements
+  // Off-diagonal elements are not implemented for CDA: zero
   double CalcCorrelationOffDiagElement(Index, Index, double,
                                        double) const final {
     return 0;
   }
+  bool HasOffDiagonal() const final { return false; }
 
  private:
   // Theta-function weight of a residue
@@ -78,12 +79,14 @@ class Sigma_CDA : public Sigma_base {
                               double delta, double eta) const;
 
   // Sigma_c part from Gaussian tail correction
-  double CalcDiagContributionValue_tail(
-      const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
-      double alpha) const;
+  // Imx_row kappa(0) Imx_row^T is tail_terms_[gw_level](i)
+  double CalcDiagContributionValue_tail(double row_term, double delta,
+                                        double alpha) const;
 
   ImaginaryAxisIntegration gq_;
-  Eigen::MatrixXd kDielMxInv_zero_;  // kappa = eps^-1 - 1 matrix
+  Eigen::MatrixXd kDielMxInv_zero_;
+  // per GW level: Imx.row(i) kappa(0) Imx.row(i)^T for every level i
+  std::vector<Eigen::VectorXd> tail_terms_;  // kappa = eps^-1 - 1 matrix
 };
 
 }  // namespace xtp

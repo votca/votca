@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/jobcalculator.h"
 #include "votca/xtp/jobcalculatorfactory.h"
+#include "votca/xtp/memorybudget.h"
 #include "votca/xtp/progressobserver.h"
 #include "votca/xtp/stateapplication.h"
 
@@ -89,6 +90,8 @@ void XtpParallel::ConfigCalculator() {
 
   progObs_.InitCmdLineOpts(OptionsMap());
   calc_->setnThreads(OptionsMap()["nthreads"].as<Index>());
+  // nthreads jobs run concurrently and share the memory budget
+  xtp::MemoryBudget::SetConcurrentJobs(OptionsMap()["nthreads"].as<Index>());
   calc_->setOpenMPThreads(OptionsMap()["ompthreads"].as<Index>());
   calc_->setProgObserver(&progObs_);
   calc_->Initialize(options_);

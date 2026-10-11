@@ -79,9 +79,6 @@ class BSE_OPERATOR_UKS final : public MatrixFreeOperator {
 
   void setup_block(SpinBlockInfo& blk, Index homo, Index offset);
 
-  Eigen::VectorXd Hqp_row(const Eigen::MatrixXd& Hqp, const SpinBlockInfo& blk,
-                          Index v1, Index c1) const;
-
   void add_qp_block(Eigen::MatrixXd& y, const Eigen::MatrixXd& x,
                     const SpinBlockInfo& blk, const Eigen::MatrixXd& Hqp) const;
 
@@ -101,13 +98,6 @@ class BSE_OPERATOR_UKS final : public MatrixFreeOperator {
                          const SpinBlockInfo& in_blk,
                          const TCMatrix_gwbse& Mout, const TCMatrix_gwbse& Min,
                          double prefactor) const;
-
-  void add_direct_cross_tda_block(Eigen::MatrixXd& y, const Eigen::MatrixXd& x,
-                                  const SpinBlockInfo& out_blk,
-                                  const SpinBlockInfo& in_blk,
-                                  const TCMatrix_gwbse& Mout,
-                                  const TCMatrix_gwbse& Min,
-                                  double prefactor) const;
 };
 
 // TDA A block: Hqp + Hx - Hd

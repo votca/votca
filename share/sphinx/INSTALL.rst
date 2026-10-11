@@ -144,11 +144,6 @@ and work-arounds are documented `for Intel MKL on AMD Zen <https://danieldk.eu/P
 and `in general <https://documentation.sigma2.no/jobs/mkl.html#using-mkl-efficiently>`__. 
 We advise that you test this on your specific architecture.
 
-CUDA support
-^^^^^^^^^^^^
-If your system has a ``NVIDIA`` GPU, enable offloading of matrix operations 
-by ``-DUSE_CUDA=ON``. 
-
 Packages for various Linux Distributions
 ----------------------------------------
 

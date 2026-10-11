@@ -22,6 +22,7 @@
 
 #include <votca/tools/linalg.h>
 
+#include "votca/xtp/bse_fullsolver.h"
 #include "votca/xtp/bse_initialization.h"
 #include "votca/xtp/bse_operator_uks.h"
 #include "votca/xtp/bse_uks.h"
@@ -47,6 +48,21 @@ Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1,
 
 namespace votca {
 namespace xtp {
+
+namespace {
+double DavidsonToleranceValue(const std::string& tol) {
+  if (tol == "loose") {
+    return 1e-3;
+  } else if (tol == "normal") {
+    return 1e-4;
+  } else if (tol == "strict") {
+    return 1e-5;
+  } else if (tol == "lapack") {
+    return 1e-9;
+  }
+  throw std::runtime_error(tol + " is not a valid Davidson tolerance");
+}
+}  // namespace
 
 void BSE_UKS::configure_with_precomputed_screening(
     const options& opt, Index homo_alpha, Index homo_beta,
@@ -140,17 +156,17 @@ void BSE_UKS::SetupDirectInteractionOperator(
   rpa.configure(homo_alpha_, homo_beta_, opt_.rpamin, opt_.rpamax);
   rpa.setRPAInputEnergies(RPAInputEnergiesAlpha, RPAInputEnergiesBeta);
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
-      rpa.calculate_epsilon_r(energy));
+  const SymmetricEigenSystem es =
+      SymmetricEigen(rpa.calculate_epsilon_r(energy));
 
   Mmn_ = Mmn_raw_;
-  Mmn_.alpha.MultiplyRightWithAuxMatrix(es.eigenvectors());
-  Mmn_.beta.MultiplyRightWithAuxMatrix(es.eigenvectors());
+  Mmn_.alpha.MultiplyRightWithAuxMatrix(es.vectors);
+  Mmn_.beta.MultiplyRightWithAuxMatrix(es.vectors);
 
-  epsilon_0_inv_ = Eigen::VectorXd::Zero(es.eigenvalues().size());
-  for (Index i = 0; i < es.eigenvalues().size(); ++i) {
-    if (es.eigenvalues()(i) > 1e-8) {
-      epsilon_0_inv_(i) = 1.0 / es.eigenvalues()(i);
+  epsilon_0_inv_ = Eigen::VectorXd::Zero(es.values.size());
+  for (Index i = 0; i < es.values.size(); ++i) {
+    if (es.values(i) > 1e-8) {
+      epsilon_0_inv_(i) = 1.0 / es.values(i);
     }
   }
 }
@@ -405,7 +421,21 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
     return result;
   }
 
-  // Default Davidson/HAM path for larger systems
+  // Hermitian (A-B)(A+B) form for larger systems; the non-Hermitian
+  // Davidson below if A-B or A+B is not positive definite.
+  try {
+    FullBSEDavidson::Options fopt;
+    fopt.tolerance = DavidsonToleranceValue(opt_.davidson_tolerance);
+    fopt.max_iterations = opt_.davidson_maxiter;
+    fopt.max_subspace = 10 * opt_.nmax;
+    FullBSEDavidson solver(log_, fopt);
+    return solver.Solve(A, B, opt_.nmax);
+  } catch (const std::runtime_error& error) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " " << error.what()
+        << "; using the non-Hermitian Davidson solver" << flush;
+  }
+
   const Eigen::VectorXd adiag = A.diagonal();
   const Eigen::VectorXd bdiag = B.diagonal();
   Eigen::MatrixXd initial_guess =
@@ -429,12 +459,14 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
   Eigen::MatrixXd tmpX = DS.eigenvectors().topRows(A.rows());
   Eigen::MatrixXd tmpY = DS.eigenvectors().bottomRows(B.rows());
 
-  Eigen::VectorXd normX = tmpX.colwise().squaredNorm();
-  Eigen::VectorXd normY = tmpY.colwise().squaredNorm();
-  Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
-
-  result.eigenvectors() = tmpX * sqinvnorm.matrix().asDiagonal();
-  result.eigenvectors2() = tmpY * sqinvnorm.matrix().asDiagonal();
+  if (const Index bad = NormalizeExcitationVectors(tmpX, tmpY); bad > 0) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " WARNING: " << bad
+        << " BSE root(s) without positive X^2 - Y^2 norm (not converged?)"
+        << flush;
+  }
+  result.eigenvectors() = tmpX;
+  result.eigenvectors2() = tmpY;
 
   return result;
 }
@@ -500,12 +532,14 @@ tools::EigenSystem BSE_UKS::Solve_nonhermitian_Davidson(
   Eigen::MatrixXd tmpX = DS.eigenvectors().topRows(Aop.rows());
   Eigen::MatrixXd tmpY = DS.eigenvectors().bottomRows(Bop.rows());
 
-  Eigen::VectorXd normX = tmpX.colwise().squaredNorm();
-  Eigen::VectorXd normY = tmpY.colwise().squaredNorm();
-  Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
-
-  result.eigenvectors() = tmpX * sqinvnorm.matrix().asDiagonal();
-  result.eigenvectors2() = tmpY * sqinvnorm.matrix().asDiagonal();
+  if (const Index bad = NormalizeExcitationVectors(tmpX, tmpY); bad > 0) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " WARNING: " << bad
+        << " BSE root(s) without positive X^2 - Y^2 norm (not converged?)"
+        << flush;
+  }
+  result.eigenvectors() = tmpX;
+  result.eigenvectors2() = tmpY;
 
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();

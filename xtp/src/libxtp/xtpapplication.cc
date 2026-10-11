@@ -21,7 +21,6 @@
 #include <boost/format.hpp>
 
 // VOTCA includes
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <ostream>
 #include <stdexcept>
@@ -32,7 +31,7 @@
 // Local VOTCA includes
 #include "votca/tools/property.h"
 #include "votca/tools/tokenizer.h"
-#include "votca/xtp/openmp_cuda.h"
+#include "votca/xtp/memorybudget.h"
 #include "votca/xtp/version.h"
 #include "votca/xtp/xtpapplication.h"
 
@@ -57,6 +56,10 @@ void XtpApplication::Initialize(void) {
 
   AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
                       "  number of threads to create");
+  AddProgramOptions()(
+      "memory,M", propt::value<double>()->default_value(0.0),
+      "  memory in GB for the whole process, used to choose caches and batch "
+      "sizes (shared equally by concurrent jobs; 0: built-in defaults)");
 
   AddProgramOptions()(
       "execute,e", propt::value<std::string>(),
@@ -77,15 +80,11 @@ void XtpApplication::Initialize(void) {
       "printoptions,p", propt::value<std::string>(),
       std::string("Prints xml options of a " + CalculatorType()).c_str());
 
-#ifdef USE_CUDA
-  AddProgramOptions()("gpus,g", propt::value<Index>()->default_value(-1),
-                      "  Number of gpus to use");
-#endif
-
   AddCommandLineOptions();
 }
 
 bool XtpApplication::EvaluateOptions() {
+  MemoryBudget::Set(OptionsMap()["memory"].as<double>());
 
   if (OptionsMap().count("list")) {
     std::cout << "Available XTP" + CalculatorType() + "s: \n";
@@ -95,9 +94,6 @@ bool XtpApplication::EvaluateOptions() {
     StopExecution();
     return true;
   }
-#ifdef USE_CUDA
-  OpenMP_CUDA::SetNoGPUs(OptionsMap()["gpus"].as<Index>());
-#endif
 
   if (OptionsMap().count("description")) {
     std::string calcname = OptionsMap()["description"].as<std::string>();

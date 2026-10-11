@@ -150,7 +150,11 @@ class DavidsonSolver {
 
     ProjectedSpace proj;
     proj.V = initial_guess;
-    orthogonalize(proj.V, proj.V.cols());
+    if (orthogonalize(proj.V, proj.V.cols()) < neigen) {
+      throw std::runtime_error(
+          "DavidsonSolver::solve initial guess has fewer than neigen linearly "
+          "independent columns.");
+    }
 
     proj.size_update = DavidsonSolver::getSizeUpdate(neigen);
     proj.root_converged = ArrayXb::Constant(proj.size_update, false);
@@ -304,8 +308,8 @@ class DavidsonSolver {
   Eigen::MatrixXd extract_vectors(const Eigen::MatrixXd &V,
                                   const ArrayXl &idx) const;
 
-  void orthogonalize(Eigen::MatrixXd &V, Index nupdate) const;
-  void gramschmidt(Eigen::MatrixXd &A, Index nstart) const;
+  Index orthogonalize(Eigen::MatrixXd &V, Index nupdate) const;
+  Index gramschmidt(Eigen::MatrixXd &A, Index nstart) const;
 
   Eigen::VectorXd computeCorrectionVector(const Eigen::VectorXd &qj,
                                           double lambdaj,

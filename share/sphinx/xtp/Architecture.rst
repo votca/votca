@@ -32,11 +32,6 @@ How statefiles are parsed in
 
 Statefiles are only used in the **xtp_parallel** and **xtp_run** executables, which derive from `stateapplication <https://github.com/votca/votca/blob/master/xtp/include/votca/xtp/stateapplication.h>`_, which again derives from the above mentioned `xtp application <https://github.com/votca/votca/blob/master/xtp/src/libxtp/xtpapplication.cc>`_. Their parsing is implemented in `statesaver <https://github.com/votca/votca/blob/master/xtp/src/libxtp/statesaver.cc>`_. Underlying all statefiles are the hdf5interfaces that are also used for the orbitals file and are implemented in `checkpointwriter <https://github.com/votca/votca/blob/master/xtp/include/votca/xtp/checkpointwriter.h>`_ and `checkpointreader <https://github.com/votca/votca/blob/master/xtp/include/votca/xtp/checkpointreader.h>`_.
 
-How the cuda support works
-##########################
-
-CUDA support is optional and is enabled via :code:`-DUSE_CUDA=ON` in cmake and then enabled via `votca_xtp_config <https://github.com/votca/votca/blob/master/xtp/include/votca/xtp/votca_xtp_config.h.in>`_. CUDA is basically only used for matrix multiplication. The matrix class which wraps the `CUBLAS <https://docs.nvidia.com/cuda/cublas/index.html>`_ class is `CudaMatrix <https://github.com/votca/votca/blob/master/xtp/include/votca/xtp/cudamatrix.h>`_, which has ownwership of gpumemory. Calling the CUDA code inside openmp is handled via `OpenMP_CUDA class <https://github.com/votca/votca/blob/master/xtp/include/votca/xtp/openmp_cuda.h>`_, which also implements the specific commands for CPU and GPU calls. 
-
 How code is executed
 ####################
 

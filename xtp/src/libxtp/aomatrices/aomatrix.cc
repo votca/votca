@@ -21,31 +21,32 @@
 #include <vector>
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/screening_kernels.h"
 
 namespace votca {
 namespace xtp {
 
 Eigen::MatrixXd AOOverlap::Pseudo_InvSqrt(double etol) {
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(aomatrix_);
-  smallestEigenvalue = es.eigenvalues()(0);
-  Eigen::VectorXd diagonal = Eigen::VectorXd::Zero(es.eigenvalues().size());
+  const SymmetricEigenSystem es = SymmetricEigen(aomatrix_);
+  smallestEigenvalue = es.values(0);
+  Eigen::VectorXd diagonal = Eigen::VectorXd::Zero(es.values.size());
   removedfunctions = 0;
   for (Index i = 0; i < diagonal.size(); ++i) {
-    if (es.eigenvalues()(i) < etol) {
+    if (es.values(i) < etol) {
       removedfunctions++;
     } else {
-      diagonal(i) = 1.0 / std::sqrt(es.eigenvalues()(i));
+      diagonal(i) = 1.0 / std::sqrt(es.values(i));
     }
   }
 
-  return es.eigenvectors() * diagonal.asDiagonal() *
-         es.eigenvectors().transpose();
+  return es.vectors * diagonal.asDiagonal() * es.vectors.transpose();
 }
 
 Eigen::MatrixXd AOOverlap::Sqrt() {
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(aomatrix_);
-  smallestEigenvalue = es.eigenvalues()(0);
-  return es.operatorSqrt();
+  const SymmetricEigenSystem es = SymmetricEigen(aomatrix_);
+  smallestEigenvalue = es.values(0);
+  return es.vectors * es.values.cwiseSqrt().asDiagonal() *
+         es.vectors.transpose();
 }
 
 // This converts V into ((S-1/2 V S-1/2)-1/2 S-1/2)T, which is needed to
@@ -53,52 +54,50 @@ Eigen::MatrixXd AOOverlap::Sqrt() {
 Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt_GWBSE(const AOOverlap& auxoverlap,
                                                 double etol) {
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eo(auxoverlap.Matrix());
+  const SymmetricEigenSystem eo = SymmetricEigen(auxoverlap.Matrix());
   removedfunctions = 0;
-  Eigen::VectorXd diagonal_overlap =
-      Eigen::VectorXd::Zero(eo.eigenvalues().size());
+  Eigen::VectorXd diagonal_overlap = Eigen::VectorXd::Zero(eo.values.size());
   for (Index i = 0; i < diagonal_overlap.size(); ++i) {
-    if (eo.eigenvalues()(i) < etol) {
+    if (eo.values(i) < etol) {
       removedfunctions++;
     } else {
-      diagonal_overlap(i) = 1.0 / std::sqrt(eo.eigenvalues()(i));
+      diagonal_overlap(i) = 1.0 / std::sqrt(eo.values(i));
     }
   }
-  Eigen::MatrixXd Ssqrt = eo.eigenvectors() * diagonal_overlap.asDiagonal() *
-                          eo.eigenvectors().transpose();
+  Eigen::MatrixXd Ssqrt =
+      eo.vectors * diagonal_overlap.asDiagonal() * eo.vectors.transpose();
 
   Eigen::MatrixXd ortho = Ssqrt * aomatrix_ * Ssqrt;
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho);
-  Eigen::VectorXd diagonal = Eigen::VectorXd::Zero(es.eigenvalues().size());
+  const SymmetricEigenSystem es = SymmetricEigen(ortho);
+  Eigen::VectorXd diagonal = Eigen::VectorXd::Zero(es.values.size());
 
   for (Index i = 0; i < diagonal.size(); ++i) {
-    if (es.eigenvalues()(i) < etol) {
+    if (es.values(i) < etol) {
       removedfunctions++;
     } else {
-      diagonal(i) = 1.0 / std::sqrt(es.eigenvalues()(i));
+      diagonal(i) = 1.0 / std::sqrt(es.values(i));
     }
   }
 
   Eigen::MatrixXd Vm1 =
-      es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
+      es.vectors * diagonal.asDiagonal() * es.vectors.transpose();
   Eigen::MatrixXd result = (Vm1 * Ssqrt).transpose();
   return result;
 }
 
 Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt(double etol) {
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(aomatrix_);
-  Eigen::VectorXd diagonal = Eigen::VectorXd::Zero(es.eigenvalues().size());
+  const SymmetricEigenSystem es = SymmetricEigen(aomatrix_);
+  Eigen::VectorXd diagonal = Eigen::VectorXd::Zero(es.values.size());
   removedfunctions = 0;
   for (Index i = 0; i < diagonal.size(); ++i) {
-    if (es.eigenvalues()(i) < etol) {
+    if (es.values(i) < etol) {
       removedfunctions++;
     } else {
-      diagonal(i) = 1.0 / std::sqrt(es.eigenvalues()(i));
+      diagonal(i) = 1.0 / std::sqrt(es.values(i));
     }
   }
 
-  return es.eigenvectors() * diagonal.asDiagonal() *
-         es.eigenvectors().transpose();
+  return es.vectors * diagonal.asDiagonal() * es.vectors.transpose();
 }
 
 }  // namespace xtp

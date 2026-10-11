@@ -24,15 +24,30 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdio>
 #include <limits>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include <boost/optional.hpp>
 
+// Local VOTCA includes
+#include "eigen.h"
+
 namespace votca {
 namespace xtp {
 namespace qp_solver {
+
+// Batched evaluation hook: a QP function may offer Prefetch(frequencies) to
+// evaluate several points at once; others are evaluated point by point.
+template <typename QPFunc>
+auto PrefetchIfAvailable(const QPFunc& fqp, const std::vector<double>& nodes,
+                         int) -> decltype(fqp.Prefetch(nodes), void()) {
+  fqp.Prefetch(nodes);
+}
+template <typename QPFunc>
+void PrefetchIfAvailable(const QPFunc&, const std::vector<double>&, long) {}
 
 enum class EvalStage { Scan, Refine, Derivative, Other };
 
@@ -111,6 +126,11 @@ struct SolverOptions {
 
   double min_accepted_Z = 0.05;
   double max_accepted_Z = 1.5;
+
+  // Among accepted roots take the one closest to the reference frequency
+  // (the previous iteration's solution) instead of the largest weight; set
+  // for evGW iterations after the first with gw.qp_root_continuity.
+  bool prefer_nearest_root = false;
 };
 
 // Legacy mapping helpers preserve the old qp_grid_steps / qp_grid_spacing
@@ -196,6 +216,16 @@ inline double EffectiveAdaptiveShellWidth(const SolverOptions& opt) {
   return opt.qp_adaptive_shell_width;
 }
 
+/// Bracket width at which the interval refinement stops if |f| has not yet
+/// dropped below g_sc_limit. Roots are accepted only with |f| <= g_sc_limit
+/// (AcceptRoot), and |f'| = 1/Z <= 1/min_accepted_Z near a root, so a root
+/// located to within this width has an acceptable residual even for the
+/// smallest accepted weight: the refinement does not throw away roots by
+/// stopping early.
+inline double RootBracketTolerance(const SolverOptions& opt) {
+  return 0.5 * std::max(opt.min_accepted_Z, 1e-3) * opt.g_sc_limit;
+}
+
 template <typename QPFunc>
 double SolveQP_Bisection(double lowerbound, double f_lowerbound,
                          double upperbound, double f_upperbound,
@@ -205,9 +235,15 @@ double SolveQP_Bisection(double lowerbound, double f_lowerbound,
         "Bisection needs a positive and negative function value");
   }
 
-  while (true) {
+  // Halving reaches xtol after log2(width / xtol) steps (about 20 for the
+  // brackets of the grid search). The cap only matters if the bracket cannot
+  // shrink below xtol (non-finite values, xtol below the spacing of doubles);
+  // the midpoint returned then fails AcceptRoot instead of looping forever.
+  const double xtol = RootBracketTolerance(opt);
+  const Index max_iter = std::max<Index>(opt.qp_bisection_max_iter, 100);
+  for (Index iter = 0; iter < max_iter; ++iter) {
     const double c = 0.5 * (lowerbound + upperbound);
-    if (std::abs(upperbound - lowerbound) < opt.g_sc_limit) {
+    if (std::abs(upperbound - lowerbound) < xtol) {
       return c;
     }
 
@@ -224,6 +260,7 @@ double SolveQP_Bisection(double lowerbound, double f_lowerbound,
       f_upperbound = y_c;
     }
   }
+  return 0.5 * (lowerbound + upperbound);
 }
 
 template <typename QPFunc>
@@ -267,7 +304,10 @@ double SolveQP_Brent(double lowerbound, double f_lowerbound, double upperbound,
       fc = fa;
     }
 
-    const double tol = opt.g_sc_limit;
+    // stop on the acceptance criterion |f| < g_sc_limit, or once the
+    // bracket [b, c] is narrower than RootBracketTolerance (b is returned,
+    // an end of the bracket, so its distance to the root is below that)
+    const double tol = 0.5 * RootBracketTolerance(opt);
     const double m = 0.5 * (c - b);
 
     if (std::abs(m) < tol || std::abs(fb) < opt.g_sc_limit) {
@@ -323,8 +363,9 @@ double SolveQP_Brent(double lowerbound, double f_lowerbound, double upperbound,
     fb = f.value(b, EvalStage::Refine);
   }
 
-  throw std::runtime_error(
-      "Brent did not converge within qp_bisection_max_iter");
+  // not converged (e.g. a pole instead of a root inside the bracket): the
+  // best estimate is returned and judged by AcceptRoot like any other
+  return b;
 }
 
 inline bool AcceptRoot(const RootCandidate& cand, const SolverOptions& opt) {
@@ -355,12 +396,71 @@ inline double ScoreRoot(const RootCandidate& cand) {
   return cand.Z - 0.1 * cand.distance_to_ref;
 }
 
+/// The accepted root to use: the largest weight (ScoreRoot), or with
+/// prefer_nearest_root the one closest to the reference. roots not empty.
+inline const RootCandidate& SelectRoot(const std::vector<RootCandidate>& roots,
+                                       const SolverOptions& opt) {
+  if (opt.prefer_nearest_root) {
+    return *std::min_element(
+        roots.begin(), roots.end(),
+        [](const RootCandidate& a, const RootCandidate& b) {
+          return a.distance_to_ref < b.distance_to_ref;
+        });
+  }
+  return *std::max_element(roots.begin(), roots.end(),
+                           [](const RootCandidate& a, const RootCandidate& b) {
+                             return ScoreRoot(a) < ScoreRoot(b);
+                           });
+}
+
+/// Two accepted roots carry comparable weight when the second largest Z is
+/// at least half the largest: the QP picture of the level is ambiguous and
+/// the choice between them sensitive to small changes.
+struct CompetingRoots {
+  bool competing = false;
+  double omega = 0.0;  // chosen root
+  double Z = 0.0;
+  double omega_alt = 0.0;  // the largest-weight other root
+  double Z_alt = 0.0;
+};
+
+inline CompetingRoots CheckCompetingRoots(
+    const std::vector<RootCandidate>& roots, double chosen) {
+  CompetingRoots result;
+  if (roots.size() < 2) {
+    return result;
+  }
+  std::vector<RootCandidate> sorted = roots;
+  std::sort(
+      sorted.begin(), sorted.end(),
+      [](const RootCandidate& a, const RootCandidate& b) { return a.Z > b.Z; });
+  if (sorted[1].Z < 0.5 * sorted[0].Z) {
+    return result;
+  }
+  result.competing = true;
+  for (const RootCandidate& r : sorted) {
+    if (r.omega == chosen) {
+      result.omega = r.omega;
+      result.Z = r.Z;
+    } else if (result.Z_alt == 0.0) {
+      result.omega_alt = r.omega;
+      result.Z_alt = r.Z;
+    }
+  }
+  return result;
+}
+
 template <typename QPFunc>
 boost::optional<RootCandidate> RefineQPInterval(
     double lowerbound, double f_lowerbound, double upperbound,
     double f_upperbound, const QPFunc& f, double reference,
     const SolverOptions& opt, bool use_brent) {
   RootCandidate cand;
+
+  if (!std::isfinite(lowerbound) || !std::isfinite(upperbound) ||
+      !std::isfinite(f_lowerbound) || !std::isfinite(f_upperbound)) {
+    return boost::none;
+  }
 
   // Near-exact-zero brackets: one endpoint is already essentially at the root.
   // Bisection and Brent both require opposite signs; handle this case directly
@@ -412,6 +512,45 @@ boost::optional<RootCandidate> RefineQPInterval(
             << " accepted=" << cand.accepted
             << std::endl;*/
   return cand;
+}
+
+/// Root tracking: the root of the branch found in the previous iteration,
+/// searched only in [center - halfwidth, center + halfwidth] with the dense
+/// spacing. Returns the accepted root closest to center whose weight is at
+/// least min_Z_fraction of the previous one (the branch has not faded into a
+/// satellite); none if there is no such root, so that the caller falls back
+/// to the full search.
+template <typename QPFunc>
+boost::optional<RootCandidate> SolveQP_Tracked(
+    QPFunc& fqp, double center, double halfwidth, double Z_previous,
+    double min_Z_fraction, const SolverOptions& opt, bool use_brent = false) {
+  const double spacing = opt.qp_dense_spacing;
+  const Index n_steps = std::max<Index>(
+      2, static_cast<Index>(std::ceil(2.0 * halfwidth / spacing)) + 1);
+  const double left = center - halfwidth;
+  const double dx = 2.0 * halfwidth / static_cast<double>(n_steps - 1);
+  std::vector<double> nodes(static_cast<std::size_t>(n_steps));
+  for (Index i = 0; i < n_steps; ++i) {
+    nodes[std::size_t(i)] = left + static_cast<double>(i) * dx;
+  }
+  PrefetchIfAvailable(fqp, nodes, 0);
+
+  boost::optional<RootCandidate> best;
+  double f_prev = fqp.value(nodes[0], EvalStage::Scan);
+  for (Index i = 1; i < n_steps; ++i) {
+    const double x = nodes[std::size_t(i)];
+    const double f = fqp.value(x, EvalStage::Scan);
+    if (f_prev * f <= 0.0) {
+      auto cand = RefineQPInterval(nodes[std::size_t(i - 1)], f_prev, x, f, fqp,
+                                   center, opt, use_brent);
+      if (cand && cand->accepted && cand->Z >= min_Z_fraction * Z_previous &&
+          (!best || cand->distance_to_ref < best->distance_to_ref)) {
+        best = cand;
+      }
+    }
+    f_prev = f;
+  }
+  return best;
 }
 
 template <typename QPFunc>
@@ -497,6 +636,13 @@ boost::optional<double> SolveQP_Grid_Windowed(
 
     if (b > a) {
       const double dx = (b - a) / static_cast<double>(local_substeps);
+      {
+        std::vector<double> nodes;
+        for (Index i = 1; i < local_substeps; ++i) {
+          nodes.push_back(a + static_cast<double>(i) * dx);
+        }
+        PrefetchIfAvailable(fqp, nodes, 0);
+      }
 
       double x_prev = a;
       double f_prev = fa;
@@ -570,6 +716,23 @@ boost::optional<double> SolveQP_Grid_Windowed(
       rejected_roots.push_back(cand);
     }
   };
+
+  // All shell points are known in advance: evaluate them in one batch.
+  {
+    std::vector<double> nodes{center};
+    for (Index shell = 1; shell <= n_shells; ++shell) {
+      const double delta = double(shell) * shell_width;
+      if (center - delta >= left_limit) {
+        nodes.push_back(center - delta);
+      }
+      if (center + delta <= right_limit) {
+        nodes.push_back(center + delta);
+      }
+    }
+    nodes.push_back(left_limit);
+    nodes.push_back(right_limit);
+    PrefetchIfAvailable(fqp, nodes, 0);
+  }
 
   SamplePoIndex center_pt{center, fqp.value(center, EvalStage::Scan)};
 
@@ -651,11 +814,7 @@ boost::optional<double> SolveQP_Grid_Windowed(
   // only succeed on accepted roots; otherwise it escalates to a full dense
   // scan.
   if (!accepted_roots.empty()) {
-    auto best =
-        std::max_element(accepted_roots.begin(), accepted_roots.end(),
-                         [](const RootCandidate& a, const RootCandidate& b) {
-                           return ScoreRoot(a) < ScoreRoot(b);
-                         });
+    const RootCandidate* best = &SelectRoot(accepted_roots, opt);
 
     local_diag.chosen_shell = static_cast<int>(
         std::llround(std::abs(best->omega - center) / shell_width));
@@ -704,6 +863,46 @@ boost::optional<double> SolveQP_Grid_Windowed(
     *rejected_roots_out = rejected_roots;
   }
   return boost::none;
+}
+
+/// One Newton step of the QP equation f(w) = 0 from w0, with f0 = f(w0) and
+/// fprime = f'(w0) = dSigma_c/dw - 1: w0 - f0 / fprime = w0 + Z f0, with
+/// the quasiparticle weight Z = 1 / (1 - dSigma_c/dw). None if f' vanishes.
+inline boost::optional<double> LinearisedRoot(double w0, double f0,
+                                              double fprime) {
+  if (std::abs(fprime) <= 1e-9) {
+    return boost::none;
+  }
+  return w0 - f0 / fprime;
+}
+
+/// The n levels with the largest QP residual |solution - input| (largest
+/// first) as "level: input -> solution (residual)", for the evGW log.
+/// Levels are numbered from first_level.
+inline std::string LargestResiduals(const Eigen::VectorXd& solution,
+                                    const Eigen::VectorXd& input,
+                                    Index first_level, Index n = 5) {
+  const Index size = std::min(solution.size(), input.size());
+  std::vector<Index> order(static_cast<std::size_t>(size));
+  for (Index i = 0; i < size; ++i) {
+    order[std::size_t(i)] = i;
+  }
+  const Index shown = std::min(n, size);
+  std::partial_sort(order.begin(), order.begin() + shown, order.end(),
+                    [&](Index a, Index b) {
+                      return std::abs(solution(a) - input(a)) >
+                             std::abs(solution(b) - input(b));
+                    });
+  std::string out;
+  char buffer[96];
+  for (Index k = 0; k < shown; ++k) {
+    const Index i = order[std::size_t(k)];
+    std::snprintf(buffer, sizeof(buffer), "%s%ld: %+.6f -> %+.6f (%+.1e)",
+                  (k == 0) ? "" : ", ", static_cast<long>(i + first_level),
+                  input(i), solution(i), solution(i) - input(i));
+    out += buffer;
+  }
+  return out;
 }
 
 }  // namespace qp_solver

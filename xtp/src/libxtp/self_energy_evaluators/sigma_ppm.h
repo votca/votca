@@ -37,19 +37,33 @@ class Sigma_PPM : public Sigma_base {
 
   // Sets up the screening parametrisation
   void PrepareScreening() final;
+
+  std::string ScreeningSummary() const final;
   // Calculates Sigma_c diagonal elements
   double CalcCorrelationDiagElement(Index gw_level,
                                     double frequency) const final;
 
   double CalcCorrelationDiagElementDerivative(Index gw_level,
                                               double frequency) const final;
+  // All frequencies in one pass over the integrals of the level
+  Eigen::VectorXd CalcCorrelationDiagElements(
+      Index gw_level, const Eigen::VectorXd& frequencies) const final;
   // Calculates Sigma_c off-diagonal elements
   double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
                                        double frequency1,
                                        double frequency2) const final;
+  // All off-diagonal elements at once as matrix products (PairContraction)
+  Eigen::MatrixXd CalcCorrelationOffDiag(
+      const Eigen::VectorXd& frequencies) const final;
 
  private:
+  template <class Term>
+  void AccumulateDiag(Index gw_level, const double* freqs, Index nfreq,
+                      double* out, Term term) const;
   PPM ppm_;
+  // per PPM mode: 0.5 weight omega, 0 for modes with weight below 1e-9
+  // (the factor of |M(n,P)|^2 in Sigma_c; set in PrepareScreening)
+  Eigen::VectorXd mode_factors_;
 };
 }  // namespace xtp
 }  // namespace votca

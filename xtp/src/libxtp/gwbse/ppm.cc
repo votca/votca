@@ -28,23 +28,25 @@ namespace xtp {
 
 namespace {
 template <typename RPAType>
-void ConstructPPMParametersImpl(const RPAType& rpa, Eigen::MatrixXd& ppm_phi,
-                                Eigen::VectorXd& ppm_weight,
-                                Eigen::VectorXd& ppm_freq, double screening_r,
-                                double screening_i) {
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
-      rpa.calculate_epsilon_r(screening_r));
-  ppm_phi = es.eigenvectors();
+Index ConstructPPMParametersImpl(const RPAType& rpa, Eigen::MatrixXd& ppm_phi,
+                                 Eigen::VectorXd& ppm_weight,
+                                 Eigen::VectorXd& ppm_freq, double screening_r,
+                                 double screening_i) {
+  SymmetricEigenSystem es =
+      SymmetricEigen(rpa.calculate_epsilon_r(screening_r));
+  ppm_phi = std::move(es.vectors);
 
-  ppm_weight = 1 - es.eigenvalues().array().inverse();
+  ppm_weight = 1 - es.values.array().inverse();
 
-  Eigen::MatrixXd ortho =
-      ppm_phi.transpose() * rpa.calculate_epsilon_i(screening_i) * ppm_phi;
-  Eigen::MatrixXd epsilon_1_inv = ortho.inverse();
+  // epsilon at an imaginary frequency is positive definite
+  const Eigen::MatrixXd eps_i = rpa.calculate_epsilon_i(screening_i);
+  const Eigen::MatrixXd half = eps_i * ppm_phi;
+  const Eigen::MatrixXd epsilon_1_inv = InverseSPD(ppm_phi.transpose() * half);
 
-  ppm_freq.resize(es.eigenvalues().size());
-#pragma omp parallel for
-  for (Index i = 0; i < es.eigenvalues().size(); i++) {
+  ppm_freq.resize(es.values.size());
+  Index invalid = 0;
+#pragma omp parallel for reduction(+ : invalid)
+  for (Index i = 0; i < es.values.size(); i++) {
     if (ppm_weight(i) < 1.e-5) {
       ppm_weight(i) = 0.0;
       ppm_freq(i) = 0.5;
@@ -53,20 +55,26 @@ void ConstructPPMParametersImpl(const RPAType& rpa, Eigen::MatrixXd& ppm_phi,
       double nom = epsilon_1_inv(i, i) - 1.0;
       double frac =
           -1.0 * nom / (nom + ppm_weight(i)) * screening_i * screening_i;
+      // frac < 0: this mode has no real plasmon-pole frequency at the
+      // imaginary fitting point; |frac| is used, as before, and counted
+      if (frac < 0.0) {
+        ++invalid;
+      }
       ppm_freq(i) = std::sqrt(std::abs(frac));
     }
   }
+  return invalid;
 }
 }  // namespace
 
 void PPM::PPM_construct_parameters(const RPA& rpa) {
-  ConstructPPMParametersImpl(rpa, ppm_phi_, ppm_weight_, ppm_freq_, screening_r,
-                             screening_i);
+  invalid_modes_ = ConstructPPMParametersImpl(
+      rpa, ppm_phi_, ppm_weight_, ppm_freq_, screening_r, screening_i);
 }
 
 void PPM::PPM_construct_parameters(const RPA_UKS& rpa) {
-  ConstructPPMParametersImpl(rpa, ppm_phi_, ppm_weight_, ppm_freq_, screening_r,
-                             screening_i);
+  invalid_modes_ = ConstructPPMParametersImpl(
+      rpa, ppm_phi_, ppm_weight_, ppm_freq_, screening_r, screening_i);
 }
 
 }  // namespace xtp

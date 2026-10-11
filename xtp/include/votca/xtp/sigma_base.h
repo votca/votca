@@ -21,8 +21,12 @@
 #ifndef VOTCA_XTP_SIGMA_BASE_H
 #define VOTCA_XTP_SIGMA_BASE_H
 
+#include <functional>
+#include <string>
+
 // Local VOTCA includes
 #include "eigen.h"
+#include "screening_kernels.h"
 
 namespace votca {
 namespace xtp {
@@ -47,15 +51,6 @@ class Sigma_base {
     Index order;  // used in numerical integration of CDA Sigma
     double alpha;
   };
-
-  // QSGW: set the rotation matrix U (DFT-MOs -> QP wavefunctions) so that
-  // PrepareScreening can apply the m-rotation to hole slices used by the RPA.
-  // Call with U=nullptr to disable (default: G0W0/evGW, no rotation needed).
-  void setQSGWRotation(const Eigen::MatrixXd* U, Index qpmin, Index homo) {
-    qsgw_U_ = U;
-    qsgw_qpmin_ = qpmin;
-    qsgw_homo_ = homo;
-  }
 
   void configure(options opt) {
     opt_ = opt;
@@ -97,21 +92,47 @@ class Sigma_base {
   Eigen::MatrixXd CalcReactionFieldMatrix(const Eigen::MatrixXd& R) const;
   // Calculates correlation diagonal
   Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies) const;
-  // Calculates correlation off-diagonal
-  Eigen::MatrixXd CalcCorrelationOffDiag(
+  // Calculates correlation off-diagonal (diagonal left zero)
+  virtual Eigen::MatrixXd CalcCorrelationOffDiag(
       const Eigen::VectorXd& frequencies) const;
 
   // Sets up the screening parametrisation
   virtual void PrepareScreening() = 0;
+
+  /// One line about the screening just prepared (empty if nothing to say).
+  virtual std::string ScreeningSummary() const { return ""; }
+  /// False if CalcCorrelationOffDiag only returns zeros (CDA).
+  virtual bool HasOffDiagonal() const { return true; }
   // Calculates Sigma_c diagonal elements
   virtual double CalcCorrelationDiagElementDerivative(
       Index gw_level, double frequency) const = 0;
   virtual double CalcCorrelationDiagElement(Index gw_level,
                                             double frequency) const = 0;
+  /// Diagonal element at several frequencies. The default evaluates them one
+  /// by one; implementations may do all of them in one pass over the
+  /// integrals.
+  virtual Eigen::VectorXd CalcCorrelationDiagElements(
+      Index gw_level, const Eigen::VectorXd& frequencies) const {
+    Eigen::VectorXd result(frequencies.size());
+    for (Index i = 0; i < frequencies.size(); ++i) {
+      result(i) = CalcCorrelationDiagElement(gw_level, frequencies(i));
+    }
+    return result;
+  }
   // Calculates Sigma_c off-diagonal elements
   virtual double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
                                                double frequency1,
                                                double frequency2) const = 0;
+
+  /// Memory (bytes) for the level block and the integral chunk of
+  /// PairContraction; smaller values only mean more passes.
+  void setPairContractionMemory(double block_bytes, double chunk_bytes) {
+    block_bytes_ = block_bytes;
+    chunk_bytes_ = chunk_bytes;
+  }
+
+  /// Times the parts of PrepareScreening in these timings (optional).
+  void setTimings(DFTTimings* timings) { timings_ = timings; }
 
   void ResetDiagEvalCounter() const { diag_eval_counter_.store(0); }
   std::size_t GetDiagEvalCounter() const { return diag_eval_counter_.load(); }
@@ -120,18 +141,25 @@ class Sigma_base {
   options opt_;
   TCMatrix_gwbse& Mmn_;
   const RPA& rpa_;
+  DFTTimings* timings_ = nullptr;
 
   Index qptotal_ = 0;
   Index rpatotal_ = 0;
 
-  // QSGW rotation (nullptr in G0W0/evGW, set in QSGW PrepareScreening)
-  const Eigen::MatrixXd* qsgw_U_ = nullptr;
-  Index qsgw_qpmin_ = 0;
-  Index qsgw_homo_ = 0;
-
   void CountDiagEval() const { diag_eval_counter_.fetch_add(1); }
 
+  /// A(m,n) = sum_{l < nrows, P} X_m(l,P) M_n(l,P) for all pairs of QP
+  /// levels m, n, with M_n = Mmn_[n] (QP-window numbering) and X_m from
+  /// makeX(m, X) (nrows x auxsize). Evaluated as matrix products over blocks
+  /// of m and chunks of the auxiliary index, so the three-centre integrals
+  /// are streamed a few times instead of once per pair.
+  Eigen::MatrixXd PairContraction(
+      Index nrows,
+      const std::function<void(Index, Eigen::MatrixXd&)>& makeX) const;
+
  private:
+  double block_bytes_ = 4e9;
+  double chunk_bytes_ = 5e8;
   mutable std::atomic<std::size_t> diag_eval_counter_{0};
 };
 }  // namespace xtp

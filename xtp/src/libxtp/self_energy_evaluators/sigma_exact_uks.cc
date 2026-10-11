@@ -25,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+#include "votca/xtp/exact_pole_sums.h"
 #include "votca/xtp/rpa_uks.h"
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
@@ -46,98 +47,64 @@ void Sigma_Exact_UKS::PrepareScreening() {
 
   rpa_omegas_ = *cached_omegas;
   screening_modes_ = *cached_modes;
+  // residues of level m: M_m times the modes, one GEMM per level
+  Eigen::MatrixXd modes(Mmn_.auxsize(), rpa_omegas_.size());
+  for (Index s = 0; s < rpa_omegas_.size(); s++) {
+    modes.col(s) = screening_modes_[std::size_t(s)];
+  }
   residues_ = std::vector<Eigen::MatrixXd>(qptotal_);
+  const Index qpoffset = opt_.qpmin - opt_.rpamin;
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal_; gw_level++) {
-    const Index qpoffset = opt_.qpmin - opt_.rpamin;
-    const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
-
-    Eigen::MatrixXd res = Eigen::MatrixXd::Zero(rpatotal_, rpa_omegas_.size());
-    for (Index s = 0; s < rpa_omegas_.size(); s++) {
-      res.col(s) = Mmn_i * screening_modes_[s];
-    }
-    residues_[gw_level] = std::move(res);
+    residues_[gw_level] = Mmn_[gw_level + qpoffset] * modes;
   }
 }
 
+namespace {
+ExactPoles UKSPoles(const Eigen::VectorXd& energies, Index n_occ,
+                    const Eigen::VectorXd& omegas, double eta) {
+  return ExactPoles{energies, n_occ, omegas, eta};
+}
+}  // namespace
+
 double Sigma_Exact_UKS::CalcCorrelationDiagElement(Index gw_level,
                                                    double frequency) const {
-  const double eta2 = opt_.eta * opt_.eta;
-  const Index lumo = opt_.homo + 1;
-  const Index n_occ = lumo - opt_.rpamin;
-  const Index n_unocc = opt_.rpamax - opt_.homo;
-  const Eigen::VectorXd& energies = getSpinRPAInputEnergies();
+  const ExactPoles poles =
+      UKSPoles(getSpinRPAInputEnergies(), opt_.homo + 1 - opt_.rpamin,
+               rpa_omegas_, opt_.eta);
+  return exact_pole_sums::Value(poles, residues_[gw_level].data(), frequency);
+}
 
-  double sigma = 0.0;
-  for (Index s = 0; s < rpa_omegas_.size(); s++) {
-    const double eigenvalue = rpa_omegas_(s);
-    const Eigen::ArrayXd res_12 = residues_[gw_level].col(s).cwiseAbs2();
-
-    Eigen::ArrayXd temp = -energies.array() + frequency;
-    temp.segment(0, n_occ) += eigenvalue;
-    temp.segment(n_occ, n_unocc) -= eigenvalue;
-
-    const Eigen::ArrayXd denom = temp.abs2() + eta2;
-    sigma += (res_12 * temp / denom).sum();
-  }
-  return sigma;
+Eigen::VectorXd Sigma_Exact_UKS::CalcCorrelationDiagElements(
+    Index gw_level, const Eigen::VectorXd& frequencies) const {
+  const ExactPoles poles =
+      UKSPoles(getSpinRPAInputEnergies(), opt_.homo + 1 - opt_.rpamin,
+               rpa_omegas_, opt_.eta);
+  return exact_pole_sums::Values(poles, residues_[gw_level].data(),
+                                 frequencies);
 }
 
 double Sigma_Exact_UKS::CalcCorrelationDiagElementDerivative(
     Index gw_level, double frequency) const {
-  const double eta2 = opt_.eta * opt_.eta;
-  const Index lumo = opt_.homo + 1;
-  const Index n_occ = lumo - opt_.rpamin;
-  const Index n_unocc = opt_.rpamax - opt_.homo;
-  const Eigen::VectorXd& energies = getSpinRPAInputEnergies();
-
-  double dsigma_domega = 0.0;
-  for (Index s = 0; s < rpa_omegas_.size(); s++) {
-    const double eigenvalue = rpa_omegas_(s);
-    const Eigen::ArrayXd res_12 = residues_[gw_level].col(s).cwiseAbs2();
-
-    Eigen::ArrayXd temp = -energies.array() + frequency;
-    temp.segment(0, n_occ) += eigenvalue;
-    temp.segment(n_occ, n_unocc) -= eigenvalue;
-
-    const Eigen::ArrayXd denom = temp.abs2() + eta2;
-    dsigma_domega += ((eta2 - temp.abs2()) * res_12 / denom.abs2()).sum();
-  }
-  return dsigma_domega;
+  const ExactPoles poles =
+      UKSPoles(getSpinRPAInputEnergies(), opt_.homo + 1 - opt_.rpamin,
+               rpa_omegas_, opt_.eta);
+  return exact_pole_sums::Derivative(poles, residues_[gw_level].data(),
+                                     frequency);
 }
 
 double Sigma_Exact_UKS::CalcCorrelationOffDiagElement(Index gw_level1,
                                                       Index gw_level2,
                                                       double frequency1,
                                                       double frequency2) const {
-  const double eta2 = opt_.eta * opt_.eta;
-  const Index lumo = opt_.homo + 1;
-  const Index n_occ = lumo - opt_.rpamin;
-  const Index n_unocc = opt_.rpamax - opt_.homo;
-  const Eigen::VectorXd& energies = getSpinRPAInputEnergies();
-
-  double sigma_c = 0.0;
-  for (Index s = 0; s < rpa_omegas_.size(); s++) {
-    const double eigenvalue = rpa_omegas_(s);
-    const Eigen::VectorXd& res1 = residues_[gw_level1].col(s);
-    const Eigen::VectorXd& res2 = residues_[gw_level2].col(s);
-    const Eigen::VectorXd res_12 = res1.cwiseProduct(res2);
-
-    Eigen::ArrayXd temp1 = -energies.array();
-    temp1.segment(0, n_occ) += eigenvalue;
-    temp1.segment(n_occ, n_unocc) -= eigenvalue;
-
-    const Eigen::ArrayXd temp2 = temp1 + frequency2;
-    temp1 += frequency1;
-
-    const Eigen::ArrayXd numer1 = res_12.array() * temp1;
-    const Eigen::ArrayXd numer2 = res_12.array() * temp2;
-    const Eigen::ArrayXd denom1 = temp1.abs2() + eta2;
-    const Eigen::ArrayXd denom2 = temp2.abs2() + eta2;
-
-    sigma_c += 0.5 * ((numer1 / denom1) + (numer2 / denom2)).sum();
-  }
-  return sigma_c;
+  const ExactPoles poles =
+      UKSPoles(getSpinRPAInputEnergies(), opt_.homo + 1 - opt_.rpamin,
+               rpa_omegas_, opt_.eta);
+  const Eigen::MatrixXd r12 =
+      residues_[gw_level1].cwiseProduct(residues_[gw_level2]);
+  const Eigen::VectorXd sums = exact_pole_sums::ValuesDirectWeighted(
+      poles, r12.data(), Eigen::Vector2d(frequency1, frequency2));
+  return 0.5 * (sums(0) + sums(1));
 }
 
 }  // namespace xtp

@@ -21,6 +21,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/convergenceacc.h"
+#include "votca/xtp/screening_kernels.h"
 
 namespace votca {
 namespace xtp {
@@ -40,8 +41,8 @@ void ConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
   S_ = &S;
   // Own eigendecomposition rather than AOOverlap::Pseudo_InvSqrt: the
   // removed directions are needed as well, see removed_projector_.
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S.Matrix());
-  const Eigen::VectorXd& s_eig = es.eigenvalues();
+  const SymmetricEigenSystem es = SymmetricEigen(S.Matrix());
+  const Eigen::VectorXd& s_eig = es.values;
   Eigen::VectorXd inv_sqrt = Eigen::VectorXd::Zero(s_eig.size());
   Index removed = 0;
   for (Index i = 0; i < s_eig.size(); ++i) {
@@ -51,15 +52,14 @@ void ConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
       inv_sqrt(i) = 1.0 / std::sqrt(s_eig(i));
     }
   }
-  Sminusahalf =
-      es.eigenvectors() * inv_sqrt.asDiagonal() * es.eigenvectors().transpose();
+  Sminusahalf = es.vectors * inv_sqrt.asDiagonal() * es.vectors.transpose();
   removed_projector_.resize(0, 0);
   if (removed > 0) {
     // In SolveFockmatrix, H_ortho = X^T H X vanishes on these directions,
     // so they would come out as eigenvalue-0 "orbitals" in the middle of
     // the spectrum. Shifting them far up keeps them out of the occupied
     // and low virtual space.
-    const Eigen::MatrixXd U = es.eigenvectors().leftCols(removed);
+    const Eigen::MatrixXd U = es.vectors.leftCols(removed);
     removed_projector_ = U * U.transpose();
   }
   XTP_LOG(Log::error, *log_)
@@ -310,17 +310,14 @@ tools::EigenSystem ConvergenceAcc::SolveFockmatrix(
   if (removed_projector_.size() > 0) {
     H_ortho += kRemovedShift * removed_projector_;
   }
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
-
-  if (es.info() != Eigen::ComputationInfo::Success) {
-    throw std::runtime_error("Matrix Diagonalisation failed. DiagInfo" +
-                             std::to_string(es.info()));
+  const SymmetricEigenSystem es = SymmetricEigen(H_ortho);
+  if (!es.values.allFinite()) {
+    throw std::runtime_error("Matrix Diagonalisation failed");
   }
 
   tools::EigenSystem result;
-  result.eigenvalues() = es.eigenvalues();
-
-  result.eigenvectors() = Sminusahalf * es.eigenvectors();
+  result.eigenvalues() = es.values;
+  result.eigenvectors() = Sminusahalf * es.vectors;
   return result;
 }
 

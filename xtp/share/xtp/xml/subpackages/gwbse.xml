@@ -6,6 +6,10 @@
   <qpmax help="only needed, if ranges is factor or explicit, highest MO to be used in GW" default="" />
   <bsemin help="only needed, if ranges is factor or explicit, lowest MO to be used in BSE" default="" />
   <bsemax help="only needed, if ranges is factor or explicit, highest MO to be used in BSE" default="" />
+  <qp_emax help="cap on the GW window: highest QP level at most this many eV above the DFT LUMO (a degenerate set is kept whole); applied on top of ranges, 0 = off" unit="eV" default="0" choices="float+" />
+  <qp_emin help="cap on the GW window: lowest QP level at most this many eV below the DFT HOMO; 0 = off" unit="eV" default="0" choices="float+" />
+  <bse_emax help="cap on the BSE window: highest virtual level at most this many eV above the DFT LUMO; 0 = off" unit="eV" default="0" choices="float+" />
+  <bse_emin help="cap on the BSE window: lowest occupied level at most this many eV below the DFT HOMO; 0 = off" unit="eV" default="0" choices="float+" />
   <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="none" choices="RPA,GW,BSE,none" />
   <auxbasisset help="Auxiliary basis set for RI, only used if DFT has no auxiliary set" default="OPTIONAL" />
 
@@ -19,7 +23,7 @@
     <quadrature_order help="Quadrature order if CDA is used for sigma integration" default="12" choices="8,10,12,14,16,18,20,40,100" />
     <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid" />
     <qp_grid_search_mode help="grid-search backend for QP root detection" default="adaptive_with_dense_fallback" choices="adaptive,dense,adaptive_with_dense_fallback" />
-    <qp_root_finder help="rootfinder used to refine a sign-change interval" default="bisection" choices="bisection,brent"/>
+    <qp_root_finder help="method to refine a sign-change interval of the QP equation to a root: brent (inverse quadratic interpolation with bisection safeguard, fewer Sigma evaluations) or bisection; both stop when the QP residual is below qp_sc_limit" default="brent" choices="bisection,brent"/>
 
     <qp_full_window_half_width help="half-width of the full QP search window around the reference energy" unit="Hartree" default="OPTIONAL" choices="float+" />
     <qp_dense_spacing help="spacing of the dense QP scan used for robust sign-change detection" unit="Hartree" default="OPTIONAL" choices="float+" />
@@ -30,19 +34,27 @@
     <qp_grid_spacing help="DEPRECATED: legacy QP grid spacing; maps to qp_dense_spacing and contributes to qp_full_window_half_width together with qp_grid_steps" unit="Hartree" default="OPTIONAL" choices="float+" />
 
     <qp_restrict_search help="restrict occupied and virtual QP scans away from the zero-energy crossing region before retrying the full window" default="true" choices="bool" />
+    <qp_root_continuity help="evGW: from the second iteration on keep each QP level on the root closest to its previous solution instead of choosing the root with the largest weight again (stabilises levels with two roots of comparable weight)" default="true" choices="bool" />
+    <core_exchange help="with ignore_corelevels=RPA (frozen core): include the exchange with the core levels in Sigma_x, which Vxc also contains through the core density. Without it the occupied QP energies are shifted up by the missing core exchange (0.6 eV on average for a QM9 molecule)" default="true" choices="bool" />
+    <qp_root_tracking help="evGW: from the second iteration on search each QP level only near its root of the previous iteration (window of a few times its last change, 0.01 to 0.1 Ha) and keep the closest accepted root unless its weight drops below half; otherwise, and for levels without such a root, the full search is used. After convergence one QP solve with the full search checks the roots, so the result is a fixed point of the full search. If a level has several such fixed points (strong satellites), tracking may end on another one than iterating with the full search does" default="false" choices="bool" />
+    <screening_update help="evGW: when the screening W is rebuilt. every: in every iteration. adaptive: the energies in G are iterated with W fixed and W is rebuilt once their last change is below screening_update_ratio times their change since W was built (or after screening_update_max_inner iterations); converged when the energies change by less than gw_sc_limit and differ from those of the last W by less than gw_sc_limit, the same evGW solution" default="adaptive" choices="every,adaptive" />
+    <screening_update_ratio help="adaptive screening_update: rebuild W once the last change of the energies is below this fraction of their change since W was built" default="0.1" choices="float+" />
+    <screening_update_max_inner help="adaptive screening_update: rebuild W at the latest after this many iterations with the same W" default="10" choices="int+" />
     <qp_zero_margin help="margin below zero used as upper bound for occupied restricted scans" unit="Hartree" default="1e-6" choices="float+" />
     <qp_virtual_min_energy help="lower bound for virtual restricted scans" unit="Hartree" default="-0.1" choices="float" />  
     <qp_sc_max_iter help="maximum number of iterations for quasiparticle equation solution" default="100" choices="int+" />
-    <qp_sc_limit help="quasiparticle equation solver convergence" unit="Hartree" default="1e-5" choices="float+" />
+    <qp_sc_limit help="quasiparticle equation solver convergence" unit="Hartree" default="1e-6" choices="float+" />
     <sc_max_iter help="Maximum number of iterations in eVGW" default="50" choices="int+" />
-    <mixing_order help="Mixing of QP energies in evGW - 0: plain, 1: linear, &gt;1: Anderson" default="20" choices="int+" />
+    <mixing_order help="Mixing of QP energies in evGW - 0: plain, 1: linear, &gt;1: Anderson" default="3" choices="int+" />
     <sc_limit help="evGW convergence criteria" unit="Hartree" default="1e-5" choices="float+" />
     <mixing_alpha help="mixing alpha, also linear mixing" default="0.7" choices="float+" />
     <do_qsgw help="Run Quasiparticle self-consistent GW after evGW or G0W0" choices="bool" default="false" />
-    <qsgw_max_iterations help="maximum number of iterations is QSGW" default="20" choices="int+" />
+    <qsgw_max_iterations help="maximum number of iterations is QSGW" default="50" choices="int+" />
     <qsgw_sc_limit help="QSGW convergence threshold on QP energies" default="1e-5" choices="float+" />
     <qsgw_max_virt_correction help="QSGW: pertGW energy threshold for inclusion of virtual states" unit="Hartree" default="0.5" choices="float+"/>
-    <rebuild_3c_freq help="how often the 3c integrals in iterate should be rebuilt" default="5" choices="int+" />
+    <out_of_window_shift help="Shift of the RPA energies of levels outside the GW window (evGW, QSGW): max - largest correction of the occupied/virtual window levels; nearest - correction of the window boundary level; linear - linear fit of the corrections near the boundary, extrapolated at most over the fitted energy span" default="max" choices="max,nearest,linear" />
+    <out_of_window_fit_fraction help="linear out_of_window_shift: fraction of the occupied/virtual window levels next to the boundary used in the fit (at least 2 levels)" default="0.3" choices="float+" />
+    <rebuild_3c_freq help="rebuild the 3c integrals from scratch every this many evGW iterations; 0 (default) never. The integrals are only rotated by orthogonal matrices between iterations, so a rebuild resets rounding at the 1e-12 Ha level" default="0" choices="int+" />
     <sigma_plot help="Plotting of self-energy" default="OPTIONAL">
       <states help="plot sigma(omega) for the following states, e.g 1 3 5" />
       <steps help="points to plot" default="201" choices="int+" />

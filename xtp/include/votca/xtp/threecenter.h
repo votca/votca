@@ -167,6 +167,16 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   Index nsize() const { return ntotal_; }
 
+  /// Exchange with the occupied levels 0..ncore-1 for the levels
+  /// qpmin..qpmax of these MOs, with the bare Coulomb interaction:
+  ///   X(m,n) = - sum_{c < ncore} (m c | c n),
+  /// from (m c | P) integrals filled for this purpose only. For frozen-core
+  /// GW (rpamin = ncore > 0), whose Mmn has no rows for the core levels.
+  static Eigen::MatrixXd CoreExchange(const AOBasis& auxbasis,
+                                      const AOBasis& dftbasis,
+                                      const Eigen::MatrixXd& mos, Index ncore,
+                                      Index qpmin, Index qpmax);
+
   void Initialize(Index basissize, Index mmin, Index mmax, Index nmin,
                   Index nmax);
 
@@ -177,6 +187,24 @@ class TCMatrix_gwbse final : public TCMatrix {
   void Rebuild() { Fill(*auxbasis_, *dftbasis_, *dft_orbitals_); }
 
   void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix);
+
+  /**
+   * \brief Rotate the auxiliary index of only the part of the tensor a
+   * consumer reads: all rows of slices [0, full_slices) and the first
+   * `lead` rows of slices [full_slices, lead).
+   *
+   * The BSE reads slices and rows up to its highest conduction level (lead)
+   * and, for the dielectric matrix, all rows of the occupied slices
+   * (full_slices). Rotating only those is exact for that use and skips the
+   * rows above the BSE window. The rest of the tensor is left in the old
+   * frame and is stale afterwards: AuxFrame() describes the rotated part,
+   * and dressing, which needs the whole tensor in one frame, throws until
+   * the next Fill or Rebuild.
+   */
+  void MultiplyRightWithAuxMatrixLeading(const Eigen::MatrixXd& U,
+                                         Index full_slices, Index lead);
+  /// Whether only a leading part was rotated since the last Fill.
+  bool PartiallyRotated() const { return partially_rotated_; }
 
   // The metric that was folded into the stored integrals at Fill time:
   // T = Pseudo_InvSqrt_GWBSE, with T T^T = V^-1 (pseudo-inverse) and
@@ -252,24 +280,21 @@ class TCMatrix_gwbse final : public TCMatrix {
   bool Dressed() const { return dressing_.size() > 0; }
 
   /**
-   * \brief Rotate the n-index (construction rows) of Mmn for QSGW.
+   * \brief Change the orbital basis of levels [first, last] for QSGW:
+   * phi_i = sum_k U_ki psi_k, both orbital indices, all slices.
    *
-   * In QSGW the self-energy matrix elements are in the DFT-MO basis
-   * (outer m-index unchanged). The internal construction sum over particle/hole
-   * states (inner n-rows) must use QP wavefunctions. This method rotates only
-   * the n-rows of ALL m-slices within the QP window block:
+   *   rows n in the window of every slice:  M[m].rows <- U^T M[m].rows
+   *   slices in the window:                 M[i] <- sum_k U_ki M[k]
    *
-   *   new_M[m].rows(qp_offset_n : qp_offset_n+qptotal) =
-   *       U^T * old_M[m].rows(qp_offset_n : qp_offset_n+qptotal)
+   * Levels outside the window keep their orbitals. Everything that reads
+   * the tensor (RPA, self-energy, exchange) then works in the new basis
+   * without knowing about U. The auxiliary index is not touched.
    *
-   * Rows outside the QP window remain as DFT-MOs (consistent with evGW).
-   * The outer m-index and auxiliary index are unchanged.
-   *
-   * @param U      Rotation matrix (qptotal x qptotal)
-   * @param qpmin  First QP level (absolute MO index)
-   * @param qpmax  Last  QP level (absolute MO index)
+   * @param U      Rotation matrix (window x window), columns = new orbitals
+   * @param first  First level of the window (absolute MO index)
+   * @param last   Last level of the window (absolute MO index)
    */
-  void Rotate(const Eigen::MatrixXd& U, Index qpmin, Index qpmax);
+  void RotateOrbitals(const Eigen::MatrixXd& U, Index first, Index last);
 
  private:
   // store vector of matrices
@@ -286,6 +311,7 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   Eigen::MatrixXd aux_frame_;  // empty: identity
   bool aux_frame_known_ = true;
+  bool partially_rotated_ = false;
   Eigen::MatrixXd dressing_;  // S of DressAuxIndex; empty: bare
 
   // M_fill -> M_fill A, whatever frame the integrals are in.

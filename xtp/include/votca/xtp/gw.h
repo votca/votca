@@ -21,9 +21,11 @@
 #ifndef VOTCA_XTP_GW_H
 #define VOTCA_XTP_GW_H
 
+#include <unordered_map>
 #include <unordered_set>
 
 // Local VOTCA includes
+#include "dfttimings.h"
 #include "logger.h"
 #include "orbitals.h"
 #include "qp_solver_utils.h"
@@ -93,9 +95,21 @@ class GW {
     Index order;   // only needed for complex integration sigma CDA
     double alpha;  // smooth tail in complex integration sigma CDA
     bool qp_restrict_search = true;
+    // evGW: after the first iteration keep each level on the root branch of
+    // the previous iteration (closest accepted root) instead of re-choosing
+    // by weight
+    bool qp_root_continuity = true;
+    // evGW: when W is rebuilt (see ScreeningUpdate): "every" or "adaptive"
+    std::string screening_update = "adaptive";
+    // evGW: after the first iteration search each level's root only near
+    // its previous one (falling back to the full search), verified by one
+    // full search after convergence
+    bool qp_root_tracking = false;
+    double screening_update_ratio = 0.1;
+    Index screening_update_max_inner = 10;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
-    std::string qp_root_finder = "bisection";
+    std::string qp_root_finder = "brent";
     std::string qp_grid_search_mode = "adaptive_with_dense_fallback";
 
     // QSGW options
@@ -103,7 +117,7 @@ class GW {
     // The three-centre integrals are rotated at each iteration so that W and
     // Sigma are evaluated in the basis of the current QP wavefunctions.
     bool do_qsgw = false;
-    Index qsgw_max_iterations = 20;
+    Index qsgw_max_iterations = 50;
     double qsgw_sc_limit = 1e-5;  // Ha; convergence threshold on QP energies
 
     // Maximum allowed perturbative QP correction for virtual states to be
@@ -116,10 +130,17 @@ class GW {
     // unlikely to be physically meaningful for typical molecular systems.
     // Set to a large value (e.g. 1e10) to disable the threshold entirely.
     double qsgw_max_virt_correction = 0.5;  // Ha
+    // RPA energies of levels outside the GW window (OutOfWindowShift)
+    OutOfWindowShift out_of_window_shift;
   };
 
   void configure(const options& opt);
 
+  /// Screening builds and QP iterations of the last evGW run
+  Index ScreeningBuilds() const { return screening_builds_; }
+  Index QPIterations() const { return qp_iterations_; }
+  /// Level solves of the last evGW run done by root tracking (locally)
+  Index TrackedLocalSolves() const { return tracked_local_total_; }
   Eigen::VectorXd getGWAResults() const;
 
   /**
@@ -149,6 +170,11 @@ class GW {
    *    bare ones.
    */
   void setReactionField(const Eigen::MatrixXd& R);
+  /// Exchange with occupied levels below rpamin (frozen core), in the DFT
+  /// MO basis of the GW window: added to Sigma_x, which otherwise only sums
+  /// over the occupied levels in Mmn (from rpamin on). See
+  /// TCMatrix_gwbse::CoreExchange.
+  void setCoreExchange(const Eigen::MatrixXd& X) { core_exchange_ = X; }
   const Eigen::MatrixXd& getSigmaReac() const { return Sigma_reac_; }
 
   // Calculates the diagonal elements up to self consistency
@@ -222,6 +248,8 @@ class GW {
 
  private:
   Index qptotal_;
+  // wall-clock accounting of the GW steps, reported at the end
+  mutable DFTTimings timings_;
 
   Eigen::MatrixXd Sigma_x_;         // Fock exchange with the bare v, only
   Eigen::MatrixXd Sigma_c_;         // dynamic correlation
@@ -247,6 +275,9 @@ class GW {
   const Eigen::MatrixXd& vxc_;
   const Eigen::VectorXd& dft_energies_;
 
+  Eigen::MatrixXd core_exchange_;  // see setCoreExchange
+  Index screening_builds_ = 0;
+  Index qp_iterations_ = 0;
   Index gw_sc_iteration_;
 
   RPA rpa_;
@@ -276,7 +307,31 @@ class GW {
       }
 
       CountSigmaStage(stage);
+      auto cached = cache_.find(key);
+      if (cached != cache_.end()) {
+        return cached->second;
+      }
       return sigma_c_func_.CalcCorrelationDiagElement(gw_level_, frequency);
+    }
+
+    /// Evaluates Sigma_c at these frequencies in one batch and keeps the
+    /// values for later sigma() calls at exactly these frequencies.
+    void Prefetch(const std::vector<double>& frequencies) const {
+      std::vector<double> todo;
+      for (double f : frequencies) {
+        if (cache_.find(FrequencyKey(f)) == cache_.end()) {
+          todo.push_back(f);
+        }
+      }
+      if (todo.empty()) {
+        return;
+      }
+      const Eigen::VectorXd values = sigma_c_func_.CalcCorrelationDiagElements(
+          gw_level_,
+          Eigen::Map<const Eigen::VectorXd>(todo.data(), Index(todo.size())));
+      for (std::size_t i = 0; i < todo.size(); ++i) {
+        cache_[FrequencyKey(todo[i])] = values(Index(i));
+      }
     }
 
     double value(double frequency, EvalStage stage = EvalStage::Other) const {
@@ -324,6 +379,7 @@ class GW {
     const Sigma_base& sigma_c_func_;
 
     mutable std::unordered_set<std::uint64_t> seen_frequencies_;
+    mutable std::unordered_map<std::uint64_t, double> cache_;
     mutable QPStats stats_;
   };
 
@@ -337,6 +393,31 @@ class GW {
   // HOMO-LUMO midpoint of the current QP guesses, set by SolveQP before
   // its parallel loop and only read inside it (SolveQP_Grid).
   mutable double qp_midgap_ = 0.0;
+  // per level of the last SolveQP: whether two accepted roots carry
+  // comparable weight (see qp_solver::CheckCompetingRoots)
+  mutable std::vector<qp_solver::CompetingRoots> competing_roots_;
+  // root tracking (opt_.qp_root_tracking): the roots of the last QP solve,
+  // their weights and their last change; active from the second iteration
+  // on until the verifying full search
+  mutable Eigen::VectorXd tracked_root_;
+  mutable Eigen::VectorXd tracked_Z_;
+  mutable Eigen::VectorXd tracked_change_;
+  mutable bool tracking_active_ = false;
+  mutable Index tracked_local_ = 0;  // levels solved locally in the last solve
+  mutable Index tracked_local_total_ = 0;
+  boost::optional<qp_solver::RootCandidate> SolveQP_Tracked(
+      double intercept0, double frequency0, Index gw_level,
+      QPStats* stats) const;
+  void RecordCompetingRoots(Index gw_level,
+                            const std::vector<QPRootCandidate>& roots,
+                            double chosen) const {
+    if (gw_level < Index(competing_roots_.size())) {
+      competing_roots_[std::size_t(gw_level)] =
+          qp_solver::CheckCompetingRoots(roots, chosen);
+    }
+  }
+  // logs the levels with competing roots of the last SolveQP
+  void PrintCompetingRoots(Log::Level level) const;
   boost::optional<double> SolveQP_Grid(double intercept0, double frequency0,
                                        Index gw_level,
                                        QPStats* stats = nullptr) const;

@@ -26,10 +26,11 @@
 namespace votca {
 namespace xtp {
 
-void DFTTimings::Report(Logger& log, Log::Level level) const {
+void DFTTimings::Report(Logger& log, Log::Level level,
+                        const std::string& title) const {
   const double total = Elapsed();
   double accounted = 0.0;
-  XTP_LOG(level, log) << " DFT timing summary (wall clock)" << std::flush;
+  XTP_LOG(level, log) << " " << title << " (wall clock)" << std::flush;
   XTP_LOG(level, log) << (boost::format("   %-38s %7s %11s %10s %6s") % "part" %
                           "calls" % "time [s]" % "per call" % "%")
                              .str()
@@ -52,6 +53,17 @@ void DFTTimings::Report(Logger& log, Log::Level level) const {
   XTP_LOG(level, log)
       << (boost::format("   %-38s %7s %11.2f") % "total" % "" % total).str()
       << std::flush;
+}
+
+std::string DFTTimings::Format() const {
+  std::string line;
+  for (const Entry& e : entries_) {
+    if (!line.empty()) {
+      line += ", ";
+    }
+    line += (boost::format("%s %.2f s") % e.name % e.seconds).str();
+  }
+  return line;
 }
 
 double DFTTimings::ResidentMemoryGB(bool peak) {

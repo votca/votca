@@ -23,6 +23,9 @@
 // Third party includes
 #include <boost/math/constants/constants.hpp>
 
+#include <algorithm>
+#include <vector>
+
 // VOTCA includes
 #include <votca/tools/constants.h>
 
@@ -33,10 +36,54 @@
 namespace votca {
 namespace xtp {
 
+Eigen::MatrixXd Sigma_base::PairContraction(
+    Index nrows,
+    const std::function<void(Index, Eigen::MatrixXd&)>& makeX) const {
+  const Index qpmin = opt_.qpmin - opt_.rpamin;
+  const Index auxsize = Mmn_.auxsize();
+  // X of a block of levels kept at once, and the chunk of all M_n gathered
+  // for one product; the block size sets how often the integrals are read.
+  const double kBlockBytes = block_bytes_;
+  const double kChunkBytes = chunk_bytes_;
+  const Index block = std::max<Index>(
+      1, std::min<Index>(qptotal_, Index(kBlockBytes / (8.0 * double(nrows) *
+                                                        double(auxsize)))));
+  const Index chunk = std::max<Index>(
+      1, std::min<Index>(auxsize, Index(kChunkBytes / (8.0 * double(nrows) *
+                                                       double(qptotal_)))));
+  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
+  std::vector<Eigen::MatrixXd> X(static_cast<std::size_t>(block));
+  // chunk buffers kept across chunks (no reallocation per chunk)
+  Eigen::MatrixXd Mc;
+  Eigen::MatrixXd Xc;
+  for (Index m0 = 0; m0 < qptotal_; m0 += block) {
+    const Index nb = std::min(block, qptotal_ - m0);
+#pragma omp parallel for schedule(dynamic)
+    for (Index j = 0; j < nb; ++j) {
+      makeX(m0 + j, X[std::size_t(j)]);
+    }
+    for (Index s0 = 0; s0 < auxsize; s0 += chunk) {
+      const Index ns = std::min(chunk, auxsize - s0);
+      Mc.resize(nrows * ns, qptotal_);
+      Xc.resize(nrows * ns, nb);
+#pragma omp parallel for schedule(static)
+      for (Index n = 0; n < qptotal_; ++n) {
+        Eigen::Map<Eigen::MatrixXd>(Mc.col(n).data(), nrows, ns) =
+            Mmn_[n + qpmin].block(0, s0, nrows, ns);
+      }
+      for (Index j = 0; j < nb; ++j) {
+        Eigen::Map<Eigen::MatrixXd>(Xc.col(j).data(), nrows, ns) =
+            X[std::size_t(j)].middleCols(s0, ns);
+      }
+      A.middleRows(m0, nb).noalias() += Xc.transpose() * Mc;
+    }
+  }
+  return A;
+}
+
 Eigen::MatrixXd Sigma_base::CalcExchangeMatrix() const {
-  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
-  Index occlevel = opt_.homo - opt_.rpamin + 1;
-  Index qpmin = opt_.qpmin - opt_.rpamin;
+  const Index occlevel = opt_.homo - opt_.rpamin + 1;
+  const Index qpmin = opt_.qpmin - opt_.rpamin;
   // Exchange is with the bare v, which is M M^T only as long as the
   // auxiliary frame is orthogonal. Once the index is dressed for an
   // environment (TCMatrix_gwbse::DressAuxIndex) it takes the bare
@@ -47,45 +94,30 @@ Eigen::MatrixXd Sigma_base::CalcExchangeMatrix() const {
     v = Mmn_.ToCurrentAuxFrame(
         Eigen::MatrixXd::Identity(Mmn_.auxsize(), Mmn_.auxsize()));
   }
-#pragma omp parallel for schedule(dynamic)
-  for (Index gw_level1 = 0; gw_level1 < qptotal_; gw_level1++) {
-    const Eigen::MatrixXd& Mmn1 = Mmn_[gw_level1 + qpmin];
-    Eigen::MatrixXd X;
-    if (!bare) {
-      X = Mmn1.topRows(occlevel) * v;
-    }
-    for (Index gw_level2 = gw_level1; gw_level2 < qptotal_; gw_level2++) {
-      const Eigen::MatrixXd& Mmn2 = Mmn_[gw_level2 + qpmin];
-      double sigma_x =
-          bare ? -(Mmn1.topRows(occlevel).cwiseProduct(Mmn2.topRows(occlevel)))
-                      .sum()
-               : -(X.cwiseProduct(Mmn2.topRows(occlevel))).sum();
-      result(gw_level2, gw_level1) = sigma_x;
-    }
-  }
-  result = result.selfadjointView<Eigen::Lower>();
-  return result;
+  // Sigma_x(m,n) = - sum_{i occ} sum_P M_m(i,P) [v] M_n(i,P)
+  const Eigen::MatrixXd A =
+      PairContraction(occlevel, [&](Index m, Eigen::MatrixXd& X) {
+        if (bare) {
+          X = Mmn_[m + qpmin].topRows(occlevel);
+        } else {
+          X = Mmn_[m + qpmin].topRows(occlevel) * v;
+        }
+      });
+  return -0.5 * (A + A.transpose());
 }
 
 Eigen::MatrixXd Sigma_base::CalcReactionFieldMatrix(
     const Eigen::MatrixXd& R) const {
   const Eigen::MatrixXd Rc = Mmn_.ToCurrentAuxFrame(R);
-  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
   const Index occlevel = opt_.homo - opt_.rpamin + 1;
   const Index qpmin = opt_.qpmin - opt_.rpamin;
-#pragma omp parallel for schedule(dynamic)
-  for (Index gw_level1 = 0; gw_level1 < qptotal_; gw_level1++) {
-    const Eigen::MatrixXd& Mmn1 = Mmn_[gw_level1 + qpmin];
-    // Row m of X is s_m M_nm R: the occupation sign folded in once.
-    Eigen::MatrixXd X = Mmn1 * Rc;
-    X.topRows(occlevel) *= -1.0;
-    for (Index gw_level2 = gw_level1; gw_level2 < qptotal_; gw_level2++) {
-      const Eigen::MatrixXd& Mmn2 = Mmn_[gw_level2 + qpmin];
-      result(gw_level2, gw_level1) = 0.5 * X.cwiseProduct(Mmn2).sum();
-    }
-  }
-  result = result.selfadjointView<Eigen::Lower>();
-  return result;
+  // Row l of X_m is s_l M_m(l,:) R: the occupation sign folded in once.
+  const Eigen::MatrixXd A =
+      PairContraction(Mmn_.nsize(), [&](Index m, Eigen::MatrixXd& X) {
+        X = Mmn_[m + qpmin] * Rc;
+        X.topRows(occlevel) *= -1.0;
+      });
+  return 0.25 * (A + A.transpose());
 }
 
 Eigen::VectorXd Sigma_base::CalcCorrelationDiag(

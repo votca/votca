@@ -19,7 +19,9 @@
 #define BOOST_TEST_MODULE gw_test
 
 // Standard includes
+#include <algorithm>
 #include <fstream>
+#include <sstream>
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
@@ -27,6 +29,13 @@
 // Local VOTCA includes
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/gw.h"
+#include "votca/xtp/gw_uks.h"
+#include "votca/xtp/ppm.h"
+#include "votca/xtp/rpa_uks.h"
+#include "votca/xtp/sigmafactory_uks.h"
+
+// for SetSharedPPM
+#include "../libxtp/self_energy_evaluators/sigma_ppm_uks.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_base.h"
 #include "votca/xtp/sigmafactory.h"
@@ -94,6 +103,10 @@ GW::options MakeGWTestOptions() {
   opt.g_sc_limit = 1e-5;
   opt.g_sc_max_iterations = 50;
   opt.gw_sc_limit = 1e-5;
+  // the tests below were written for these; the defaults are adaptive and
+  // continuity (tests of those set them explicitly)
+  opt.screening_update = "every";
+  opt.qp_root_continuity = false;
 
   return opt;
 }
@@ -687,6 +700,490 @@ BOOST_AUTO_TEST_CASE(exchange_is_bare_on_dressed_integrals) {
   BOOST_CHECK(!system.Mmn.AuxFrameIsOrthogonal());
   BOOST_CHECK_SMALL(
       (sigma->CalcExchangeMatrix() - sx_bare).cwiseAbs().maxCoeff(), 1e-11);
+  libint2::finalize();
+}
+
+// With mixing, the evGW energies must solve the QP equation with the
+// screening of the last iteration, E = e_DFT + Sigma_x - V_xc + Sigma_c(E),
+// not be Sigma_c at the mixed energies. Two iterations: the screening of the
+// second is built from the G0W0 energies.
+BOOST_AUTO_TEST_CASE(evgw_energies_solve_their_qp_equation) {
+  if (!libint2::initialized()) libint2::initialize();
+  GW::options opt = MakeGWTestOptions();
+  opt.gw_mixing_order = 20;
+  opt.gw_mixing_alpha = 0.5;
+  opt.g_sc_limit = 1e-8;
+
+  GWTestSystem g0w0_system("mo_eigenvectors.mm", "vxc.mm");
+  const Eigen::VectorXd e_g0w0 = RunGWPerturbation(g0w0_system, opt);
+  opt.gw_sc_max_iterations = 2;
+  GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+  const Eigen::VectorXd E = RunGWPerturbation(system, opt);
+
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  QMMolecule mol("methane", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/gw/molecule.xyz");
+  AOBasis aobasis;
+  aobasis.Fill(basis, mol);
+  TCMatrix_gwbse M;
+  M.Initialize(aobasis.AOBasisSize(), opt.rpamin, opt.rpamax, opt.rpamin,
+               opt.rpamax);
+  M.Fill(aobasis, aobasis, system.mo_eigenvectors);
+  Logger log;
+  RPA rpa(log, M);
+  rpa.configure(opt.homo, opt.rpamin, opt.rpamax);
+  rpa.UpdateRPAInputEnergies(system.mo_eigenvalues, e_g0w0, opt.qpmin);
+  std::unique_ptr<Sigma_base> sigma =
+      SigmaFactory().Create(opt.sigma_integration, M, rpa);
+  Sigma_base::options sopt;
+  sopt.homo = opt.homo;
+  sopt.qpmin = opt.qpmin;
+  sopt.qpmax = opt.qpmax;
+  sopt.rpamin = opt.rpamin;
+  sopt.rpamax = opt.rpamax;
+  sopt.eta = opt.eta;
+  sigma->configure(sopt);
+  const Eigen::VectorXd sigma_x = sigma->CalcExchangeMatrix().diagonal();
+  sigma->PrepareScreening();
+  const Eigen::VectorXd residual =
+      system.mo_eigenvalues.head(E.size()) + sigma_x -
+      system.vxc.diagonal().head(E.size()) + sigma->CalcCorrelationDiag(E) - E;
+  BOOST_TEST_MESSAGE("evGW QP equation residual "
+                     << residual.cwiseAbs().maxCoeff());
+  BOOST_CHECK_SMALL(residual.cwiseAbs().maxCoeff(), 1e-6);
+  libint2::finalize();
+}
+
+// Adaptive screening updates (G iterated with W fixed, W rebuilt when the
+// energies have settled for it) reach the same evGW solution as rebuilding
+// W in every iteration, with fewer screening builds: the energies solve the
+// QP equation with W built from themselves.
+BOOST_AUTO_TEST_CASE(evgw_adaptive_screening_update_same_fixed_point) {
+  if (!libint2::initialized()) libint2::initialize();
+  for (const std::string integration : {"ppm", "exact"}) {
+    GW::options opt = MakeGWTestOptions();
+    opt.sigma_integration = integration;
+    opt.reset_3c = 0;
+    opt.gw_sc_max_iterations = 100;
+    opt.gw_sc_limit = 1e-7;
+    opt.g_sc_limit = 1e-10;
+    // a short history: with 5 or 20 the classic scheme stalls at 1e-5..1e-6
+    // on the top level with exact Sigma here (the adaptive one does not)
+    opt.gw_mixing_order = 3;
+    opt.gw_mixing_alpha = 0.7;
+
+    auto run = [&](const std::string& mode, votca::Index& builds,
+                   votca::Index& iters) {
+      GW::options o = opt;
+      o.screening_update = mode;
+      GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+      GW gw(system.log, system.Mmn, system.vxc, system.mo_eigenvalues);
+      gw.configure(o);
+      gw.CalculateGWPerturbation();
+      builds = gw.ScreeningBuilds();
+      iters = gw.QPIterations();
+      return Eigen::VectorXd(gw.getGWAResults());
+    };
+    votca::Index builds_every = 0, iters_every = 0, builds_adaptive = 0,
+                 iters_adaptive = 0;
+    const Eigen::VectorXd e_every = run("every", builds_every, iters_every);
+    const Eigen::VectorXd e_adaptive =
+        run("adaptive", builds_adaptive, iters_adaptive);
+    BOOST_TEST_MESSAGE(integration << ": every " << iters_every
+                                   << " iterations / " << builds_every
+                                   << " builds, adaptive " << iters_adaptive
+                                   << " / " << builds_adaptive);
+    BOOST_CHECK_EQUAL(builds_every, iters_every);
+    BOOST_CHECK_LT(builds_adaptive, builds_every);
+    BOOST_CHECK_SMALL((e_every - e_adaptive).cwiseAbs().maxCoeff(), 1e-6);
+
+    // the adaptive energies solve the QP equation with W from themselves
+    GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+    Logger log;
+    RPA rpa(log, system.Mmn);
+    rpa.configure(opt.homo, opt.rpamin, opt.rpamax);
+    rpa.UpdateRPAInputEnergies(system.mo_eigenvalues, e_adaptive, opt.qpmin);
+    std::unique_ptr<Sigma_base> sigma =
+        SigmaFactory().Create(opt.sigma_integration, system.Mmn, rpa);
+    Sigma_base::options sopt;
+    sopt.homo = opt.homo;
+    sopt.qpmin = opt.qpmin;
+    sopt.qpmax = opt.qpmax;
+    sopt.rpamin = opt.rpamin;
+    sopt.rpamax = opt.rpamax;
+    sopt.eta = opt.eta;
+    sigma->configure(sopt);
+    const Eigen::VectorXd sigma_x = sigma->CalcExchangeMatrix().diagonal();
+    sigma->PrepareScreening();
+    const Eigen::VectorXd residual =
+        system.mo_eigenvalues.head(e_adaptive.size()) + sigma_x -
+        system.vxc.diagonal().head(e_adaptive.size()) +
+        sigma->CalcCorrelationDiag(e_adaptive) - e_adaptive;
+    BOOST_CHECK_SMALL(residual.cwiseAbs().maxCoeff(), 1e-6);
+  }
+  libint2::finalize();
+}
+
+// Root tracking (local QP search near the previous root after the first
+// iteration, verified by a full search after convergence) gives the same
+// evGW energies as the full search in every iteration, with and without
+// adaptive screening updates, and actually solves levels locally.
+BOOST_AUTO_TEST_CASE(evgw_root_tracking_same_result) {
+  if (!libint2::initialized()) libint2::initialize();
+  for (const std::string integration : {"ppm", "exact"}) {
+    for (const std::string update : {"every", "adaptive"}) {
+      GW::options opt = MakeGWTestOptions();
+      opt.sigma_integration = integration;
+      opt.screening_update = update;
+      opt.reset_3c = 0;
+      opt.gw_sc_max_iterations = 100;
+      opt.gw_sc_limit = 1e-7;
+      opt.g_sc_limit = 1e-10;
+      opt.gw_mixing_order = 3;
+      opt.gw_mixing_alpha = 0.7;
+      auto run = [&](bool tracking, votca::Index& local, votca::Index& iters) {
+        GW::options o = opt;
+        o.qp_root_tracking = tracking;
+        GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+        GW gw(system.log, system.Mmn, system.vxc, system.mo_eigenvalues);
+        gw.configure(o);
+        gw.CalculateGWPerturbation();
+        local = gw.TrackedLocalSolves();
+        iters = gw.QPIterations();
+        return Eigen::VectorXd(gw.getGWAResults());
+      };
+      votca::Index local_off = 0, iters_off = 0, local_on = 0, iters_on = 0;
+      const Eigen::VectorXd e_full = run(false, local_off, iters_off);
+      const Eigen::VectorXd e_tracked = run(true, local_on, iters_on);
+      BOOST_TEST_MESSAGE(integration << "/" << update << ": full search "
+                                     << iters_off << " iterations, tracking "
+                                     << iters_on << " iterations, " << local_on
+                                     << " local level solves");
+      BOOST_CHECK_EQUAL(local_off, 0);
+      BOOST_CHECK_GT(local_on, 0);
+      BOOST_CHECK_SMALL((e_full - e_tracked).cwiseAbs().maxCoeff(), 1e-6);
+    }
+  }
+  libint2::finalize();
+}
+
+// GW_UKS on a closed shell (alpha = beta) is evGW of GW: same energies for
+// both spins as the restricted code, also with adaptive screening updates
+// and root tracking, which in addition must reproduce the "every" / full
+// search energies of GW_UKS itself.
+namespace {
+GW_UKS::options ToUKS(const GW::options& opt) {
+  GW_UKS::options u;
+  u.homo_alpha = opt.homo;
+  u.homo_beta = opt.homo;
+  u.qpmin = opt.qpmin;
+  u.qpmax = opt.qpmax;
+  u.rpamin = opt.rpamin;
+  u.rpamax = opt.rpamax;
+  u.eta = opt.eta;
+  u.g_sc_limit = opt.g_sc_limit;
+  u.g_sc_max_iterations = opt.g_sc_max_iterations;
+  u.gw_sc_limit = opt.gw_sc_limit;
+  u.gw_sc_max_iterations = opt.gw_sc_max_iterations;
+  u.shift = opt.shift;
+  u.ScaHFX = opt.ScaHFX;
+  u.sigma_integration = opt.sigma_integration;
+  u.reset_3c = opt.reset_3c;
+  u.qp_solver = opt.qp_solver;
+  u.qp_solver_alpha = opt.qp_solver_alpha;
+  u.qp_grid_steps = opt.qp_grid_steps;
+  u.qp_grid_spacing = opt.qp_grid_spacing;
+  u.qp_full_window_half_width = opt.qp_full_window_half_width;
+  u.qp_dense_spacing = opt.qp_dense_spacing;
+  u.qp_adaptive_shell_width = opt.qp_adaptive_shell_width;
+  u.qp_adaptive_shell_count = opt.qp_adaptive_shell_count;
+  u.gw_mixing_order = opt.gw_mixing_order;
+  u.gw_mixing_alpha = opt.gw_mixing_alpha;
+  u.quadrature_scheme = opt.quadrature_scheme;
+  u.order = opt.order;
+  u.alpha = opt.alpha;
+  u.out_of_window_shift = opt.out_of_window_shift;
+  u.qp_restrict_search = opt.qp_restrict_search;
+  u.qp_root_continuity = opt.qp_root_continuity;
+  u.screening_update = opt.screening_update;
+  u.qp_root_tracking = opt.qp_root_tracking;
+  u.screening_update_ratio = opt.screening_update_ratio;
+  u.screening_update_max_inner = opt.screening_update_max_inner;
+  u.qp_zero_margin = opt.qp_zero_margin;
+  u.qp_virtual_min_energy = opt.qp_virtual_min_energy;
+  u.qp_root_finder = opt.qp_root_finder;
+  u.qp_grid_search_mode = opt.qp_grid_search_mode;
+  return u;
+}
+
+struct UKSRun {
+  Eigen::VectorXd alpha;
+  Eigen::VectorXd beta;
+  votca::Index builds = 0;
+  votca::Index iterations = 0;
+  votca::Index local = 0;
+};
+
+UKSRun RunEvGW_UKS(const GW::options& opt) {
+  GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+  TCMatrix_gwbse_spin Mmn;
+  Mmn.alpha = system.Mmn;
+  Mmn.beta = system.Mmn;
+  GW_UKS gw(system.log, Mmn, system.vxc, system.vxc, system.mo_eigenvalues,
+            system.mo_eigenvalues);
+  gw.configure(ToUKS(opt));
+  gw.CalculateGWPerturbation();
+  UKSRun r;
+  r.alpha = gw.getGWAResultsAlpha();
+  r.beta = gw.getGWAResultsBeta();
+  r.builds = gw.ScreeningBuilds();
+  r.iterations = gw.QPIterations();
+  r.local = gw.TrackedLocalSolves();
+  return r;
+}
+}  // namespace
+
+BOOST_AUTO_TEST_CASE(evgw_uks_closed_shell_equals_rks) {
+  if (!libint2::initialized()) libint2::initialize();
+  for (const std::string integration : {"ppm", "exact"}) {
+    GW::options opt = MakeGWTestOptions();
+    opt.sigma_integration = integration;
+    opt.reset_3c = 0;
+    opt.gw_sc_max_iterations = 100;
+    opt.gw_sc_limit = 1e-7;
+    opt.g_sc_limit = 1e-10;
+    opt.gw_mixing_order = 3;
+    opt.gw_mixing_alpha = 0.7;
+
+    const Eigen::VectorXd e_rks = [&]() {
+      GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+      return RunGWPerturbation(system, opt);
+    }();
+
+    const UKSRun every = RunEvGW_UKS(opt);
+    BOOST_CHECK_EQUAL(every.builds, every.iterations);
+    BOOST_CHECK_SMALL((every.alpha - every.beta).cwiseAbs().maxCoeff(), 1e-10);
+    BOOST_CHECK_SMALL((every.alpha - e_rks).cwiseAbs().maxCoeff(), 1e-6);
+
+    GW::options o = opt;
+    o.screening_update = "adaptive";
+    const UKSRun adaptive = RunEvGW_UKS(o);
+    BOOST_CHECK_LT(adaptive.builds, every.builds);
+    BOOST_CHECK_EQUAL(adaptive.local, 0);
+    BOOST_CHECK_SMALL((adaptive.alpha - e_rks).cwiseAbs().maxCoeff(), 1e-6);
+    BOOST_CHECK_SMALL((adaptive.beta - e_rks).cwiseAbs().maxCoeff(), 1e-6);
+
+    for (const std::string update : {"every", "adaptive"}) {
+      GW::options t = opt;
+      t.screening_update = update;
+      t.qp_root_tracking = true;
+      const UKSRun tracked = RunEvGW_UKS(t);
+      BOOST_TEST_MESSAGE("UKS " << integration << "/" << update << " tracking: "
+                                << tracked.iterations << " iterations, "
+                                << tracked.builds << " builds, "
+                                << tracked.local << " local level solves");
+      BOOST_CHECK_GT(tracked.local, 0);
+      BOOST_CHECK_SMALL((tracked.alpha - e_rks).cwiseAbs().maxCoeff(), 1e-6);
+      BOOST_CHECK_SMALL((tracked.beta - e_rks).cwiseAbs().maxCoeff(), 1e-6);
+    }
+    BOOST_TEST_MESSAGE("UKS " << integration << ": every " << every.iterations
+                              << " iterations, adaptive " << adaptive.iterations
+                              << " / " << adaptive.builds << " builds");
+  }
+  libint2::finalize();
+}
+
+// Batched UKS Sigma_c (as used by the QP scan through Prefetch) equals the
+// element-wise sums: in chunks too small for the Chebyshev split to 1e-13,
+// and single frequencies to 1e-10 (rounded differently near poles, see
+// test_sigma_exact.cc).
+BOOST_AUTO_TEST_CASE(sigma_uks_batched_equals_direct) {
+  if (!libint2::initialized()) libint2::initialize();
+  for (const std::string integration : {"ppm", "exact"}) {
+    GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+    TCMatrix_gwbse_spin Mmn;
+    Mmn.alpha = system.Mmn;
+    Mmn.beta = system.Mmn;
+    Logger log;
+    RPA_UKS rpa(log, Mmn);
+    rpa.configure(4, 4, 0, 16);
+    rpa.setRPAInputEnergies(system.mo_eigenvalues, system.mo_eigenvalues);
+    PPM ppm;
+    std::unique_ptr<Sigma_base_UKS> sigma = SigmaFactory_UKS().Create(
+        integration, Mmn, rpa, TCMatrix::SpinChannel::Beta);
+    if (integration == "ppm") {
+      ppm.PPM_construct_parameters(rpa);
+      dynamic_cast<Sigma_PPM_UKS&>(*sigma).SetSharedPPM(ppm);
+    }
+    Sigma_base_UKS::options opt;
+    opt.homo = 4;
+    opt.qpmin = 0;
+    opt.qpmax = 16;
+    opt.rpamin = 0;
+    opt.rpamax = 16;
+    opt.eta = 1e-3;
+    sigma->configure(opt);
+    sigma->PrepareScreening();
+    for (votca::Index level = 0; level < 17; ++level) {
+      for (double halfwidth : {0.75, 3.0}) {
+        const votca::Index n = (halfwidth < 1.0) ? 63 : 1001;
+        const double e = system.mo_eigenvalues(level);
+        const Eigen::VectorXd w =
+            Eigen::VectorXd::LinSpaced(n, e - halfwidth, e + halfwidth);
+        const Eigen::VectorXd batched =
+            sigma->CalcCorrelationDiagElements(level, w);
+        double cheb = 0.0;
+        double single = 0.0;
+        double scale = 0.0;
+        for (votca::Index i0 = 0; i0 < n; i0 += 16) {
+          const votca::Index len = std::min<votca::Index>(16, n - i0);
+          const Eigen::VectorXd chunk =
+              sigma->CalcCorrelationDiagElements(level, w.segment(i0, len));
+          for (votca::Index i = 0; i < len; ++i) {
+            const double direct =
+                sigma->CalcCorrelationDiagElement(level, w(i0 + i));
+            cheb = std::max(cheb, std::abs(batched(i0 + i) - chunk(i)));
+            single = std::max(single, std::abs(batched(i0 + i) - direct));
+            scale = std::max(scale, std::abs(direct));
+          }
+        }
+        BOOST_CHECK_SMALL(cheb, 1e-13 * std::max(1.0, scale));
+        BOOST_CHECK_SMALL(single, 1e-10 * std::max(1.0, scale));
+      }
+    }
+  }
+  libint2::finalize();
+}
+
+// Frozen-core Sigma_x (Mmn from rpamin = 1 on) plus the exchange with the
+// frozen core level equals the all-electron Sigma_x in the window.
+BOOST_AUTO_TEST_CASE(core_exchange_completes_frozen_core_sigma_x) {
+  if (!libint2::initialized()) libint2::initialize();
+  GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/gw/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+
+  auto sigma_x = [&](TCMatrix_gwbse& Mmn, votca::Index rpamin) {
+    Logger log;
+    RPA rpa(log, Mmn);
+    rpa.configure(4, rpamin, 16);
+    rpa.setRPAInputEnergies(system.mo_eigenvalues.segment(rpamin, 17 - rpamin));
+    std::unique_ptr<Sigma_base> sigma = SigmaFactory().Create("ppm", Mmn, rpa);
+    Sigma_base::options opt;
+    opt.homo = 4;
+    opt.qpmin = 1;
+    opt.qpmax = 16;
+    opt.rpamin = rpamin;
+    opt.rpamax = 16;
+    opt.eta = 1e-3;
+    sigma->configure(opt);
+    return Eigen::MatrixXd(sigma->CalcExchangeMatrix());
+  };
+  // all electron: the system's Mmn (levels 0..16)
+  const Eigen::MatrixXd x_all = sigma_x(system.Mmn, 0);
+  TCMatrix_gwbse Mmn_fc;
+  Mmn_fc.Initialize(aobasis.AOBasisSize(), 1, 16, 1, 16);
+  Mmn_fc.Fill(aobasis, aobasis, system.mo_eigenvectors);
+  const Eigen::MatrixXd x_fc = sigma_x(Mmn_fc, 1);
+  const Eigen::MatrixXd core = TCMatrix_gwbse::CoreExchange(
+      aobasis, aobasis, system.mo_eigenvectors, 1, 1, 16);
+  BOOST_CHECK_GT((x_all - x_fc).cwiseAbs().maxCoeff(), 1e-3);
+  BOOST_CHECK_SMALL((x_fc + core - x_all).cwiseAbs().maxCoeff(), 1e-10);
+  libint2::finalize();
+}
+
+// The QSGW fixed point, checked from scratch in the converged QP basis
+// phi = psi U: with the integrals refilled for those orbitals and the QP
+// energies E in the RPA, H = U^T H0 U + Sigma_x + 1/2 [Sigma_c(E_i) +
+// Sigma_c(E_j)] must be diagonal with eigenvalues E. qpmin > rpamin, so the
+// core level is in the screening but not in the QP window.
+namespace {
+double QSGWFixedPointResidual(const std::string& sigma_integration) {
+  GW::options opt = MakeGWTestOptions();
+  opt.sigma_integration = sigma_integration;
+  opt.do_qsgw = true;
+  opt.qsgw_max_iterations = 40;
+  opt.qsgw_sc_limit = 1e-9;
+  opt.gw_mixing_order = 20;
+  opt.gw_mixing_alpha = 0.7;
+  opt.qpmin = 1;
+  opt.qpmax = 13;
+  opt.qsgw_max_virt_correction = 10.0;  // no trimming
+  const votca::Index qptotal = opt.qpmax - opt.qpmin + 1;
+
+  GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+  const Eigen::MatrixXd vxc_gw =
+      system.vxc.block(opt.qpmin, opt.qpmin, qptotal, qptotal);
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  QMMolecule mol("methane", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/gw/molecule.xyz");
+  AOBasis aobasis;
+  aobasis.Fill(basis, mol);
+
+  GW gw(system.log, system.Mmn, vxc_gw, system.mo_eigenvalues);
+  gw.configure(opt);
+  gw.CalculateGWPerturbation();
+  system.Mmn.Fill(aobasis, aobasis, system.mo_eigenvectors);
+  gw.CalculateQSGW();
+  const Eigen::VectorXd E = gw.getGWAResults();
+  const Eigen::MatrixXd U = gw.getQSGWRotation();
+  {
+    std::stringstream log_text;
+    log_text << system.log;
+    const std::string text = log_text.str();
+    const std::size_t pos = text.find("QSGW converged in");
+    BOOST_REQUIRE(pos != std::string::npos);
+    BOOST_TEST_MESSAGE(sigma_integration
+                       << ": " << text.substr(pos, text.find('\n', pos) - pos));
+  }
+
+  Eigen::MatrixXd C_qp = system.mo_eigenvectors;
+  C_qp.middleCols(opt.qpmin, qptotal) =
+      system.mo_eigenvectors.middleCols(opt.qpmin, qptotal) * U;
+  TCMatrix_gwbse M;
+  M.Initialize(aobasis.AOBasisSize(), opt.rpamin, opt.rpamax, opt.rpamin,
+               opt.rpamax);
+  M.Fill(aobasis, aobasis, C_qp);
+  Logger log;
+  RPA rpa(log, M);
+  rpa.configure(opt.homo, opt.rpamin, opt.rpamax);
+  rpa.UpdateRPAInputEnergies(system.mo_eigenvalues, E, opt.qpmin);
+  std::unique_ptr<Sigma_base> sigma =
+      SigmaFactory().Create(opt.sigma_integration, M, rpa);
+  Sigma_base::options sopt;
+  sopt.homo = opt.homo;
+  sopt.qpmin = opt.qpmin;
+  sopt.qpmax = opt.qpmax;
+  sopt.rpamin = opt.rpamin;
+  sopt.rpamax = opt.rpamax;
+  sopt.eta = opt.eta;
+  sigma->configure(sopt);
+  sigma->PrepareScreening();
+  Eigen::MatrixXd H0 = -vxc_gw;
+  H0.diagonal() += system.mo_eigenvalues.segment(opt.qpmin, qptotal);
+  Eigen::MatrixXd H = U.transpose() * H0 * U + sigma->CalcExchangeMatrix() +
+                      sigma->CalcCorrelationOffDiag(E);
+  H.diagonal() += sigma->CalcCorrelationDiag(E);
+  H.diagonal() -= E;
+  return H.cwiseAbs().maxCoeff();
+}
+}  // namespace
+
+BOOST_AUTO_TEST_CASE(qsgw_fixed_point_in_qp_basis) {
+  if (!libint2::initialized()) libint2::initialize();
+  for (const std::string sigma : {"ppm", "exact"}) {
+    const double residual = QSGWFixedPointResidual(sigma);
+    BOOST_TEST_MESSAGE("QSGW fixed-point residual (" << sigma
+                                                     << "): " << residual);
+    BOOST_CHECK_SMALL(residual, 1e-6);
+  }
   libint2::finalize();
 }
 

@@ -32,7 +32,6 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
-#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/vxc_functionals.h"
 #include "votca/xtp/vxc_grid.h"

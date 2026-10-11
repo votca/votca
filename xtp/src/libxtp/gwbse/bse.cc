@@ -19,18 +19,22 @@
 
 // Standard includes
 #include <chrono>
+#include <cmath>
 #include <iostream>
+#include <sstream>
 
 // VOTCA includes
 #include <votca/tools/linalg.h>
 
 // Local VOTCA includes
 #include "votca/xtp/bse.h"
+#include "votca/xtp/bse_fullsolver.h"
 #include "votca/xtp/bse_initialization.h"
 #include "votca/xtp/bse_operator.h"
 #include "votca/xtp/bseoperator_btda.h"
 #include "votca/xtp/davidsonsolver.h"
 #include "votca/xtp/environmentscreening.h"
+#include "votca/xtp/memorybudget.h"
 #include "votca/xtp/populationanalysis.h"
 #include "votca/xtp/qmfragment.h"
 #include "votca/xtp/rpa.h"
@@ -40,6 +44,21 @@ using std::flush;
 
 namespace votca {
 namespace xtp {
+
+namespace {
+double DavidsonToleranceValue(const std::string& tol) {
+  if (tol == "loose") {
+    return 1e-3;
+  } else if (tol == "normal") {
+    return 1e-4;
+  } else if (tol == "strict") {
+    return 1e-5;
+  } else if (tol == "lapack") {
+    return 1e-9;
+  }
+  throw std::runtime_error(tol + " is not a valid Davidson tolerance");
+}
+}  // namespace
 
 void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies,
                     const Eigen::MatrixXd& Hqp_in) {
@@ -76,6 +95,7 @@ void BSE::configure_with_precomputed_screening(
     Hqp_ = AdjustHqpSize(Hqp_in, RPAInputEnergies).diagonal().asDiagonal();
   }
   epsilon_0_inv_ = epsilon_0_inv;
+  ReleaseDirectCaches();
 }
 
 tools::EigenSystem& BSE::GetBSEEigenSystem(const QMStateType& type,
@@ -193,8 +213,16 @@ void BSE::setReactionField(const Eigen::MatrixXd& R, bool include_kreac) {
                              : Eigen::MatrixXd();
 }
 
-void BSE::SetupDirectInteractionOperator(
-    const Eigen::VectorXd& RPAInputEnergies, double energy) {
+// The BSE operators read slices and rows up to the highest conduction level;
+// the dielectric matrix reads all rows of the occupied slices. Only those
+// are rotated (see TCMatrix_gwbse::MultiplyRightWithAuxMatrixLeading).
+void BSE::RotateIntoScreeningFrame(const Eigen::MatrixXd& U) {
+  const Index occupied_slices = opt_.homo + 1 - opt_.rpamin;
+  const Index lead = opt_.cmax + 1 - opt_.rpamin;
+  Mmn_.MultiplyRightWithAuxMatrixLeading(U, occupied_slices, lead);
+}
+
+void BSE::MatchDressingToRoute() {
   const bool environment = reaction_field_.size() > 0;
   const bool dressed_route = environment && include_kreac_;
   // Dressed: every pairing of two M's is through u = v + v_reac, so eps
@@ -206,42 +234,62 @@ void BSE::SetupDirectInteractionOperator(
   } else if (!dressed_route && Mmn_.Dressed()) {
     Mmn_.UndressAuxIndex();
   }
+}
 
+// W = vectors diag(values) vectors^T in the current frame of the
+// integrals, as the operators use it: the inverse of epsilon without its
+// non-positive modes, or W_tot of the bare environment route.
+SymmetricEigenSystem BSE::ScreenedInteraction(
+    const Eigen::VectorXd& RPAInputEnergies, double energy,
+    DFTTimings& timings) const {
   RPA rpa = RPA(log_, Mmn_);
   rpa.configure(opt_.homo, opt_.rpamin, opt_.rpamax);
   rpa.setRPAInputEnergies(RPAInputEnergies);
+  rpa.setTimings(&timings);
+  const Eigen::MatrixXd screening = rpa.calculate_epsilon_r(energy);
 
-  Eigen::MatrixXd screening = rpa.calculate_epsilon_r(energy);
-  if (environment && !include_kreac_) {
+  auto t = timings.Measure("eigensolver");
+  if (reaction_field_.size() > 0 && !include_kreac_) {
     // Operators expect M U with U orthogonal and diag(epsilon_0_inv_) the
     // screened interaction in that frame: Kd = M U d U^T M^T and
     // Kx = M U U^T M^T = M M^T = v. So diagonalize W_tot, not eps, and
     // hand its eigenvalues over as epsilon_0_inv_.
     const Index n = screening.rows();
     const Eigen::MatrixXd I = Eigen::MatrixXd::Identity(n, n);
+    // 1 + R and u^-1 + eps - 1 are positive definite (Cholesky, LU if not)
     const Eigen::MatrixXd u_inv =
-        (I + Mmn_.ToCurrentAuxFrame(reaction_field_)).inverse();
-    Eigen::MatrixXd W = (u_inv + screening - I).inverse();
+        InverseSPD(I + Mmn_.ToCurrentAuxFrame(reaction_field_));
+    Eigen::MatrixXd W = InverseSPD(u_inv + screening - I);
     W = 0.5 * (W + W.transpose()).eval();
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(W);
-    Mmn_.MultiplyRightWithAuxMatrix(es.eigenvectors());
-    epsilon_0_inv_ = es.eigenvalues();
-    return;
+    return SymmetricEigen(W);
   }
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(screening);
-  Mmn_.MultiplyRightWithAuxMatrix(es.eigenvectors());
-
-  epsilon_0_inv_ = Eigen::VectorXd::Zero(es.eigenvalues().size());
-  for (Index i = 0; i < es.eigenvalues().size(); ++i) {
-    if (es.eigenvalues()(i) > 1e-8) {
-      epsilon_0_inv_(i) = 1 / es.eigenvalues()(i);
-    }
+  SymmetricEigenSystem es = SymmetricEigen(screening);
+  for (Index i = 0; i < es.values.size(); ++i) {
+    es.values(i) = (es.values(i) > 1e-8) ? 1 / es.values(i) : 0.0;
   }
+  return es;
+}
+
+void BSE::SetupDirectInteractionOperator(
+    const Eigen::VectorXd& RPAInputEnergies, double energy) {
+  ReleaseDirectCaches();  // the integrals and the screening change
+  MatchDressingToRoute();
+  DFTTimings timings;
+  SymmetricEigenSystem W =
+      ScreenedInteraction(RPAInputEnergies, energy, timings);
+  {
+    auto t = timings.Measure("rotation");
+    RotateIntoScreeningFrame(W.vectors);
+  }
+  epsilon_0_inv_ = std::move(W.values);
+  XTP_LOG(Log::error, log_) << TimeStamp() << " BSE screening at " << energy
+                            << " Ha: " << timings.Format() << flush;
 }
 
 template <typename BSE_OPERATOR>
-void BSE::configureBSEOperator(BSE_OPERATOR& H) const {
+void BSE::configureBSEOperator(BSE_OPERATOR& H,
+                               std::shared_ptr<SymmetricTiles> cache) const {
   BSEOperator_Options opt;
   opt.cmax = opt_.cmax;
   opt.homo = opt_.homo;
@@ -249,12 +297,71 @@ void BSE::configureBSEOperator(BSE_OPERATOR& H) const {
   opt.rpamin = opt_.rpamin;
   opt.vmin = opt_.vmin;
   H.configure(opt);
+  H.set_direct_cache(std::move(cache));
+}
+
+void BSE::ReleaseDirectCaches() const { direct_caches_ = DirectCaches(); }
+
+void BSE::DecideDirectCaches(bool coupling) const {
+  const Index n = bse_size_;
+  const double need = SymmetricTiles::Bytes(n);
+  // what is kept but not built yet does not show in the resident memory
+  double pending = 0.0;
+  for (const auto* c : {&direct_caches_.hd, &direct_caches_.hd2}) {
+    if (*c != nullptr && !(*c)->built()) {
+      pending += need;
+    }
+  }
+  double available = MemoryBudget::AvailableBytes() - pending;
+  std::ostringstream msg;
+  msg.precision(3);
+  msg << " BSE direct terms (lower triangle, " << need * 1e-9 << " GB each):";
+  auto decide = [&](std::shared_ptr<SymmetricTiles>& cache, bool& decided,
+                    const char* name) {
+    if (decided) {
+      msg << " " << name << (cache ? " kept (reused)" : " not kept") << ";";
+      return;
+    }
+    decided = true;
+    if (need <= available) {
+      cache = std::make_shared<SymmetricTiles>();
+      available -= need;
+      msg << " " << name << " kept;";
+    } else {
+      msg << " " << name << " not kept;";
+    }
+  };
+  decide(direct_caches_.hd, direct_caches_.hd_decided, "Hd");
+  if (coupling) {
+    decide(direct_caches_.hd2, direct_caches_.hd2_decided, "Hd2");
+  }
+  msg << " " << MemoryBudget::Describe();
+  const Index missing = Index(direct_caches_.hd == nullptr) +
+                        Index(coupling && direct_caches_.hd2 == nullptr);
+  if (missing > 0) {
+    // what the process holds now plus the matrices, with the margin
+    const double resident = std::max(0.0, MemoryBudget::ResidentBytes());
+    // the needed terms not built yet, and one kept but unbuilt otherwise
+    auto unbuilt = [](const std::shared_ptr<SymmetricTiles>& c) {
+      return c == nullptr || !c->built();
+    };
+    double extra = unbuilt(direct_caches_.hd) ? need : 0.0;
+    if (coupling ? unbuilt(direct_caches_.hd2)
+                 : (direct_caches_.hd2 && !direct_caches_.hd2->built())) {
+      extra += need;
+    }
+    const double wanted = resident + extra;
+    msg << "; --memory " << std::ceil(1.1 * wanted * 1e-9 + 1.0)
+        << " or more would keep all";
+  }
+  XTP_LOG(Log::error, log_) << TimeStamp() << msg.str() << flush;
 }
 
 tools::EigenSystem BSE::Solve_triplets_TDA() const {
 
+  DecideDirectCaches(false);
   TripletOperator_TDA Ht(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(Ht);
+  configureBSEOperator(Ht, direct_caches_.hd);
   return solve_hermitian(Ht);
 }
 
@@ -327,8 +434,9 @@ void BSE::Solve_triplets(Orbitals& orb) const {
 
 tools::EigenSystem BSE::Solve_singlets_TDA() const {
 
+  DecideDirectCaches(false);
   SingletOperator_TDA Hs(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(Hs);
+  configureBSEOperator(Hs, direct_caches_.hd);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
   return solve_hermitian(Hs);
@@ -378,20 +486,22 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 }
 
 tools::EigenSystem BSE::Solve_singlets_BTDA() const {
+  DecideDirectCaches(true);
   SingletOperator_TDA A(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(A);
+  configureBSEOperator(A, direct_caches_.hd);
   SingletOperator_BTDA_B B(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(B);
+  configureBSEOperator(B, direct_caches_.hd2);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
   return Solve_nonhermitian_Davidson(A, B);
 }
 
 tools::EigenSystem BSE::Solve_triplets_BTDA() const {
+  DecideDirectCaches(true);
   TripletOperator_TDA A(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(A);
+  configureBSEOperator(A, direct_caches_.hd);
   Hd2Operator B(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(B);
+  configureBSEOperator(B, direct_caches_.hd2);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
   return Solve_nonhermitian_Davidson(A, B);
@@ -400,6 +510,22 @@ tools::EigenSystem BSE::Solve_triplets_BTDA() const {
 template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
 tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
                                                     BSE_OPERATOR_B& Bop) const {
+  // Hermitian (A-B)(A+B) form: one application of A and of B per new
+  // vector. Falls back to the general non-Hermitian Davidson if A-B or A+B
+  // is not positive definite.
+  try {
+    FullBSEDavidson::Options fopt;
+    fopt.tolerance = DavidsonToleranceValue(opt_.davidson_tolerance);
+    fopt.max_iterations = opt_.davidson_maxiter;
+    fopt.max_subspace = 10 * opt_.nmax;
+    FullBSEDavidson solver(log_, fopt);
+    return solver.Solve(Aop, Bop, opt_.nmax);
+  } catch (const std::runtime_error& error) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " " << error.what()
+        << "; using the non-Hermitian Davidson solver" << flush;
+  }
+
   std::chrono::time_point<std::chrono::system_clock> start =
       std::chrono::system_clock::now();
 
@@ -425,14 +551,15 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   Eigen::MatrixXd tmpX = DS.eigenvectors().topRows(Aop.rows());
   Eigen::MatrixXd tmpY = DS.eigenvectors().bottomRows(Bop.rows());
 
-  // // normalization so that eigenvector^2 - eigenvector2^2 = 1
-  Eigen::VectorXd normX = tmpX.colwise().squaredNorm();
-  Eigen::VectorXd normY = tmpY.colwise().squaredNorm();
-
-  Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
-
-  result.eigenvectors() = tmpX * sqinvnorm.matrix().asDiagonal();
-  result.eigenvectors2() = tmpY * sqinvnorm.matrix().asDiagonal();
+  // normalization so that X^T X - Y^T Y = 1
+  if (const Index bad = NormalizeExcitationVectors(tmpX, tmpY); bad > 0) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " WARNING: " << bad
+        << " BSE root(s) without positive X^2 - Y^2 norm (not converged?)"
+        << flush;
+  }
+  result.eigenvectors() = tmpX;
+  result.eigenvectors2() = tmpY;
 
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();
@@ -444,7 +571,7 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   return result;
 }
 
-void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
+void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population>>& frags,
                         Index state) const {
   for (const QMFragment<BSE_Population>& frag : frags) {
     double dq = frag.value().H[state] + frag.value().E[state];
@@ -476,7 +603,7 @@ void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
   return;
 }
 
-void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
+void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population>> fragments,
                            const Orbitals& orb) const {
 
   QMStateType type = QMStateType(QMStateType::Singlet);
@@ -535,7 +662,7 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
   return;
 }
 
-void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
+void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population>> fragments,
                            const Orbitals& orb) const {
 
   QMStateType type = QMStateType(QMStateType::Triplet);
@@ -609,35 +736,6 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator(
   return expectation_values;
 }
 
-template <typename BSE_OPERATOR>
-BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
-    const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const {
-
-  const tools::EigenSystem& BSECoefs = GetBSEEigenSystem(state.Type(), orb);
-
-  ExpectationValues expectation_values;
-
-  const Eigen::MatrixXd BSECoefs_state =
-      BSECoefs.eigenvectors().col(state.StateIdx());
-
-  const Eigen::MatrixXd temp = H * BSECoefs_state;
-
-  expectation_values.direct_term = ExpValue(BSECoefs_state, temp);
-
-  if (!orb.getTDAApprox()) {
-    const Eigen::MatrixXd BSECoefs2_state =
-        BSECoefs.eigenvectors2().col(state.StateIdx());
-
-    expectation_values.direct_term +=
-        ExpValue(BSECoefs2_state, H * BSECoefs2_state);
-    expectation_values.cross_term = 2 * ExpValue(BSECoefs2_state, temp);
-  } else {
-    expectation_values.cross_term = Eigen::VectorXd::Zero(0);
-  }
-
-  return expectation_values;
-}
-
 // Composition of the excitation energy in terms of QP, direct (screened),
 // and exchance contributions in the BSE
 // Full BSE:
@@ -652,6 +750,15 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
 //  <FT> = A*.H_qp.A + B*.H_qp.B
 //  <Kx> = eta.(A*.H_x.A + B*.H_x.B + 2A*.H_x.B)
 //  <Kd> = A*.H_d.A + B*.H_d.B + 2A*.H_d2.B
+namespace {
+// A kept direct term for the analysis only if it is built already: building
+// it for the few states of the analysis would cost more than it saves.
+std::shared_ptr<SymmetricTiles> ReusableCache(
+    const std::shared_ptr<SymmetricTiles>& cache) {
+  return (cache != nullptr && cache->built()) ? cache : nullptr;
+}
+}  // namespace
+
 BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
                                              const Orbitals& orb) const {
   Interaction analysis;
@@ -663,18 +770,20 @@ BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
     analysis.qp_contrib = expectation_values.direct_term;
   }
   {
+    // the direct terms of the solve, if kept, are not rebuilt here
     HdOperator hd(epsilon_0_inv_, Mmn_, Hqp_);
-    configureBSEOperator(hd);
+    configureBSEOperator(hd, ReusableCache(direct_caches_.hd));
     ExpectationValues expectation_values =
         ExpectationValue_Operator(type, orb, hd);
     analysis.direct_contrib = expectation_values.direct_term;
   }
   if (!orb.getTDAApprox()) {
+    // only the cross term 2 Y.Hd2.X: Hd2 on X alone
     Hd2Operator hd2(epsilon_0_inv_, Mmn_, Hqp_);
-    configureBSEOperator(hd2);
-    ExpectationValues expectation_values =
-        ExpectationValue_Operator(type, orb, hd2);
-    analysis.direct_contrib += expectation_values.cross_term;
+    configureBSEOperator(hd2, ReusableCache(direct_caches_.hd2));
+    const tools::EigenSystem& coefs = GetBSEEigenSystem(type, orb);
+    analysis.direct_contrib +=
+        2 * ExpValue(coefs.eigenvectors2(), hd2 * coefs.eigenvectors());
   }
 
   double xpref = ExchangePrefactor(type);
@@ -695,63 +804,187 @@ BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
   return analysis;
 }
 
+double BSE::state_matrix_bytes_ = 1e9;
+
+namespace {
+using RowMajorMatrix =
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+
+// Number of hole levels per pass, so that the stacked intermediates of one
+// pass stay within the given bytes.
+Index HoleChunk(Index vtotal, Index ctotal, Index auxsize, double bytes) {
+  const double per_level =
+      8.0 * double(auxsize) * double(ctotal + 2 * std::max(vtotal, ctotal));
+  return std::clamp<Index>(Index(bytes / per_level), 1, vtotal);
+}
+
+// sum_PQ W_PQ G_PQ for W = vectors diag(values) vectors^T
+double ContractScreened(const SymmetricEigenSystem& W,
+                        const Eigen::MatrixXd& G) {
+  const Eigen::MatrixXd GPhi = G * W.vectors;
+  return (W.vectors.cwiseProduct(GPhi).colwise().sum().transpose().array() *
+          W.values.array())
+      .sum();
+}
+}  // namespace
+
+// G with <A|Hd|B> = -sum_PQ W_PQ G_PQ, summed over the pairs (A, B), for the
+// screened direct term Hd(v1c1, v2c2) = -M[c1](c2,:) W M[v1](v2,:)^T:
+//   G = sum_{v1 v2} b_{v1v2} a_{v1v2}^T,  a_{v1v2} = M[v1](v2,:),
+//   b_{v1v2} = sum_{c1 c2} A(v1,c1) B(v2,c2) M[c1](c2,:).
+Eigen::MatrixXd BSE::DirectTermDensity(
+    const std::vector<std::pair<const Eigen::VectorXd*,
+                                const Eigen::VectorXd*>>& pairs) const {
+  const Index vmin = opt_.vmin - opt_.rpamin;
+  const Index cmin = bse_cmin_ - opt_.rpamin;
+  const Index vt = bse_vtotal_;
+  const Index ct = bse_ctotal_;
+  const Index N = Mmn_.auxsize();
+  const Index chunk = HoleChunk(vt, ct, N, state_matrix_bytes_);
+  Eigen::MatrixXd G = Eigen::MatrixXd::Zero(N, N);
+  for (Index v0 = 0; v0 < vt; v0 += chunk) {
+    const Index nc = std::min(chunk, vt - v0);
+    // rows j * vt + v1: b_{v1, v0 + j}
+    Eigen::MatrixXd b = Eigen::MatrixXd::Zero(nc * vt, N);
+    for (const auto& pair : pairs) {
+      // coefficient vectors as (c, v) matrices, index v * ct + c
+      Eigen::Map<const Eigen::MatrixXd> A(pair.first->data(), ct, vt);
+      Eigen::Map<const Eigen::MatrixXd> B(pair.second->data(), ct, vt);
+      const Eigen::MatrixXd Bchunk = B.middleCols(v0, nc).transpose();
+      // T[j](c1, :) = sum_c2 B(v0 + j, c2) M[c1](c2, :)
+      std::vector<RowMajorMatrix> T(std::size_t(nc), RowMajorMatrix(ct, N));
+#pragma omp parallel for schedule(dynamic)
+      for (Index c1 = 0; c1 < ct; ++c1) {
+        const Eigen::MatrixXd t = Bchunk * Mmn_[c1 + cmin].middleRows(cmin, ct);
+        for (Index j = 0; j < nc; ++j) {
+          T[std::size_t(j)].row(c1) = t.row(j);
+        }
+      }
+#pragma omp parallel for schedule(dynamic)
+      for (Index j = 0; j < nc; ++j) {
+        b.middleRows(j * vt, vt).noalias() += A.transpose() * T[std::size_t(j)];
+      }
+    }
+    Eigen::MatrixXd a(nc * vt, N);
+#pragma omp parallel for schedule(dynamic)
+    for (Index v1 = 0; v1 < vt; ++v1) {
+      for (Index j = 0; j < nc; ++j) {
+        a.row(j * vt + v1) = Mmn_[v1 + vmin].row(vmin + v0 + j);
+      }
+    }
+    G.noalias() += b.transpose() * a;
+  }
+  return G;
+}
+
+// G with <A|Hd2|B> = -sum_PQ W_PQ G_PQ for the screened coupling term
+// Hd2(v1c1, v2c2) = -M[v1](c2,:) W M[c1](v2,:)^T:
+//   G = sum_{c1 v2} b_{c1v2} a_{c1v2}^T,  a_{c1v2} = M[c1](v2,:),
+//   b_{c1v2} = sum_{v1 c2} A(v1,c1) B(v2,c2) M[v1](c2,:).
+Eigen::MatrixXd BSE::CouplingTermDensity(const Eigen::VectorXd& Avec,
+                                         const Eigen::VectorXd& Bvec) const {
+  const Index vmin = opt_.vmin - opt_.rpamin;
+  const Index cmin = bse_cmin_ - opt_.rpamin;
+  const Index vt = bse_vtotal_;
+  const Index ct = bse_ctotal_;
+  const Index N = Mmn_.auxsize();
+  const Index chunk = HoleChunk(vt, ct, N, state_matrix_bytes_);
+  Eigen::Map<const Eigen::MatrixXd> A(Avec.data(), ct, vt);
+  Eigen::Map<const Eigen::MatrixXd> B(Bvec.data(), ct, vt);
+  Eigen::MatrixXd G = Eigen::MatrixXd::Zero(N, N);
+  for (Index v0 = 0; v0 < vt; v0 += chunk) {
+    const Index nc = std::min(chunk, vt - v0);
+    const Eigen::MatrixXd Bchunk = B.middleCols(v0, nc).transpose();
+    // U[j](v1, :) = sum_c2 B(v0 + j, c2) M[v1](c2, :)
+    std::vector<RowMajorMatrix> U(std::size_t(nc), RowMajorMatrix(vt, N));
+#pragma omp parallel for schedule(dynamic)
+    for (Index v1 = 0; v1 < vt; ++v1) {
+      const Eigen::MatrixXd u = Bchunk * Mmn_[v1 + vmin].middleRows(cmin, ct);
+      for (Index j = 0; j < nc; ++j) {
+        U[std::size_t(j)].row(v1) = u.row(j);
+      }
+    }
+    // rows j * ct + c1: b_{c1, v0 + j} and a_{c1, v0 + j}
+    Eigen::MatrixXd b(nc * ct, N);
+#pragma omp parallel for schedule(dynamic)
+    for (Index j = 0; j < nc; ++j) {
+      b.middleRows(j * ct, ct).noalias() = A * U[std::size_t(j)];
+    }
+    Eigen::MatrixXd a(nc * ct, N);
+#pragma omp parallel for schedule(dynamic)
+    for (Index c1 = 0; c1 < ct; ++c1) {
+      for (Index j = 0; j < nc; ++j) {
+        a.row(j * ct + c1) = Mmn_[c1 + cmin].row(vmin + v0 + j);
+      }
+    }
+    G.noalias() += b.transpose() * a;
+  }
+  return G;
+}
+
 // Dynamical Screening in BSE as perturbation to static excitation energies
 // as in Phys. Rev. B 80, 241405 (2009) for the TDA case
+//
+// The integrals stay in the frame of the static screening set up in
+// configure, where W(0) = diag(epsilon_0_inv_). For each state, the
+// screened terms <X|Hd|X> + <Y|Hd|Y> + 2<Y|Hd2|X> are -sum_PQ W_PQ G_PQ with
+// state matrices G built once, so W(w) at the next frequency costs one
+// dielectric matrix and its eigenvectors: no pass over the BSE Hamiltonian
+// and no rotation of the integrals per state and step.
 void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
                                           Orbitals& orb) {
+  // no BSE operators from here on: free the kept direct terms
+  ReleaseDirectCaches();
 
   const tools::EigenSystem& BSECoefs = GetBSEEigenSystem(type, orb);
-
   const Eigen::VectorXd& RPAInputEnergies = orb.RPAInputEnergies();
-
-  // static case as reference
-  SetupDirectInteractionOperator(RPAInputEnergies, 0.0);
-  HdOperator Hd_static(epsilon_0_inv_, Mmn_, Hqp_);
-  configureBSEOperator(Hd_static);
-  ExpectationValues expectation_values =
-      ExpectationValue_Operator(type, orb, Hd_static);
-  Eigen::VectorXd Hd_static_contribution = expectation_values.direct_term;
-  if (!orb.getTDAApprox()) {
-    Hd2Operator Hd2_static(epsilon_0_inv_, Mmn_, Hqp_);
-    configureBSEOperator(Hd2_static);
-    expectation_values = ExpectationValue_Operator(type, orb, Hd2_static);
-    Hd_static_contribution += expectation_values.cross_term;
-  }
+  const bool full = !orb.getTDAApprox();
 
   const Eigen::VectorXd& BSEenergies = BSECoefs.eigenvalues();
 
   // initial copy of static BSE energies to dynamic
   Eigen::VectorXd BSEenergies_dynamic = BSEenergies;
 
-  // recalculate Hd at the various energies
   for (Index i_exc = 0; i_exc < BSEenergies.size(); i_exc++) {
     XTP_LOG(Log::info, log_) << "Dynamical Screening BSE, Excitation " << i_exc
                              << " static " << BSEenergies(i_exc) << flush;
 
+    const Eigen::VectorXd X = BSECoefs.eigenvectors().col(i_exc);
+    Eigen::VectorXd Y;
+    std::vector<std::pair<const Eigen::VectorXd*, const Eigen::VectorXd*>>
+        pairs{{&X, &X}};
+    if (full) {
+      Y = BSECoefs.eigenvectors2().col(i_exc);
+      pairs.emplace_back(&Y, &Y);
+    }
+    const Eigen::MatrixXd Gd = DirectTermDensity(pairs);
+    Eigen::MatrixXd G2;
+    if (full) {
+      G2 = CouplingTermDensity(Y, X);
+    }
+    // screened direct contribution for W(w), or for the static W(0)
+    auto Hd = [&](const SymmetricEigenSystem* W) {
+      double value = (W != nullptr) ? ContractScreened(*W, Gd)
+                                    : epsilon_0_inv_.dot(Gd.diagonal());
+      if (full) {
+        value += 2 * ((W != nullptr) ? ContractScreened(*W, G2)
+                                     : epsilon_0_inv_.dot(G2.diagonal()));
+      }
+      return -value;
+    };
+    const double Hd_static_contribution = Hd(nullptr);
+
     for (Index iter = 0; iter < max_dyn_iter_; iter++) {
 
-      // setup the direct operator with the last energy as screening frequency
+      // screened interaction at the last energy as screening frequency
       double old_energy = BSEenergies_dynamic(i_exc);
-      SetupDirectInteractionOperator(RPAInputEnergies, old_energy);
-      HdOperator Hd_dyn(epsilon_0_inv_, Mmn_, Hqp_);
-      configureBSEOperator(Hd_dyn);
-
-      // get the contribution of Hd for the dynamic case
-      QMState state(type, i_exc, false);
-      expectation_values = ExpectationValue_Operator_State(state, orb, Hd_dyn);
-      Eigen::VectorXd Hd_dynamic_contribution = expectation_values.direct_term;
-      if (!orb.getTDAApprox()) {
-        Hd2Operator Hd2_dyn(epsilon_0_inv_, Mmn_, Hqp_);
-        configureBSEOperator(Hd2_dyn);
-        expectation_values =
-            ExpectationValue_Operator_State(state, orb, Hd2_dyn);
-        Hd_dynamic_contribution += expectation_values.cross_term;
-      }
+      DFTTimings timings;
+      const SymmetricEigenSystem W =
+          ScreenedInteraction(RPAInputEnergies, old_energy, timings);
 
       // new energy perturbatively
-      BSEenergies_dynamic(i_exc) = BSEenergies(i_exc) +
-                                   Hd_static_contribution(i_exc) -
-                                   Hd_dynamic_contribution(0);
+      BSEenergies_dynamic(i_exc) =
+          BSEenergies(i_exc) + Hd_static_contribution - Hd(&W);
 
       XTP_LOG(Log::info, log_)
           << "Dynamical Screening BSE, excitation " << i_exc << " iteration "

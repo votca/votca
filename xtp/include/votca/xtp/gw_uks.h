@@ -31,6 +31,8 @@ class GW_UKS {
 
  public:
   struct options {
+    // RPA energies of levels outside the GW window (OutOfWindowShift)
+    OutOfWindowShift out_of_window_shift;
     Index homo_alpha;
     Index homo_beta;
     Index qpmin;
@@ -72,9 +74,21 @@ class GW_UKS {
     Index order;
     double alpha;
     bool qp_restrict_search = true;
+    // evGW: after the first iteration keep each level on the root branch of
+    // the previous iteration (closest accepted root) instead of re-choosing
+    // by weight
+    bool qp_root_continuity = true;
+    // evGW: when W is rebuilt (see ScreeningUpdate): "every" or "adaptive"
+    std::string screening_update = "adaptive";
+    // evGW: after the first iteration search each level's root only near
+    // its previous one (falling back to the full search), verified by one
+    // full search after convergence
+    bool qp_root_tracking = false;
+    double screening_update_ratio = 0.1;
+    Index screening_update_max_inner = 10;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
-    std::string qp_root_finder = "bisection";
+    std::string qp_root_finder = "brent";
     std::string qp_grid_search_mode = "adaptive_with_dense_fallback";
   };
 
@@ -85,6 +99,12 @@ class GW_UKS {
 
   void configure(const options& opt);
   void CalculateGWPerturbation();
+  /// Frozen-core exchange per spin, see GW::setCoreExchange
+  void setCoreExchange(const Eigen::MatrixXd& alpha,
+                       const Eigen::MatrixXd& beta) {
+    core_exchange_alpha_ = alpha;
+    core_exchange_beta_ = beta;
+  }
   void CalculateHQP();
 
   Eigen::VectorXd getGWAResultsAlpha() const;
@@ -97,6 +117,11 @@ class GW_UKS {
       const;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonianBeta()
       const;
+  /// Of the last evGW run: screening builds, QP iterations (one solve of
+  /// both spins each) and level solves done by root tracking (locally)
+  Index ScreeningBuilds() const { return screening_builds_; }
+  Index QPIterations() const { return qp_iterations_; }
+  Index TrackedLocalSolves() const { return tracked_local_total_; }
 
  private:
   enum class Spin { Alpha, Beta };
@@ -124,7 +149,32 @@ class GW_UKS {
       }
 
       CountSigmaStage(stage);
+      auto cached = cache_.find(key);
+      if (cached != cache_.end()) {
+        return cached->second;
+      }
       return sigma_c_func_.CalcCorrelationDiagElement(gw_level_, frequency);
+    }
+
+    /// Evaluates Sigma_c at these frequencies in one batch and keeps the
+    /// values for later sigma() calls at exactly these frequencies (as
+    /// GW::QPFunc::Prefetch).
+    void Prefetch(const std::vector<double>& frequencies) const {
+      std::vector<double> todo;
+      for (double f : frequencies) {
+        if (cache_.find(FrequencyKey(f)) == cache_.end()) {
+          todo.push_back(f);
+        }
+      }
+      if (todo.empty()) {
+        return;
+      }
+      const Eigen::VectorXd values = sigma_c_func_.CalcCorrelationDiagElements(
+          gw_level_,
+          Eigen::Map<const Eigen::VectorXd>(todo.data(), Index(todo.size())));
+      for (std::size_t i = 0; i < todo.size(); ++i) {
+        cache_[FrequencyKey(todo[i])] = values(Index(i));
+      }
     }
 
     double value(double frequency, EvalStage stage = EvalStage::Other) const {
@@ -172,6 +222,7 @@ class GW_UKS {
     const Sigma_base_UKS& sigma_c_func_;
 
     mutable std::unordered_set<std::uint64_t> seen_frequencies_;
+    mutable std::unordered_map<std::uint64_t, double> cache_;
     mutable QPStats stats_;
   };
 
@@ -195,6 +246,29 @@ class GW_UKS {
   void PrintQP_Energies(Spin spin,
                         const Eigen::VectorXd& qp_diag_energies) const;
   Eigen::VectorXd SolveQP(Spin spin, const Eigen::VectorXd& frequencies) const;
+  // per spin and level of the last SolveQP: whether two accepted roots carry
+  // comparable weight (see qp_solver::CheckCompetingRoots)
+  mutable std::vector<qp_solver::CompetingRoots> competing_roots_[2];
+  // root tracking per spin (see GW): roots, weights, last changes
+  mutable Eigen::VectorXd tracked_root_[2];
+  mutable Eigen::VectorXd tracked_Z_[2];
+  mutable Eigen::VectorXd tracked_change_[2];
+  mutable bool tracking_active_ = false;
+  mutable Index tracked_local_total_ = 0;
+  Eigen::MatrixXd core_exchange_alpha_;  // see setCoreExchange
+  Eigen::MatrixXd core_exchange_beta_;
+  Index screening_builds_ = 0;
+  Index qp_iterations_ = 0;
+  void RecordCompetingRoots(Spin spin, Index gw_level,
+                            const std::vector<QPRootCandidate>& roots,
+                            double chosen) const {
+    auto& list = competing_roots_[spin == Spin::Alpha ? 0 : 1];
+    if (gw_level < Index(list.size())) {
+      list[std::size_t(gw_level)] =
+          qp_solver::CheckCompetingRoots(roots, chosen);
+    }
+  }
+  void PrintCompetingRoots(Spin spin, Log::Level level) const;
 
   boost::optional<double> SolveQP_Grid(Spin spin, double intercept0,
                                        double frequency0, Index gw_level,

@@ -18,6 +18,7 @@
  */
 
 // Standard includes
+#include <chrono>
 #include <fstream>
 #include <iostream>
 
@@ -26,8 +27,10 @@
 #include "votca/xtp/anderson_mixing.h"
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/gw.h"
+#include "votca/xtp/memorybudget.h"
 #include "votca/xtp/newton_rapson.h"
 #include "votca/xtp/rpa.h"
+#include "votca/xtp/screening_update.h"
 #include "votca/xtp/sigmafactory.h"
 
 namespace votca {
@@ -42,7 +45,10 @@ void GW::configure(const options& opt) {
   qp_solver::NormalizeGridSearchOptions(opt_);
   qptotal_ = opt_.qpmax - opt_.qpmin + 1;
   rpa_.configure(opt_.homo, opt_.rpamin, opt_.rpamax);
+  rpa_.setOutOfWindowShift(opt_.out_of_window_shift);
   sigma_ = SigmaFactory().Create(opt_.sigma_integration, Mmn_, rpa_);
+  sigma_->setTimings(&timings_);
+  rpa_.setTimings(&timings_);
   Sigma_base::options sigma_opt;
   sigma_opt.homo = opt_.homo;
   sigma_opt.qpmax = opt_.qpmax;
@@ -275,8 +281,15 @@ Eigen::VectorXd GW::ScissorShift_DFTlevel(
 }
 
 void GW::CalculateGWPerturbation() {
-
-  Sigma_x_ = (1 - opt_.ScaHFX) * sigma_->CalcExchangeMatrix();
+  timings_.Reset();
+  qsgw_final_energies_.resize(0);
+  {
+    auto t = timings_.Measure("exchange Sigma_x");
+    Sigma_x_ = (1 - opt_.ScaHFX) * sigma_->CalcExchangeMatrix();
+    if (core_exchange_.size() > 0) {
+      Sigma_x_ += (1 - opt_.ScaHFX) * core_exchange_;
+    }
+  }
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Calculated Hartree exchange contribution"
       << std::flush;
@@ -285,11 +298,15 @@ void GW::CalculateGWPerturbation() {
   // independent. Not scaled by ScaHFX: the DFT starting point has no
   // reaction field to double count.
   if (reaction_field_.size() > 0) {
+    auto t = timings_.Measure("reaction field Sigma_reac");
     Sigma_reac_ = sigma_->CalcReactionFieldMatrix(reaction_field_);
     PrintReactionFieldShifts();
   }
   // From here on the RPA and Sigma_c see u = v + v_reac.
-  DressForEnvironment();
+  {
+    auto t = timings_.Measure("dress Mmn for the environment");
+    DressForEnvironment();
+  }
   // dftenergies has size aobasissize
   // rpaenergies/Mmn have size rpatotal
   // gwaenergies/frequencies have size qptotal
@@ -305,29 +322,92 @@ void GW::CalculateGWPerturbation() {
 
   Anderson mixing_;
   mixing_.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
+  // The QP energies of the last QP solve and the RPA energies it saw (G and
+  // W); after the solve, the RPA energies and, with mixing, frequencies are
+  // already the input of the next iteration.
+  Eigen::VectorXd qp_solution = frequencies;
+  Eigen::VectorXd rpa_energies_solved = rpa_.getRPAInputEnergies();
+
+  ScreeningUpdate screening;
+  screening.Configure(ScreeningUpdate::Parse(opt_.screening_update),
+                      opt_.screening_update_ratio,
+                      opt_.screening_update_max_inner);
+  bool rebuild_screening = true;
+  // QP iterations since the mixing history was (re)started: it restarts when
+  // an adaptive update rebuilds W, since the fixed-point map changes then
+  Index mixing_iteration = 0;
+  Index n_iterations = 0;
+  // root tracking: off in the first iteration and for the verifying full
+  // search after convergence (and for the rest of the run if that search
+  // moves a level)
+  tracked_root_.resize(0);
+  tracking_active_ = false;
+  tracked_local_total_ = 0;
+  bool tracking_verified = false;
+  bool verifying = false;  // this iteration is the verifying full search
 
   for (Index i_gw = 0; i_gw < opt_.gw_sc_max_iterations; ++i_gw) {
     gw_sc_iteration_ = i_gw;
-    if (i_gw % opt_.reset_3c == 0 && i_gw != 0) {
+    tracking_active_ = opt_.qp_root_tracking && i_gw > 0 && !tracking_verified;
+    const Eigen::VectorXd roots_before = tracked_root_;
+    if (opt_.reset_3c > 0 && i_gw % opt_.reset_3c == 0 && i_gw != 0) {
+      auto t = timings_.Measure("rebuild Mmn");
       Mmn_.Rebuild();
       XTP_LOG(Log::info, log_)
           << TimeStamp() << " Rebuilding 3c integrals" << std::flush;
-      DressForEnvironment();  // Rebuild leaves them bare
+      DressForEnvironment();     // Rebuild leaves them bare
+      rebuild_screening = true;  // the screening frame is gone too
     }
-    sigma_->PrepareScreening();
-    XTP_LOG(Log::info, log_)
-        << TimeStamp() << " Calculated screening via RPA" << std::flush;
+    if (rebuild_screening) {
+      if (i_gw == 0) {
+        XTP_LOG(Log::error, log_) << TimeStamp() << " Building the screening; "
+                                  << MemoryBudget::Usage() << std::flush;
+      }
+      {
+        auto t = timings_.Measure("screening: other");
+        sigma_->PrepareScreening();
+      }
+      screening.Built(rpa_.getRPAInputEnergies());
+      if (screening.mode() == ScreeningUpdate::Mode::Adaptive &&
+          screening.builds() > 1) {
+        mixing_ = Anderson();
+        mixing_.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
+        mixing_iteration = 0;
+      }
+      if (const std::string summary = sigma_->ScreeningSummary();
+          !summary.empty()) {
+        const Log::Level level =
+            (i_gw == 0) ? Log::Level::error : Log::Level::info;
+        XTP_LOG(level, log_) << TimeStamp() << " " << summary << std::flush;
+      }
+      if (i_gw == 0) {
+        XTP_LOG(Log::error, log_) << TimeStamp() << " Screening built; "
+                                  << MemoryBudget::Usage() << std::flush;
+      }
+      XTP_LOG(Log::info, log_)
+          << TimeStamp() << " Calculated screening via RPA (build "
+          << screening.builds() << ")" << std::flush;
+    }
     XTP_LOG(Log::info, log_)
         << TimeStamp() << " Solving QP equations " << std::flush;
-    if (opt_.gw_mixing_order > 0 && i_gw > 0) {
+    const bool mix = opt_.gw_mixing_order > 0 && mixing_iteration > 0;
+    if (mix) {
       mixing_.UpdateInput(frequencies);
     }
 
-    frequencies = SolveQP(frequencies);
+    const Eigen::VectorXd qp_input = frequencies;
+    {
+      auto t = timings_.Measure("QP equations (Sigma_c diagonal)");
+      frequencies = SolveQP(frequencies);
+    }
+    qp_solution = frequencies;
+    rpa_energies_solved = rpa_.getRPAInputEnergies();
+    ++mixing_iteration;
+    ++n_iterations;
 
     if (opt_.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = rpa_.getRPAInputEnergies();
-      if (opt_.gw_mixing_order > 0 && i_gw > 0) {
+      if (mix) {
         if (opt_.gw_mixing_order == 1) {
           XTP_LOG(Log::debug, log_)
               << "GWSC using linear mixing with alpha: " << opt_.gw_mixing_alpha
@@ -358,8 +438,63 @@ void GW::CalculateGWPerturbation() {
       XTP_LOG(Log::info, log_)
           << TimeStamp() << " GW_Iteration:" << i_gw
           << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
-      if (Converged(rpa_.getRPAInputEnergies(), rpa_energies_old,
-                    opt_.gw_sc_limit)) {
+      // logs the largest change of the (mixed) energies; the decision is
+      // ScreeningUpdate's, on the residual of the QP solve
+      Converged(rpa_.getRPAInputEnergies(), rpa_energies_old, opt_.gw_sc_limit);
+      const double residual = (qp_solution - qp_input).cwiseAbs().maxCoeff();
+      XTP_LOG(Log::info, log_) << TimeStamp() << " QP residual (solution - "
+                               << "input) max=" << residual << std::flush;
+      XTP_LOG(Log::info, log_)
+          << TimeStamp() << " Largest QP residuals (level: input -> solution): "
+          << qp_solver::LargestResiduals(qp_solution, qp_input, opt_.qpmin)
+          << std::flush;
+      double drift = 0.0;
+      const ScreeningUpdate::Next next = screening.Decide(
+          residual, rpa_.getRPAInputEnergies(), opt_.gw_sc_limit, &drift);
+      if (screening.mode() == ScreeningUpdate::Mode::Adaptive) {
+        XTP_LOG(Log::info, log_)
+            << TimeStamp() << " Change since the screening was built: " << drift
+            << " Hrt after " << screening.inner() << " iteration(s)"
+            << ((next == ScreeningUpdate::Next::Rebuild) ? "; rebuilding W"
+                                                         : "")
+            << std::flush;
+      }
+      if (verifying && roots_before.size() == qptotal_) {
+        // the full search after a converged tracked run: report levels it
+        // put on another root than tracking did
+        std::vector<Index> moved;
+        for (Index l = 0; l < qptotal_; ++l) {
+          if (std::abs(tracked_root_(l) - roots_before(l)) >
+              10.0 * opt_.gw_sc_limit) {
+            moved.push_back(l + opt_.qpmin);
+          }
+        }
+        if (!moved.empty() && next != ScreeningUpdate::Next::Converged) {
+          IndexParser rp;
+          XTP_LOG(Log::error, log_)
+              << TimeStamp() << " QP root tracking: the full search chose "
+              << "other roots for levels " << rp.CreateIndexString(moved)
+              << "; continuing with the full search" << std::flush;
+        }
+        verifying = false;
+      }
+      if (next == ScreeningUpdate::Next::Converged && opt_.qp_root_tracking &&
+          !tracking_verified && i_gw > 0) {
+        // converged on the tracked roots: one QP solve with the full search
+        // (same G and W) checks that they are the roots the full search
+        // chooses; if so it converges at once
+        tracking_verified = true;
+        verifying = true;
+        rebuild_screening = false;
+        XTP_LOG(Log::info, log_)
+            << TimeStamp()
+            << " QP root tracking converged; verifying with a full search"
+            << std::flush;
+        if (i_gw < opt_.gw_sc_max_iterations - 1) {
+          continue;
+        }
+      }
+      if (next == ScreeningUpdate::Next::Converged) {
         XTP_LOG(Log::info, log_) << TimeStamp() << " Converged after "
                                  << i_gw + 1 << " GW iterations." << std::flush;
         break;
@@ -373,10 +508,38 @@ void GW::CalculateGWPerturbation() {
             << std::flush;
         break;
       }
+      rebuild_screening = (next == ScreeningUpdate::Next::Rebuild);
     }
   }
-  Sigma_c_.diagonal() = sigma_->CalcCorrelationDiag(frequencies);
+  screening_builds_ = screening.builds();
+  qp_iterations_ = n_iterations;
+  tracking_active_ = false;
+  if (opt_.gw_sc_max_iterations > 1) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " evGW: " << n_iterations << " QP iterations, "
+        << screening.builds() << " screening builds ("
+        << ScreeningUpdate::Name(screening.mode()) << ")"
+        << (opt_.qp_root_tracking
+                ? "; root tracking solved " +
+                      std::to_string(tracked_local_total_) + " of " +
+                      std::to_string(n_iterations * qptotal_) +
+                      " level solves locally"
+                : std::string())
+        << std::flush;
+  }
+  {
+    // Sigma_c of the last QP solve, at its solution and with the energies in
+    // G it saw, so that the PQP energies solve their QP equation. The RPA
+    // energies updated after the solve (input of a next iteration) stay.
+    PrintCompetingRoots(Log::error);
+    auto t = timings_.Measure("QP equations (Sigma_c diagonal)");
+    const Eigen::VectorXd rpa_energies_next = rpa_.getRPAInputEnergies();
+    rpa_.setRPAInputEnergies(rpa_energies_solved);
+    Sigma_c_.diagonal() = sigma_->CalcCorrelationDiag(qp_solution);
+    rpa_.setRPAInputEnergies(rpa_energies_next);
+  }
   PrintGWA_Energies();
+  timings_.Report(log_, Log::error, "GW timing summary");
 }
 
 Eigen::VectorXd GW::getGWAResults() const {
@@ -390,8 +553,34 @@ Eigen::VectorXd GW::getGWAResults() const {
          vxc_.diagonal() + dft_energies_.segment(opt_.qpmin, qptotal_);
 }
 
+void GW::PrintCompetingRoots(Log::Level level) const {
+  Index n = 0;
+  for (const auto& c : competing_roots_) {
+    n += c.competing ? 1 : 0;
+  }
+  if (n == 0) {
+    return;
+  }
+  XTP_LOG(level, log_) << TimeStamp() << " " << n
+                       << " QP level(s) with two roots of comparable weight "
+                          "(second Z at least half the largest):"
+                       << std::flush;
+  for (Index i = 0; i < Index(competing_roots_.size()); ++i) {
+    const auto& c = competing_roots_[std::size_t(i)];
+    if (c.competing) {
+      XTP_LOG(level, log_)
+          << (boost::format("   Level = %1$4d chosen %2$+1.6f (Z = %3$.3f), "
+                            "other %4$+1.6f (Z = %5$.3f)") %
+              (i + opt_.qpmin) % c.omega % c.Z % c.omega_alt % c.Z_alt)
+                 .str()
+          << std::flush;
+    }
+  }
+}
+
 Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
   sigma_->ResetDiagEvalCounter();
+  competing_roots_.assign(std::size_t(qptotal_), qp_solver::CompetingRoots{});
   Eigen::VectorXd env = Eigen::VectorXd::Zero(qptotal_);
 
   const Eigen::VectorXd intercepts =
@@ -403,6 +592,12 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
       Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(qptotal_);
 
   QPStats total_stats;
+  const bool track = opt_.qp_root_tracking;
+  const bool use_tracked =
+      track && tracking_active_ && tracked_root_.size() == qptotal_;
+  Eigen::VectorXd roots_new = frequencies;
+  Eigen::VectorXd Z_new = Eigen::VectorXd::Zero(qptotal_);
+  Index n_local = 0;
 
   // HOMO-LUMO midpoint of the current QP guesses (DFT energies where a
   // level is outside the QP range), for SolveQP_Grid's restricted window.
@@ -430,30 +625,71 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     double intercept = intercepts[gw_level];
     boost::optional<double> newf;
     QPStats local_stats;
+    double Z_root = 0.0;
 
-    if (opt_.qp_solver == "fixedpoint") {
+    if (use_tracked) {
+      auto cand = SolveQP_Tracked(intercept, initial_f, gw_level, &local_stats);
+      if (cand) {
+        newf = cand->omega;
+        Z_root = cand->Z;
+#pragma omp atomic
+        ++n_local;
+      }
+    }
+    if (!newf && opt_.qp_solver == "fixedpoint") {
       newf = SolveQP_FixedPoint(intercept, initial_f, gw_level, &local_stats);
     }
     if (newf) {
       frequencies_new[gw_level] = newf.value();
       converged[gw_level] = true;
     } else {
-      newf = SolveQP_Grid(intercept, initial_f, gw_level, &local_stats);
+      QPStats grid_stats;
+      newf = SolveQP_Grid(intercept, initial_f, gw_level, &grid_stats);
+      local_stats.Add(grid_stats);
       if (newf) {
         frequencies_new[gw_level] = newf.value();
         converged[gw_level] = true;
       } else {
+        QPStats lin_stats;
         newf =
-            SolveQP_Linearisation(intercept, initial_f, gw_level, &local_stats);
+            SolveQP_Linearisation(intercept, initial_f, gw_level, &lin_stats);
+        local_stats.Add(lin_stats);
         if (newf) {
           frequencies_new[gw_level] = newf.value();
         }
       }
     }
+    if (track && newf) {
+      roots_new[gw_level] = newf.value();
+      if (Z_root <= 0.0) {
+        // weight of a root from the full search, for the next local one
+        QPFunc fqp(gw_level, *sigma_.get(), intercept);
+        const double d = fqp.deriv(newf.value());
+        Z_root = (std::abs(d) > 1e-14) ? -1.0 / d : 0.0;
+      }
+      Z_new[gw_level] = Z_root;
+    }
 
 #pragma omp critical
     {
       total_stats.Add(local_stats);
+    }
+  }
+
+  if (track) {
+    tracked_change_ =
+        (tracked_root_.size() == qptotal_)
+            ? Eigen::VectorXd((roots_new - tracked_root_).cwiseAbs())
+            : Eigen::VectorXd::Zero(qptotal_);
+    tracked_root_ = roots_new;
+    tracked_Z_ = Z_new;
+    tracked_local_ = n_local;
+    tracked_local_total_ += n_local;
+    if (use_tracked) {
+      XTP_LOG(Log::info, log_)
+          << TimeStamp() << " QP root tracking: " << n_local << " of "
+          << qptotal_ << " levels solved near their previous root"
+          << std::flush;
     }
   }
 
@@ -491,6 +727,28 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
   return frequencies_new;
 }
 
+boost::optional<qp_solver::RootCandidate> GW::SolveQP_Tracked(
+    double intercept0, double frequency0, Index gw_level,
+    QPStats* stats) const {
+  const double center = tracked_root_(gw_level);
+  // a few times the last change of the root or of the input, within limits
+  const double moved =
+      std::max(tracked_change_(gw_level), std::abs(frequency0 - center));
+  const double halfwidth = std::clamp(4.0 * moved, 0.01, 0.1);
+  QPFunc fqp(gw_level, *sigma_.get(), intercept0);
+  qp_solver::SolverOptions solver_opt;
+  solver_opt.g_sc_limit = opt_.g_sc_limit;
+  solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
+  solver_opt.qp_dense_spacing = opt_.qp_dense_spacing;
+  auto cand = qp_solver::SolveQP_Tracked(fqp, center, halfwidth,
+                                         tracked_Z_(gw_level), 0.5, solver_opt,
+                                         opt_.qp_root_finder == "brent");
+  if (stats != nullptr) {
+    *stats = fqp.GetStats();
+  }
+  return cand;
+}
+
 boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
                                                   double frequency0,
                                                   Index gw_level,
@@ -499,12 +757,10 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
 
   QPFunc fqp(gw_level, *sigma_.get(), intercept0);
 
-  double sigma = fqp.sigma(frequency0, EvalStage::Other);
-  double dsigma_domega = fqp.deriv(frequency0);
-  double Z = 1.0 - dsigma_domega;
-  if (std::abs(Z) > 1e-9) {
-    newf = frequency0 + (intercept0 - frequency0 + sigma) / Z;
-  }
+  // fqp.deriv is f'(w) = dSigma_c/dw - 1
+  newf = qp_solver::LinearisedRoot(frequency0,
+                                   fqp.value(frequency0, EvalStage::Other),
+                                   fqp.deriv(frequency0));
 
   if (stats != nullptr) {
     *stats = fqp.GetStats();
@@ -529,6 +785,8 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Adaptive(
   solver_opt.qp_dense_spacing = opt_.qp_dense_spacing;
   solver_opt.qp_adaptive_shell_width = opt_.qp_adaptive_shell_width;
   solver_opt.qp_adaptive_shell_count = opt_.qp_adaptive_shell_count;
+  solver_opt.prefer_nearest_root =
+      opt_.qp_root_continuity && gw_sc_iteration_ > 0;
 
   QPWindowDiagnostics wdiag;
   std::vector<QPRootCandidate> accepted_roots;
@@ -563,6 +821,9 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Adaptive(
   }
 
   if (!accepted_roots.empty()) {
+    if (result) {
+      RecordCompetingRoots(gw_level, accepted_roots, result.value());
+    }
     return result;
   }
 
@@ -598,6 +859,8 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Dense(
   solver_opt.qp_dense_spacing = opt_.qp_dense_spacing;
   solver_opt.qp_adaptive_shell_width = opt_.qp_adaptive_shell_width;
   solver_opt.qp_adaptive_shell_count = opt_.qp_adaptive_shell_count;
+  solver_opt.prefer_nearest_root =
+      opt_.qp_root_continuity && gw_sc_iteration_ > 0;
 
   const bool use_brent = (opt_.qp_root_finder == "brent");
 
@@ -617,12 +880,24 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Dense(
                std::ceil((right_limit - left_limit) / opt_.qp_dense_spacing)) +
                1);
 
+    auto node = [&](Index i_node) {
+      return (i_node == n_steps - 1)
+                 ? right_limit
+                 : std::min(right_limit,
+                            left_limit + static_cast<double>(i_node) *
+                                             opt_.qp_dense_spacing);
+    };
+    {
+      // all scan nodes in one batch
+      std::vector<double> nodes;
+      for (Index i_node = 1; i_node < n_steps; ++i_node) {
+        nodes.push_back(node(i_node));
+      }
+      qp_solver::PrefetchIfAvailable(fqp, nodes, 0);
+    }
+
     for (Index i_node = 1; i_node < n_steps; ++i_node) {
-      const double freq =
-          (i_node == n_steps - 1)
-              ? right_limit
-              : std::min(right_limit, left_limit + static_cast<double>(i_node) *
-                                                       opt_.qp_dense_spacing);
+      const double freq = node(i_node);
 
       const double targ = fqp.value(freq, EvalStage::Scan);
 
@@ -669,12 +944,9 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Dense(
   }
 
   if (!accepted_roots.empty()) {
-    auto best = std::max_element(
-        accepted_roots.begin(), accepted_roots.end(),
-        [](const QPRootCandidate& a, const QPRootCandidate& b) {
-          return qp_solver::ScoreRoot(a) < qp_solver::ScoreRoot(b);
-        });
-    return best->omega;
+    const double best = qp_solver::SelectRoot(accepted_roots, solver_opt).omega;
+    RecordCompetingRoots(gw_level, accepted_roots, best);
+    return best;
   }
 
   if (!rejected_roots.empty()) {
@@ -864,9 +1136,23 @@ bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
 }
 
 void GW::CalculateHQP() {
+  if (!sigma_->HasOffDiagonal()) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " WARNING: no off-diagonal Sigma_c for sigma "
+        << "integration " << opt_.sigma_integration
+        << "; the DQP Hamiltonian has no off-diagonal correlation"
+        << std::flush;
+  }
+  const auto start = std::chrono::steady_clock::now();
   Eigen::VectorXd diag_backup = Sigma_c_.diagonal();
   Sigma_c_ = sigma_->CalcCorrelationOffDiag(getGWAResults());
   Sigma_c_.diagonal() = diag_backup;
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Sigma_c off-diagonal ("
+      << qptotal_ * (qptotal_ - 1) / 2 << " pairs) took "
+      << std::chrono::duration<double>(std::chrono::steady_clock::now() - start)
+             .count()
+      << " s" << std::flush;
 }
 
 // =============================================================================
@@ -879,15 +1165,15 @@ void GW::CalculateHQP() {
 //   gw_level  : 0-based index within the QP window  [0, qptotal_)
 //   MO level  : absolute MO index = gw_level + opt_.qpmin
 //
-// H_QSGW[m,n] = (e_DFT[m] - v_xc[m]) * delta_{mn} + tilde_Sigma[m,n]
-//
-// where tilde_Sigma = 0.5 * Re( Sigma(e_m) + Sigma(e_n) )
-//                   = 0.5 * (Sigma_x + Sigma_x^T)     <- exchange (already sym)
-//                   + 0.5 * (Sigma_c(e_m,e_n) + Sigma_c(e_n,e_m)^T) <- corr
-//
-// Note: CalcCorrelationOffDiag(freqs) evaluates element (m,n) at
-//       frequency freqs[m] for the row index. To form the symmetrised
-//       average we call it twice with swapped frequency vectors.
+// In the DFT-MO basis of the window
+//   H_QSGW = (diag(e_DFT) - V_xc) + U tilde_Sigma U^T,
+// with U the current QP orbitals (columns, phi_i = sum_k U_ki psi_k) and
+//   tilde_Sigma_ij = Sigma_x,ij + 1/2 [Sigma_c,ij(E_i) + Sigma_c,ij(E_j)]
+// in the QP basis, E_i the QP energy of phi_i. tilde_Sigma is evaluated
+// with the integrals rotated to the QP orbitals (both orbital indices), so
+// external indices, internal sums, energies and screening all refer to the
+// same orbitals. CalcCorrelationOffDiag returns the symmetrised off-diagonal
+// part, CalcCorrelationDiag the diagonal.
 // =============================================================================
 void GW::CalculateQSGW() {
   XTP_LOG(Log::error, log_)
@@ -981,13 +1267,8 @@ void GW::CalculateQSGW() {
         "sigma_integration=exact instead.");
   }
 
-  // H0 = diag(e_DFT - v_xc): diagonal approximation for the non-interacting
-  // part of H_QSGW. The off-diagonal V_xc elements are neglected here.
-  // Their significance is printed above for diagnostics.
-  const Eigen::VectorXd e_dft_minus_vxc =
-      dft_energies_.segment(opt_.qpmin, qsgw_qptotal) -
-      vxc_.diagonal().head(qsgw_qptotal);
-
+  // H0 = diag(e_DFT) - V_xc in the DFT-MO basis of the window (the full
+  // V_xc matrix: H_KS is diagonal there, H_KS - V_xc is not)
   Eigen::MatrixXd H0 = -vxc_.topLeftCorner(qsgw_qptotal, qsgw_qptotal);
   H0.diagonal() += dft_energies_.segment(opt_.qpmin, qsgw_qptotal);
 
@@ -1017,32 +1298,47 @@ void GW::CalculateQSGW() {
   // terms are blind to it; an environment reaction field is not.
   const Eigen::MatrixXd aux_frame_orig = Mmn_.AuxFrame();
 
-  // Anderson/DIIS mixer for tilde_Sigma.
-  // Reuses gw_mixing_order and gw_mixing_alpha options.
+  // Fixed-point problem in tilde_Sigma (DFT-MO basis of the window):
+  //   S_in -> H = H0 + S_in -> (E, U) -> S_out = F(S_in),
+  // solved with Anderson/Pulay mixing of the pairs (S_in, S_out); energies
+  // and orbitals always come from the same H. Converged when the residual
+  // max|S_out - S_in| and the change of the QP energies are below
+  // qsgw_sc_limit; the result is the eigensystem of H0 + S_out.
+  // Reuses gw_mixing_order and gw_mixing_alpha.
   Anderson qsgw_mixer;
   qsgw_mixer.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
   XTP_LOG(Log::error, log_)
       << TimeStamp() << "  QSGW mixer: order=" << opt_.gw_mixing_order
       << " alpha=" << opt_.gw_mixing_alpha << std::flush;
 
-  // Register the QSGW rotation with sigma and rpa so that PrepareScreening
-  // and the RPA functions apply the m-rotation to QP-window hole slices.
-  // At iteration 0 qsgw_rotation_ is identity so no actual rotation is done
-  // (the pointer is set; the rotation only matters when iter > 0).
-  sigma_->setQSGWRotation(&qsgw_rotation_, opt_.qpmin, opt_.homo);
-  rpa_.setQSGWRotation(&qsgw_rotation_, opt_.qpmin, opt_.homo);
+  // Start consistently: G and W with the seed QP energies in iteration 0
+  // (after G0W0 the RPA energies are still the DFT ones).
+  rpa_.UpdateRPAInputEnergies(dft_energies_, e_qp, opt_.qpmin);
 
-  double diff_max_prev = std::numeric_limits<double>::max();
+  const Index nflat = qsgw_qptotal * qsgw_qptotal;
+  auto diagonalise = [&](const Eigen::VectorXd& S, Index iter) {
+    const Eigen::MatrixXd H = H0 + Eigen::Map<const Eigen::MatrixXd>(
+                                       S.data(), qsgw_qptotal, qsgw_qptotal);
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H);
+    if (es.info() != Eigen::ComputationInfo::Success) {
+      throw std::runtime_error(
+          "GW::CalculateQSGW: diagonalisation of H_QSGW failed at iter " +
+          std::to_string(iter));
+    }
+    return es;
+  };
 
+  Eigen::VectorXd S_in;  // the tilde_Sigma the current (e_qp, U) came from
+  bool converged = false;
   for (Index iter = 0; iter < opt_.qsgw_max_iterations; iter++) {
 
-    // ── Step 1: restore Mmn_ to DFT-MO basis and apply full rotation ─────────
+    // ── Step 1: integrals in the current QP orbitals ────────────────────────
     for (Index m = 0; m < mtotal; m++) {
       Mmn_[m] = Mmn_orig[m];
     }
     Mmn_.RestoreAuxFrame(aux_frame_orig);
     if (iter > 0) {
-      Mmn_.Rotate(qsgw_rotation_, opt_.qpmin, qsgw_qpmax);
+      Mmn_.RotateOrbitals(qsgw_rotation_, opt_.qpmin, qsgw_qpmax);
     }
 
     // Environment reaction field in the current QP basis: it depends on
@@ -1056,139 +1352,80 @@ void GW::CalculateQSGW() {
     // Recompute screening W and Sigma in current QP basis.
     sigma_->PrepareScreening();
 
-    // Exchange: symmetric, frequency-independent.
+    // Exchange: symmetric, frequency-independent. The frozen-core part is
+    // fixed in the DFT MO basis; in the QP orbitals phi U it is U^T X U.
     Sigma_x_ = sigma_->CalcExchangeMatrix();
+    if (core_exchange_.size() > 0) {
+      const Eigen::MatrixXd Xw =
+          core_exchange_.topLeftCorner(qsgw_qptotal, qsgw_qptotal);
+      Sigma_x_ += qsgw_rotation_.transpose() * Xw * qsgw_rotation_;
+    }
 
-    // Symmetrised static self-energy (full matrix including diagonal)
-    Eigen::MatrixXd Sc_row = sigma_->CalcCorrelationOffDiag(e_qp);
-    Eigen::MatrixXd Sc_col = Sc_row.transpose();
-    Eigen::MatrixXd tilde_Sigma = Sigma_x_ + 0.5 * (Sc_row + Sc_col);
+    // ── Step 2: S_out, the symmetrised static self-energy in the QP basis
+    // (e_qp(i) is the energy of QP orbital i), then in the DFT-MO basis
+    Eigen::MatrixXd tilde_Sigma =
+        Sigma_x_ + sigma_->CalcCorrelationOffDiag(e_qp);
     if (sigma_reac.size() > 0) {
       tilde_Sigma += sigma_reac;  // static, symmetric: no symmetrization
     }
     tilde_Sigma.diagonal() += sigma_->CalcCorrelationDiag(e_qp);
+    tilde_Sigma = qsgw_rotation_ * tilde_Sigma * qsgw_rotation_.transpose();
+    const Eigen::VectorXd S_out =
+        Eigen::Map<const Eigen::VectorXd>(tilde_Sigma.data(), nflat);
 
-    // ── Step 2: mix tilde_Sigma with Anderson/DIIS ───────────────────────────
-    // Follows the evGW mixer pattern:
-    //   UpdateInput  is called at the END of each iteration with the raw
-    //                tilde_Sigma (what "went in" to that step).
-    //   UpdateOutput is called at the START of the next iteration with the
-    //                new raw tilde_Sigma (what "came out").
-    //   MixHistory   then returns the Anderson-mixed tilde_Sigma.
-    // This ensures output_.size() == input_.size() at all times, giving the
-    // mixer a consistent residual (output - input) to minimise.
-    Eigen::VectorXd S_flat = Eigen::Map<const Eigen::VectorXd>(
-        tilde_Sigma.data(), qsgw_qptotal * qsgw_qptotal);
-    if (iter > 0) {
-      qsgw_mixer.UpdateOutput(S_flat);
-      S_flat = qsgw_mixer.MixHistory();
+    // ── Step 3: residual and next input ──────────────────────────────────────
+    Eigen::VectorXd S_next;
+    double residual = std::numeric_limits<double>::infinity();
+    if (iter == 0) {
+      // the seed state is not of the form H0 + S_in: start from its output
+      S_next = S_out;
+    } else {
+      residual = (S_out - S_in).cwiseAbs().maxCoeff();
+      qsgw_mixer.UpdateInput(S_in);
+      qsgw_mixer.UpdateOutput(S_out);
+      S_next = qsgw_mixer.MixHistory();
     }
 
-    // ── Step 3: diagonalise H_QSGW ───────────────────────────────────────────
-    // Two diagonalisations:
-    //
-    // (a) Mixed H_QSGW -> dU for rotating Mmn_ next iteration.
-    //     S_flat is the Anderson-mixed tilde_Sigma — this is where the damping
-    //     actually takes effect. Different alpha must give different dU here.
-    //
-    // (b) Unmixed H_QSGW -> e_new for convergence check.
-    //     The convergence criterion must track the true fixed point, not the
-    //     damped approximation, so we use the raw tilde_Sigma for eigenvalues.
-
-    // (a) mixed: rotation
-    Eigen::MatrixXd tilde_Sigma_mixed = Eigen::Map<const Eigen::MatrixXd>(
-        S_flat.data(), qsgw_qptotal, qsgw_qptotal);
-    Eigen::MatrixXd H_qsgw_mixed = H0 + tilde_Sigma_mixed;
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_mixed(H_qsgw_mixed);
-    if (es_mixed.info() != Eigen::ComputationInfo::Success) {
-      throw std::runtime_error(
-          "GW::CalculateQSGW: diagonalisation of mixed H_QSGW failed at iter " +
-          std::to_string(iter));
-    }
-    Eigen::MatrixXd dU = es_mixed.eigenvectors();
-
-    // (b) unmixed: convergence check
-    Eigen::MatrixXd H_qsgw_new = H0 + tilde_Sigma;
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_new(H_qsgw_new);
-    if (es_new.info() != Eigen::ComputationInfo::Success) {
-      throw std::runtime_error(
-          "GW::CalculateQSGW: diagonalisation of H_QSGW failed at iter " +
-          std::to_string(iter));
-    }
-    Eigen::VectorXd e_new = es_new.eigenvalues();
-
-    double diff_max = (e_new - e_qp).cwiseAbs().maxCoeff();
+    // ── Step 4: QP energies and orbitals of the next input ───────────────────
+    const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
+        diagonalise(S_next, iter);
+    const double diff_max = (es.eigenvalues() - e_qp).cwiseAbs().maxCoeff();
     XTP_LOG(Log::error, log_)
         << TimeStamp() << "  QSGW iter " << iter
-        << "  max|dE_QP| = " << diff_max * votca::tools::conv::hrt2ev << " eV"
-        << std::flush;
+        << "  max|dE_QP| = " << diff_max * votca::tools::conv::hrt2ev
+        << " eV  max|Sigma_out - Sigma_in| = "
+        << residual * votca::tools::conv::hrt2ev << " eV" << std::flush;
 
-    // Reset Anderson history when residual increases significantly.
-    // This prevents accumulation of bad history when the mixer overshoots.
-    // Anderson::Configure() does not clear the history vectors, so we
-    // reconstruct the mixer object entirely to get a true reset.
-    if (iter > 1 && diff_max > 2.0 * diff_max_prev) {
-      qsgw_mixer = Anderson();
-      qsgw_mixer.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
-    }
-    diff_max_prev = diff_max;
-
-    if (diff_max < opt_.qsgw_sc_limit) {
+    if (residual < opt_.qsgw_sc_limit && diff_max < opt_.qsgw_sc_limit) {
       XTP_LOG(Log::error, log_) << TimeStamp() << "  QSGW converged in "
                                 << iter + 1 << " iterations." << std::flush;
-      e_qp = e_new;
-      qsgw_rotation_ = dU;
-      // Update RPA with the final converged e_qp before breaking so that
-      // RPAInputEnergies() reflects the converged state, not the previous iter.
+      converged = true;
+      // the result: the eigensystem of H0 + S_out, the output of the last
+      // evaluation (it differs from the input by less than the residual)
+      const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_out =
+          diagonalise(S_out, iter);
+      e_qp = es_out.eigenvalues();
+      qsgw_rotation_ = es_out.eigenvectors();
       rpa_.UpdateRPAInputEnergies(dft_energies_, e_qp, opt_.qpmin);
       break;
     }
 
-    if (iter == opt_.qsgw_max_iterations - 1) {
-      XTP_LOG(Log::error, log_)
-          << TimeStamp() << "  WARNING: QSGW did not converge in "
-          << opt_.qsgw_max_iterations
-          << " iterations. Inspect results carefully." << std::flush;
-    }
-
-    // ── Step 5: update QP energies and total rotation
-    // ─────────────────────────
-    e_qp = e_new;
-    qsgw_rotation_ = dU;
-
-    // Store the raw (unmixed) tilde_Sigma as Anderson input for the next
-    // iteration. Must be the unmixed version so that MixHistory computes
-    // the correct residual: new_tilde_Sigma (output) - old_tilde_Sigma (input).
-    qsgw_mixer.UpdateInput(Eigen::Map<const Eigen::VectorXd>(
-        tilde_Sigma.data(), qsgw_qptotal * qsgw_qptotal));
-
-    // Update the RPA input energies to the new QP energies.
+    S_in = S_next;
+    e_qp = es.eigenvalues();
+    qsgw_rotation_ = es.eigenvectors();
     rpa_.UpdateRPAInputEnergies(dft_energies_, e_qp, opt_.qpmin);
   }
+  if (!converged) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << "  WARNING: QSGW did not converge in "
+        << opt_.qsgw_max_iterations << " iterations. Inspect results carefully."
+        << std::flush;
+  }
 
-  // Store converged results in the standard output fields.
-  // Sigma_c_ diagonal is set to the converged on-diagonal correlation
-  // (needed by getGWAResults / PrintGWA_Energies).
-  Sigma_c_.diagonal() = sigma_->CalcCorrelationDiag(e_qp);
-
-  // Store QP energies and eigenvectors (= accumulated rotation from DFT MOs)
-  // in Sigma_c_ off-diagonal is left as the last iteration's off-diagonal.
-  // The calling code in gwbse.cc reads QPdiag from DiagonalizeQPHamiltonian,
-  // but for QSGW the "Hamiltonian" IS already diagonal in the converged basis.
-  // We set Sigma_c_ so that getHQP() returns the correct H_QSGW:
-  //   H_QSGW = diag(e_DFT - v_xc) + tilde_Sigma
-  // which is what Sigma_x_ + Sigma_c_ - vxc_.diagonal() + e_DFT gives
-  // when Sigma_c_ is set appropriately. The cleanest approach is to
-  // store the full off-diagonal tilde_Sigma in Sigma_c_ and set Sigma_x_
-  // to zero for the final iteration -- but that would break getGWAResults.
-  // Instead we leave Sigma_x_ and Sigma_c_ as-is from the last iteration
-  // and note that DiagonalizeQPHamiltonian() called by gwbse.cc will
-  // produce the correct converged eigensystem from getHQP().
-
-  // Clear QSGW rotation from sigma and rpa so subsequent G0W0/evGW/BSE calls
-  // (if any) operate in the standard DFT-MO basis.
-  sigma_->setQSGWRotation(nullptr, 0, 0);
-  rpa_.setQSGWRotation(nullptr, 0, 0);
+  // The QSGW energies are the eigenvalues of H_QSGW, the QP orbitals its
+  // eigenvectors; getGWAResults() returns the former. Sigma_x_ holds the
+  // last iteration's exchange in the QP basis of that iteration.
+  qsgw_final_energies_ = e_qp;
 
   // If the virtual window was trimmed, merge converged QSGW energies for
   // [qpmin, qsgw_qpmax] with perturbative seed energies for (qsgw_qpmax,
@@ -1224,8 +1461,7 @@ void GW::CalculateQSGW() {
     Sigma_x_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
     Sigma_c_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
 
-    // Restore full-size sigma configuration so CalcCorrelationDiag (called
-    // after the loop for diagonal Sigma_c_ output) works correctly.
+    // Restore the full-size sigma configuration.
     Sigma_base::options sigma_opt_full;
     sigma_opt_full.homo = opt_.homo;
     sigma_opt_full.qpmin = opt_.qpmin;

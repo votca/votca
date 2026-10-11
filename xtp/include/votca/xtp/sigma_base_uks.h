@@ -60,10 +60,22 @@ class Sigma_base_UKS {
       const Eigen::VectorXd& frequencies) const;
 
   virtual void PrepareScreening() = 0;
+  /// False if CalcCorrelationOffDiag only returns zeros (CDA).
+  virtual bool HasOffDiagonal() const { return true; }
   virtual double CalcCorrelationDiagElementDerivative(
       Index gw_level, double frequency) const = 0;
   virtual double CalcCorrelationDiagElement(Index gw_level,
                                             double frequency) const = 0;
+  /// Diagonal element at several frequencies (see Sigma_base). The default
+  /// evaluates them one by one.
+  virtual Eigen::VectorXd CalcCorrelationDiagElements(
+      Index gw_level, const Eigen::VectorXd& frequencies) const {
+    Eigen::VectorXd result(frequencies.size());
+    for (Index i = 0; i < frequencies.size(); ++i) {
+      result(i) = CalcCorrelationDiagElement(gw_level, frequencies(i));
+    }
+    return result;
+  }
   virtual double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
                                                double frequency1,
                                                double frequency2) const = 0;

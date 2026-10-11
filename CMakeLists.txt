@@ -15,6 +15,12 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
   cmake_policy(SET CMP0135 NEW)
 endif()
 
+# CMake 3.30 removed the FindBoost module (CMP0167): find_package(Boost) then
+# uses the BoostConfig.cmake that Boost >= 1.70 installs (we require 1.71)
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 NEW)
+endif()
+
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 
@@ -73,13 +79,13 @@ if(ENABLE_WARNING_FLAGS)
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion")
   endif()
-  # ignore c2y-extentions warnings on newer clang, this is mostly in boost
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 22)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=c2y-extensions")
-  endif()
-  # ignore c2y-extentions warnings on newer IntelLLVM, this is mostly in boost
-  if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "2026.0")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=c2y-extensions")
+  # Newer clang and IntelLLVM flag __COUNTER__ as a C2y extension under
+  # -Wpedantic. It comes from Boost's macros (BOOST_AUTO_TEST_CASE and
+  # friends), expanded in our files, so the system-header suppression does
+  # not apply: silence it wherever the compiler knows the warning.
+  check_cxx_compiler_flag("-Wc2y-extensions" COMPILER_SUPPORTS_WC2Y_EXTENSIONS)
+  if(COMPILER_SUPPORTS_WC2Y_EXTENSIONS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c2y-extensions")
   endif()
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #only icpc, not icpx
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck -Wno-sign-conversion")
@@ -142,7 +148,7 @@ add_feature_info(INSTALL_RC_FILES INSTALL_RC_FILES "Install votca rc files (VOTC
 #Find external packages
 ########################################################################
 find_package(Boost 1.71.0 REQUIRED
-  COMPONENTS program_options filesystem regex timer)
+  COMPONENTS program_options regex timer)
 set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
 
 find_package(Eigen3 NO_MODULE REQUIRED)

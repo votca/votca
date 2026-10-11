@@ -26,6 +26,8 @@
 
 #include "eigen.h"
 #include "logger.h"
+#include "out_of_window_shift.h"
+#include "screening_kernels.h"
 #include "votca/xtp/threecenter.h"
 
 namespace votca {
@@ -88,6 +90,11 @@ class RPA_UKS {
    * This keeps the interface close to the restricted implementation while still
    * allowing different alpha and beta occupations.
    */
+  /// How levels outside the GW window are shifted by UpdateRPAInputEnergies.
+  void setOutOfWindowShift(const OutOfWindowShift& shift) {
+    out_of_window_ = shift;
+  }
+
   void configure(Index homo_alpha, Index homo_beta, Index rpamin,
                  Index rpamax) {
     homo_alpha_ = homo_alpha;
@@ -101,6 +108,9 @@ class RPA_UKS {
    * \brief Small positive broadening used in the real-frequency response.
    */
   double getEta() const { return eta_; }
+
+  /// Times the dielectric-matrix builds in these timings (optional).
+  void setTimings(DFTTimings* timings) { timings_ = timings; }
 
   /**
    * \brief Dielectric matrix on the imaginary frequency axis.
@@ -310,27 +320,20 @@ class RPA_UKS {
    * This helper mirrors the restricted implementation and performs the final
    * Hermitian diagonalization after symmetrization with sqrt(AmB).
    */
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Diagonalize_H2p_C(
-      const Eigen::MatrixXd& C) const;
+  SymmetricEigenSystem Diagonalize_H2p_C(const Eigen::MatrixXd& C) const;
 
   /**
    * \brief Shift uncorrected states outside the GW window.
    *
-   * Occupied states below qpmin are shifted by the largest occupied correction
-   * found within the GW window, and virtual states above qpmax are shifted by
-   * the largest virtual correction. This is done independently for each spin
-   * channel.
+   * Occupied states below qpmin and virtual states above qpmax are shifted
+   * as set by setOutOfWindowShift (OutOfWindowShift), independently for each
+   * spin channel.
    */
   void ShiftUncorrectedEnergies(Eigen::VectorXd& energies,
                                 const Eigen::VectorXd& dftenergies, Index homo,
                                 Index qpmin, Index gwsize);
 
-  /**
-   * \brief Return the largest absolute GW correction in a given index range.
-   */
-  double getMaxCorrection(const Eigen::VectorXd& energies,
-                          const Eigen::VectorXd& dftenergies, Index min,
-                          Index max) const;
+  OutOfWindowShift out_of_window_;
 
   // Spin-resolved HOMO indices in the full orbital numbering
   Index homo_alpha_;
@@ -352,6 +355,12 @@ class RPA_UKS {
   // Spin-resolved three-center integrals:
   // Mmn_.alpha for alpha MOs, Mmn_.beta for beta MOs
   const TCMatrix_gwbse_spin& Mmn_;
+  DFTTimings* timings_ = nullptr;
+
+  // weights(beta, v, w): weights of the virtual rows of hole slice v
+  using SpinWeightsFn = std::function<void(bool, Index, Eigen::VectorXd&)>;
+  // sum over both spins and hole slices v of M_v^T diag(w_v) M_v
+  Eigen::MatrixXd ResponseSum(const SpinWeightsFn& weights) const;
 
   mutable bool h2p_cached_ = false;
   mutable rpa_eigensolution h2p_solution_cache_;

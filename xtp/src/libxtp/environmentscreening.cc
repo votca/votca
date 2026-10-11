@@ -31,146 +31,12 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/environmentscreening.h"
+#include "votca/xtp/screening_kernels.h"
 #include "votca/xtp/threecenter.h"
 #include <votca/tools/constants.h>
 
-// libint2 last, as in libint2_calls.cc, otherwise it overrides Eigen. And,
-// as in libint2_derivative_calls.cc, WITHOUT <libint2/statics_definition.h>:
-// that header defines storage for libint2's static tables and may appear in
-// exactly one translation unit of the library, which is libint2_calls.cc.
-#include "votca/xtp/make_libint_work.h"
-#define LIBINT2_CONSTEXPR_STATICS 0
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-W#warnings"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#pragma GCC diagnostic ignored "-Wcpp"
-#endif
-#include <libint2.hpp>
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-
 namespace votca {
 namespace xtp {
-
-Eigen::MatrixXd EnvironmentScreening::AuxFieldAtPoints(
-    const AOBasis& auxbasis, const std::vector<Eigen::Vector3d>& points,
-    const std::vector<double>& widths) {
-  if (!widths.empty() && widths.size() != points.size()) {
-    throw std::runtime_error("EnvironmentScreening::AuxFieldAtPoints: " +
-                             std::to_string(widths.size()) + " widths for " +
-                             std::to_string(points.size()) + " points.");
-  }
-
-  // Same shells, same function offsets, same normalization as
-  // TCMatrix_gwbse::Fill3cMO -- which is what makes the rows of F line up
-  // with the auxiliary index of the stored three-centre integrals.
-  const std::vector<libint2::Shell> shells = auxbasis.GenerateLibintBasis();
-  const std::vector<Index> shell2bf = auxbasis.getMapToBasisFunctions();
-  const Index n_points = Index(points.size());
-
-  Eigen::MatrixXd F =
-      Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), 3 * n_points);
-  if (n_points == 0 || shells.empty()) {
-    return F;
-  }
-
-  const Index nthreads = OPENMP::getMaxThreads();
-  std::vector<libint2::Engine> engines(nthreads);
-  engines[0] =
-      libint2::Engine(libint2::Operator::nuclear, int(auxbasis.getMaxNprim()),
-                      int(auxbasis.getMaxL()), 0);
-  for (Index i = 1; i < nthreads; ++i) {
-    engines[i] = engines[0];
-  }
-  // Smeared sites: (chi_Q | g) with g a single s primitive, as the
-  // auxiliary metric is computed (xs_xs, unit shells on the other side).
-  std::vector<libint2::Engine> coulomb(nthreads);
-  coulomb[0] =
-      libint2::Engine(libint2::Operator::coulomb, int(auxbasis.getMaxNprim()),
-                      int(auxbasis.getMaxL()), 0);
-  coulomb[0].set(libint2::BraKet::xs_xs);
-  for (Index i = 1; i < nthreads; ++i) {
-    coulomb[i] = coulomb[0];
-  }
-
-  // Four-point central difference for d/dC, error O(h^4):
-  //   f'(C) = [-f(C+2h) + 8 f(C+h) - 8 f(C-h) + f(C-2h)] / (12 h)
-  const double h = 1e-3;
-  const std::array<double, 4> offset = {2.0 * h, h, -h, -2.0 * h};
-  const std::array<double, 4> weight = {-1.0 / (12.0 * h), 8.0 / (12.0 * h),
-                                        -8.0 / (12.0 * h), 1.0 / (12.0 * h)};
-
-  // Sign. libint2's nuclear operator with a unit charge at C is
-  // -1/|r - C|, so the integral against Shell::unit() is -phi_P(C), minus
-  // the potential of the density chi_P at C (verified against the closed
-  // form for an s-Gaussian). The field is E = -grad_C phi = +grad_C of
-  // that integral, so the stencil is applied to the raw integral as is.
-#pragma omp parallel for schedule(dynamic)
-  for (Index p = 0; p < n_points; ++p) {
-    const double width = widths.empty() ? 0.0 : widths[std::size_t(p)];
-    if (width > 0.0) {
-      // Field of chi_Q averaged over g: E = -grad_C (chi_Q | g_C), with
-      // (chi_Q | g_C) the potential of chi_Q averaged over g (positive
-      // for a positive chi_Q), so the stencil is applied with a minus.
-      // libint2 normalizes the primitive to unit L2 norm, N = (2b/pi)^3/4;
-      // dividing by its charge N (pi/b)^3/2 makes it a unit charge.
-      libint2::Engine& engine = coulomb[OPENMP::getThreadId()];
-      const libint2::Engine::target_ptr_vec& buf = engine.results();
-      const double beta = 1.0 / (width * width);
-      const double charge =
-          std::pow(2.0 * beta / M_PI, 0.75) * std::pow(M_PI / beta, 1.5);
-      for (Index k = 0; k < 3; ++k) {
-        for (std::size_t s = 0; s < offset.size(); ++s) {
-          Eigen::Vector3d C = points[std::size_t(p)];
-          C(k) += offset[s];
-          const libint2::Shell g{
-              {beta}, {{0, false, {1.0}}}, {{C.x(), C.y(), C.z()}}};
-          for (std::size_t sh = 0; sh < shells.size(); ++sh) {
-            engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xs,
-                            0>(shells[sh], libint2::Shell::unit(), g,
-                               libint2::Shell::unit());
-            if (buf[0] == nullptr) {
-              continue;
-            }
-            const Index start = shell2bf[sh];
-            for (std::size_t f = 0; f < shells[sh].size(); ++f) {
-              F(start + Index(f), 3 * p + k) -= weight[s] * buf[0][f] / charge;
-            }
-          }
-        }
-      }
-      continue;
-    }
-    libint2::Engine& engine = engines[OPENMP::getThreadId()];
-    const libint2::Engine::target_ptr_vec& buf = engine.results();
-    for (Index k = 0; k < 3; ++k) {
-      for (std::size_t s = 0; s < offset.size(); ++s) {
-        Eigen::Vector3d C = points[std::size_t(p)];
-        C(k) += offset[s];
-        std::vector<std::pair<double, std::array<double, 3>>> charge{
-            {1.0, {C.x(), C.y(), C.z()}}};
-        engine.set_params(charge);
-        for (std::size_t sh = 0; sh < shells.size(); ++sh) {
-          engine.compute(shells[sh], libint2::Shell::unit());
-          if (buf[0] == nullptr) {
-            continue;  // screened out by libint2: exactly zero
-          }
-          const Index start = shell2bf[sh];
-          for (std::size_t f = 0; f < shells[sh].size(); ++f) {
-            F(start + Index(f), 3 * p + k) += weight[s] * buf[0][f];
-          }
-        }
-      }
-    }
-  }
-  return F;
-}
 
 namespace {
 // The polarizable sites in the order ReactionFieldKernel and ShellKernel
@@ -230,8 +96,8 @@ Eigen::MatrixXd EnvironmentScreening::ReactionFieldKernel(
   }
 
   const Eigen::MatrixXd A = AssembleThole(sites, exp_damp);
-  const Eigen::LLT<Eigen::MatrixXd> llt(A);
-  if (llt.info() != Eigen::Success) {
+  const CholeskyFactor llt(A);
+  if (!llt.ok()) {
     throw std::runtime_error(
         "EnvironmentScreening::ReactionFieldKernel: the Thole interaction "
         "matrix of the polar region (" +
@@ -243,7 +109,7 @@ Eigen::MatrixXd EnvironmentScreening::ReactionFieldKernel(
 
   // B = -F A^-1 F^T = -(L^-1 F^T)^T (L^-1 F^T): symmetric and negative
   // semidefinite by construction.
-  const Eigen::MatrixXd Y = llt.matrixL().solve(Eigen::MatrixXd(F.transpose()));
+  const Eigen::MatrixXd Y = llt.SolveL(F.transpose());
   Eigen::MatrixXd B = Eigen::MatrixXd::Zero(F.rows(), F.rows());
   B.selfadjointView<Eigen::Lower>().rankUpdate(Y.transpose(), -1.0);
   return B.selfadjointView<Eigen::Lower>();
@@ -290,9 +156,8 @@ Eigen::MatrixXd EnvironmentScreening::SymmetrizedReactionField(
   // Exactly symmetric, so the eigensolvers downstream see what they expect.
   R = 0.5 * (R + R.transpose()).eval();
 
-  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
-      R, Eigen::EigenvaluesOnly);
-  const double lowest = es.eigenvalues().minCoeff();
+  const SymmetricEigenSystem es = SymmetricEigen(R, false);
+  const double lowest = es.values.minCoeff();
   if (!(lowest > -1.0)) {
     throw std::runtime_error(
         "EnvironmentScreening::SymmetrizedReactionField: the lowest "
@@ -347,17 +212,16 @@ Eigen::MatrixXd EnvironmentScreening::Kernel(const AOBasis& auxbasis,
 }
 
 Eigen::MatrixXd EnvironmentScreening::DressingMatrix(const Eigen::MatrixXd& R) {
-  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(R);
-  const double lowest = es.eigenvalues().minCoeff();
+  const SymmetricEigenSystem es = SymmetricEigen(R);
+  const double lowest = es.values.minCoeff();
   if (!(lowest > -1.0)) {
     throw std::runtime_error(
         "EnvironmentScreening::DressingMatrix: 1 + R is not positive "
         "definite (lowest eigenvalue of R " +
         std::to_string(lowest) + ").");
   }
-  return es.eigenvectors() *
-         (1.0 + es.eigenvalues().array()).sqrt().matrix().asDiagonal() *
-         es.eigenvectors().transpose();
+  return es.vectors * (1.0 + es.values.array()).sqrt().matrix().asDiagonal() *
+         es.vectors.transpose();
 }
 
 Eigen::MatrixXd EnvironmentScreening::Metric(const AOBasis& auxbasis) {
@@ -370,29 +234,6 @@ Eigen::MatrixXd EnvironmentScreening::Metric(const AOBasis& auxbasis) {
 }
 
 namespace {
-// Net charge of every auxiliary function, integral chi_Q d^3r: an overlap
-// integral against the unit shell, in the order and normalization of the
-// three-centre integrals (same shells, same offsets).
-Eigen::VectorXd AuxCharges(const AOBasis& auxbasis) {
-  const std::vector<libint2::Shell> shells = auxbasis.GenerateLibintBasis();
-  const std::vector<Index> shell2bf = auxbasis.getMapToBasisFunctions();
-  Eigen::VectorXd q = Eigen::VectorXd::Zero(auxbasis.AOBasisSize());
-  libint2::Engine engine(libint2::Operator::overlap,
-                         int(auxbasis.getMaxNprim()), int(auxbasis.getMaxL()),
-                         0);
-  const libint2::Engine::target_ptr_vec& buf = engine.results();
-  for (std::size_t sh = 0; sh < shells.size(); ++sh) {
-    engine.compute(shells[sh], libint2::Shell::unit());
-    if (buf[0] == nullptr) {
-      continue;
-    }
-    for (std::size_t f = 0; f < shells[sh].size(); ++f) {
-      q(shell2bf[sh] + Index(f)) = buf[0][f];
-    }
-  }
-  return q;
-}
-
 struct SiteInfo {
   const PolarSite* site;
   Index segment;
@@ -478,7 +319,7 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
   const Index naux = auxbasis.AOBasisSize();
   Eigen::MatrixXd B = Eigen::MatrixXd::Zero(naux, naux);
   Eigen::MatrixXd F_exp, F_sh;
-  Eigen::LLT<Eigen::MatrixXd> llt;
+  CholeskyFactor llt;
   {
     std::vector<Eigen::Vector3d> pos;
     for (const SiteInfo& si : info) {
@@ -490,7 +331,7 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
       F_exp = AuxFieldAtPoints(
           auxbasis, pos, SiteWidths(env.explicit_segments, env.site_width));
       llt.compute(AssembleThole(SitesOf(env.explicit_segments), env.exp_damp));
-      if (llt.info() != Eigen::Success) {
+      if (!llt.ok()) {
         out.lowest = -std::numeric_limits<double>::infinity();
         out.report = rep.str() +
                      "  The Thole matrix of the explicit polar sites is not "
@@ -498,8 +339,7 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
                      "the environment itself, independent of the QM region.\n";
         return out;
       }
-      const Eigen::MatrixXd Y =
-          llt.matrixL().solve(Eigen::MatrixXd(F_exp.transpose()));
+      const Eigen::MatrixXd Y = llt.SolveL(F_exp.transpose());
       B.selfadjointView<Eigen::Lower>().rankUpdate(Y.transpose(), -1.0);
       B = B.selfadjointView<Eigen::Lower>();
     }
@@ -518,8 +358,8 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
 
   Eigen::MatrixXd R = T.transpose() * B * T;
   R = 0.5 * (R + R.transpose()).eval();
-  const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(R);
-  const Eigen::VectorXd& lam = es.eigenvalues();
+  const SymmetricEigenSystem es = SymmetricEigen(R);
+  const Eigen::VectorXd& lam = es.values;
   out.lowest = lam(0);
   out.n_unstable = (lam.array() <= -1.0).count();
   rep << std::setprecision(2) << "  site_width " << env.site_width
@@ -538,7 +378,7 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
   // c^T V c = 1.
   const Eigen::VectorXd q_aux = AuxCharges(auxbasis);
   for (Index m = 0; m < std::min<Index>(n_modes, lam.size()); ++m) {
-    const Eigen::VectorXd c = T * es.eigenvectors().col(m);
+    const Eigen::VectorXd c = T * es.vectors.col(m);
     rep << std::setprecision(4) << "  mode " << m << ": lambda " << lam(m)
         << ", net charge " << c.dot(q_aux)
         << " (in units where its Coulomb self energy is 1/2)\n";
@@ -574,7 +414,7 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
     double e_total = 0.0;
     if (F_exp.size() > 0) {
       const Eigen::VectorXd g = F_exp.transpose() * c;
-      const Eigen::VectorXd mu = llt.solve(g);
+      const Eigen::VectorXd mu = llt.Solve(g);
       for (Index j = 0; j < n_explicit; ++j) {
         e_site[std::size_t(j)] = g.segment<3>(3 * j).dot(mu.segment<3>(3 * j));
       }
