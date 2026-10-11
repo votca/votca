@@ -6,6 +6,10 @@
   <qpmax help="only needed, if ranges is factor or explicit, highest MO to be used in GW" default="" />
   <bsemin help="only needed, if ranges is factor or explicit, lowest MO to be used in BSE" default="" />
   <bsemax help="only needed, if ranges is factor or explicit, highest MO to be used in BSE" default="" />
+  <qp_emax help="cap on the GW window: highest QP level at most this many eV above the DFT LUMO (a degenerate set is kept whole); applied on top of ranges, 0 = off" unit="eV" default="0" choices="float+" />
+  <qp_emin help="cap on the GW window: lowest QP level at most this many eV below the DFT HOMO; 0 = off" unit="eV" default="0" choices="float+" />
+  <bse_emax help="cap on the BSE window: highest virtual level at most this many eV above the DFT LUMO; 0 = off" unit="eV" default="0" choices="float+" />
+  <bse_emin help="cap on the BSE window: lowest occupied level at most this many eV below the DFT HOMO; 0 = off" unit="eV" default="0" choices="float+" />
   <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="none" choices="RPA,GW,BSE,none" />
   <auxbasisset help="Auxiliary basis set for RI, only used if DFT has no auxiliary set" default="OPTIONAL" />
 

@@ -174,6 +174,91 @@ void GWBSE::Initialize(tools::Property& options) {
   Index bse_vmax = homo;
   Index bse_cmin = homo + 1;
 
+  // Energy caps on the GW and BSE windows (eV above the DFT LUMO / below the
+  // DFT HOMO; <= 0: off). They only shrink the windows set above, and never
+  // cut a (near-)degenerate set of levels.
+  {
+    const double qp_emax =
+        options.ifExistsReturnElseReturnDefault<double>(".qp_emax", 0.0);
+    const double qp_emin =
+        options.ifExistsReturnElseReturnDefault<double>(".qp_emin", 0.0);
+    const double bse_emax =
+        options.ifExistsReturnElseReturnDefault<double>(".bse_emax", 0.0);
+    const double bse_emin =
+        options.ifExistsReturnElseReturnDefault<double>(".bse_emin", 0.0);
+    std::vector<const Eigen::VectorXd*> spins{&orbitals_.MOs().eigenvalues()};
+    std::vector<Index> homos{is_uks ? orbitals_.getHomoAlpha() : homo};
+    if (is_uks) {
+      spins.push_back(&orbitals_.MOs_beta().eigenvalues());
+      homos.push_back(orbitals_.getHomoBeta());
+    }
+    // levels closer than this count as degenerate and stay together
+    constexpr double degenerate = 5e-4;  // Ha
+    // highest level (over the spins) within cap_ev above the LUMO
+    auto upper = [&](double cap_ev) {
+      Index last = homo + 1;
+      for (std::size_t s = 0; s < spins.size(); ++s) {
+        const Eigen::VectorXd& e = *spins[s];
+        const double limit = e(homos[s] + 1) + cap_ev * tools::conv::ev2hrt;
+        Index i = homos[s] + 1;
+        while (i + 1 < e.size() && e(i + 1) <= limit) {
+          ++i;
+        }
+        const double edge = e(i);  // keep the set degenerate with it
+        while (i + 1 < e.size() && e(i + 1) - edge < degenerate) {
+          ++i;
+        }
+        last = std::max(last, i);
+      }
+      return last;
+    };
+    // lowest level (over the spins) within cap_ev below the HOMO
+    auto lower = [&](double cap_ev) {
+      Index first = homo;
+      for (std::size_t s = 0; s < spins.size(); ++s) {
+        const Eigen::VectorXd& e = *spins[s];
+        const double limit = e(homos[s]) - cap_ev * tools::conv::ev2hrt;
+        Index i = homos[s];
+        while (i - 1 >= 0 && e(i - 1) >= limit) {
+          --i;
+        }
+        const double edge = e(i);
+        while (i - 1 >= 0 && edge - e(i - 1) < degenerate) {
+          --i;
+        }
+        first = std::min(first, i);
+      }
+      return first;
+    };
+    auto report = [&](const std::string& what, const std::string& option,
+                      double cap, Index before, Index after) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " " << what << " capped by " << option << " = "
+          << cap << " eV: " << before << " -> " << after << " ("
+          << std::abs(before - after) << " levels removed)" << flush;
+    };
+    if (qp_emax > 0.0) {
+      const Index cap = std::min(qpmax, upper(qp_emax));
+      report("GW window top", "qp_emax", qp_emax, qpmax, cap);
+      qpmax = cap;
+    }
+    if (qp_emin > 0.0) {
+      const Index cap = std::max(qpmin, lower(qp_emin));
+      report("GW window bottom", "qp_emin", qp_emin, qpmin, cap);
+      qpmin = cap;
+    }
+    if (bse_emax > 0.0) {
+      const Index cap = std::min(bse_cmax, upper(bse_emax));
+      report("BSE window top", "bse_emax", bse_emax, bse_cmax, cap);
+      bse_cmax = cap;
+    }
+    if (bse_emin > 0.0) {
+      const Index cap = std::max(bse_vmin, lower(bse_emin));
+      report("BSE window bottom", "bse_emin", bse_emin, bse_vmin, cap);
+      bse_vmin = cap;
+    }
+  }
+
   if (rpamin < 0 || rpamax < 0 || rpamin > rpamax) {
     throw std::runtime_error("Invalid RPA level range after setup/clamping.");
   }
