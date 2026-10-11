@@ -77,14 +77,14 @@ class GW_UKS {
     // evGW: after the first iteration keep each level on the root branch of
     // the previous iteration (closest accepted root) instead of re-choosing
     // by weight
-    bool qp_root_continuity = false;
+    bool qp_root_continuity = true;
     // evGW: when W is rebuilt (see ScreeningUpdate): "every" or "adaptive"
-    std::string screening_update = "every";
+    std::string screening_update = "adaptive";
     // evGW: after the first iteration search each level's root only near
     // its previous one (falling back to the full search), verified by one
     // full search after convergence
     bool qp_root_tracking = false;
-    double screening_update_ratio = 0.25;
+    double screening_update_ratio = 0.1;
     Index screening_update_max_inner = 10;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
@@ -99,6 +99,12 @@ class GW_UKS {
 
   void configure(const options& opt);
   void CalculateGWPerturbation();
+  /// Frozen-core exchange per spin, see GW::setCoreExchange
+  void setCoreExchange(const Eigen::MatrixXd& alpha,
+                       const Eigen::MatrixXd& beta) {
+    core_exchange_alpha_ = alpha;
+    core_exchange_beta_ = beta;
+  }
   void CalculateHQP();
 
   Eigen::VectorXd getGWAResultsAlpha() const;
@@ -249,6 +255,8 @@ class GW_UKS {
   mutable Eigen::VectorXd tracked_change_[2];
   mutable bool tracking_active_ = false;
   mutable Index tracked_local_total_ = 0;
+  Eigen::MatrixXd core_exchange_alpha_;  // see setCoreExchange
+  Eigen::MatrixXd core_exchange_beta_;
   Index screening_builds_ = 0;
   Index qp_iterations_ = 0;
   void RecordCompetingRoots(Spin spin, Index gw_level,

@@ -99,6 +99,9 @@ class GWBSE {
   BSE::options bseopt_;
 
   std::string sigma_plot_states_;
+  // frozen-core GW (rpamin > 0): include the exchange with the core levels
+  // in Sigma_x (gw.core_exchange)
+  bool core_exchange_ = true;
   Index sigma_plot_steps_;
   double sigma_plot_spacing_;
   std::string sigma_plot_filename_;

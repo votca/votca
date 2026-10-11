@@ -103,6 +103,10 @@ GW::options MakeGWTestOptions() {
   opt.g_sc_limit = 1e-5;
   opt.g_sc_max_iterations = 50;
   opt.gw_sc_limit = 1e-5;
+  // the tests below were written for these; the defaults are adaptive and
+  // continuity (tests of those set them explicitly)
+  opt.screening_update = "every";
+  opt.qp_root_continuity = false;
 
   return opt;
 }
@@ -1049,6 +1053,48 @@ BOOST_AUTO_TEST_CASE(sigma_uks_batched_equals_direct) {
       }
     }
   }
+  libint2::finalize();
+}
+
+// Frozen-core Sigma_x (Mmn from rpamin = 1 on) plus the exchange with the
+// frozen core level equals the all-electron Sigma_x in the window.
+BOOST_AUTO_TEST_CASE(core_exchange_completes_frozen_core_sigma_x) {
+  if (!libint2::initialized()) libint2::initialize();
+  GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/gw/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+
+  auto sigma_x = [&](TCMatrix_gwbse& Mmn, votca::Index rpamin) {
+    Logger log;
+    RPA rpa(log, Mmn);
+    rpa.configure(4, rpamin, 16);
+    rpa.setRPAInputEnergies(system.mo_eigenvalues.segment(rpamin, 17 - rpamin));
+    std::unique_ptr<Sigma_base> sigma = SigmaFactory().Create("ppm", Mmn, rpa);
+    Sigma_base::options opt;
+    opt.homo = 4;
+    opt.qpmin = 1;
+    opt.qpmax = 16;
+    opt.rpamin = rpamin;
+    opt.rpamax = 16;
+    opt.eta = 1e-3;
+    sigma->configure(opt);
+    return Eigen::MatrixXd(sigma->CalcExchangeMatrix());
+  };
+  // all electron: the system's Mmn (levels 0..16)
+  const Eigen::MatrixXd x_all = sigma_x(system.Mmn, 0);
+  TCMatrix_gwbse Mmn_fc;
+  Mmn_fc.Initialize(aobasis.AOBasisSize(), 1, 16, 1, 16);
+  Mmn_fc.Fill(aobasis, aobasis, system.mo_eigenvectors);
+  const Eigen::MatrixXd x_fc = sigma_x(Mmn_fc, 1);
+  const Eigen::MatrixXd core = TCMatrix_gwbse::CoreExchange(
+      aobasis, aobasis, system.mo_eigenvectors, 1, 1, 16);
+  BOOST_CHECK_GT((x_all - x_fc).cwiseAbs().maxCoeff(), 1e-3);
+  BOOST_CHECK_SMALL((x_fc + core - x_all).cwiseAbs().maxCoeff(), 1e-10);
   libint2::finalize();
 }
 

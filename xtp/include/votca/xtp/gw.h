@@ -98,14 +98,14 @@ class GW {
     // evGW: after the first iteration keep each level on the root branch of
     // the previous iteration (closest accepted root) instead of re-choosing
     // by weight
-    bool qp_root_continuity = false;
+    bool qp_root_continuity = true;
     // evGW: when W is rebuilt (see ScreeningUpdate): "every" or "adaptive"
-    std::string screening_update = "every";
+    std::string screening_update = "adaptive";
     // evGW: after the first iteration search each level's root only near
     // its previous one (falling back to the full search), verified by one
     // full search after convergence
     bool qp_root_tracking = false;
-    double screening_update_ratio = 0.25;
+    double screening_update_ratio = 0.1;
     Index screening_update_max_inner = 10;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
@@ -170,6 +170,11 @@ class GW {
    *    bare ones.
    */
   void setReactionField(const Eigen::MatrixXd& R);
+  /// Exchange with occupied levels below rpamin (frozen core), in the DFT
+  /// MO basis of the GW window: added to Sigma_x, which otherwise only sums
+  /// over the occupied levels in Mmn (from rpamin on). See
+  /// TCMatrix_gwbse::CoreExchange.
+  void setCoreExchange(const Eigen::MatrixXd& X) { core_exchange_ = X; }
   const Eigen::MatrixXd& getSigmaReac() const { return Sigma_reac_; }
 
   // Calculates the diagonal elements up to self consistency
@@ -270,6 +275,7 @@ class GW {
   const Eigen::MatrixXd& vxc_;
   const Eigen::VectorXd& dft_energies_;
 
+  Eigen::MatrixXd core_exchange_;  // see setCoreExchange
   Index screening_builds_ = 0;
   Index qp_iterations_ = 0;
   Index gw_sc_iteration_;

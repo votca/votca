@@ -525,16 +525,18 @@ void GWBSE::Initialize(tools::Property& options) {
       options.get("gw.qp_grid_search_mode").as<std::string>();
   gwopt_.qp_restrict_search = options.get("gw.qp_restrict_search").as<bool>();
   gwopt_.qp_root_continuity = options.ifExistsReturnElseReturnDefault<bool>(
-      "gw.qp_root_continuity", false);
+      "gw.qp_root_continuity", true);
   gwopt_.qp_root_tracking = options.ifExistsReturnElseReturnDefault<bool>(
       "gw.qp_root_tracking", false);
+  core_exchange_ =
+      options.ifExistsReturnElseReturnDefault<bool>("gw.core_exchange", true);
   gwopt_.screening_update =
       options.ifExistsReturnElseReturnDefault<std::string>(
-          "gw.screening_update", "every");
+          "gw.screening_update", "adaptive");
   ScreeningUpdate::Parse(gwopt_.screening_update);  // validates
   gwopt_.screening_update_ratio =
       options.ifExistsReturnElseReturnDefault<double>(
-          "gw.screening_update_ratio", 0.25);
+          "gw.screening_update_ratio", 0.1);
   gwopt_.screening_update_max_inner =
       options.ifExistsReturnElseReturnDefault<Index>(
           "gw.screening_update_max_inner", 10);
@@ -1063,6 +1065,18 @@ bool GWBSE::Evaluate() {
                          orbitals_.MOs().eigenvalues(),
                          orbitals_.MOs_beta().eigenvalues());
       gw.configure(gwopt_uks);
+      if (gwopt_.rpamin > 0 && core_exchange_) {
+        gw.setCoreExchange(
+            TCMatrix_gwbse::CoreExchange(
+                auxbasis, dftbasis, orbitals_.MOs().eigenvectors(),
+                gwopt_.rpamin, gwopt_.qpmin, gwopt_.qpmax),
+            TCMatrix_gwbse::CoreExchange(
+                auxbasis, dftbasis, orbitals_.MOs_beta().eigenvectors(),
+                gwopt_.rpamin, gwopt_.qpmin, gwopt_.qpmax));
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Sigma_x includes the exchange with the "
+            << gwopt_.rpamin << " frozen core levels" << flush;
+      }
       gw.CalculateGWPerturbation();
       orbitals_.QPpertEnergiesAlpha() = gw.getGWAResultsAlpha();
       orbitals_.QPpertEnergiesBeta() = gw.getGWAResultsBeta();
@@ -1089,6 +1103,14 @@ bool GWBSE::Evaluate() {
       GW gw = GW(*pLog_, Mmn, vxc, orbitals_.MOs().eigenvalues());
       gw.configure(gwopt_);
       gw.setReactionField(reaction_field);
+      if (gwopt_.rpamin > 0 && core_exchange_) {
+        gw.setCoreExchange(TCMatrix_gwbse::CoreExchange(
+            auxbasis, dftbasis, orbitals_.MOs().eigenvectors(), gwopt_.rpamin,
+            gwopt_.qpmin, gwopt_.qpmax));
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Sigma_x includes the exchange with the "
+            << gwopt_.rpamin << " frozen core levels" << flush;
+      }
 
       gw.CalculateGWPerturbation();
 

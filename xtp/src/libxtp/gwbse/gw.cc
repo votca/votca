@@ -286,6 +286,9 @@ void GW::CalculateGWPerturbation() {
   {
     auto t = timings_.Measure("exchange Sigma_x");
     Sigma_x_ = (1 - opt_.ScaHFX) * sigma_->CalcExchangeMatrix();
+    if (core_exchange_.size() > 0) {
+      Sigma_x_ += (1 - opt_.ScaHFX) * core_exchange_;
+    }
   }
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Calculated Hartree exchange contribution"
@@ -1349,8 +1352,14 @@ void GW::CalculateQSGW() {
     // Recompute screening W and Sigma in current QP basis.
     sigma_->PrepareScreening();
 
-    // Exchange: symmetric, frequency-independent.
+    // Exchange: symmetric, frequency-independent. The frozen-core part is
+    // fixed in the DFT MO basis; in the QP orbitals phi U it is U^T X U.
     Sigma_x_ = sigma_->CalcExchangeMatrix();
+    if (core_exchange_.size() > 0) {
+      const Eigen::MatrixXd Xw =
+          core_exchange_.topLeftCorner(qsgw_qptotal, qsgw_qptotal);
+      Sigma_x_ += qsgw_rotation_.transpose() * Xw * qsgw_rotation_;
+    }
 
     // ── Step 2: S_out, the symmetrised static self-energy in the QP basis
     // (e_qp(i) is the energy of QP orbital i), then in the DFT-MO basis

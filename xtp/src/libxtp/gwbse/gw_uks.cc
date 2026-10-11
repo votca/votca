@@ -192,6 +192,10 @@ double GW_UKS::CalcSpinHomoLumoShift(const Eigen::VectorXd& frequencies,
 void GW_UKS::CalculateGWPerturbation() {
   Sigma_x_alpha_ = (1 - opt_.ScaHFX) * sigma_alpha_->CalcExchangeMatrix();
   Sigma_x_beta_ = (1 - opt_.ScaHFX) * sigma_beta_->CalcExchangeMatrix();
+  if (core_exchange_alpha_.size() > 0) {
+    Sigma_x_alpha_ += (1 - opt_.ScaHFX) * core_exchange_alpha_;
+    Sigma_x_beta_ += (1 - opt_.ScaHFX) * core_exchange_beta_;
+  }
   XTP_LOG(Log::error, log_)
       << TimeStamp()
       << " Calculated spin-resolved Hartree exchange contribution"

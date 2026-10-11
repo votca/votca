@@ -167,6 +167,16 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   Index nsize() const { return ntotal_; }
 
+  /// Exchange with the occupied levels 0..ncore-1 for the levels
+  /// qpmin..qpmax of these MOs, with the bare Coulomb interaction:
+  ///   X(m,n) = - sum_{c < ncore} (m c | c n),
+  /// from (m c | P) integrals filled for this purpose only. For frozen-core
+  /// GW (rpamin = ncore > 0), whose Mmn has no rows for the core levels.
+  static Eigen::MatrixXd CoreExchange(const AOBasis& auxbasis,
+                                      const AOBasis& dftbasis,
+                                      const Eigen::MatrixXd& mos, Index ncore,
+                                      Index qpmin, Index qpmax);
+
   void Initialize(Index basissize, Index mmin, Index mmax, Index nmin,
                   Index nmax);
 

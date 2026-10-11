@@ -31,6 +31,31 @@
 namespace votca {
 namespace xtp {
 
+Eigen::MatrixXd TCMatrix_gwbse::CoreExchange(const AOBasis& auxbasis,
+                                             const AOBasis& dftbasis,
+                                             const Eigen::MatrixXd& mos,
+                                             Index ncore, Index qpmin,
+                                             Index qpmax) {
+  const Index qptotal = qpmax - qpmin + 1;
+  Eigen::MatrixXd X = Eigen::MatrixXd::Zero(qptotal, qptotal);
+  if (ncore <= 0 || qptotal <= 0) {
+    return X;
+  }
+  // (m c | P) for m in the GW window, c in the core: freshly filled, so in
+  // the orthogonal auxiliary frame where the bare v is M M^T
+  TCMatrix_gwbse Mc;
+  Mc.Initialize(auxbasis.AOBasisSize(), qpmin, qpmax, 0, ncore - 1);
+  Mc.Fill(auxbasis, dftbasis, mos);
+  Eigen::MatrixXd Z(qptotal, Mc.auxsize());
+  for (Index c = 0; c < ncore; ++c) {
+    for (Index m = 0; m < qptotal; ++m) {
+      Z.row(m) = Mc[m].row(c);
+    }
+    X.selfadjointView<Eigen::Upper>().rankUpdate(Z, -1.0);
+  }
+  return X.selfadjointView<Eigen::Upper>();
+}
+
 void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
                                 Index nmin, Index nmax) {
 
