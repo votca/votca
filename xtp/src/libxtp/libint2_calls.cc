@@ -26,6 +26,7 @@
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/threecenter.h"
 
 // include libint last otherwise it overrides eigen
@@ -767,6 +768,148 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
       }
     }  // shells of GW basis set
   }
+}
+
+// EnvironmentScreening: the two functions that need libint2 engines live
+// here, so that environmentscreening.cc does not include libint2.hpp (a
+// single include of it takes 2-5 GB to compile, depending on the libint2
+// version).
+
+Eigen::MatrixXd EnvironmentScreening::AuxFieldAtPoints(
+    const AOBasis& auxbasis, const std::vector<Eigen::Vector3d>& points,
+    const std::vector<double>& widths) {
+  if (!widths.empty() && widths.size() != points.size()) {
+    throw std::runtime_error("EnvironmentScreening::AuxFieldAtPoints: " +
+                             std::to_string(widths.size()) + " widths for " +
+                             std::to_string(points.size()) + " points.");
+  }
+
+  // Same shells, same function offsets, same normalization as
+  // TCMatrix_gwbse::Fill3cMO -- which is what makes the rows of F line up
+  // with the auxiliary index of the stored three-centre integrals.
+  const std::vector<libint2::Shell> shells = auxbasis.GenerateLibintBasis();
+  const std::vector<Index> shell2bf = auxbasis.getMapToBasisFunctions();
+  const Index n_points = Index(points.size());
+
+  Eigen::MatrixXd F =
+      Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), 3 * n_points);
+  if (n_points == 0 || shells.empty()) {
+    return F;
+  }
+
+  const Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] =
+      libint2::Engine(libint2::Operator::nuclear, int(auxbasis.getMaxNprim()),
+                      int(auxbasis.getMaxL()), 0);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+  // Smeared sites: (chi_Q | g) with g a single s primitive, as the
+  // auxiliary metric is computed (xs_xs, unit shells on the other side).
+  std::vector<libint2::Engine> coulomb(nthreads);
+  coulomb[0] =
+      libint2::Engine(libint2::Operator::coulomb, int(auxbasis.getMaxNprim()),
+                      int(auxbasis.getMaxL()), 0);
+  coulomb[0].set(libint2::BraKet::xs_xs);
+  for (Index i = 1; i < nthreads; ++i) {
+    coulomb[i] = coulomb[0];
+  }
+
+  // Four-point central difference for d/dC, error O(h^4):
+  //   f'(C) = [-f(C+2h) + 8 f(C+h) - 8 f(C-h) + f(C-2h)] / (12 h)
+  const double h = 1e-3;
+  const std::array<double, 4> offset = {2.0 * h, h, -h, -2.0 * h};
+  const std::array<double, 4> weight = {-1.0 / (12.0 * h), 8.0 / (12.0 * h),
+                                        -8.0 / (12.0 * h), 1.0 / (12.0 * h)};
+
+  // Sign. libint2's nuclear operator with a unit charge at C is
+  // -1/|r - C|, so the integral against Shell::unit() is -phi_P(C), minus
+  // the potential of the density chi_P at C (verified against the closed
+  // form for an s-Gaussian). The field is E = -grad_C phi = +grad_C of
+  // that integral, so the stencil is applied to the raw integral as is.
+#pragma omp parallel for schedule(dynamic)
+  for (Index p = 0; p < n_points; ++p) {
+    const double width = widths.empty() ? 0.0 : widths[std::size_t(p)];
+    if (width > 0.0) {
+      // Field of chi_Q averaged over g: E = -grad_C (chi_Q | g_C), with
+      // (chi_Q | g_C) the potential of chi_Q averaged over g (positive
+      // for a positive chi_Q), so the stencil is applied with a minus.
+      // libint2 normalizes the primitive to unit L2 norm, N = (2b/pi)^3/4;
+      // dividing by its charge N (pi/b)^3/2 makes it a unit charge.
+      libint2::Engine& engine = coulomb[OPENMP::getThreadId()];
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
+      const double beta = 1.0 / (width * width);
+      const double charge =
+          std::pow(2.0 * beta / M_PI, 0.75) * std::pow(M_PI / beta, 1.5);
+      for (Index k = 0; k < 3; ++k) {
+        for (std::size_t s = 0; s < offset.size(); ++s) {
+          Eigen::Vector3d C = points[std::size_t(p)];
+          C(k) += offset[s];
+          const libint2::Shell g{
+              {beta}, {{0, false, {1.0}}}, {{C.x(), C.y(), C.z()}}};
+          for (std::size_t sh = 0; sh < shells.size(); ++sh) {
+            engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xs,
+                            0>(shells[sh], libint2::Shell::unit(), g,
+                               libint2::Shell::unit());
+            if (buf[0] == nullptr) {
+              continue;
+            }
+            const Index start = shell2bf[sh];
+            for (std::size_t f = 0; f < shells[sh].size(); ++f) {
+              F(start + Index(f), 3 * p + k) -= weight[s] * buf[0][f] / charge;
+            }
+          }
+        }
+      }
+      continue;
+    }
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    for (Index k = 0; k < 3; ++k) {
+      for (std::size_t s = 0; s < offset.size(); ++s) {
+        Eigen::Vector3d C = points[std::size_t(p)];
+        C(k) += offset[s];
+        std::vector<std::pair<double, std::array<double, 3>>> charge{
+            {1.0, {C.x(), C.y(), C.z()}}};
+        engine.set_params(charge);
+        for (std::size_t sh = 0; sh < shells.size(); ++sh) {
+          engine.compute(shells[sh], libint2::Shell::unit());
+          if (buf[0] == nullptr) {
+            continue;  // screened out by libint2: exactly zero
+          }
+          const Index start = shell2bf[sh];
+          for (std::size_t f = 0; f < shells[sh].size(); ++f) {
+            F(start + Index(f), 3 * p + k) += weight[s] * buf[0][f];
+          }
+        }
+      }
+    }
+  }
+  return F;
+}
+
+// Net charge of every auxiliary function, integral chi_Q d^3r: an overlap
+// integral against the unit shell, in the order and normalization of the
+// three-centre integrals (same shells, same offsets).
+Eigen::VectorXd EnvironmentScreening::AuxCharges(const AOBasis& auxbasis) {
+  const std::vector<libint2::Shell> shells = auxbasis.GenerateLibintBasis();
+  const std::vector<Index> shell2bf = auxbasis.getMapToBasisFunctions();
+  Eigen::VectorXd q = Eigen::VectorXd::Zero(auxbasis.AOBasisSize());
+  libint2::Engine engine(libint2::Operator::overlap,
+                         int(auxbasis.getMaxNprim()), int(auxbasis.getMaxL()),
+                         0);
+  const libint2::Engine::target_ptr_vec& buf = engine.results();
+  for (std::size_t sh = 0; sh < shells.size(); ++sh) {
+    engine.compute(shells[sh], libint2::Shell::unit());
+    if (buf[0] == nullptr) {
+      continue;
+    }
+    for (std::size_t f = 0; f < shells[sh].size(); ++f) {
+      q(shell2bf[sh] + Index(f)) = buf[0][f];
+    }
+  }
+  return q;
 }
 
 }  // namespace xtp

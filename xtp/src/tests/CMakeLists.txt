@@ -173,6 +173,11 @@ foreach(PROG ${test_cases} )
   add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
   set_tests_properties(unit_${PROG} PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
 endforeach(PROG)
+# includes libint2.hpp: same job pool as the libint2 sources of the library
+# (defined in src/libxtp/CMakeLists.txt)
+if(TARGET unit_test_aoderivatives)
+  set_target_properties(unit_test_aoderivatives PROPERTIES JOB_POOL_COMPILE votca_libint2)
+endif()
 
 # unit_test_dftengine_cdft's own cdft_total_force_finite_difference case
 # runs THREE full, independent CDFT calculations (each potentially as

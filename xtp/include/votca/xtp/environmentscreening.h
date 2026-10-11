@@ -283,6 +283,13 @@ class EnvironmentScreening {
   static ScreeningCheck Check(const AOBasis& auxbasis, const QMMolecule& atoms,
                               const ScreeningEnvironment& env,
                               const Eigen::MatrixXd& T, Index n_modes = 3);
+
+ private:
+  // Net charge of every auxiliary function, integral chi_Q d^3r, in the
+  // order and normalization of the three-centre integrals. Defined, like
+  // AuxFieldAtPoints, in libint2_calls.cc, the translation unit that
+  // includes libint2.
+  static Eigen::VectorXd AuxCharges(const AOBasis& auxbasis);
 };
 
 }  // namespace xtp

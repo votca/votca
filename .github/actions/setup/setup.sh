@@ -29,7 +29,7 @@ if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
   cmake_args+=( -DCMAKE_BUILD_TYPE=${INPUT_CMAKE_BUILD_TYPE} )
 fi
 if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
-  cmake_args+=( -DCMAKE_CXX_COMPILER=g++ )
+  cmake_args+=( -DCMAKE_CXX_COMPILER=g++ -GNinja )
 elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=clang++ -GNinja )
 elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
