@@ -364,7 +364,12 @@ DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace(
 bool DavidsonSolver::checkConvergence(const DavidsonSolver::RitzEigenPair &rep,
                                       DavidsonSolver::ProjectedSpace &proj,
                                       Index neigen) const {
-  proj.root_converged = (rep.res_norm().head(proj.size_update) < tol_);
+  // there can be fewer Ritz pairs than size_update while the search space is
+  // still small (an initial guess with dependent columns dropped); roots
+  // without a Ritz pair are not converged
+  const Index n = std::min<Index>(proj.size_update, rep.res_norm().size());
+  proj.root_converged = ArrayXb::Constant(proj.size_update, false);
+  proj.root_converged.head(n) = (rep.res_norm().head(n) < tol_);
   return proj.root_converged.head(neigen).all();
 }
 
@@ -372,12 +377,15 @@ Index DavidsonSolver::extendProjection(
     const DavidsonSolver::RitzEigenPair &rep,
     DavidsonSolver::ProjectedSpace &proj) const {
 
-  Index nupdate = (proj.root_converged == false).count();
+  // correction vectors only for roots with a Ritz pair (see
+  // checkConvergence)
+  const Index n = std::min<Index>(proj.size_update, rep.lambda.size());
+  Index nupdate = (proj.root_converged.head(n) == false).count();
   Index oldsize = proj.V.cols();
   proj.V.conservativeResize(Eigen::NoChange, oldsize + nupdate);
 
   Index k = 0;
-  for (Index j = 0; j < proj.size_update; j++) {
+  for (Index j = 0; j < n; j++) {
     // skip the roots that have already converged
     if (proj.root_converged[j]) {
       continue;
