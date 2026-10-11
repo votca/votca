@@ -31,7 +31,7 @@ class RPA_UKS;
 
 class PPM {
  public:
-  PPM() : screening_r(0.0), screening_i(0.5){};
+  PPM() : screening_r(0.0), screening_i(0.5) {};
 
   void PPM_construct_parameters(const RPA& rpa);
   void PPM_construct_parameters(const RPA_UKS& rpa);

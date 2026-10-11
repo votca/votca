@@ -33,7 +33,7 @@ class RPA;
 
 class Sigma_PPM : public Sigma_base {
  public:
-  Sigma_PPM(TCMatrix_gwbse& Mmn, RPA& rpa) : Sigma_base(Mmn, rpa){};
+  Sigma_PPM(TCMatrix_gwbse& Mmn, RPA& rpa) : Sigma_base(Mmn, rpa) {};
 
   // Sets up the screening parametrisation
   void PrepareScreening() final;

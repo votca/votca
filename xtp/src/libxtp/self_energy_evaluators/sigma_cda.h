@@ -39,7 +39,7 @@ class Sigma_CDA : public Sigma_base {
 
  public:
   Sigma_CDA(TCMatrix_gwbse& Mmn, RPA& rpa)
-      : Sigma_base(Mmn, rpa), gq_(rpa.getRPAInputEnergies(), Mmn){};
+      : Sigma_base(Mmn, rpa), gq_(rpa.getRPAInputEnergies(), Mmn) {};
 
   ~Sigma_CDA() = default;
 

@@ -134,7 +134,7 @@ class FunctionEvaluation {
  public:
   FunctionEvaluation(const Eigen::MatrixXd& node_terms,
                      const Eigen::ArrayXcd& DeltaE)
-      : node_terms_(node_terms), DeltaE_(DeltaE){};
+      : node_terms_(node_terms), DeltaE_(DeltaE) {};
 
   // sum_i den_i (Imx W_j Imx^T)_ii, W_j real
   double operator()(Index j, double point, bool symmetry) const {
