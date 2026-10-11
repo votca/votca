@@ -235,8 +235,13 @@ double SolveQP_Bisection(double lowerbound, double f_lowerbound,
         "Bisection needs a positive and negative function value");
   }
 
+  // Halving reaches xtol after log2(width / xtol) steps (about 20 for the
+  // brackets of the grid search). The cap only matters if the bracket cannot
+  // shrink below xtol (non-finite values, xtol below the spacing of doubles);
+  // the midpoint returned then fails AcceptRoot instead of looping forever.
   const double xtol = RootBracketTolerance(opt);
-  while (true) {
+  const Index max_iter = std::max<Index>(opt.qp_bisection_max_iter, 100);
+  for (Index iter = 0; iter < max_iter; ++iter) {
     const double c = 0.5 * (lowerbound + upperbound);
     if (std::abs(upperbound - lowerbound) < xtol) {
       return c;
@@ -255,6 +260,7 @@ double SolveQP_Bisection(double lowerbound, double f_lowerbound,
       f_upperbound = y_c;
     }
   }
+  return 0.5 * (lowerbound + upperbound);
 }
 
 template <typename QPFunc>
@@ -357,8 +363,9 @@ double SolveQP_Brent(double lowerbound, double f_lowerbound, double upperbound,
     fb = f.value(b, EvalStage::Refine);
   }
 
-  throw std::runtime_error(
-      "Brent did not converge within qp_bisection_max_iter");
+  // not converged (e.g. a pole instead of a root inside the bracket): the
+  // best estimate is returned and judged by AcceptRoot like any other
+  return b;
 }
 
 inline bool AcceptRoot(const RootCandidate& cand, const SolverOptions& opt) {
@@ -449,6 +456,11 @@ boost::optional<RootCandidate> RefineQPInterval(
     double f_upperbound, const QPFunc& f, double reference,
     const SolverOptions& opt, bool use_brent) {
   RootCandidate cand;
+
+  if (!std::isfinite(lowerbound) || !std::isfinite(upperbound) ||
+      !std::isfinite(f_lowerbound) || !std::isfinite(f_upperbound)) {
+    return boost::none;
+  }
 
   // Near-exact-zero brackets: one endpoint is already essentially at the root.
   // Bisection and Brent both require opposite signs; handle this case directly

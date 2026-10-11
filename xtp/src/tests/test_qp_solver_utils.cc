@@ -406,4 +406,33 @@ BOOST_AUTO_TEST_CASE(linearised_root_is_a_newton_step) {
   BOOST_CHECK(!LinearisedRoot(w0, 0.3, 0.0));
 }
 
+// A sign change without a zero (a pole of Sigma_c between two grid points)
+// and a tolerance that the bracket cannot reach: both refinements must stop
+// and return a candidate that AcceptRoot rejects. Non-finite brackets are
+// skipped.
+struct JumpFunc {
+  double value(double omega, EvalStage /*stage*/) const {
+    return omega < 0.3 ? 1.0 : -1.0;
+  }
+  double deriv(double /*omega*/) const { return -1.0; }
+};
+
+BOOST_AUTO_TEST_CASE(refinement_terminates_without_root) {
+  SolverOptions opt;
+  opt.g_sc_limit = 0.0;
+  opt.qp_bisection_max_iter = 200;
+  JumpFunc f;
+  for (bool brent : {false, true}) {
+    auto cand = RefineQPInterval(0.25, 1.0, 0.35, -1.0, f, 0.3, opt, brent);
+    if (cand) {
+      BOOST_CHECK(!cand->accepted);
+    }
+  }
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  for (bool brent : {false, true}) {
+    BOOST_CHECK(!RefineQPInterval(0.25, nan, 0.35, -1.0, f, 0.3, opt, brent));
+    BOOST_CHECK(!RefineQPInterval(nan, 1.0, 0.35, -1.0, f, 0.3, opt, brent));
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
