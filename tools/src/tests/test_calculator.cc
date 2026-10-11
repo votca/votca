@@ -23,7 +23,6 @@
 #include <fstream>
 
 // Third party includes
-#include <boost/filesystem.hpp>
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes

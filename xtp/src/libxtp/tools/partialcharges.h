@@ -27,7 +27,6 @@
 #include <cstdio>
 
 // Third party includes
-#include <boost/filesystem.hpp>
 
 // Local VOTCA includes
 #include "votca/xtp/esp2multipole.h"

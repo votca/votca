@@ -25,7 +25,6 @@
 #include <cstdio>
 
 // Third party includes
-#include <boost/filesystem.hpp>
 
 // VOTCA includes
 #include <votca/tools/property.h>

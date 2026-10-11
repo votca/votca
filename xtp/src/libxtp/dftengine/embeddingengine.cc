@@ -36,7 +36,6 @@
 
 // Third party includes
 #include <algorithm>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 // VOTCA includes

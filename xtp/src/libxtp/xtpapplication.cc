@@ -21,7 +21,6 @@
 #include <boost/format.hpp>
 
 // VOTCA includes
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <ostream>
 #include <stdexcept>
