@@ -301,7 +301,12 @@ Eigen::MatrixXd InverseSPD(const Eigen::MatrixXd& A) {
 #else
   Eigen::LLT<Eigen::MatrixXd> llt(A);
   if (llt.info() == Eigen::Success) {
-    return llt.solve(Eigen::MatrixXd::Identity(A.rows(), A.cols()));
+    // the solve is symmetric only to rounding; make it exactly symmetric
+    // like the LAPACK paths (lower triangle mirrored)
+    Eigen::MatrixXd inv =
+        llt.solve(Eigen::MatrixXd::Identity(A.rows(), A.cols()));
+    inv.triangularView<Eigen::StrictlyUpper>() = inv.transpose();
+    return inv;
   }
 #endif
   return A.partialPivLu().inverse();
