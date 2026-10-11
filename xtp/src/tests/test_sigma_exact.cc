@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(sigma_exact_batched_equals_direct) {
         }
       }
       BOOST_CHECK_SMALL(cheb, 1e-13 * std::max(1.0, scale));
-      BOOST_CHECK_SMALL(single, 1e-11 * std::max(1.0, scale));
+      BOOST_CHECK_SMALL(single, 1e-10 * std::max(1.0, scale));
     }
   }
   // derivative against a central difference

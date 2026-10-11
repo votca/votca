@@ -274,7 +274,8 @@ derivatives are summed term by term. Note that near a pole, where
 :math:`|\omega-z|` is of the order of :math:`\eta`, rounding of
 :math:`\omega - z` alone changes a term by up to :math:`a\,\epsilon\,|\omega|
 /\eta^2`; values at the same frequency computed in different ways can
-therefore differ at the :math:`10^{-12}` relative level.
+therefore differ at the :math:`10^{-12}`–:math:`10^{-11}` relative level,
+depending on compiler and vectorisation.
 
 Off-diagonal elements
 =====================

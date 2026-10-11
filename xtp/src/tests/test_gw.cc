@@ -996,7 +996,7 @@ BOOST_AUTO_TEST_CASE(evgw_uks_closed_shell_equals_rks) {
 
 // Batched UKS Sigma_c (as used by the QP scan through Prefetch) equals the
 // element-wise sums: in chunks too small for the Chebyshev split to 1e-13,
-// and single frequencies to 1e-11 (rounded differently near poles, see
+// and single frequencies to 1e-10 (rounded differently near poles, see
 // test_sigma_exact.cc).
 BOOST_AUTO_TEST_CASE(sigma_uks_batched_equals_direct) {
   if (!libint2::initialized()) libint2::initialize();
@@ -1049,7 +1049,7 @@ BOOST_AUTO_TEST_CASE(sigma_uks_batched_equals_direct) {
           }
         }
         BOOST_CHECK_SMALL(cheb, 1e-13 * std::max(1.0, scale));
-        BOOST_CHECK_SMALL(single, 1e-11 * std::max(1.0, scale));
+        BOOST_CHECK_SMALL(single, 1e-10 * std::max(1.0, scale));
       }
     }
   }
