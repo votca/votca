@@ -56,6 +56,10 @@ class Sigma_PPM : public Sigma_base {
   Eigen::MatrixXd CalcCorrelationOffDiag(
       const Eigen::VectorXd& frequencies) const final;
 
+  bool HasPoleForm() const final { return true; }
+  DiagPoleForm PoleForm(Index gw_level) const final;
+  ScreeningData ScreeningDump(const Eigen::VectorXd& nu) const final;
+
  private:
   template <class Term>
   void AccumulateDiag(Index gw_level, const double* freqs, Index nfreq,
@@ -64,6 +68,8 @@ class Sigma_PPM : public Sigma_base {
   // per PPM mode: 0.5 weight omega, 0 for modes with weight below 1e-9
   // (the factor of |M(n,P)|^2 in Sigma_c; set in PrepareScreening)
   Eigen::VectorXd mode_factors_;
+  // RPA energies W was built with (for ScreeningDump)
+  Eigen::VectorXd screening_energies_;
 };
 }  // namespace xtp
 }  // namespace votca

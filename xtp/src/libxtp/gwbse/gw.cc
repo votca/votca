@@ -25,6 +25,7 @@
 // Local VOTCA includes
 #include "votca/xtp/IndexParser.h"
 #include "votca/xtp/anderson_mixing.h"
+#include "votca/xtp/checkpoint.h"
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/gw.h"
 #include "votca/xtp/memorybudget.h"
@@ -537,6 +538,8 @@ void GW::CalculateGWPerturbation() {
     rpa_.setRPAInputEnergies(rpa_energies_solved);
     Sigma_c_.diagonal() = sigma_->CalcCorrelationDiag(qp_solution);
     rpa_.setRPAInputEnergies(rpa_energies_next);
+    qp_solution_ = qp_solution;
+    rpa_energies_solved_ = rpa_energies_solved;
   }
   PrintGWA_Energies();
   timings_.Report(log_, Log::error, "GW timing summary");
@@ -1479,12 +1482,66 @@ void GW::CalculateQSGW() {
       << TimeStamp() << " QSGW loop complete." << std::flush;
 }
 
+namespace {
+// Restores the RPA input energies on scope exit
+class RPAEnergyGuard {
+ public:
+  RPAEnergyGuard(RPA& rpa, const Eigen::VectorXd& energies)
+      : rpa_(rpa), saved_(rpa.getRPAInputEnergies()) {
+    if (energies.size() == saved_.size()) {
+      rpa_.setRPAInputEnergies(energies);
+    }
+  }
+  ~RPAEnergyGuard() { rpa_.setRPAInputEnergies(saved_); }
+  RPAEnergyGuard(const RPAEnergyGuard&) = delete;
+  RPAEnergyGuard& operator=(const RPAEnergyGuard&) = delete;
+
+ private:
+  RPA& rpa_;
+  Eigen::VectorXd saved_;
+};
+}  // namespace
+
+Eigen::MatrixXd GW::SigmaCurves(const std::vector<Index>& levels, Index steps,
+                                double spacing) const {
+  // grid of level n: e_dft(n) + (k - (steps-1)/2) spacing, the same for all
+  // GW flavours computed from one DFT calculation
+  const Index nlev = Index(levels.size());
+  Eigen::MatrixXd curves = Eigen::MatrixXd::Zero(nlev, steps);
+  // One batched evaluation per level and chunk of frequencies: the
+  // integrals (PPM) or residues (exact) of a level are read once per
+  // chunk instead of once per point, and poles far from the chunk are
+  // summed at a few Chebyshev nodes (exact_pole_sums::Values). Chunks keep
+  // all threads busy for few levels and narrow the frequency range, which
+  // moves more poles into the interpolated far field.
+  const Index chunk = std::min<Index>(std::max<Index>(steps, 1), 96);
+  const Index nchunks = (steps + chunk - 1) / chunk;
+#pragma omp parallel for schedule(dynamic)
+  for (Index task = 0; task < nlev * nchunks; task++) {
+    const Index i = task / nchunks;
+    const Index first = (task % nchunks) * chunk;
+    const Index n = std::min(chunk, steps - first);
+    const Index gw_level = levels[std::size_t(i)];
+    const double center = dft_energies_(opt_.qpmin + gw_level);
+    Eigen::VectorXd omega(n);
+    for (Index k = 0; k < n; ++k) {
+      omega(k) =
+          center + (double(first + k) - (double(steps - 1) / 2.0)) * spacing;
+    }
+    curves.block(i, first, 1, n) =
+        sigma_->CalcCorrelationDiagElements(gw_level, omega).transpose();
+  }
+  return curves;
+}
+
 void GW::PlotSigma(std::string filename, Index steps, double spacing,
-                   std::string states) const {
+                   std::string states) {
 
-  Eigen::VectorXd frequencies =
-      rpa_.getRPAInputEnergies().segment(opt_.qpmin - opt_.rpamin, qptotal_);
+  // The energies in G of the last QP solve (as for Sigma_c_ and the PQP
+  // energies; in evGW the RPA energies were updated after it).
+  RPAEnergyGuard guard(rpa_, rpa_energies_solved_);
 
+  // states are absolute MO indices; the GW arrays start at qpmin
   std::vector<Index> state_inds;
   IndexParser rp;
   std::vector<Index> parsed_states = rp.CreateIndexVector(states);
@@ -1493,33 +1550,40 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
       state_inds.push_back(gw_level);
     }
   }
-  XTP_LOG(Log::error, log_)
-      << TimeStamp() << " PQP(omega) written to '" << filename
-      << "' for states " << rp.CreateIndexString(state_inds) << std::flush;
-
-  const Index num_states = state_inds.size();
-
+  std::vector<Index> levels;
+  for (Index s : state_inds) {
+    levels.push_back(s - opt_.qpmin);
+  }
+  const Index num_states = Index(state_inds.size());
   const Eigen::VectorXd intercept =
       dft_energies_.segment(opt_.qpmin, qptotal_) + Sigma_x_.diagonal() +
       Sigma_reac_.diagonal() - vxc_.diagonal();
+
+  auto t0 = std::chrono::steady_clock::now();
+  const Eigen::MatrixXd curves = SigmaCurves(levels, steps, spacing);
+  const double seconds =
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - t0)
+          .count();
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " PQP(omega) written to '" << filename
+      << "' for states " << rp.CreateIndexString(state_inds) << " ("
+      << num_states * steps << " points, " << seconds << " s)" << std::flush;
+
   Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(steps, 2 * num_states);
-#pragma omp parallel for schedule(dynamic)
-  for (Index grid_point = 0; grid_point < steps; grid_point++) {
-    const double offset =
-        ((double)grid_point - ((double)(steps - 1) / 2.0)) * spacing;
-    for (Index i = 0; i < num_states; i++) {
-      const Index gw_level = state_inds[i];
-      const double omega = frequencies(gw_level) + offset;
-      double sigma = sigma_->CalcCorrelationDiagElement(gw_level, omega);
-      mat(grid_point, 2 * i) = omega;
-      mat(grid_point, 2 * i + 1) = sigma + intercept[gw_level];
+  for (Index i = 0; i < num_states; i++) {
+    const Index n = levels[std::size_t(i)];
+    const double center = dft_energies_(opt_.qpmin + n);
+    for (Index k = 0; k < steps; ++k) {
+      mat(k, 2 * i) =
+          center + (double(k) - (double(steps - 1) / 2.0)) * spacing;
     }
+    mat.col(2 * i + 1) = curves.row(i).transpose().array() + intercept(n);
   }
 
   std::ofstream out;
   out.open(filename);
   for (Index i = 0; i < num_states; i++) {
-    const Index gw_level = state_inds[i];
+    const Index gw_level = state_inds[std::size_t(i)];
     out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d") %
                (i == 0 ? "" : "\t") % gw_level;
   }
@@ -1528,6 +1592,282 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   Eigen::IOFormat matFormat(Eigen::StreamPrecision, 0, "\t", "\n");
   out << numFormat % mat.format(matFormat) << std::endl;
   out.close();
+}
+
+void GW::DumpSigma(const sigma_dump_options& dopt, const std::string& gw_mode,
+                   const std::string& version) {
+  if (!sigma_->HasPoleForm()) {
+    throw std::runtime_error(
+        "gw.sigma_dump needs sigma_integrator ppm or exact");
+  }
+  if (qp_solution_.size() != qptotal_) {
+    throw std::runtime_error(
+        "GW::DumpSigma called before CalculateGWPerturbation");
+  }
+  auto t0 = std::chrono::steady_clock::now();
+  XTP_LOG(Log::error, log_) << TimeStamp() << " Dumping self-energy data to '"
+                            << dopt.filename << "'" << std::flush;
+
+  // the energies in G of the last QP solve, as for Sigma_c_
+  RPAEnergyGuard guard(rpa_, rpa_energies_solved_);
+
+  const Index homo = opt_.homo;
+  const double e_lumo = dft_energies_(homo + 1);
+  // fixed reference of the imaginary axis: the DFT midgap, the same for all
+  // GW flavours from one DFT calculation
+  const double mu = 0.5 * (dft_energies_(homo) + e_lumo);
+  const double eta2 = opt_.eta * opt_.eta;
+
+  // levels with spectra and imaginary-axis data: qpmin .. qpmin + nspec - 1
+  Index nspec = qptotal_;
+  if (dopt.levels_emax_ev > 0.0) {
+    const double limit = e_lumo + dopt.levels_emax_ev * tools::conv::ev2hrt;
+    nspec = 0;
+    while (nspec < qptotal_ && dft_energies_(opt_.qpmin + nspec) <= limit) {
+      ++nspec;
+    }
+  }
+
+  // Gauss-Legendre nodes on (-1, 1) (Golub-Welsch), mapped to (0, inf):
+  // nu = s (1+x)/(1-x)
+  const Index nimag = dopt.imag_points;
+  Eigen::VectorXd nu = Eigen::VectorXd::Zero(nimag);
+  Eigen::VectorXd nu_weights = Eigen::VectorXd::Zero(nimag);
+  if (nimag > 0) {
+    Eigen::MatrixXd J = Eigen::MatrixXd::Zero(nimag, nimag);
+    for (Index k = 1; k < nimag; k++) {
+      const double kd = double(k);
+      J(k, k - 1) = J(k - 1, k) = kd / std::sqrt(4.0 * kd * kd - 1.0);
+    }
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(J);
+    for (Index k = 0; k < nimag; k++) {
+      const double x = es.eigenvalues()(k);
+      const double w = 2.0 * std::pow(es.eigenvectors()(0, k), 2);
+      nu(k) = dopt.imag_scale * (1.0 + x) / (1.0 - x);
+      nu_weights(k) = w * dopt.imag_scale * 2.0 / ((1.0 - x) * (1.0 - x));
+    }
+  }
+
+  const Index nbins = std::max<Index>(
+      1, Index(std::round((dopt.spectral_max - dopt.spectral_min) /
+                          dopt.spectral_binwidth)));
+  Eigen::VectorXd bin_edges(nbins + 1);
+  for (Index b = 0; b <= nbins; b++) {
+    bin_edges(b) = dopt.spectral_min + double(b) * dopt.spectral_binwidth;
+  }
+
+  Eigen::VectorXd sigma_check = Eigen::VectorXd::Zero(qptotal_);
+  Eigen::VectorXd dsigma = Eigen::VectorXd::Zero(qptotal_);
+  Eigen::VectorXd d2sigma = Eigen::VectorXd::Zero(qptotal_);
+  Eigen::VectorXd sigma_dft = Eigen::VectorXd::Zero(qptotal_);
+  Eigen::MatrixXf spectral = Eigen::MatrixXf::Zero(nspec, nbins);
+  Eigen::VectorXd weight_below = Eigen::VectorXd::Zero(nspec);
+  Eigen::VectorXd weight_above = Eigen::VectorXd::Zero(nspec);
+  Eigen::VectorXd weight_total = Eigen::VectorXd::Zero(nspec);
+  Eigen::VectorXd first_moment = Eigen::VectorXd::Zero(nspec);
+  Eigen::MatrixXd imag_re = Eigen::MatrixXd::Zero(nspec, nimag);
+  Eigen::MatrixXd imag_im = Eigen::MatrixXd::Zero(nspec, nimag);
+
+#pragma omp parallel for schedule(dynamic)
+  for (Index n = 0; n < qptotal_; n++) {
+    const Sigma_base::DiagPoleForm pf = sigma_->PoleForm(n);
+    const ExactPoles& poles = pf.poles;
+    const Index B = poles.nlevels();
+    const double eqp = qp_solution_(n);
+    const bool spec = (n < nspec);
+    double s_qp = 0.0, d2 = 0.0, wsum = 0.0, m1 = 0.0, below = 0.0, above = 0.0;
+    Eigen::VectorXd hist = Eigen::VectorXd::Zero(spec ? nbins : 0);
+    Eigen::ArrayXd re = Eigen::ArrayXd::Zero(spec ? nimag : 0);
+    Eigen::ArrayXd im = Eigen::ArrayXd::Zero(spec ? nimag : 0);
+    Eigen::ArrayXd z(B), a(B);
+    for (Index s = 0; s < poles.nmodes(); ++s) {
+      const double c =
+          pf.prefactor * (pf.mode_factors ? pf.mode_factors[s] : 1.0);
+      if (c == 0.0) {
+        continue;
+      }
+      const double omega = poles.omegas(s);
+      const double* r = pf.residues + B * s;
+      for (Index m = 0; m < B; ++m) {
+        z(m) = poles.energies(m) + ((m < poles.n_occ) ? -omega : omega);
+        a(m) = c * r[m] * r[m];
+      }
+      // real axis at the QP solution, same broadening as the QP solver
+      const Eigen::ArrayXd x = eqp - z;
+      const Eigen::ArrayXd x2 = x.square();
+      const Eigen::ArrayXd den = x2 + eta2;
+      s_qp += (a * x / den).sum();
+      d2 += (a * 2.0 * x * (x2 - 3.0 * eta2) / (den.square() * den)).sum();
+      if (!spec) {
+        continue;
+      }
+      wsum += a.sum();
+      m1 += (a * z).sum();
+      for (Index m = 0; m < B; ++m) {
+        const double b =
+            std::floor((z(m) - dopt.spectral_min) / dopt.spectral_binwidth);
+        if (b < 0) {
+          below += a(m);
+        } else if (b >= double(nbins)) {
+          above += a(m);
+        } else {
+          hist(Index(b)) += a(m);
+        }
+      }
+      // imaginary axis mu + i nu: sum_p a_p / (mu + i nu - z_p)
+      const Eigen::ArrayXd xm = mu - z;
+      const Eigen::ArrayXd xm2 = xm.square();
+      for (Index k = 0; k < nimag; k++) {
+        const Eigen::ArrayXd ad = a / (xm2 + nu(k) * nu(k));
+        re(k) += (ad * xm).sum();
+        im(k) -= nu(k) * ad.sum();
+      }
+    }
+    sigma_check(n) = s_qp;
+    d2sigma(n) = d2;
+    dsigma(n) = sigma_->CalcCorrelationDiagElementDerivative(n, eqp);
+    sigma_dft(n) =
+        sigma_->CalcCorrelationDiagElement(n, dft_energies_(opt_.qpmin + n));
+    if (spec) {
+      spectral.row(n) = hist.transpose().cast<float>();
+      weight_below(n) = below;
+      weight_above(n) = above;
+      weight_total(n) = wsum;
+      first_moment(n) = m1;
+      imag_re.row(n) = re.matrix().transpose();
+      imag_im.row(n) = im.matrix().transpose();
+    }
+  }
+
+  const Eigen::VectorXd sigma_c = Sigma_c_.diagonal();
+  const double max_dev = (sigma_check - sigma_c).cwiseAbs().maxCoeff();
+  XTP_LOG(Log::error, log_)
+      << TimeStamp()
+      << " Sigma dump: max |Sigma_c(pole sum) - Sigma_c| at the QP solution = "
+      << max_dev << " Ha" << std::flush;
+  const Eigen::VectorXd Z = (1.0 - dsigma.array()).inverse().matrix();
+
+  const Sigma_base::ScreeningData scr = sigma_->ScreeningDump(nu);
+
+  // Sigma_c(omega) of every QP level on a grid around its DFT energy
+  Eigen::MatrixXf curves;
+  if (dopt.plot_steps > 0) {
+    std::vector<Index> all(static_cast<std::size_t>(qptotal_));
+    for (Index n = 0; n < qptotal_; ++n) {
+      all[std::size_t(n)] = n;
+    }
+    curves = SigmaCurves(all, dopt.plot_steps, dopt.plot_spacing).cast<float>();
+  }
+
+  Eigen::Matrix<Index, Eigen::Dynamic, 1> levels(qptotal_);
+  Eigen::Matrix<Index, Eigen::Dynamic, 1> competing(qptotal_);
+  Eigen::VectorXd omega_alt = Eigen::VectorXd::Zero(qptotal_);
+  Eigen::VectorXd Z_alt = Eigen::VectorXd::Zero(qptotal_);
+  for (Index n = 0; n < qptotal_; n++) {
+    levels(n) = n + opt_.qpmin;
+    competing(n) = 0;
+    if (n < Index(competing_roots_.size())) {
+      const auto& c = competing_roots_[std::size_t(n)];
+      competing(n) = c.competing ? 1 : 0;
+      omega_alt(n) = c.omega_alt;
+      Z_alt(n) = c.Z_alt;
+    }
+  }
+
+  CheckpointFile cpf(dopt.filename, CheckpointAccessLevel::CREATE);
+  {
+    CheckpointWriter w = cpf.getWriter("/sigma");
+    w(std::string(
+          "Sigma_c,nn(w) = sum_p a_p Re[1/(w - z_p +- i eta)]; Hartree; "
+          "levels = absolute MO indices qpmin..qpmax; per-level spectra "
+          "and imaginary axis (z = mu + i nu) and the matrices vxc, sigma_x, "
+          "Hqp for the first n_spec levels; sigma_c_curves(n, k) = "
+          "Sigma_c(e_dft(n) + (k - (curve_steps-1)/2) curve_spacing) for all "
+          "levels"),
+      "description");
+    w(std::string("2"), "format_version");
+    w(version, "xtp_version");
+    w(opt_.sigma_integration, "sigma_integrator");
+    w(gw_mode, "gw_mode");
+    w(homo, "homo");
+    w(opt_.qpmin, "qpmin");
+    w(opt_.qpmax, "qpmax");
+    w(opt_.rpamin, "rpamin");
+    w(opt_.rpamax, "rpamax");
+    w(opt_.eta, "eta");
+    w(opt_.ScaHFX, "ScaHFX");
+    w(mu, "mu");
+    w(nspec, "n_spec");
+    w(dopt.levels_emax_ev, "levels_emax_ev");
+    w(dopt.imag_scale, "imag_scale");
+    w(dopt.spectral_binwidth, "spectral_binwidth");
+    w(qp_iterations_, "qp_iterations");
+    w(screening_builds_, "screening_builds");
+    w(max_dev, "sigma_c_check_max_dev");
+
+    w(levels, "levels");
+    w(Eigen::VectorXd(dft_energies_), "e_dft_all");
+    w(Eigen::VectorXd(dft_energies_.segment(opt_.qpmin, qptotal_)), "e_dft");
+    // diagonals for all QP levels, matrices for the first n_spec levels
+    // (the full QP window of a G0W0 over all levels would dominate the file)
+    w(Eigen::VectorXd(vxc_.diagonal()), "vxc_diag");
+    w(Eigen::VectorXd(Sigma_x_.diagonal()), "sigma_x_diag");
+    w(Eigen::VectorXd(Sigma_reac_.diagonal()), "sigma_reac");
+    w(Eigen::MatrixXd(vxc_.topLeftCorner(nspec, nspec)), "vxc");
+    w(Eigen::MatrixXd(Sigma_x_.topLeftCorner(nspec, nspec)), "sigma_x");
+    w(Eigen::MatrixXd(getHQP().topLeftCorner(nspec, nspec)), "Hqp");
+    w(getGWAResults(), "e_qp");
+    w(qp_solution_, "qp_solution");
+    w(sigma_c, "sigma_c");
+    w(dsigma, "dsigma_c");
+    w(d2sigma, "d2sigma_c");
+    w(Z, "Z");
+    w(sigma_dft, "sigma_c_at_e_dft");
+    w(competing, "competing_roots");
+    w(omega_alt, "omega_alt");
+    w(Z_alt, "Z_alt");
+    w(rpa_energies_solved_, "g_energies");
+    w(scr.energies, "w_energies");
+
+    w(nu, "imag_nu");
+    w(nu_weights, "imag_weights");
+    w(imag_re, "sigma_c_imag_re");
+    w(imag_im, "sigma_c_imag_im");
+    w(bin_edges, "spectral_bin_edges");
+    w(spectral, "spectral_weights");
+    w(weight_below, "spectral_weight_below");
+    w(weight_above, "spectral_weight_above");
+    w(weight_total, "pole_weight_total");
+    w(first_moment, "pole_first_moment");
+    if (dopt.plot_steps > 0) {
+      w(dopt.plot_steps, "curve_steps");
+      w(dopt.plot_spacing, "curve_spacing");
+      w(curves, "sigma_c_curves");
+    }
+  }
+  {
+    CheckpointWriter w = cpf.getWriter("/screening");
+    w(std::string(
+          "W_c = W - v in modes s (omegas) and in the plasmon-pole frame i "
+          "(eigenvectors of eps^-1(0)): eps^-1_ii(i nu) - 1 = -sum_s a_is "
+          "Omega_s/(nu^2 + Omega_s^2); frame_moments(i,k) = sum_s a_is "
+          "Omega_s^(k-1); frame_weights = -(eps^-1(0) - 1)_ii"),
+      "description");
+    w(scr.omegas, "omegas");
+    w(Eigen::VectorXf(scr.strength.cast<float>()), "strength");
+    w(scr.frame_weights, "frame_weights");
+    w(scr.frame_moments, "frame_moments");
+    w(Eigen::MatrixXf(scr.frame_eps_inv_imag.cast<float>()),
+      "frame_eps_inv_imag");
+    w(nu, "imag_nu");
+  }
+  const double seconds =
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - t0)
+          .count();
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Sigma dump: " << nspec << " of " << qptotal_
+      << " levels with spectra, " << scr.omegas.size() << " screening modes, "
+      << seconds << " s" << std::flush;
 }
 
 }  // namespace xtp

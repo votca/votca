@@ -44,6 +44,42 @@ void Sigma_PPM::PrepareScreening() {
   for (Index i = 0; i < weight.size(); ++i) {
     mode_factors_(i) = (weight(i) < 1.e-9) ? 0.0 : 0.5 * weight(i) * omega(i);
   }
+  screening_energies_ = rpa_.getRPAInputEnergies();
+}
+
+Sigma_base::DiagPoleForm Sigma_PPM::PoleForm(Index gw_level) const {
+  // residues: the integrals of the level in the PPM frame (rows: RPA levels,
+  // columns: modes), the same arrays CalcCorrelationDiagElements sums
+  const Index qpmin_offset = opt_.qpmin - opt_.rpamin;
+  return DiagPoleForm{
+      ExactPoles{rpa_.getRPAInputEnergies(), opt_.homo + 1 - opt_.rpamin,
+                 ppm_.getPpm_freq(), opt_.eta},
+      Mmn_[gw_level + qpmin_offset].data(), mode_factors_.data(), 1.0};
+}
+
+Sigma_base::ScreeningData Sigma_PPM::ScreeningDump(
+    const Eigen::VectorXd& nu) const {
+  // one pole per mode of the frame: eps^-1_ii(i nu) - 1 =
+  //   -w_i Omega_i^2 / (nu^2 + Omega_i^2), i.e. a_ii = w_i Omega_i
+  ScreeningData data;
+  const Eigen::VectorXd& w = ppm_.getPpm_weight();
+  data.omegas = ppm_.getPpm_freq();
+  data.strength = w;
+  data.frame_weights = w;
+  data.energies = screening_energies_;
+  const Index n = w.size();
+  data.frame_moments.resize(n, 3);
+  data.frame_eps_inv_imag.resize(n, nu.size());
+  for (Index i = 0; i < n; ++i) {
+    const double W = data.omegas(i);
+    data.frame_moments(i, 0) = w(i);
+    data.frame_moments(i, 1) = w(i) * W;
+    data.frame_moments(i, 2) = w(i) * W * W;
+    for (Index j = 0; j < nu.size(); ++j) {
+      data.frame_eps_inv_imag(i, j) = -w(i) * W * W / (nu(j) * nu(j) + W * W);
+    }
+  }
+  return data;
 }
 
 std::string Sigma_PPM::ScreeningSummary() const {

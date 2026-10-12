@@ -239,8 +239,48 @@ class GW {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonian()
       const;
 
+  /// E_QP(omega) = e_DFT + Sigma_x - v_xc + Sigma_c(omega) on a grid of
+  /// steps points around the DFT energy for the given states (absolute MO
+  /// indices), with the energies in G of the last QP solve.
   void PlotSigma(std::string filename, Index steps, double spacing,
-                 std::string states) const;
+                 std::string states);
+
+  /// Options of DumpSigma (energies in Hartree unless noted)
+  struct sigma_dump_options {
+    std::string filename = "sigma_dump.h5";
+    double levels_emax_ev = 20.0;  // per-level spectra and imaginary axis
+                                   // only up to this far above the DFT
+                                   // LUMO (eV); <= 0: all QP levels
+    Index imag_points = 24;        // Gauss-Legendre points on (0, inf)
+    double imag_scale = 0.5;       // nu = s (1+x)/(1-x)
+    double spectral_min = -3.0;    // pole histogram, absolute energies
+    double spectral_max = 3.0;
+    double spectral_binwidth = 0.02;
+    Index plot_steps = 201;      // Sigma_c(omega) of all QP levels on a grid
+    double plot_spacing = 0.01;  // around their DFT energies; 0 steps: off
+  };
+  /**
+   * \brief Write the self-energy and screening data of the finished GW
+   * (G0W0 or evGW, ppm or exact) to a separate HDF5 file.
+   *
+   * Call after CalculateHQP. Per QP level: the static parts, Sigma_c, its
+   * first two derivatives and Z at the QP solution, Sigma_c at the DFT
+   * energy, competing roots; for levels up to levels_emax_ev also the
+   * binned pole spectrum and Sigma_c on the imaginary axis mu + i nu. The
+   * screening: mode frequencies and strengths, and W_c in the plasmon-pole
+   * frame (static weights, moments, eps^-1(i nu) diagonal). The evaluator
+   * must have kept its screening data (Sigma_base::setKeepScreeningData,
+   * set by setKeepScreeningData here before CalculateGWPerturbation).
+   */
+  void DumpSigma(const sigma_dump_options& dopt, const std::string& gw_mode,
+                 const std::string& version);
+  /// Call after configure and before CalculateGWPerturbation.
+  void setKeepScreeningData(bool keep) {
+    keep_screening_data_ = keep;
+    if (sigma_) {
+      sigma_->setKeepScreeningData(keep);
+    }
+  }
 
   Eigen::VectorXd RPAInputEnergies() const {
     return rpa_.getRPAInputEnergies();
@@ -248,6 +288,14 @@ class GW {
 
  private:
   Index qptotal_;
+  /// Sigma_c(omega) for the levels (QP-window indices), row i on the grid
+  /// e_dft + (k - (steps-1)/2) spacing; uses the current RPA energies.
+  Eigen::MatrixXd SigmaCurves(const std::vector<Index>& levels, Index steps,
+                              double spacing) const;
+  bool keep_screening_data_ = false;
+  // QP solution of the last solve and the energies in G it used (DumpSigma)
+  Eigen::VectorXd qp_solution_;
+  Eigen::VectorXd rpa_energies_solved_;
   // wall-clock accounting of the GW steps, reported at the end
   mutable DFTTimings timings_;
 

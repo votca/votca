@@ -1195,6 +1195,14 @@ void Orbitals::WriteToCpt(CheckpointWriter& w) const {
   w(BSE_singlet_energies_dynamic_, "BSE_singlet_dynamic");
 
   w(BSE_triplet_energies_dynamic_, "BSE_triplet_dynamic");
+  if (BSE_singlet_dynamic_change_.size() > 0) {
+    w(BSE_singlet_dynamic_change_, "BSE_singlet_dynamic_change");
+    w(BSE_singlet_dynamic_iterations_, "BSE_singlet_dynamic_iterations");
+  }
+  if (BSE_triplet_dynamic_change_.size() > 0) {
+    w(BSE_triplet_dynamic_change_, "BSE_triplet_dynamic_change");
+    w(BSE_triplet_dynamic_iterations_, "BSE_triplet_dynamic_iterations");
+  }
 
   w(CalcType_, "CalcType");
 
@@ -1366,15 +1374,18 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
 
     r(BSE_triplet_energies_dynamic_, "BSE_triplet_dynamic");
   }
-  // Backward compatibility for older restricted checkpoints that may not
-  // contain explicit beta-electron information.
+  r_optional(BSE_singlet_dynamic_change_, "BSE_singlet_dynamic_change");
+  r_optional(BSE_singlet_dynamic_iterations_, "BSE_singlet_dynamic_iterations");
+  r_optional(BSE_triplet_dynamic_change_, "BSE_triplet_dynamic_change");
+  r_optional(BSE_triplet_dynamic_iterations_, "BSE_triplet_dynamic_iterations");
+  // Backward compatibility for older restricted checkpoints: they may not
+  // contain explicit electron counts, or (version-6 files written by 2025
+  // builds, e.g. from parsed ORCA output) contain uninitialised values in
+  // number_alpha_electrons/number_beta_electrons. A restricted singlet has
+  // exactly occupied_levels_ electrons of each spin.
   if (!hasUnrestrictedOrbitals() && total_spin_ == 1 && occupied_levels_ > 0) {
-    if (number_alpha_electrons_ == 0) {
-      number_alpha_electrons_ = occupied_levels_;
-    }
-    if (number_beta_electrons_ == 0) {
-      number_beta_electrons_ = occupied_levels_;
-    }
+    number_alpha_electrons_ = occupied_levels_;
+    number_beta_electrons_ = occupied_levels_;
   }
 }
 

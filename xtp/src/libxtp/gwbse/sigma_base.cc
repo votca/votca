@@ -24,6 +24,7 @@
 #include <boost/math/constants/constants.hpp>
 
 #include <algorithm>
+#include <stdexcept>
 #include <vector>
 
 // VOTCA includes
@@ -79,6 +80,38 @@ Eigen::MatrixXd Sigma_base::PairContraction(
     }
   }
   return A;
+}
+
+Sigma_base::DiagPoleForm Sigma_base::PoleForm(Index) const {
+  throw std::runtime_error(
+      "The pole form of Sigma_c is only available for sigma_integrator ppm "
+      "and exact");
+}
+
+Sigma_base::ScreeningData Sigma_base::ScreeningDump(
+    const Eigen::VectorXd&) const {
+  throw std::runtime_error(
+      "Screening data are only available for sigma_integrator ppm and exact");
+}
+
+void Sigma_base::FrameSums(const Eigen::MatrixXd& a,
+                           const Eigen::VectorXd& omegas,
+                           const Eigen::VectorXd& nu, ScreeningData& data) {
+  const Index S = omegas.size();
+  // columns: Omega^-1, Omega^0, Omega^1, then Omega/(nu^2+Omega^2)
+  Eigen::MatrixXd g(S, 3 + nu.size());
+  for (Index s = 0; s < S; ++s) {
+    const double w = omegas(s);
+    g(s, 0) = 1.0 / w;
+    g(s, 1) = 1.0;
+    g(s, 2) = w;
+    for (Index j = 0; j < nu.size(); ++j) {
+      g(s, 3 + j) = -w / (nu(j) * nu(j) + w * w);
+    }
+  }
+  const Eigen::MatrixXd sums = a * g;
+  data.frame_moments = sums.leftCols(3);
+  data.frame_eps_inv_imag = sums.rightCols(nu.size());
 }
 
 Eigen::MatrixXd Sigma_base::CalcExchangeMatrix() const {
