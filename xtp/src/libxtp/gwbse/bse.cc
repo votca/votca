@@ -944,6 +944,9 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
 
   // initial copy of static BSE energies to dynamic
   Eigen::VectorXd BSEenergies_dynamic = BSEenergies;
+  // convergence per state: last |dE| and iterations done
+  Eigen::VectorXd last_change = Eigen::VectorXd::Zero(BSEenergies.size());
+  Eigen::VectorXd iterations = Eigen::VectorXd::Zero(BSEenergies.size());
 
   for (Index i_exc = 0; i_exc < BSEenergies.size(); i_exc++) {
     XTP_LOG(Log::info, log_) << "Dynamical Screening BSE, Excitation " << i_exc
@@ -990,17 +993,35 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
           << "Dynamical Screening BSE, excitation " << i_exc << " iteration "
           << iter << " dynamic " << BSEenergies_dynamic(i_exc) << flush;
 
+      last_change(i_exc) = std::abs(BSEenergies_dynamic(i_exc) - old_energy);
+      iterations(i_exc) = double(iter + 1);
       // check tolerance
-      if (std::abs(BSEenergies_dynamic(i_exc) - old_energy) < dyn_tolerance_) {
+      if (last_change(i_exc) < dyn_tolerance_) {
         break;
       }
     }
+  }
+  {
+    Index n_unconverged = 0;
+    for (Index i = 0; i < last_change.size(); ++i) {
+      n_unconverged += (last_change(i) >= dyn_tolerance_) ? 1 : 0;
+    }
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Dynamical screening ("
+        << ((type == QMStateType::Singlet) ? "singlets" : "triplets")
+        << "): " << n_unconverged << " of " << last_change.size()
+        << " states not converged after " << max_dyn_iter_
+        << " iterations (tolerance " << dyn_tolerance_
+        << " Ha; largest last change "
+        << last_change.maxCoeff() * tools::conv::hrt2ev << " eV)" << flush;
   }
 
   double hrt2ev = tools::conv::hrt2ev;
 
   if (type == QMStateType::Singlet) {
     orb.BSESinglets_dynamic() = BSEenergies_dynamic;
+    orb.BSESinglets_dynamic_change() = last_change;
+    orb.BSESinglets_dynamic_iterations() = iterations;
     XTP_LOG(Log::error, log_) << "  ====== singlet energies with perturbative "
                                  "dynamical screening (eV) ====== "
                               << flush;
@@ -1019,6 +1040,8 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
 
   } else if (type == QMStateType::Triplet) {
     orb.BSETriplets_dynamic() = BSEenergies_dynamic;
+    orb.BSETriplets_dynamic_change() = last_change;
+    orb.BSETriplets_dynamic_iterations() = iterations;
     XTP_LOG(Log::error, log_) << "  ====== triplet energies with perturbative "
                                  "dynamical screening (eV) ====== "
                               << flush;

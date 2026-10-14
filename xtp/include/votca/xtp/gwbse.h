@@ -106,6 +106,9 @@ class GWBSE {
   double sigma_plot_spacing_;
   std::string sigma_plot_filename_;
 
+  bool do_sigma_dump_ = false;
+  GW::sigma_dump_options sigma_dump_opt_;
+
   // basis sets
   std::string auxbasis_name_;
   std::string dftbasis_name_;
