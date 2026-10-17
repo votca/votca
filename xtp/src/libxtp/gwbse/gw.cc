@@ -1248,19 +1248,6 @@ void GW::CalculateQSGW() {
   Eigen::VectorXd e_qp = e_qp_full.head(qsgw_qptotal);
   qsgw_rotation_ = Eigen::MatrixXd::Identity(qsgw_qptotal, qsgw_qptotal);
 
-  // QSGW requires a local (GGA/LDA) DFT starting point.
-  // With a hybrid functional, the HF exchange embedded in the DFT eigenvalues
-  // introduces a starting-point dependence that is not removed by the QSGW
-  // self-consistency loop. See Faleev, van Schilfgaarde & Kotani PRL 2004
-  // and Betzinger, Friedrich & Blugel PRB 2010 for discussion.
-  if (opt_.ScaHFX > 0.0) {
-    throw std::runtime_error(
-        "GW::CalculateQSGW: QSGW is not compatible with hybrid DFT starting "
-        "points (ScaHFX = " +
-        std::to_string(opt_.ScaHFX) +
-        "). Use a pure GGA or LDA functional as the DFT starting point.");
-  }
-
   if (opt_.sigma_integration == "cda") {
     throw std::runtime_error(
         "GW::CalculateQSGW: QSGW is not supported with the CDA sigma "
@@ -1300,6 +1287,34 @@ void GW::CalculateQSGW() {
   // run may have rotated it), restored with it below. The bare Coulomb
   // terms are blind to it; an environment reaction field is not.
   const Eigen::MatrixXd aux_frame_orig = Mmn_.AuxFrame();
+
+  // Hybrid starting points. H_KS = h + J + a K[rho_DFT] + v_xc^sl, and V_xc
+  // holds only the semilocal part (perturbative GW uses (1 - a) Sigma_x for
+  // that reason), so diag(e_DFT) - V_xc still contains a K[rho_DFT]. The loop
+  // adds the full exchange of the current QP orbitals; remove the starting
+  // point's share once, here, so that H = h + J + Sigma_x[QP] + Sigma_c for
+  // any functional. K[rho_DFT] is the exchange matrix in the unrotated DFT
+  // orbitals, with the frozen core (the same terms as in the loop, at
+  // iteration 0). For a = 0 nothing changes.
+  if (opt_.ScaHFX > 0.0) {
+    Eigen::MatrixXd K0 = sigma_->CalcExchangeMatrix();
+    if (core_exchange_.size() > 0) {
+      K0 += core_exchange_.topLeftCorner(qsgw_qptotal, qsgw_qptotal);
+    }
+    H0 -= opt_.ScaHFX * K0;
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << "  QSGW from a hybrid start: removed " << opt_.ScaHFX
+        << " x exchange of the DFT orbitals from H0" << std::flush;
+  }
+
+  // Hartree: H_KS contains J[rho_DFT]. With hartree update on, the loop adds
+  // J[rho_QP] - J[rho_DFT] of the active occupied levels (the frozen core
+  // does not change), so H = h + J[rho_QP] + Sigma_x[QP] + Sigma_c: the
+  // occupied space is then fully self-consistent.
+  Eigen::MatrixXd J0;
+  if (opt_.qsgw_hartree_update) {
+    J0 = sigma_->CalcHartreeMatrix();
+  }
 
   // Fixed-point problem in tilde_Sigma (DFT-MO basis of the window):
   //   S_in -> H = H0 + S_in -> (E, U) -> S_out = F(S_in),
@@ -1373,6 +1388,12 @@ void GW::CalculateQSGW() {
     }
     tilde_Sigma.diagonal() += sigma_->CalcCorrelationDiag(e_qp);
     tilde_Sigma = qsgw_rotation_ * tilde_Sigma * qsgw_rotation_.transpose();
+    if (opt_.qsgw_hartree_update) {
+      // J of the current QP orbitals, in the DFT-MO basis, minus J[rho_DFT]
+      tilde_Sigma += qsgw_rotation_ * sigma_->CalcHartreeMatrix() *
+                         qsgw_rotation_.transpose() -
+                     J0;
+    }
     const Eigen::VectorXd S_out =
         Eigen::Map<const Eigen::VectorXd>(tilde_Sigma.data(), nflat);
 

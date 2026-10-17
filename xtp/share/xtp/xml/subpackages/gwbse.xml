@@ -52,6 +52,7 @@
     <qsgw_max_iterations help="maximum number of iterations is QSGW" default="50" choices="int+" />
     <qsgw_sc_limit help="QSGW convergence threshold on QP energies" default="1e-5" choices="float+" />
     <qsgw_max_virt_correction help="QSGW: pertGW energy threshold for inclusion of virtual states" unit="Hartree" default="0.5" choices="float+"/>
+    <qsgw_hartree_update help="QSGW: update the Hartree potential with the QP density of the active occupied levels (false: keep J of the DFT density, the behaviour before)" default="true" choices="bool" />
     <out_of_window_shift help="Shift of the RPA energies of levels outside the GW window (evGW, QSGW): max - largest correction of the occupied/virtual window levels; nearest - correction of the window boundary level; linear - linear fit of the corrections near the boundary, extrapolated at most over the fitted energy span" default="max" choices="max,nearest,linear" />
     <out_of_window_fit_fraction help="linear out_of_window_shift: fraction of the occupied/virtual window levels next to the boundary used in the fit (at least 2 levels)" default="0.3" choices="float+" />
     <rebuild_3c_freq help="rebuild the 3c integrals from scratch every this many evGW iterations; 0 (default) never. The integrals are only rotated by orthogonal matrices between iterations, so a rebuild resets rounding at the 1e-12 Ha level" default="0" choices="int+" />

@@ -139,6 +139,28 @@ Eigen::MatrixXd Sigma_base::CalcExchangeMatrix() const {
   return -0.5 * (A + A.transpose());
 }
 
+Eigen::MatrixXd Sigma_base::CalcHartreeMatrix() const {
+  const Index occlevel = opt_.homo - opt_.rpamin + 1;
+  const Index qpmin = opt_.qpmin - opt_.rpamin;
+  // d_P = sum_{i occ} M_ii,P (the density in the auxiliary basis)
+  Eigen::VectorXd d = Eigen::VectorXd::Zero(Mmn_.auxsize());
+  for (Index i = 0; i < occlevel; ++i) {
+    d += Mmn_[i].row(i).transpose();
+  }
+  // bare v in the current auxiliary frame (see CalcExchangeMatrix)
+  if (!Mmn_.AuxFrameIsOrthogonal()) {
+    d = Mmn_.ToCurrentAuxFrame(
+            Eigen::MatrixXd::Identity(Mmn_.auxsize(), Mmn_.auxsize())) *
+        d;
+  }
+  Eigen::MatrixXd J(qptotal_, qptotal_);
+#pragma omp parallel for schedule(dynamic)
+  for (Index m = 0; m < qptotal_; ++m) {
+    J.col(m) = 2.0 * Mmn_[m + qpmin].middleRows(qpmin, qptotal_) * d;
+  }
+  return 0.5 * (J + J.transpose());
+}
+
 Eigen::MatrixXd Sigma_base::CalcReactionFieldMatrix(
     const Eigen::MatrixXd& R) const {
   const Eigen::MatrixXd Rc = Mmn_.ToCurrentAuxFrame(R);

@@ -61,6 +61,13 @@ class Sigma_base {
 
   // Calculates full exchange matrix
   Eigen::MatrixXd CalcExchangeMatrix() const;
+  /// Hartree matrix of the active occupied levels (rpamin..homo) in the QP
+  /// window, in the current orbitals of the integrals:
+  ///   J_mn = 2 sum_{i occ} (mn|ii) = 2 sum_PQ M_mn,P v_PQ d_Q,
+  ///   d = sum_{i occ} M_ii
+  /// (bare v; the frozen core below rpamin is not included). QSGW uses the
+  /// change of J between the DFT and the QP orbitals.
+  Eigen::MatrixXd CalcHartreeMatrix() const;
 
   /**
    * \brief Static self-energy of an environment reaction field: the
