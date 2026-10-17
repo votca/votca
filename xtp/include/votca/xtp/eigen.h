@@ -64,9 +64,9 @@ inline std::string EigenBackendDescription() {
   if (XTP_HAS_MKL_OVERLOAD()) {
     return "MKL overload for Eigen (BLAS and LAPACK)";
   }
-#if defined(APPLE_ACCELERATE_FOUND) && defined(EIGEN_USE_BLAS) && \
-    defined(EIGEN_USE_LAPACKE)
-  return "Apple Accelerate BLAS and LAPACKE overload for Eigen";
+#if defined(APPLE_ACCELERATE_FOUND) && defined(EIGEN_USE_BLAS)
+  return "Apple Accelerate BLAS overload for Eigen, Accelerate LAPACK for "
+         "eigensolvers and Cholesky";
 #else
   return "native Eigen implementation, no BLAS overload";
 #endif

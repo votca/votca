@@ -75,12 +75,16 @@ Sigma_base::ScreeningData Sigma_Exact::ScreeningDump(
   // +-Omega_s), so eps^-1(0) - 1 = -4 Z Omega^-1 Z^T; its eigenvectors are
   // those of eps(0), i.e. the plasmon-pole frame, eigenvalues -w_i.
   const Eigen::VectorXd inv_omega = rpa_omegas_.cwiseInverse();
-  const Eigen::MatrixXd A =
-      4.0 * modes_ * inv_omega.asDiagonal() * modes_.transpose();
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
-  data.frame_weights = es.eigenvalues();
+  // A = 4 Z Omega^-1 Z^T as a rank-k update (lower triangle, which is all
+  // SymmetricEigen reads; dsyevd with MKL or Accelerate)
+  const Index naux = modes_.rows();
+  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(naux, naux);
+  A.selfadjointView<Eigen::Lower>().rankUpdate(
+      modes_ * (4.0 * inv_omega).cwiseSqrt().asDiagonal());
+  const SymmetricEigenSystem es = SymmetricEigen(A);
+  data.frame_weights = es.values;
   const Eigen::MatrixXd a =
-      4.0 * (es.eigenvectors().transpose() * modes_).array().square().matrix();
+      4.0 * (es.vectors.transpose() * modes_).array().square().matrix();
   data.strength = (a.colwise().sum().transpose()).cwiseProduct(inv_omega);
   FrameSums(a, rpa_omegas_, nu, data);
   return data;

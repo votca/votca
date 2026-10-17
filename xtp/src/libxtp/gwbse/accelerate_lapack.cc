@@ -17,8 +17,8 @@
  *
  */
 
-// Deliberately no Eigen or VOTCA eigen.h here: those pull in lapacke.h,
-// whose LAPACK prototypes clash with Accelerate's.
+// Deliberately no Eigen or VOTCA eigen.h here: with EIGEN_USE_BLAS, Eigen
+// declares its own BLAS prototypes, which must not meet Accelerate's.
 #include <votca/tools/votca_tools_config.h>
 
 #include "votca/xtp/accelerate_lapack.h"

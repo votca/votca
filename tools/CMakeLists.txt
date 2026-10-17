@@ -26,6 +26,21 @@ if (CMAKE_CXX_COMPILER MATCHES "clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LE
   # in case OpenMP was detected somewhere else
   unset(OpenMP_FOUND)
 else()
+  # Apple clang has no OpenMP runtime of its own; use Homebrew's libomp
+  # unless the user points elsewhere
+  if(APPLE AND NOT DEFINED OpenMP_ROOT AND NOT DEFINED ENV{OpenMP_ROOT})
+    find_program(BREW_EXECUTABLE brew)
+    mark_as_advanced(BREW_EXECUTABLE)
+    if(BREW_EXECUTABLE)
+      execute_process(COMMAND ${BREW_EXECUTABLE} --prefix libomp
+        OUTPUT_VARIABLE _libomp_prefix OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE _libomp_result ERROR_QUIET)
+      if(_libomp_result EQUAL 0 AND IS_DIRECTORY "${_libomp_prefix}")
+        set(OpenMP_ROOT "${_libomp_prefix}")
+        message(STATUS "Using Homebrew libomp: ${OpenMP_ROOT}")
+      endif()
+    endif()
+  endif()
   find_package(OpenMP 4.5)
   set_package_properties(OpenMP PROPERTIES TYPE RECOMMENDED PURPOSE "Used for thread parallelization in tools")
 endif()

@@ -71,8 +71,7 @@ SymmetricEigenSystem SymmetricEigen(const Eigen::MatrixXd& A,
 
 /// Cholesky factor A = L L^T of a symmetric positive definite matrix, with
 /// the same backends as SymmetricEigen (Accelerate LAPACK on macOS, LAPACKE
-/// with MKL or Accelerate, otherwise Eigen). ok() is false if A is not
-/// positive definite.
+/// with MKL, otherwise Eigen). ok() is false if A is not positive definite.
 class CholeskyFactor {
  public:
   CholeskyFactor() = default;

@@ -40,6 +40,22 @@
 namespace votca {
 namespace xtp {
 
+namespace {
+// Range-separated hybrids (HSE, CAM-B3LYP, ...) need erf-attenuated exact
+// exchange, which neither the DFT nor GW parts implement: the code would use
+// cam_alpha as a global exchange fraction and run a different functional
+// without notice. Refuse them.
+void RejectRangeSeparated(const xc_func_type& func, const std::string& name) {
+  if (func.cam_beta != 0.0 || func.cam_omega != 0.0) {
+    throw std::runtime_error(
+        "Functional " + name +
+        " is a range-separated hybrid; range-separated exact exchange is not "
+        "implemented in xtp (DFT and GW). Use a global hybrid or a semilocal "
+        "functional.");
+  }
+}
+}  // namespace
+
 template <class Grid>
 Vxc_Potential<Grid>::~Vxc_Potential() {
   if (setXC_) {
@@ -77,6 +93,13 @@ double Vxc_Potential<Grid>::getExactExchange(const std::string& functional) {
     if (xc_func_init(&func, func_id, XC_UNPOLARIZED) != 0) {
       throw std::runtime_error(
           (boost::format("Functional %s not found\n") % functional_name).str());
+    }
+
+    try {
+      RejectRangeSeparated(func, functional_name);
+    } catch (...) {
+      xc_func_end(&func);
+      throw;
     }
 
     if (exactexchange > 0 && func.cam_alpha > 0) {
@@ -122,6 +145,13 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
         (boost::format("Functional %s not found\n") % strs[0]).str());
   }
 
+  try {
+    RejectRangeSeparated(xfunc, strs[0]);
+  } catch (...) {
+    xc_func_end(&xfunc);
+    throw;
+  }
+
   if (xfunc.info->kind != 2 && !use_separate_) {
     throw std::runtime_error(
         "Your functional misses either correlation or exchange, please specify "
@@ -133,6 +163,14 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
       xc_func_end(&xfunc);
       throw std::runtime_error(
           (boost::format("Functional %s not found\n") % strs[1]).str());
+    }
+
+    try {
+      RejectRangeSeparated(cfunc, strs[1]);
+    } catch (...) {
+      xc_func_end(&xfunc);
+      xc_func_end(&cfunc);
+      throw;
     }
 
     if ((xfunc.info->kind + cfunc.info->kind) != 1) {

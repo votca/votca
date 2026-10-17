@@ -129,6 +129,13 @@ if(INJECT_MARCH_NATIVE)
   check_cxx_compiler_flag("-march=native" COMPILER_SUPPORTS_march_native)
   if(COMPILER_SUPPORTS_march_native)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+  else()
+    # AArch64 compilers that reject -march=native (older Apple clang) take
+    # the CPU instead; without either, Apple clang tunes for the M1
+    check_cxx_compiler_flag("-mcpu=native" COMPILER_SUPPORTS_mcpu_native)
+    if(COMPILER_SUPPORTS_mcpu_native)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=native")
+    endif()
   endif()
 endif()
 

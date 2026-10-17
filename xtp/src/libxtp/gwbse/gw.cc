@@ -1700,7 +1700,10 @@ void GW::DumpSigma(const sigma_dump_options& dopt, const std::string& gw_mode,
     Eigen::VectorXd hist = Eigen::VectorXd::Zero(spec ? nbins : 0);
     Eigen::ArrayXd re = Eigen::ArrayXd::Zero(spec ? nimag : 0);
     Eigen::ArrayXd im = Eigen::ArrayXd::Zero(spec ? nimag : 0);
-    Eigen::ArrayXd z(B), a(B);
+    // work arrays of the level, allocated once: per-mode temporaries were
+    // 29 allocations per mode and level, which serialise the threads in
+    // malloc on macOS
+    Eigen::ArrayXd z(B), a(B), x(B), x2(B), den(B), xm(B), xm2(B), ad(B);
     for (Index s = 0; s < poles.nmodes(); ++s) {
       const double c =
           pf.prefactor * (pf.mode_factors ? pf.mode_factors[s] : 1.0);
@@ -1714,9 +1717,9 @@ void GW::DumpSigma(const sigma_dump_options& dopt, const std::string& gw_mode,
         a(m) = c * r[m] * r[m];
       }
       // real axis at the QP solution, same broadening as the QP solver
-      const Eigen::ArrayXd x = eqp - z;
-      const Eigen::ArrayXd x2 = x.square();
-      const Eigen::ArrayXd den = x2 + eta2;
+      x = eqp - z;
+      x2 = x.square();
+      den = x2 + eta2;
       s_qp += (a * x / den).sum();
       d2 += (a * 2.0 * x * (x2 - 3.0 * eta2) / (den.square() * den)).sum();
       if (!spec) {
@@ -1736,10 +1739,10 @@ void GW::DumpSigma(const sigma_dump_options& dopt, const std::string& gw_mode,
         }
       }
       // imaginary axis mu + i nu: sum_p a_p / (mu + i nu - z_p)
-      const Eigen::ArrayXd xm = mu - z;
-      const Eigen::ArrayXd xm2 = xm.square();
+      xm = mu - z;
+      xm2 = xm.square();
       for (Index k = 0; k < nimag; k++) {
-        const Eigen::ArrayXd ad = a / (xm2 + nu(k) * nu(k));
+        ad = a / (xm2 + nu(k) * nu(k));
         re(k) += (ad * xm).sum();
         im(k) -= nu(k) * ad.sum();
       }
