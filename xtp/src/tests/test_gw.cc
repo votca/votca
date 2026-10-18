@@ -20,7 +20,9 @@
 
 // Standard includes
 #include <algorithm>
+#include <cstdint>
 #include <fstream>
+#include <random>
 #include <sstream>
 #include <vector>
 
@@ -1000,6 +1002,51 @@ BOOST_AUTO_TEST_CASE(screened_hartree_matrix_on_dressed_integrals) {
   libint2::finalize();
 }
 
+namespace {
+// Uniform entries in [-1, 1) from std::mt19937, filled column by column.
+// The standard fixes the mt19937 sequence; std::rand (behind
+// Eigen::MatrixXd::Random) and the <random> distributions are
+// implementation-defined and give other matrices with libc/libc++ (macOS)
+// than with glibc/libstdc++ for the same seed.
+Eigen::MatrixXd PortableRandomMatrix(votca::Index rows, votca::Index cols,
+                                     std::uint32_t seed) {
+  std::mt19937 gen(seed);
+  Eigen::MatrixXd m(rows, cols);
+  for (votca::Index j = 0; j < cols; ++j) {
+    for (votca::Index i = 0; i < rows; ++i) {
+      m(i, j) = 2.0 * (double(gen()) / 4294967296.0) - 1.0;
+    }
+  }
+  return m;
+}
+
+// Start B of qsgw_same_fixed_point_from_two_starts
+constexpr std::uint32_t kFixedPointSeed = 1;
+constexpr double kFixedPointAmplitude = 0.08;
+constexpr double kFixedPointEta = 0.05;
+
+struct StartSpreads {
+  // E_QP^A - E_QP^B (Ha), all levels
+  Eigen::VectorXd vacuum;
+  Eigen::VectorXd environment;
+  Eigen::VectorXd environment_bare;
+  bool converged;          // all six QSGW runs
+  votca::Index max_iters;  // the most iterations any of them needed
+};
+
+// Iterations of a converged QSGW run from its log, -1 if it did not converge
+votca::Index QSGWIterations(Logger& log) {
+  std::stringstream ss;
+  ss << log;
+  const std::string text = ss.str();
+  const std::string key = "QSGW converged in ";
+  const std::size_t pos = text.find(key);
+  if (pos == std::string::npos) {
+    return -1;
+  }
+  return std::stoi(text.substr(pos + key.size()));
+}
+
 // QSGW forgets its starting point once H depends on nothing but the QP
 // density -- also in an environment, provided the Hartree update is with
 // u = v + v_reac, the interaction the environment's response adds to H_KS.
@@ -1007,14 +1054,15 @@ BOOST_AUTO_TEST_CASE(screened_hartree_matrix_on_dressed_integrals) {
 // Two starting points of the same model h + J_u[rho] + v_xc:
 //   A: the test system, H_KS = diag(e_A), V_xc^A;
 //   B: the orbitals of A rotated over the whole space (occupied-virtual
-//      mixing, as another functional would give), other energies, and
+//      mixing, as another functional would give; generator `amplitude` *
+//      PortableRandomMatrix(seed), antisymmetrized), other energies, and
 //      V_xc^B such that diag(e_B) - V_xc^B = h + J_u[rho_B] in the B
 //      orbitals, with h = diag(e_A) - V_xc^A - J_u[rho_A].
-// All levels in the window, nothing trimmed, no frozen core: the fixed
-// points must agree. With the bare Hartree update in the environment,
-// J_reac[rho_B] - J_reac[rho_A] stays in H and they must not.
-BOOST_AUTO_TEST_CASE(qsgw_same_fixed_point_from_two_starts) {
-  if (!libint2::initialized()) libint2::initialize();
+// All levels in the window, nothing trimmed, no frozen core. Returns the
+// differences E_QP^A - E_QP^B (Ha) in vacuum, in the environment, and in the
+// environment with the bare Hartree update, and whether all runs converged.
+StartSpreads QSGWStartSpreads(std::uint32_t seed, double amplitude,
+                              double eta) {
   GW::options opt = MakeGWTestOptions();
   opt.do_qsgw = true;
   opt.qsgw_max_iterations = 100;
@@ -1022,10 +1070,14 @@ BOOST_AUTO_TEST_CASE(qsgw_same_fixed_point_from_two_starts) {
   opt.gw_mixing_order = 20;
   opt.gw_mixing_alpha = 0.2;
   opt.qsgw_max_virt_correction = 1e10;  // keep all levels in the window
-  // With the PPM at eta = 1e-3 this system has several QSGW fixed points
-  // (they differ in the a1 levels), and far-apart starts can end on
-  // different ones even in vacuum. The exact Sigma has one here.
+  // At eta = 1e-3 this system has several QSGW fixed points, with the PPM
+  // and with the exact Sigma: start B ends on another one for 5-10 of 20
+  // directions, mostly in the highest virtual but with 8-180 meV in HOMO and
+  // LUMO, and 10-25 % of the runs do not converge. At eta = 0.05 all 60
+  // starts of qsgw_fixed_point_seed_scan converge (<= 17 iterations) to one
+  // fixed point, in vacuum and in the environment.
   opt.sigma_integration = "exact";
+  opt.eta = eta;
   const votca::Index nmo = 17;
   const votca::Index nocc = opt.homo + 1;
 
@@ -1059,7 +1111,9 @@ BOOST_AUTO_TEST_CASE(qsgw_same_fixed_point_from_two_starts) {
     return Eigen::MatrixXd(s->CalcHartreeMatrix(Rk));
   };
 
-  // QSGW energies and rotation from orbitals C, energies e, V_xc
+  bool converged = true;
+  votca::Index max_iters = 0;
+  // QSGW energies from orbitals C, energies e, V_xc
   auto run = [&](const Eigen::MatrixXd& C, const Eigen::VectorXd& e,
                  const Eigen::MatrixXd& vxc, const Eigen::MatrixXd& Rk,
                  bool screened) {
@@ -1076,14 +1130,15 @@ BOOST_AUTO_TEST_CASE(qsgw_same_fixed_point_from_two_starts) {
     }
     gw.CalculateGWPerturbation();
     gw.CalculateQSGW();
-    return std::make_pair(Eigen::VectorXd(gw.getGWAResults()),
-                          Eigen::MatrixXd(gw.getQSGWRotation()));
+    const votca::Index iters = QSGWIterations(log);
+    converged = converged && iters > 0;
+    max_iters = std::max(max_iters, iters);
+    return Eigen::VectorXd(gw.getGWAResults());
   };
 
   // start B: orbitals rotated over the whole space, mixing occupied and
   // virtual levels, and other energies
-  std::srand(5);
-  Eigen::MatrixXd G = 0.08 * Eigen::MatrixXd::Random(nmo, nmo);
+  Eigen::MatrixXd G = amplitude * PortableRandomMatrix(nmo, nmo, seed);
   G = (G - G.transpose()).eval();
   const Eigen::MatrixXd UB = Eigen::HouseholderQR<Eigen::MatrixXd>(
                                  Eigen::MatrixXd::Identity(nmo, nmo) + G)
@@ -1102,23 +1157,84 @@ BOOST_AUTO_TEST_CASE(qsgw_same_fixed_point_from_two_starts) {
     h.diagonal() += a.mo_eigenvalues;
     Eigen::MatrixXd vxcB = -UB.transpose() * h * UB - JB;
     vxcB.diagonal() += eB;
-    const auto A =
+    const Eigen::VectorXd A =
         run(a.mo_eigenvectors, a.mo_eigenvalues, a.vxc, Rk, screened);
-    const auto B = run(CB, eB, vxcB, Rk, screened);
-    return (A.first - B.first).cwiseAbs().maxCoeff();
+    const Eigen::VectorXd B = run(CB, eB, vxcB, Rk, screened);
+    return Eigen::VectorXd(A - B);
   };
 
-  const double vac = spread(Eigen::MatrixXd(), true);
-  const double env = spread(R, true);
-  const double env_bare = spread(R, false);
+  const Eigen::VectorXd vacuum = spread(Eigen::MatrixXd(), true);
+  const Eigen::VectorXd environment = spread(R, true);
+  const Eigen::VectorXd environment_bare = spread(R, false);
+  return {vacuum, environment, environment_bare, converged, max_iters};
+}
+}  // namespace
+
+// The fixed points of the two starts must agree, in vacuum and in the
+// environment with the screened Hartree update; with the bare update in the
+// environment, J_reac[rho_B] - J_reac[rho_A] stays in H and they must not.
+// Eta = 0.05: at 1e-3 the fixed point is not unique (see QSGWStartSpreads),
+// and which start direction reaches which one is a property of the solution
+// landscape, not of the Hartree update this test is about.
+BOOST_AUTO_TEST_CASE(qsgw_same_fixed_point_from_two_starts) {
+  if (!libint2::initialized()) libint2::initialize();
+  const StartSpreads s =
+      QSGWStartSpreads(kFixedPointSeed, kFixedPointAmplitude, kFixedPointEta);
+  const double vac = s.vacuum.cwiseAbs().maxCoeff();
+  const double env = s.environment.cwiseAbs().maxCoeff();
+  const double env_bare = s.environment_bare.cwiseAbs().maxCoeff();
   BOOST_TEST_MESSAGE("QSGW start-point spread: vacuum "
                      << vac * votca::tools::conv::hrt2ev << " eV, environment "
                      << env * votca::tools::conv::hrt2ev
                      << " eV, environment with bare Hartree update "
                      << env_bare * votca::tools::conv::hrt2ev << " eV");
+  BOOST_REQUIRE(s.converged);
   BOOST_CHECK_SMALL(vac, 1e-6);
   BOOST_CHECK_SMALL(env, 1e-6);
   BOOST_CHECK_GT(env_bare, 1e-4);
+  libint2::finalize();
+}
+
+// Not part of the regular run: how often does start B end on another fixed
+// point? One line per eta, amplitude and seed: largest spread and its level,
+// HOMO and LUMO spreads (meV), whether all six runs converged. Run with
+//   unit_test_gw --run_test=gw_test/qsgw_fixed_point_seed_scan
+//                --log_level=message
+BOOST_AUTO_TEST_CASE(qsgw_fixed_point_seed_scan,
+                     *boost::unit_test::disabled()) {
+  if (!libint2::initialized()) libint2::initialize();
+  const double mev = 1000.0 * votca::tools::conv::hrt2ev;
+  const votca::Index homo = MakeGWTestOptions().homo;
+  auto describe = [&](const Eigen::VectorXd& d) {
+    votca::Index level = 0;
+    const double max = d.cwiseAbs().maxCoeff(&level);
+    std::stringstream ss;
+    ss << max * mev << " " << level << " " << std::abs(d(homo)) * mev << " "
+       << std::abs(d(homo + 1)) * mev;
+    return ss.str();
+  };
+  BOOST_TEST_MESSAGE(
+      "seed_scan columns: eta amplitude seed | vacuum max level homo lumo | "
+      "env max level homo lumo | env_bare max level homo lumo | converged "
+      "max_iters");
+  for (double eta : {1e-3, 0.05}) {
+    for (double amplitude : {0.02, 0.08, 0.15}) {
+      for (std::uint32_t seed = 1; seed <= 20; ++seed) {
+        try {
+          const StartSpreads s = QSGWStartSpreads(seed, amplitude, eta);
+          BOOST_TEST_MESSAGE("seed_scan "
+                             << eta << " " << amplitude << " " << seed << " | "
+                             << describe(s.vacuum) << " | "
+                             << describe(s.environment) << " | "
+                             << describe(s.environment_bare) << " | "
+                             << s.converged << " " << s.max_iters);
+        } catch (const std::runtime_error& err) {
+          BOOST_TEST_MESSAGE("seed_scan " << eta << " " << amplitude << " "
+                                          << seed << " failed: " << err.what());
+        }
+      }
+    }
+  }
   libint2::finalize();
 }
 
