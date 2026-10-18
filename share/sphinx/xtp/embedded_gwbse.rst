@@ -36,7 +36,11 @@ The reaction field
 ******************
 
 The environment is the set of polarizable sites of the job's polar
-regions: Thole-damped inducible point dipoles [Thole:1981]_. A change
+regions: Thole-damped inducible point dipoles [Thole:1981]_. Polar regions
+with charge-response molecules respond with induced charges as well; the
+kernel below then generalizes as described in
+:doc:`polarizable_environment`, with the same Gaussian width as in the
+QM/MM loop. A change
 :math:`\delta\rho` of the QM charge density produces a field
 :math:`\mathbf{E} = F\,\delta\rho` at the sites, the sites respond with
 induced dipoles :math:`\boldsymbol{\mu} = A^{-1}\mathbf{E}`, where

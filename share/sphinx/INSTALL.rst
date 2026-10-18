@@ -31,6 +31,36 @@ If you have an older version of a distribution, cmake can be run with the ``-DBU
 On Ubuntu 20.10 and older you will not get version 1.0.5 of the libecpint package. So in this case run `this <https://github.com/votca/buildenv/blob/55c88641046dbb6152cf7d9e536e17f29205479f/ubuntu#L30-L33>`_ or
 download the package from `here <http://ftp.us.debian.org/debian/pool/main/libe/libecpint/>`_.
 
+macOS (Homebrew)
+^^^^^^^^^^^^^^^^
+
+On macOS (Apple silicon, macOS 13.3 or newer) use Apple's ``clang`` from the
+Xcode command line tools and the dependencies from `Homebrew <https://brew.sh>`__:
+
+::
+
+    xcode-select --install
+    brew install cmake eigen boost libint libecpint libxc hdf5 fftw libomp gromacs open-babel pybind11
+    cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} \
+          -DCMAKE_PREFIX_PATH="$(brew --prefix libint)"
+    cmake --build builddir --parallel $(sysctl -n hw.ncpu)
+
+Notes:
+
+-  Linear algebra uses Apple's Accelerate framework, which ``CMake`` finds
+   by itself (``-- Found APPLE_ACCELERATE``). Do **not** install Homebrew's
+   ``lapack`` or ``lapacke`` for VOTCA: they are not needed.
+-  Apple's ``clang`` has no OpenMP runtime of its own. ``CMake`` takes
+   Homebrew's ``libomp`` automatically (``-- Using Homebrew libomp: ...``),
+   so ``OpenMP_ROOT`` does not need to be set. To use another OpenMP
+   runtime, set ``OpenMP_ROOT`` (as a CMake or environment variable) to its
+   prefix. Without any OpenMP runtime VOTCA builds, but runs single-threaded.
+-  Python packages used by some tests and tools (``lxml h5py rdkit scipy
+   pytest ase xmltodict``) are best installed in a virtual environment made
+   with Homebrew's ``python3``.
+
+See `Apple Silicon`_ below for how to check that Accelerate is used.
+
 
 Testing your build
 ~~~~~~~~~~~~~~~~~~
@@ -143,6 +173,32 @@ This can be affected by a `vendor lock-in <https://en.wikipedia.org/wiki/Math_Ke
 and work-arounds are documented `for Intel MKL on AMD Zen <https://danieldk.eu/Posts/2020-08-31-MKL-Zen.html>`__ 
 and `in general <https://documentation.sigma2.no/jobs/mkl.html#using-mkl-efficiently>`__. 
 We advise that you test this on your specific architecture.
+
+Apple Silicon
+^^^^^^^^^^^^^
+On macOS, Eigen's matrix products go to Apple's Accelerate framework, and the
+symmetric eigensolvers and Cholesky factorizations call Accelerate's LAPACK
+directly. Accelerate reaches the CPU's matrix unit, which Eigen's own kernels
+(NEON, two doubles wide) cannot use. No flags are needed; ``-march=native``
+(or ``-mcpu=native`` if the compiler rejects it) is injected as on Linux.
+
+Every DFT and GW-BSE log names the backend. A correct build prints
+
+::
+
+    Using Apple Accelerate BLAS overload for Eigen, Accelerate LAPACK for eigensolvers and Cholesky
+
+If the log says ``Using native Eigen implementation, no BLAS overload``,
+Accelerate was not found, and large GW-BSE runs are several times slower:
+delete the build directory and configure again.
+
+Use all cores (the default, or ``-t`` equal to ``sysctl -n hw.ncpu``).
+Limiting ``xtp`` to the performance cores did not make it faster on M1 and
+M1 Pro machines: the efficiency cores still add to the threaded loops, and
+Accelerate's speed does not depend on the thread count. Do not set
+``VECLIB_MAXIMUM_THREADS``.
+
+Apple GPUs cannot be used: they have no double-precision arithmetic.
 
 Packages for various Linux Distributions
 ----------------------------------------

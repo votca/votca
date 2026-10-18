@@ -756,6 +756,18 @@ double QMRegion::InteractwithQMRegion(const QMRegion&) {
   return 0.0;
 }
 double QMRegion::InteractwithPolarRegion(const PolarRegion& region) {
+  // Charge-response segments put Gaussian induced charges and dipoles into
+  // the QM Hamiltonian (DFTEngine, AOGaussianSites). Other packages get
+  // the environment as point charges (ORCA: permanent charges and split
+  // dipoles) and would silently miss the induced charges, while the
+  // environment still responds to the QM density.
+  if (region.hasChargeResponse() && qmpackage_->getPackageName() != "xtp") {
+    throw std::runtime_error(
+        "polar region " + std::to_string(region.getId()) +
+        " has charge-response segments, which only the xtp DFT package "
+        "supports (dftpackage name " +
+        qmpackage_->getPackageName() + "). Use xtp or Thole segments.");
+  }
   qmpackage_->AddRegion(region);
   return 0.0;
 }

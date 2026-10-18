@@ -165,6 +165,9 @@ message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 find_package(Threads REQUIRED)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
 
+# before GROMACS: its config file may look for OpenMP itself
+include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/HomebrewLibomp.cmake)
+
 find_package(GROMACS 2021 CONFIG NAMES gromacs gromacs_d)
 set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read/write gromacs data files")
 if(GROMACS_FOUND AND DEFINED GROMACS_VERSION)
