@@ -65,9 +65,18 @@ class Sigma_base {
   /// window, in the current orbitals of the integrals:
   ///   J_mn = 2 sum_{i occ} (mn|ii) = 2 sum_PQ M_mn,P v_PQ d_Q,
   ///   d = sum_{i occ} M_ii
-  /// (bare v; the frozen core below rpamin is not included). QSGW uses the
-  /// change of J between the DFT and the QP orbitals.
-  Eigen::MatrixXd CalcHartreeMatrix() const;
+  /// (the frozen core below rpamin is not included). QSGW uses the change
+  /// of J between the DFT and the QP orbitals.
+  ///
+  /// Without R the interaction is the bare v. With R, the reaction field of
+  /// a static environment in the FILL-TIME auxiliary frame (as for
+  /// CalcReactionFieldMatrix), it is u = v + v_reac, i.e. the kernel 1 + R:
+  ///   J^u_mn = 2 sum_PQ M_mn,P (1 + R)_PQ d_Q,
+  /// which adds the potential of the dipoles the environment induces in
+  /// response to the density. Both are evaluated in whatever frame the
+  /// integrals are in now (rotated, dressed or not).
+  Eigen::MatrixXd CalcHartreeMatrix(
+      const Eigen::MatrixXd& R = Eigen::MatrixXd()) const;
 
   /**
    * \brief Static self-energy of an environment reaction field: the

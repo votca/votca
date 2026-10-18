@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 // VOTCA includes
@@ -139,7 +140,7 @@ Eigen::MatrixXd Sigma_base::CalcExchangeMatrix() const {
   return -0.5 * (A + A.transpose());
 }
 
-Eigen::MatrixXd Sigma_base::CalcHartreeMatrix() const {
+Eigen::MatrixXd Sigma_base::CalcHartreeMatrix(const Eigen::MatrixXd& R) const {
   const Index occlevel = opt_.homo - opt_.rpamin + 1;
   const Index qpmin = opt_.qpmin - opt_.rpamin;
   // d_P = sum_{i occ} M_ii,P (the density in the auxiliary basis)
@@ -147,8 +148,23 @@ Eigen::MatrixXd Sigma_base::CalcHartreeMatrix() const {
   for (Index i = 0; i < occlevel; ++i) {
     d += Mmn_[i].row(i).transpose();
   }
-  // bare v in the current auxiliary frame (see CalcExchangeMatrix)
-  if (!Mmn_.AuxFrameIsOrthogonal()) {
+  // Kernel 1 (bare v) or 1 + R (u = v + v_reac), given in the fill-time
+  // frame and brought into the current one (see CalcExchangeMatrix). On
+  // dressed integrals F F^T = 1 + R, so the screened kernel is close to the
+  // identity there; it is still taken explicitly, which keeps this right
+  // in any frame.
+  if (R.size() > 0) {
+    if (R.rows() != Mmn_.auxsize() || R.cols() != Mmn_.auxsize()) {
+      throw std::runtime_error(
+          "Sigma_base::CalcHartreeMatrix: reaction field is " +
+          std::to_string(R.rows()) + "x" + std::to_string(R.cols()) +
+          ", auxiliary basis has " + std::to_string(Mmn_.auxsize()) +
+          " functions.");
+    }
+    d = Mmn_.ToCurrentAuxFrame(
+            Eigen::MatrixXd::Identity(Mmn_.auxsize(), Mmn_.auxsize()) + R) *
+        d;
+  } else if (!Mmn_.AuxFrameIsOrthogonal()) {
     d = Mmn_.ToCurrentAuxFrame(
             Eigen::MatrixXd::Identity(Mmn_.auxsize(), Mmn_.auxsize())) *
         d;

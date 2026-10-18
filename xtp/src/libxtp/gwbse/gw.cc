@@ -18,7 +18,9 @@
  */
 
 // Standard includes
+#include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 
@@ -1305,16 +1307,56 @@ void GW::CalculateQSGW() {
     XTP_LOG(Log::error, log_)
         << TimeStamp() << "  QSGW from a hybrid start: removed " << opt_.ScaHFX
         << " x exchange of the DFT orbitals from H0" << std::flush;
+    if (opt_.rpamin > 0 && core_exchange_.size() == 0) {
+      // H_KS holds a K of the frozen core too; without core exchange the
+      // loop neither removes it nor adds the full one back, so the core
+      // exchange enters with weight a instead of 1 and the fixed point
+      // depends on the functional.
+      XTP_LOG(Log::error, log_)
+          << TimeStamp()
+          << "  WARNING: QSGW from a hybrid start with a frozen core and "
+             "core_exchange=false: the exchange with the core stays at "
+          << opt_.ScaHFX
+          << " x its full value, so the result depends on the starting "
+             "functional. Use core_exchange=true."
+          << std::flush;
+    }
   }
 
   // Hartree: H_KS contains J[rho_DFT]. With hartree update on, the loop adds
   // J[rho_QP] - J[rho_DFT] of the active occupied levels (the frozen core
   // does not change), so H = h + J[rho_QP] + Sigma_x[QP] + Sigma_c: the
   // occupied space is then fully self-consistent.
-  Eigen::MatrixXd J0;
+  //
+  // In an environment H_KS also holds the potential of the dipoles that
+  // rho_DFT induced in the QM/MM loop. Those must follow the density as
+  // well: the update is then with u = v + v_reac, the interaction the
+  // dressed W is built from, J_u[rho_QP] - J_u[rho_DFT]. The response is
+  // that of the GW reaction field (smeared sites), not of the point Thole
+  // sites of the ground-state loop; it is linear, so only the change of
+  // the density enters.
+  const bool hartree_screened = opt_.qsgw_hartree_update &&
+                                opt_.qsgw_hartree_screened &&
+                                reaction_field_.size() > 0;
+  Eigen::MatrixXd J0;       // J (or J_u) of the DFT orbitals
+  Eigen::MatrixXd J0_bare;  // bare part, for the decomposition in the log
   if (opt_.qsgw_hartree_update) {
-    J0 = sigma_->CalcHartreeMatrix();
+    J0_bare = sigma_->CalcHartreeMatrix();
+    J0 =
+        hartree_screened ? sigma_->CalcHartreeMatrix(reaction_field_) : J0_bare;
+    if (reaction_field_.size() > 0) {
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << "  QSGW Hartree update with "
+          << (hartree_screened ? "u = v + v_reac (screened)"
+                               : "the bare v (environment does not follow)")
+          << std::flush;
+    }
   }
+  // Diagnostics of what drives the environment's effect, per iteration
+  const Index homo_w = opt_.homo - opt_.qpmin;  // HOMO in the window
+  const Index nocc_w = homo_w + 1;
+  const Index nvirt_w = qsgw_qptotal - nocc_w;
+  Eigen::VectorXd sigma_reac_diag0;
 
   // Fixed-point problem in tilde_Sigma (DFT-MO basis of the window):
   //   S_in -> H = H0 + S_in -> (E, U) -> S_out = F(S_in),
@@ -1388,11 +1430,60 @@ void GW::CalculateQSGW() {
     }
     tilde_Sigma.diagonal() += sigma_->CalcCorrelationDiag(e_qp);
     tilde_Sigma = qsgw_rotation_ * tilde_Sigma * qsgw_rotation_.transpose();
+    double dj_max = 0.0;       // max |J[rho_QP] - J[rho_DFT]|, bare v
+    double dj_reac_max = 0.0;  // max of its v_reac part (screened only)
     if (opt_.qsgw_hartree_update) {
       // J of the current QP orbitals, in the DFT-MO basis, minus J[rho_DFT]
-      tilde_Sigma += qsgw_rotation_ * sigma_->CalcHartreeMatrix() *
-                         qsgw_rotation_.transpose() -
-                     J0;
+      const Eigen::MatrixXd dJ_bare = qsgw_rotation_ *
+                                          sigma_->CalcHartreeMatrix() *
+                                          qsgw_rotation_.transpose() -
+                                      J0_bare;
+      dj_max = dJ_bare.cwiseAbs().maxCoeff();
+      if (hartree_screened) {
+        const Eigen::MatrixXd dJ =
+            qsgw_rotation_ * sigma_->CalcHartreeMatrix(reaction_field_) *
+                qsgw_rotation_.transpose() -
+            J0;
+        dj_reac_max = (dJ - dJ_bare).cwiseAbs().maxCoeff();
+        tilde_Sigma += dJ;
+      } else {
+        tilde_Sigma += dJ_bare;
+      }
+    }
+    if (opt_.qsgw_hartree_update || sigma_reac.size() > 0) {
+      // Occupied-virtual mixing of the current QP orbitals: the largest
+      // principal angle between the QP and the DFT occupied spaces, the
+      // only rotation the density (and so the Hartree update) sees.
+      double angle = 0.0;
+      if (nocc_w > 0 && nvirt_w > 0) {
+        const Eigen::MatrixXd Uvo =
+            qsgw_rotation_.bottomLeftCorner(nvirt_w, nocc_w);
+        const double s =
+            Eigen::JacobiSVD<Eigen::MatrixXd>(Uvo).singularValues().maxCoeff();
+        angle = std::asin(std::min(1.0, s)) * 180.0 / tools::conv::Pi;
+      }
+      std::string reac_text;
+      if (sigma_reac.size() > 0) {
+        if (iter == 0) {
+          sigma_reac_diag0 = sigma_reac.diagonal();
+        }
+        const Eigen::VectorXd dsr = sigma_reac.diagonal() - sigma_reac_diag0;
+        reac_text = (boost::format("  dSigma_reac HOMO %1$+.4f LUMO %2$+.4f "
+                                   "max|.| %3$.4f") %
+                     (nocc_w > 0 ? dsr(homo_w) * tools::conv::hrt2ev : 0.0) %
+                     (nvirt_w > 0 ? dsr(nocc_w) * tools::conv::hrt2ev : 0.0) %
+                     (dsr.cwiseAbs().maxCoeff() * tools::conv::hrt2ev))
+                        .str();
+      }
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << "  QSGW iter " << iter
+          << (boost::format("  max|dJ| %1$.4f max|dJ_reac| %2$.4f") %
+              (dj_max * tools::conv::hrt2ev) %
+              (dj_reac_max * tools::conv::hrt2ev))
+                 .str()
+          << reac_text
+          << (boost::format(" eV  occ-virt rotation %1$.3f deg") % angle).str()
+          << std::flush;
     }
     const Eigen::VectorXd S_out =
         Eigen::Map<const Eigen::VectorXd>(tilde_Sigma.data(), nflat);

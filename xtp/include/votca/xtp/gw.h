@@ -131,6 +131,10 @@ class GW {
     // Set to a large value (e.g. 1e10) to disable the threshold entirely.
     double qsgw_max_virt_correction = 0.5;  // Ha
     bool qsgw_hartree_update = true;        // J follows the QP density
+    // With a reaction field: the Hartree update is with u = v + v_reac, so
+    // the environment's induced dipoles follow the QP density as well.
+    // false: bare v (a control; inconsistent with the dressed W).
+    bool qsgw_hartree_screened = true;
     // RPA energies of levels outside the GW window (OutOfWindowShift)
     OutOfWindowShift out_of_window_shift;
   };
