@@ -19,6 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/gaussiankernel.h"
 
 namespace votca {
 namespace xtp {
@@ -179,18 +180,42 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
   return result;  // T_1alpha,1beta (alpha,beta=x,y,z)
 }
 
+Eigen::Matrix3d eeInteractor::FillDipoleInteraction(
+    const PolarSite& site1, const PolarSite& site2) const {
+  // Thole sites among themselves: the Thole model, unchanged. A pair with a
+  // charge-response site: Gaussian dipoles (width sqrt(s1^2 + s2^2)), or
+  // Thole damping if that site asks for it.
+  if (!site1.isChargeResponse() && !site2.isChargeResponse()) {
+    return FillTholeInteraction(site1, site2);
+  }
+  if ((site1.isChargeResponse() && site1.CRTholeDipoles()) ||
+      (site2.isChargeResponse() && site2.CRTholeDipoles())) {
+    return FillTholeInteraction(site1, site2);
+  }
+  const Eigen::Vector3d r = site2.getPos() - site1.getPos();
+  return GaussianKernel(r.norm(), PairWidth(site1, site2)).DipoleTensor(r);
+}
+
+double eeInteractor::PairWidth(const PolarSite& site1, const PolarSite& site2) {
+  return std::hypot(site1.isChargeResponse() ? site1.CRWidth() : 0.0,
+                    site2.isChargeResponse() ? site2.CRWidth() : 0.0);
+}
+
 template <enum Estatic CE>
 double eeInteractor::ApplyStaticField_site(const StaticSite& site1,
                                            PolarSite& site2) const {
   Eigen::Vector3d V = Eigen::Vector3d::Zero();
   double e = 0.0;
+  double phi = 0.0;
   if (site2.getRank() < 2) {
     const Eigen::Vector4d V_full = VSiteA<4>(site2, site1);
     V = V_full.segment<3>(1);
+    phi = V_full(0);
     e = V_full.dot(site2.Q().head<4>());
   } else {
     const Eigen::Matrix<double, 9, 1> V_full = VSiteA<9>(site2, site1);
     V = V_full.segment<3>(1);
+    phi = V_full(0);
     e = V_full.dot(site2.Q());
   }
 
@@ -199,19 +224,40 @@ double eeInteractor::ApplyStaticField_site(const StaticSite& site1,
   } else {
     site2.V() += V;
   }
+  // permanent multipoles act on charge-response sites as points
+  if (site2.isChargeResponse()) {
+    if (CE == Estatic::noE_V) {
+      site2.Phi_noE() += phi;
+    } else {
+      site2.Phi() += phi;
+    }
+  }
   return e;
 }
 
 template <enum Estatic CE>
 double eeInteractor::ApplyInducedField_site(const PolarSite& site1,
                                             PolarSite& site2) const {
-  const Eigen::Matrix3d tTab = FillTholeInteraction(site1, site2);
-  const Eigen::Vector3d V = tTab.transpose() * site1.Induced_Dipole();
+  const Eigen::Matrix3d tTab = FillDipoleInteraction(site1, site2);
+  Eigen::Vector3d V = tTab.transpose() * site1.Induced_Dipole();
+  double phi = 0.0;
+  if (site1.isChargeResponse() || site2.isChargeResponse()) {
+    const Eigen::Vector3d r = site2.getPos() - site1.getPos();
+    const GaussianKernel k(r.norm(), PairWidth(site1, site2));
+    // gradient of the potential of the induced charge of site1 at site2
+    V -= site1.Induced_Charge() * k.B1 * r;
+    if (site2.isChargeResponse()) {
+      phi =
+          site1.Induced_Charge() * k.B0 + k.B1 * site1.Induced_Dipole().dot(r);
+    }
+  }
   double e = 0.0;
   if (CE == Estatic::noE_V) {
     site2.V_noE() += V;
+    site2.Phi_noE() += phi;
   } else {
     site2.V() += V;
+    site2.Phi() += phi;
     e = CalcPolar_stat_Energy_site(site1, site2);
   }
   return e;
@@ -233,7 +279,8 @@ double eeInteractor::CalcStaticEnergy_site(const StaticSite& site1,
 double eeInteractor::CalcPolar_stat_Energy_site(const PolarSite& site1,
                                                 const StaticSite& site2) const {
   const Eigen::Vector4d V_full = VSiteA<4>(site1, site2);
-  return V_full.tail<3>().dot(site1.Induced_Dipole());
+  return V_full.tail<3>().dot(site1.Induced_Dipole()) +
+         V_full(0) * site1.Induced_Charge();
 }
 
 eeInteractor::E_terms eeInteractor::CalcPolarEnergy_site(
@@ -248,8 +295,16 @@ eeInteractor::E_terms eeInteractor::CalcPolarEnergy_site(
   // contributions are stat-induced, induced-stat and induced induced
   eeInteractor::E_terms val;
   val.E_indu_indu() = site1.Induced_Dipole().transpose() *
-                      FillTholeInteraction(site1, site2) *
+                      FillDipoleInteraction(site1, site2) *
                       site2.Induced_Dipole();
+  if (site1.isChargeResponse() || site2.isChargeResponse()) {
+    const Eigen::Vector3d r = site2.getPos() - site1.getPos();
+    const GaussianKernel k(r.norm(), PairWidth(site1, site2));
+    val.E_indu_indu() +=
+        site1.Induced_Charge() * site2.Induced_Charge() * k.B0 +
+        k.B1 * (site2.Induced_Charge() * site1.Induced_Dipole().dot(r) -
+                site1.Induced_Charge() * site2.Induced_Dipole().dot(r));
+  }
   val.E_indu_stat() = CalcPolar_stat_Energy_site(site1, site2);
   val.E_indu_stat() += CalcPolar_stat_Energy_site(site2, site1);
   return val;
@@ -348,6 +403,10 @@ template eeInteractor::E_terms eeInteractor::CalcPolarEnergy(
 double eeInteractor::CalcPolarEnergy_IntraSegment(
     const PolarSegment& seg) const {
   double e = 0;
+  if (seg.hasChargeResponse()) {
+    // Pi contains the molecule's own screening: no couplings inside
+    return e;
+  }
   for (Index i = 0; i < seg.size(); i++) {
     for (Index j = 0; j < i; j++) {
       e += seg[i].Induced_Dipole().transpose() *
@@ -359,6 +418,11 @@ double eeInteractor::CalcPolarEnergy_IntraSegment(
 
 Eigen::VectorXd eeInteractor::Cholesky_IntraSegment(
     const PolarSegment& seg) const {
+  if (seg.hasChargeResponse()) {
+    throw std::runtime_error(
+        "Cholesky_IntraSegment: segment " + seg.getType() +
+        " has a charge response; it is solved with its region (PolarRegion)");
+  }
   Index size = 3 * seg.size();
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(size, size);

@@ -25,6 +25,7 @@
 // Local VOTCA includes
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/aogaussiansites.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/threecenter.h"
@@ -703,6 +704,107 @@ std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
 }
 
 namespace {
+// libint2 shells of a Gaussian charge (s) and a Gaussian dipole (cartesian
+// p) of exponent beta at pos, and the factors that turn the L2-normalized
+// primitives libint2 makes of them into the unit charge g (beta/pi)^3/2
+// exp(-beta r^2) and the unit dipole density 2 beta (r - R) g:
+//   s: N_s = (2 beta/pi)^3/4, charge N_s (pi/beta)^3/2;
+//   p: N_p = (2 beta/pi)^3/4 2 sqrt(beta).
+struct GaussianSiteShells {
+  libint2::Shell s;
+  libint2::Shell p;
+  double s_factor;
+  double p_factor;
+  GaussianSiteShells(const Eigen::Vector3d& pos, double width) {
+    const double beta = 1.0 / (width * width);
+    const std::array<double, 3> O = {pos.x(), pos.y(), pos.z()};
+    s = libint2::Shell{{beta}, {{0, false, {1.0}}}, O};
+    p = libint2::Shell{{beta}, {{1, false, {1.0}}}, O};
+    const double n_s = std::pow(2.0 * beta / M_PI, 0.75);
+    s_factor = 1.0 / (n_s * std::pow(M_PI / beta, 1.5));
+    const double n_p = n_s * 2.0 * std::sqrt(beta);
+    p_factor = 2.0 * beta * std::pow(beta / M_PI, 1.5) / n_p;
+  }
+};
+
+std::vector<libint2::Engine> GaussianSiteEngines(const AOBasis& basis) {
+  std::vector<libint2::Engine> engines(OPENMP::getMaxThreads());
+  engines[0] = libint2::Engine(libint2::Operator::coulomb,
+                               int(std::max<Index>(basis.getMaxNprim(), 1)),
+                               int(std::max<Index>(basis.getMaxL(), 1)), 0);
+  engines[0].set(libint2::BraKet::xs_xx);
+  for (std::size_t i = 1; i < engines.size(); ++i) {
+    engines[i] = engines[0];
+  }
+  return engines;
+}
+}  // namespace
+
+Eigen::MatrixXd AOGaussianSites::Potential(const AOBasis& basis,
+                                           const std::vector<Source>& sources) {
+  const Index nao = basis.AOBasisSize();
+  Eigen::MatrixXd V = Eigen::MatrixXd::Zero(nao, nao);
+  for (const Source& src : sources) {
+    if (!(src.width > 0.0)) {
+      throw std::runtime_error(
+          "AOGaussianSites: Gaussian sites need a positive width");
+    }
+  }
+  std::vector<libint2::Engine> engines = GaussianSiteEngines(basis);
+#pragma omp parallel for schedule(dynamic) reduction(+ : V)
+  for (Index k = 0; k < Index(sources.size()); ++k) {
+    const Source& src = sources[std::size_t(k)];
+    const GaussianSiteShells sh(src.pos, src.width);
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    if (src.charge != 0.0) {
+      V +=
+          (src.charge * sh.s_factor) * ComputeAO3cBlock(sh.s, basis, engine)[0];
+    }
+    if (src.dipole.squaredNorm() > 0.0) {
+      std::vector<Eigen::MatrixXd> p = ComputeAO3cBlock(sh.p, basis, engine);
+      for (Index c = 0; c < 3; ++c) {
+        V += (src.dipole(c) * sh.p_factor) * p[std::size_t(c)];
+      }
+    }
+  }
+  return V;
+}
+
+Eigen::MatrixXd AOGaussianSites::PotentialAndGradientAt(
+    const AOBasis& basis, const Eigen::MatrixXd& D,
+    const std::vector<Eigen::Vector3d>& points,
+    const std::vector<double>& widths) {
+  if (widths.size() != points.size()) {
+    throw std::runtime_error(
+        "AOGaussianSites: " + std::to_string(widths.size()) + " widths for " +
+        std::to_string(points.size()) + " points");
+  }
+  const Index n = Index(points.size());
+  for (double w : widths) {
+    if (!(w > 0.0)) {
+      throw std::runtime_error(
+          "AOGaussianSites: Gaussian sites need a positive width");
+    }
+  }
+  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(n, 4);
+  std::vector<libint2::Engine> engines = GaussianSiteEngines(basis);
+#pragma omp parallel for schedule(dynamic)
+  for (Index k = 0; k < n; ++k) {
+    const GaussianSiteShells sh(points[std::size_t(k)], widths[std::size_t(k)]);
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    result(k, 0) =
+        sh.s_factor *
+        ComputeAO3cBlock(sh.s, basis, engine)[0].cwiseProduct(D).sum();
+    // d/dR (mn|g_R) = (mn| 2 beta (r - R) g_R): the dipole density
+    std::vector<Eigen::MatrixXd> p = ComputeAO3cBlock(sh.p, basis, engine);
+    for (Index c = 0; c < 3; ++c) {
+      result(k, 1 + c) = sh.p_factor * p[std::size_t(c)].cwiseProduct(D).sum();
+    }
+  }
+  return result;
+}
+
+namespace {
 // L * A * R evaluated in the cheaper order. For the AO->MO transformation of
 // the three-centre integrals L = C_n^T (n x N), A = (mu nu|P) (N x N) and
 // R = C_m (N x m) with m < n, so A * R first saves a factor of about n/m on
@@ -892,6 +994,81 @@ Eigen::MatrixXd EnvironmentScreening::AuxFieldAtPoints(
 // Net charge of every auxiliary function, integral chi_Q d^3r: an overlap
 // integral against the unit shell, in the order and normalization of the
 // three-centre integrals (same shells, same offsets).
+Eigen::MatrixXd EnvironmentScreening::AuxPotentialAtPoints(
+    const AOBasis& auxbasis, const std::vector<Eigen::Vector3d>& points,
+    const std::vector<double>& widths) {
+  if (widths.size() != points.size()) {
+    throw std::runtime_error("EnvironmentScreening::AuxPotentialAtPoints: " +
+                             std::to_string(widths.size()) + " widths for " +
+                             std::to_string(points.size()) + " points.");
+  }
+  const std::vector<libint2::Shell> shells = auxbasis.GenerateLibintBasis();
+  const std::vector<Index> shell2bf = auxbasis.getMapToBasisFunctions();
+  const Index n_points = Index(points.size());
+  Eigen::MatrixXd P = Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), n_points);
+  if (n_points == 0 || shells.empty()) {
+    return P;
+  }
+  const Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] =
+      libint2::Engine(libint2::Operator::nuclear, int(auxbasis.getMaxNprim()),
+                      int(auxbasis.getMaxL()), 0);
+  std::vector<libint2::Engine> coulomb(nthreads);
+  coulomb[0] =
+      libint2::Engine(libint2::Operator::coulomb, int(auxbasis.getMaxNprim()),
+                      int(auxbasis.getMaxL()), 0);
+  coulomb[0].set(libint2::BraKet::xs_xs);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+    coulomb[i] = coulomb[0];
+  }
+  // Signs and normalization as in AuxFieldAtPoints: the nuclear integral
+  // against Shell::unit() with a unit charge at C is -phi_Q(C); (chi_Q|g_C)
+  // divided by the charge of libint2's L2-normalized primitive is +phi_Q
+  // averaged over the unit Gaussian g_C.
+#pragma omp parallel for schedule(dynamic)
+  for (Index p = 0; p < n_points; ++p) {
+    const Eigen::Vector3d& C = points[std::size_t(p)];
+    const double width = widths[std::size_t(p)];
+    if (width > 0.0) {
+      libint2::Engine& engine = coulomb[OPENMP::getThreadId()];
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
+      const double beta = 1.0 / (width * width);
+      const double charge =
+          std::pow(2.0 * beta / M_PI, 0.75) * std::pow(M_PI / beta, 1.5);
+      const libint2::Shell g{
+          {beta}, {{0, false, {1.0}}}, {{C.x(), C.y(), C.z()}}};
+      for (std::size_t sh = 0; sh < shells.size(); ++sh) {
+        engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xs, 0>(
+            shells[sh], libint2::Shell::unit(), g, libint2::Shell::unit());
+        if (buf[0] == nullptr) {
+          continue;
+        }
+        for (std::size_t f = 0; f < shells[sh].size(); ++f) {
+          P(shell2bf[sh] + Index(f), p) = buf[0][f] / charge;
+        }
+      }
+      continue;
+    }
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    std::vector<std::pair<double, std::array<double, 3>>> charge{
+        {1.0, {C.x(), C.y(), C.z()}}};
+    engine.set_params(charge);
+    for (std::size_t sh = 0; sh < shells.size(); ++sh) {
+      engine.compute(shells[sh], libint2::Shell::unit());
+      if (buf[0] == nullptr) {
+        continue;
+      }
+      for (std::size_t f = 0; f < shells[sh].size(); ++f) {
+        P(shell2bf[sh] + Index(f), p) = -buf[0][f];
+      }
+    }
+  }
+  return P;
+}
+
 Eigen::VectorXd EnvironmentScreening::AuxCharges(const AOBasis& auxbasis) {
   const std::vector<libint2::Shell> shells = auxbasis.GenerateLibintBasis();
   const std::vector<Index> shell2bf = auxbasis.getMapToBasisFunctions();

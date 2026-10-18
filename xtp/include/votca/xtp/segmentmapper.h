@@ -69,7 +69,16 @@ class SegmentMapper {
     std::vector<double> weights;
     std::vector<atom_id> mapatoms;
     std::map<std::string, std::string> coordfiles;
+    // chargeresponse_<state>: .crm files of the charge-response model
+    // (polar segments only), next to multipoles_<state>
+    std::map<std::string, std::string> crfiles;
   };
+
+  // Attaches the charge-response matrix of the state, if the mapping file
+  // has one, in the atom order of the mapped segment. No-op except for
+  // PolarSegment (specialized in segmentmapper.cc).
+  void AttachChargeResponse(AtomContainer&, const Seginfo&,
+                            const QMState&) const {}
   std::map<std::string, std::string> mapatom_xml_;
   std::map<std::string, Seginfo> segment_info_;
 
@@ -201,6 +210,10 @@ inline void SegmentMapper<QMMolecule>::TransferBondedPartners(
     }
   }
 }
+
+template <>
+void SegmentMapper<PolarSegment>::AttachChargeResponse(
+    PolarSegment& result, const Seginfo& seginfo, const QMState& state) const;
 
 using QMMapper = SegmentMapper<QMMolecule>;
 using StaticMapper = SegmentMapper<StaticSegment>;

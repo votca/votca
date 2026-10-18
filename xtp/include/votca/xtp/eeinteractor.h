@@ -44,6 +44,15 @@ class eeInteractor {
   Eigen::Matrix3d FillTholeInteraction(const PolarSite& site1,
                                        const PolarSite& site2) const;
 
+  // Induced dipole-dipole tensor T of two sites of different segments
+  // (grad phi at site2 = T mu1): FillTholeInteraction for two Thole sites;
+  // with a charge-response site the Gaussian dipole kernel of width
+  // PairWidth, or Thole damping if that site has CRTholeDipoles().
+  Eigen::Matrix3d FillDipoleInteraction(const PolarSite& site1,
+                                        const PolarSite& site2) const;
+  // sqrt(s1^2 + s2^2) of the charge-response widths (0 for Thole sites)
+  static double PairWidth(const PolarSite& site1, const PolarSite& site2);
+
   Eigen::VectorXd Cholesky_IntraSegment(const PolarSegment& seg) const;
 
   template <class T, enum Estatic>

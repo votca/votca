@@ -35,6 +35,7 @@
 #include "votca/xtp/IncrementalFockBuilder.h"
 #include "votca/xtp/IndexParser.h"
 #include "votca/xtp/activedensitymatrix.h"
+#include "votca/xtp/aogaussiansites.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/density_integration.h"
@@ -42,6 +43,7 @@
 #include "votca/xtp/dftgradient.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/ewald_potential.h"
+#include "votca/xtp/gaussiankernel.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
@@ -3208,6 +3210,15 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(
   return avdmat;
 }
 
+namespace {
+// The charge-response sites among the external sites (PolarSite with
+// isChargeResponse): their induced charge and dipole are Gaussians.
+const PolarSite* AsChargeResponseSite(const StaticSite& site) {
+  const PolarSite* p = dynamic_cast<const PolarSite*>(&site);
+  return (p != nullptr && p->isChargeResponse()) ? p : nullptr;
+}
+}  // namespace
+
 double DFTEngine::ExternalRepulsion(
     const QMMolecule& mol,
     const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
@@ -3259,7 +3270,16 @@ double DFTEngine::ExternalRepulsion(
       // energy in the package. The counterparty here is a bare nucleus,
       // so no such channel exists and the sum is unambiguous.
       Vector9d Q = site->Q();
-      Q.segment<3>(1) += site->getInducedDipole();  // zero for a StaticSite
+      if (const PolarSite* p = AsChargeResponseSite(*site)) {
+        // induced charge and dipole of a charge-response site: Gaussians,
+        // as the electrons see them (IntegrateExternalMultipoles)
+        const Eigen::Vector3d r = nucleus.getPos() - p->getPos();
+        const GaussianKernel k(r.norm(), p->CRWidth());
+        E_ext += nucleus.getCharge() * (p->Induced_Charge() * k.B0 +
+                                        k.B1 * p->getInducedDipole().dot(r));
+      } else {
+        Q.segment<3>(1) += site->getInducedDipole();  // zero for a StaticSite
+      }
       Index rank = site->getRank();
       if (rank < 1 && Q.segment<3>(1).norm() > 1e-12) {
         rank = 1;  // same promotion, same threshold, as AOMultipole
@@ -3292,6 +3312,44 @@ Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
 
   Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
   result.energy() = ExternalRepulsion(mol, multipoles);
+
+  // Charge-response sites: permanent multipoles as points (below, with all
+  // sites), induced charge and dipole as Gaussians (AOGaussianSites).
+  std::vector<AOGaussianSites::Source> gaussian;
+  for (const std::unique_ptr<StaticSite>& site : multipoles) {
+    if (const PolarSite* p = AsChargeResponseSite(*site)) {
+      gaussian.push_back({p->getPos(), p->CRWidth(), p->Induced_Charge(),
+                          p->getInducedDipole()});
+    }
+  }
+  if (!gaussian.empty()) {
+    // the point sites' induced dipoles, without the charge-response sites
+    std::vector<std::unique_ptr<StaticSite>> point_sites;
+    for (const std::unique_ptr<StaticSite>& site : multipoles) {
+      if (AsChargeResponseSite(*site) != nullptr) {
+        continue;
+      }
+      const PolarSite* p = dynamic_cast<const PolarSite*>(site.get());
+      if (p != nullptr) {
+        point_sites.push_back(std::make_unique<PolarSite>(*p));
+      } else {
+        point_sites.push_back(std::make_unique<StaticSite>(*site));
+      }
+    }
+    AOMultipole permanent;
+    permanent.FillPotential(dftbasis_, multipoles,
+                            AOMultipole::Moments::Permanent);
+    AOMultipole induced;
+    induced.FillPotential(dftbasis_, point_sites,
+                          AOMultipole::Moments::Induced);
+    result.matrix() = permanent.Matrix() + induced.Matrix() -
+                      AOGaussianSites::Potential(dftbasis_, gaussian);
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Filled DFT external multipole potential matrix ("
+        << gaussian.size() << " charge-response sites as Gaussians)"
+        << std::flush;
+    return result;
+  }
 
   if (setup_cache_ == nullptr) {
     AOMultipole dftAOESP;

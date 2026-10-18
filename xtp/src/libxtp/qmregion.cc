@@ -19,6 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/qmregion.h"
+#include "votca/xtp/aogaussiansites.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/classicalsegment.h"
@@ -27,6 +28,7 @@
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/ewaldregion.h"
+#include "votca/xtp/gaussiankernel.h"
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/pmlocalization.h"
 #include "votca/xtp/polarregion.h"
@@ -217,6 +219,14 @@ ScreeningEnvironment QMRegion::BuildScreeningEnvironment(
                   screening_shell_regions_.end(),
                   polar.getId()) != screening_shell_regions_.end();
     if (shell) {
+      if (polar.hasChargeResponse()) {
+        throw std::runtime_error(
+            "environment_screening: shell region " +
+            std::to_string(polar.getId()) +
+            " has charge-response segments; a shell responds with "
+            "alpha/epsilon per site, which has no induced charges. Use "
+            "Thole segments there.");
+      }
       env.shell_segments.insert(env.shell_segments.end(), polar.begin(),
                                 polar.end());
       continue;
@@ -763,6 +773,9 @@ void QMRegion::AddNucleiFields(std::vector<PolarSegment>& segments,
   eeInteractor e;
 #pragma omp parallel for
   for (Index i = 0; i < Index(segments.size()); ++i) {
+    if (segments[i].hasChargeResponse()) {
+      continue;  // Gaussian sites, see ApplyQMFieldToPolarSegments
+    }
     e.ApplyStaticField<StaticSegment, Estatic::noE_V>(seg, segments[i]);
   }
 }
@@ -799,8 +812,47 @@ void QMRegion::ApplyQMFieldToPolarSegments(
 #pragma omp parallel for
   for (Index i = 0; i < Index(segments.size()); ++i) {
     PolarSegment& seg = segments[i];
+    if (seg.hasChargeResponse()) {
+      continue;
+    }
     for (PolarSite& site : seg) {
       site.V_noE() += numint.IntegrateField(site.getPos());
+    }
+  }
+
+  // Charge-response sites are Gaussians: the potential and field of the QM
+  // region they see are averaged over their Gaussian, with the same
+  // three-centre integrals that put their induced charges and dipoles into
+  // the QM Hamiltonian (DFTEngine), so the coupling is symmetric.
+  std::vector<PolarSite*> cr_sites;
+  for (PolarSegment& seg : segments) {
+    if (seg.hasChargeResponse()) {
+      for (PolarSite& site : seg) {
+        cr_sites.push_back(&site);
+      }
+    }
+  }
+  if (!cr_sites.empty()) {
+    std::vector<Eigen::Vector3d> points;
+    std::vector<double> widths;
+    for (const PolarSite* site : cr_sites) {
+      points.push_back(site->getPos());
+      widths.push_back(site->CRWidth());
+    }
+    // electrons: the density is -dmat
+    const Eigen::MatrixXd electrons =
+        AOGaussianSites::PotentialAndGradientAt(basis, dmat, points, widths);
+    for (Index k = 0; k < Index(cr_sites.size()); ++k) {
+      PolarSite& site = *cr_sites[std::size_t(k)];
+      site.Phi_noE() -= electrons(k, 0);
+      site.V_noE() -= electrons.block<1, 3>(k, 1).transpose();
+      for (const QMAtom& atom : orb_.QMAtoms()) {
+        const Eigen::Vector3d r = site.getPos() - atom.getPos();
+        const GaussianKernel kern(r.norm(), site.CRWidth());
+        const double Z = double(atom.getNuccharge());
+        site.Phi_noE() += Z * kern.B0;
+        site.V_noE() -= Z * kern.B1 * r;  // grad phi = -field
+      }
     }
   }
 

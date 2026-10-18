@@ -145,6 +145,16 @@ class EnvironmentScreening {
   static Eigen::MatrixXd AuxFieldAtPoints(
       const AOBasis& auxbasis, const std::vector<Eigen::Vector3d>& points,
       const std::vector<double>& widths = {});
+  /**
+   * \brief The electrostatic potential of each auxiliary function (as a
+   * charge density) at each point, N_aux x N_points; for charge-response
+   * sites, whose induced charges respond to it. A point with width R > 0
+   * is a unit-charge Gaussian as in AuxFieldAtPoints, (chi_Q | g_R); R = 0
+   * a point (nuclear-attraction integral).
+   */
+  static Eigen::MatrixXd AuxPotentialAtPoints(
+      const AOBasis& auxbasis, const std::vector<Eigen::Vector3d>& points,
+      const std::vector<double>& widths);
   // widths (bohr, one per point, or empty for all zero): a point with
   // width R > 0 is a unit-charge Gaussian exp(-r^2/R^2)/(pi^(3/2) R^3)
   // rather than a point, and F is minus the gradient of the Coulomb
@@ -157,7 +167,8 @@ class EnvironmentScreening {
 
   /**
    * \brief R per site, in bohr: site_width * alpha_iso^(1/3), with
-   * alpha_iso = tr(alpha)/3.
+   * alpha_iso = tr(alpha)/3; for a charge-response site its own width
+   * (PolarSite::CRWidth, the same as in the QM/MM loop).
    *
    * Why smear at all: for a charge density rho and inducible points
    * outside it, <rho|v_reac|rho> is bounded by the dielectric limit,
@@ -200,6 +211,22 @@ class EnvironmentScreening {
   static Eigen::MatrixXd ReactionFieldKernel(
       const Eigen::MatrixXd& F, const std::vector<PolarSegment>& segments,
       double exp_damp);
+  /**
+   * \brief B for an explicit region with charge-response segments (Thole
+   * segments may be mixed in): the induced charges respond to the
+   * potential Phi (AuxPotentialAtPoints at the charge-response sites, in
+   * order) and the dipoles to the field F of each auxiliary function. With
+   * the operator of ChargeResponseSolver, A = 1 + M^1/2 T M^1/2, and the
+   * sources C = (-Phi^T, F^T) (unknown space x N_aux),
+   *
+   *   B = -(M^1/2 C)^T A^-1 (M^1/2 C),
+   *
+   * which for Thole segments alone is -F (alpha^-1 + T)^-1 F^T. Dense, as
+   * ReactionFieldKernel; throws if A is not positive definite.
+   */
+  static Eigen::MatrixXd ChargeResponseKernel(
+      const Eigen::MatrixXd& F, const Eigen::MatrixXd& Phi,
+      const std::vector<PolarSegment>& segments, double exp_damp);
 
   /**
    * \brief The tail beyond the explicit region: legacy's radial_dielectric.
