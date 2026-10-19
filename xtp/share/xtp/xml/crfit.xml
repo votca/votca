@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<options>
+  <crfit help="Charge-response parametrization of a molecule with xtpdft: the charge-response matrix Pi (Hirshfeld charges) and the residual polarizabilities, from central finite differences of SCFs in Hirshfeld-localized potentials and uniform fields. Reads job_name.xyz; closed-shell molecules.">
+    <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
+    <dftpackage link="dftpackage.xml"/>
+    <step help="Strength of each perturbation: Hirshfeld-localized potential in Hartree, uniform field in Hartree/bohr" default="1e-3" choices="float+"/>
+    <scf_error help="Every SCF is converged to at least this DIIS error (and 1/100 of it in the energy), as the responses are differences of SCF densities divided by 2 step" default="1e-9" choices="float+"/>
+    <inversion help="If the geometry has an inversion centre (equivalent atoms within 1e-4 bohr), perturb only one atom of each pair and obtain the other response by symmetry" default="true" choices="bool"/>
+    <mpsfile help="Template .mps of the molecule with the permanent multipoles (same atoms in the same order); if given, output.mps is written with the residual polarizabilities on its P lines, rotated into the template frame" default="OPTIONAL"/>
+    <output help="Output prefix: output.crm, output.json (the keys of xtp_cr_fit, readable by xtp_cr_mps) and, with mpsfile, output.mps" default="OPTIONAL"/>
+  </crfit>
+</options>

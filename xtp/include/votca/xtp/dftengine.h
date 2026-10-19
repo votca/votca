@@ -180,6 +180,24 @@ class DFTEngine {
 
   /// Return the configured AO basis-set name for the DFT calculation.
   std::string getDFTBasisName() const { return dftbasis_name_; };
+
+  /// Name of the integration grid of the SCF (xtpdft.integration_grid).
+  const std::string& getGridName() const { return grid_name_; }
+
+  /// A static one-electron perturbation (AO matrix, Hartree) added to the
+  /// core Hamiltonian of every following Evaluate: the potential energy
+  /// operator of an electron, e.g. lambda * W_k for a Hirshfeld-localized
+  /// potential. Its size must match the DFT basis; an empty matrix removes
+  /// it. Used for finite-difference response calculations
+  /// (ChargeResponseFit).
+  void setExternalPotentialMatrix(const Eigen::MatrixXd& v) {
+    ext_potential_matrix_ = v;
+  }
+
+  /// Free-atom reference densities of the Hirshfeld partition of mol (the
+  /// ones CDFT uses), as atom-centred references for HirshfeldPartition.
+  std::vector<HirshfeldPartition::AtomicReference> HirshfeldReferences(
+      const QMMolecule& mol) const;
   /// Spin-resolved density matrices used to pass alpha and beta quantities
   /// together through the UKS workflow.
   struct SpinDensity {
@@ -647,6 +665,7 @@ class DFTEngine {
 
   Eigen::Vector3d extfield_ = Eigen::Vector3d::Zero();
   bool integrate_ext_field_ = false;
+  Eigen::MatrixXd ext_potential_matrix_;
 
   std::string active_atoms_as_string_;
   double active_threshold_;

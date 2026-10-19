@@ -280,17 +280,18 @@ Parametrization of charge-response molecules
 
 :math:`\Pi` is the static linear response of the molecule, obtained once
 per molecule type from a DFT calculation, like the target polarizability of
-``molpol``. The C++ part of XTP does not compute it; the python tools
-``xtp_cr_fit`` and ``xtp_cr_mps`` (see `Tools`_ below) do, with PySCF. The
-procedure:
+``molpol``: natively with ``xtp_tools -e crfit`` (xtpdft), or with the
+python tool ``xtp_cr_fit`` (PySCF); see `Tools`_ below. The procedure:
 
 1. **Perturbations.** An external potential localized on atom :math:`k`
    with Hirshfeld weights [Hirshfeld:1977]_, :math:`v_k(\mathbf{r}) =
    w_k(\mathbf{r})` with :math:`\sum_k w_k = 1` (free spherical atoms in the
    same basis), plus three uniform fields.
-2. **Response.** Analytic coupled-perturbed Kohn–Sham for all :math:`N + 3`
-   perturbations at once; with diffuse functions in the basis (for example
-   def2-SVPD or def2-TZVPD) and the functional of the QM region.
+2. **Response.** The first-order density matrices of all :math:`N + 3`
+   perturbations: by central finite differences of SCFs (``crfit``) or
+   analytic coupled-perturbed Kohn–Sham (``xtp_cr_fit``); with diffuse
+   functions in the basis (for example def2-SVPD or def2-TZVPD) and the
+   functional of the QM region.
 3. **Induced charges.** Measured with the same Hirshfeld weights:
    :math:`\Pi_{jk} = -\langle w_j | \chi | w_k \rangle`, which is symmetric,
    positive semidefinite and charge conserving by construction.
@@ -342,7 +343,37 @@ region; checkpoints without them read as Thole molecules.
 Tools
 =====
 
-Both are installed with XTP when their python modules are found at
+``xtp_tools -e crfit`` is part of XTP and needs nothing else. It reads
+``job_name.xyz`` and the ``dftpackage`` options (xtpdft; closed-shell
+molecules), runs the ground state and, for each perturbation, two SCFs at
+:math:`\pm` ``step`` (default :math:`10^{-3}` Hartree, resp. Hartree/bohr)
+warm-started from it, and takes :math:`\Delta P = (P_+ - P_-)/(2s)` with
+:math:`s` = ``step``: :math:`2(N + 3)` SCFs, or :math:`2(N/2 + 3)` if the
+geometry has an inversion centre (``inversion``, default on). Every SCF is
+converged to at least ``scf_error`` (default :math:`10^{-9}`). The free-atom references of the Hirshfeld weights
+are those of xtpdft's CDFT (spherically averaged, Hund's-rule spin, the
+functional of the calculation). It writes ``output.crm``, ``output.json``
+(the keys of ``xtp_cr_fit``) and, with ``mpsfile`` (a template ``.mps``
+with the permanent multipoles), ``output.mps`` with the residual
+polarizabilities on the ``P`` lines, rotated into the template frame as
+``xtp_cr_mps`` does. Example::
+
+    xtp_tools -e crfit -c job_name=water output=water_cr_n \
+      mpsfile=water_n.mps dftpackage.basisset=def2-svpd \
+      dftpackage.auxbasisset=aux-def2-svpd \
+      dftpackage.functional=XC_HYB_GGA_XC_PBEH
+
+The asymmetry of :math:`\Pi` before symmetrization (in the log) measures the
+finite-difference error; it is :math:`10^{-7}` for water and
+:math:`3 \times 10^{-6}` for pentacene. Compared with ``xtp_cr_fit`` at the
+same functional and basis (PBE0/def2-SVPD), the polarizability agrees to
+:math:`4 \times 10^{-4}` (water) and :math:`10^{-4}` (pentacene), and the
+elements of :math:`\Pi` are 3 % (water) to 5–7 % (pentacene) larger; the
+difference in :math:`\Pi` is the choice of free-atom references
+(``xtp_cr_fit`` uses spherical Hartree–Fock atoms). Pentacene takes 44 min
+on two cores (``xtp_cr_fit``: 2 h).
+
+The python tools are installed with XTP when their modules are found at
 configure time: ``xtp_cr_fit`` needs PySCF and numpy, ``xtp_cr_mps`` numpy
 only.
 
@@ -368,8 +399,7 @@ only.
   frame, the residual tensors are rotated into it (a warning is printed if
   the geometries differ by more than 0.05 Å rms after alignment).
 
-The fit is a single ground-state calculation with :math:`N + 3` response
-right-hand sides; for water in def2-SVPD it takes seconds. The permanent
+For water in def2-SVPD either fit takes seconds. The permanent
 multipoles of other states come from the template ``.mps`` files of those
 states as usual.
 

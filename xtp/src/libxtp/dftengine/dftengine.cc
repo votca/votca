@@ -1971,6 +1971,16 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
     H0 += extdensity_result.matrix();
   }
 
+  if (ext_potential_matrix_.size() > 0) {
+    if (ext_potential_matrix_.rows() != H0.rows() ||
+        ext_potential_matrix_.cols() != H0.cols()) {
+      throw std::runtime_error(
+          "DFTEngine: the external potential matrix does not match the DFT "
+          "basis");
+    }
+    H0 += ext_potential_matrix_;
+  }
+
   if (integrate_ext_field_) {
 
     XTP_LOG(Log::error, *pLog_)
@@ -2892,6 +2902,12 @@ std::map<std::string, Eigen::MatrixXd>
         unique_atom, /*use_hunds_rule_occupation=*/true);
   }
   return reference_densities;
+}
+
+std::vector<HirshfeldPartition::AtomicReference> DFTEngine::HirshfeldReferences(
+    const QMMolecule& mol) const {
+  return HirshfeldPartition::BuildAtomicReferences(
+      mol, dftbasis_name_, ComputeHirshfeldReferenceDensities(mol));
 }
 
 HirshfeldPartition::Constraint DFTEngine::BuildCDFTConstraint(

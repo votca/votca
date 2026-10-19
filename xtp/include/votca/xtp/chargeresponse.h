@@ -51,9 +51,9 @@ namespace xtp {
  *   El x y z        (N lines, Angstrom, the fit geometry; informational)
  *   Pi_11 ... Pi_1N (N lines of N numbers, e^2/Hartree)
  *
- * written by the PySCF fitting script of the charge-response study
- * (cr_fit.py: coupled-perturbed KS response to Hirshfeld-localized
- * potentials, Hirshfeld charges).
+ * written by xtp_tools -e crfit (ChargeResponseFit) or the PySCF script
+ * xtp_cr_fit: the response to Hirshfeld-localized potentials, measured
+ * with Hirshfeld charges.
  */
 class ChargeResponse {
  public:
