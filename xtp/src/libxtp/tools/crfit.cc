@@ -44,9 +44,16 @@ void CRFit::ParseOptions(const tools::Property& options) {
   if (dftoptions_.get("name").as<std::string>() != "xtp") {
     throw std::runtime_error("crfit: needs the xtp dftpackage");
   }
-  step_ = options.get(".step").as<double>();
+  const std::string method = options.get(".method").as<std::string>();
+  if (method != "analytic" && method != "finite_differences") {
+    throw std::runtime_error(
+        "crfit: method must be analytic or finite_differences");
+  }
+  fit_.analytic = (method == "analytic");
+  fit_.tolerance = options.get(".tolerance").as<double>();
+  fit_.step = options.get(".step").as<double>();
   scf_error_ = options.get(".scf_error").as<double>();
-  inversion_ = options.get(".inversion").as<bool>();
+  fit_.use_inversion = options.get(".inversion").as<bool>();
   output_ = options.ifExistsReturnElseReturnDefault<std::string>(
       ".output", job_name_ + "_cr");
   if (options.exists(".mpsfile")) {
@@ -91,7 +98,7 @@ bool CRFit::Run() {
       << TimeStamp() << " Charge-response fit of " << n_atoms << " atoms from "
       << xyzfile_ << std::flush;
   const ChargeResponseFit::Result r =
-      ChargeResponseFit::Fit(dftoptions_, orb0, step_, log_, inversion_);
+      ChargeResponseFit::Fit(dftoptions_, orb0, fit_, log_);
 
   const double A3 = std::pow(tools::conv::bohr2ang, 3);
   auto eig = [&](const Eigen::Matrix3d& m) {
@@ -116,6 +123,16 @@ bool CRFit::Run() {
   return true;
 }
 
+std::string CRFit::MethodLabel() const {
+  std::stringstream s;
+  if (fit_.analytic) {
+    s << "coupled-perturbed KS, tolerance " << fit_.tolerance;
+  } else {
+    s << "finite differences, step " << fit_.step;
+  }
+  return s.str();
+}
+
 void CRFit::WriteCrm(const QMMolecule& mol,
                      const ChargeResponseFit::Result& r) const {
   const std::string file = output_ + ".crm";
@@ -126,7 +143,7 @@ void CRFit::WriteCrm(const QMMolecule& mol,
   ofs << "! charge-response matrix (Hirshfeld), "
       << dftoptions_.get("functional").as<std::string>() << "/"
       << dftoptions_.get("basisset").as<std::string>() << ", from " << xyzfile_
-      << " (xtp_tools -e crfit, finite differences, step " << step_ << ")\n";
+      << " (xtp_tools -e crfit, " << MethodLabel() << ")\n";
   ofs << "! dq = -Pi phi; Pi in e^2/Hartree, atom order as below (Angstrom)\n";
   ofs << mol.size() << "\n";
   for (const QMAtom& atom : mol) {
@@ -192,8 +209,7 @@ void CRFit::WriteJson(const QMMolecule& mol,
       << " \"basis\": \"" << dftoptions_.get("basisset").as<std::string>()
       << "\",\n"
       << " \"charge\": " << dftoptions_.get("charge").as<Index>() << ",\n"
-      << " \"method\": \"xtp_tools -e crfit (finite differences)\",\n"
-      << " \"step\": " << step_ << ",\n"
+      << " \"method\": \"xtp_tools -e crfit (" << MethodLabel() << ")\",\n"
       << " \"units\": \"atomic (bohr, e, Hartree); Pi in e^2/Hartree\",\n"
       << " \"elements\": [" << elements << "],\n"
       << " \"coords_bohr\": " << Json(coords) << ",\n"

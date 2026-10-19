@@ -73,15 +73,27 @@ class ChargeResponseFit {
     std::vector<Eigen::Matrix3d> alpha_atoms;      // Hirshfeld, a.u.
   };
 
+  struct FitOptions {
+    /// coupled-perturbed KS (DFTEngine::StaticResponse); otherwise central
+    /// finite differences of SCFs
+    bool analytic = true;
+    /// relative CPKS residual
+    double tolerance = 1e-7;
+    /// finite differences: strength of each perturbation
+    double step = 1e-3;
+    /// with an inversion centre (FindInversion) only one atom of each pair
+    /// is perturbed
+    bool use_inversion = true;
+  };
+
   /// The fit with xtpdft (dftoptions: a dftpackage tree with name xtp):
   /// the ground state of orb (atoms, charge and spin set; closed shell),
-  /// which orb holds on return, then for every perturbation two SCFs at
-  /// +-step warm-started from it, dP = (P(+) - P(-)) / (2 step). The
-  /// Hirshfeld references are xtpdft's (DFTEngine::HirshfeldReferences).
-  /// With use_inversion and an inversion centre in the geometry (see
-  /// FindInversion), only one atom of each pair is perturbed.
+  /// which orb holds on return, then the first-order densities of all
+  /// perturbations, analytically or as dP = (P(+step) - P(-step)) / (2
+  /// step) from SCFs warm-started from the ground state. The Hirshfeld
+  /// references are xtpdft's (DFTEngine::HirshfeldReferences).
   static Result Fit(const tools::Property& dftoptions, Orbitals& orb,
-                    double step, Logger& log, bool use_inversion = true);
+                    const FitOptions& fit, Logger& log);
 
   /// Inversion through the centroid of the atoms: atom_map[k] is the image
   /// of atom k, and T the AO matrix of the operation (a signed permutation,

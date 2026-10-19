@@ -63,6 +63,18 @@ class ERIs {
   }
 
   /// Number of auxiliary functions the 3c tensor is stored for.
+  /// RI exchange (same sign convention as CalculateEXX_3c) of the
+  /// symmetric matrix D = X X^T - Y Y^T, given its factors; e.g. a
+  /// first-order density 2 (A B^T + B A^T) = (A+B)(A+B)^T - (A-B)(A-B)^T.
+  Eigen::MatrixXd CalculateEXX_factors(const Eigen::MatrixXd& X,
+                                       const Eigen::MatrixXd& Y) const {
+    assert(threecenter_.size() > 0 &&
+           "Please call Initialize before running this");
+    Eigen::MatrixXd factors(X.rows(), X.cols() + Y.cols());
+    factors << X, Y;
+    return ExchangeFromFactors(factors, X.cols());
+  }
+
   Index AuxSize() const { return threecenter_.size(); }
   /// Stored basis-function pairs of the 3c tensor and all N(N+1)/2 pairs.
   Index StoredPairs() const { return threecenter_.StoredPairs(); }

@@ -288,8 +288,9 @@ python tool ``xtp_cr_fit`` (PySCF); see `Tools`_ below. The procedure:
    w_k(\mathbf{r})` with :math:`\sum_k w_k = 1` (free spherical atoms in the
    same basis), plus three uniform fields.
 2. **Response.** The first-order density matrices of all :math:`N + 3`
-   perturbations: by central finite differences of SCFs (``crfit``) or
-   analytic coupled-perturbed Kohn–Sham (``xtp_cr_fit``); with diffuse
+   perturbations from analytic coupled-perturbed Kohn–Sham (``crfit``,
+   ``xtp_cr_fit``) or central finite differences of SCFs (``crfit``
+   ``method=finite_differences``); with diffuse
    functions in the basis (for example def2-SVPD or def2-TZVPD) and the
    functional of the QM region.
 3. **Induced charges.** Measured with the same Hirshfeld weights:
@@ -345,12 +346,17 @@ Tools
 
 ``xtp_tools -e crfit`` is part of XTP and needs nothing else. It reads
 ``job_name.xyz`` and the ``dftpackage`` options (xtpdft; closed-shell
-molecules), runs the ground state and, for each perturbation, two SCFs at
-:math:`\pm` ``step`` (default :math:`10^{-3}` Hartree, resp. Hartree/bohr)
-warm-started from it, and takes :math:`\Delta P = (P_+ - P_-)/(2s)` with
-:math:`s` = ``step``: :math:`2(N + 3)` SCFs, or :math:`2(N/2 + 3)` if the
-geometry has an inversion centre (``inversion``, default on). Every SCF is
-converged to at least ``scf_error`` (default :math:`10^{-9}`). The free-atom references of the Hirshfeld weights
+molecules; LDA, GGA or global hybrid functionals), runs the ground state
+(converged to at least ``scf_error``, default :math:`10^{-9}`) and obtains
+the first-order density matrices of all perturbations at once by
+coupled-perturbed Kohn–Sham (``method=analytic``, the default; see
+``DFTEngine::StaticResponse``), solved to a relative residual
+``tolerance`` (default :math:`10^{-7}`). With ``method=finite_differences``
+it runs instead two SCFs per perturbation at :math:`\pm` ``step``
+(default :math:`10^{-3}` Hartree, resp. Hartree/bohr), warm-started from the
+ground state, and takes :math:`\Delta P = (P_+ - P_-)/(2s)` with :math:`s`
+= ``step``. If the geometry has an inversion centre (``inversion``, default
+on), only one atom of each pair is perturbed. The free-atom references of the Hirshfeld weights
 are those of xtpdft's CDFT (spherically averaged, Hund's-rule spin, the
 functional of the calculation). It writes ``output.crm``, ``output.json``
 (the keys of ``xtp_cr_fit``) and, with ``mpsfile`` (a template ``.mps``
@@ -363,15 +369,16 @@ polarizabilities on the ``P`` lines, rotated into the template frame as
       dftpackage.auxbasisset=aux-def2-svpd \
       dftpackage.functional=XC_HYB_GGA_XC_PBEH
 
-The asymmetry of :math:`\Pi` before symmetrization (in the log) measures the
-finite-difference error; it is :math:`10^{-7}` for water and
-:math:`3 \times 10^{-6}` for pentacene. Compared with ``xtp_cr_fit`` at the
-same functional and basis (PBE0/def2-SVPD), the polarizability agrees to
-:math:`4 \times 10^{-4}` (water) and :math:`10^{-4}` (pentacene), and the
-elements of :math:`\Pi` are 3 % (water) to 5–7 % (pentacene) larger; the
-difference in :math:`\Pi` is the choice of free-atom references
-(``xtp_cr_fit`` uses spherical Hartree–Fock atoms). Pentacene takes 44 min
-on two cores (``xtp_cr_fit``: 2 h).
+Both methods agree: for pentacene (PBE0/def2-SVPD) :math:`\Pi` to
+:math:`10^{-6}`; the polarizability differs by :math:`2 \times 10^{-4}`,
+the hyperpolarizability contribution of the finite field step (the analytic
+response agrees with SCFs at step :math:`10^{-4}` to :math:`10^{-7}`).
+Compared with ``xtp_cr_fit`` at the same functional and basis, the
+polarizability agrees to a few :math:`10^{-4}`, and the elements of
+:math:`\Pi` are 3 % (water) to 5–7 % (pentacene) larger; the difference in
+:math:`\Pi` is the choice of free-atom references (``xtp_cr_fit`` uses
+spherical Hartree–Fock atoms). Pentacene on two cores: 23 min analytic, 44
+min with finite differences, 2 h with ``xtp_cr_fit``.
 
 The python tools are installed with XTP when their modules are found at
 configure time: ``xtp_cr_fit`` needs PySCF and numpy, ``xtp_cr_mps`` numpy

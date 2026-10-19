@@ -314,15 +314,19 @@ ChargeResponseFit::Inversion ChargeResponseFit::FindInversion(
 }
 
 ChargeResponseFit::Result ChargeResponseFit::Fit(
-    const tools::Property& dftoptions, Orbitals& orb, double step, Logger& log,
-    bool use_inversion) {
+    const tools::Property& dftoptions, Orbitals& orb, const FitOptions& fit,
+    Logger& log) {
   if (orb.getSpin() != 1) {
     throw std::runtime_error(
         "ChargeResponseFit: closed-shell molecules only (spin 1)");
   }
-  if (!(step > 0.0)) {
+  if (!fit.analytic && !(fit.step > 0.0)) {
     throw std::runtime_error("ChargeResponseFit: step must be positive");
   }
+  if (fit.analytic && !(fit.tolerance > 0.0)) {
+    throw std::runtime_error("ChargeResponseFit: tolerance must be positive");
+  }
+  const double step = fit.step;
   const QMMolecule& mol = orb.QMAtoms();
   const Index n_atoms = mol.size();
   // DFTEngine::Initialize takes a non-const tree
@@ -395,7 +399,7 @@ ChargeResponseFit::Result ChargeResponseFit::Fit(
     return Eigen::MatrixXd(dP / (2.0 * step));
   };
   Inversion inv;
-  if (use_inversion) {
+  if (fit.use_inversion) {
     inv = FindInversion(mol, basis);
     if (!inv.atom_map.empty()) {
       XTP_LOG(Log::error, log)
@@ -404,23 +408,54 @@ ChargeResponseFit::Result ChargeResponseFit::Fit(
           << std::flush;
     }
   }
-  std::vector<Eigen::MatrixXd> dP_potential(static_cast<std::size_t>(n_atoms));
+  // the atoms whose response is computed; the others are their images
+  std::vector<Index> perturbed;
   for (Index k = 0; k < n_atoms; ++k) {
-    const Index image = inv.atom_map.empty() ? k : inv.atom_map[std::size_t(k)];
-    if (image < k) {
-      dP_potential[std::size_t(k)] =
-          inv.T * dP_potential[std::size_t(image)] * inv.T.transpose();
-    } else {
+    if (inv.atom_map.empty() || inv.atom_map[std::size_t(k)] >= k) {
+      perturbed.push_back(k);
+    }
+  }
+  std::vector<Eigen::MatrixXd> dP_potential(static_cast<std::size_t>(n_atoms));
+  std::array<Eigen::MatrixXd, 3> dP_field;
+  if (fit.analytic) {
+    std::vector<Eigen::MatrixXd> h;
+    for (Index k : perturbed) {
+      h.push_back(W[std::size_t(k)]);
+    }
+    for (Index c = 0; c < 3; ++c) {
+      h.push_back(dipole.Matrix()[std::size_t(c)]);
+    }
+    XTP_LOG(Log::error, log) << TimeStamp() << " Coupled-perturbed KS for "
+                             << h.size() << " perturbations" << std::flush;
+    DFTEngine engine;
+    engine.setLogger(&log);
+    engine.Initialize(options);
+    const std::vector<Eigen::MatrixXd> dP =
+        engine.StaticResponse(orb, h, fit.tolerance);
+    for (std::size_t j = 0; j < perturbed.size(); ++j) {
+      dP_potential[std::size_t(perturbed[j])] = dP[j];
+    }
+    for (std::size_t c = 0; c < 3; ++c) {
+      dP_field[c] = dP[perturbed.size() + c];
+    }
+  } else {
+    for (Index k : perturbed) {
       dP_potential[std::size_t(k)] =
           response(W[std::size_t(k)],
                    "w_" + std::to_string(k) + " (" + mol[k].getElement() + ")");
     }
+    const std::array<std::string, 3> axes = {"x", "y", "z"};
+    for (Index c = 0; c < 3; ++c) {
+      dP_field[std::size_t(c)] = response(dipole.Matrix()[std::size_t(c)],
+                                          "field " + axes[std::size_t(c)]);
+    }
   }
-  std::array<Eigen::MatrixXd, 3> dP_field;
-  const std::array<std::string, 3> axes = {"x", "y", "z"};
-  for (Index c = 0; c < 3; ++c) {
-    dP_field[std::size_t(c)] = response(dipole.Matrix()[std::size_t(c)],
-                                        "field " + axes[std::size_t(c)]);
+  for (Index k = 0; k < n_atoms; ++k) {
+    if (!inv.atom_map.empty() && inv.atom_map[std::size_t(k)] < k) {
+      dP_potential[std::size_t(k)] =
+          inv.T * dP_potential[std::size_t(inv.atom_map[std::size_t(k)])] *
+          inv.T.transpose();
+    }
   }
 
   std::vector<Eigen::Vector3d> positions;

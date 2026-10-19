@@ -177,8 +177,22 @@ BOOST_AUTO_TEST_CASE(fit_of_water) {
   Orbitals orb;
   orb.QMAtoms() = Water();
   orb.setChargeAndSpin(0, 1);
-  const ChargeResponseFit::Result r =
-      ChargeResponseFit::Fit(options, orb, 1e-3, log);
+  const ChargeResponseFit::Result r = ChargeResponseFit::Fit(
+      options, orb, ChargeResponseFit::FitOptions(), log);
+  // the same from finite differences of SCFs
+  {
+    ChargeResponseFit::FitOptions fd;
+    fd.analytic = false;
+    Orbitals orb_fd;
+    orb_fd.QMAtoms() = Water();
+    orb_fd.setChargeAndSpin(0, 1);
+    const ChargeResponseFit::Result r_fd =
+        ChargeResponseFit::Fit(options, orb_fd, fd, log);
+    BOOST_CHECK_SMALL((r.pi - r_fd.pi).cwiseAbs().maxCoeff(),
+                      1e-5 * r.pi.cwiseAbs().maxCoeff());
+    BOOST_CHECK_SMALL((r.alpha - r_fd.alpha).cwiseAbs().maxCoeff(),
+                      1e-4 * r.alpha.cwiseAbs().maxCoeff());
+  }
 
   // finite differences reproduce the symmetry of the linear response
   BOOST_CHECK_SMALL(r.pi_asymmetry, 1e-5);
@@ -265,7 +279,9 @@ BOOST_AUTO_TEST_CASE(inversion_symmetry) {
     Orbitals orb;
     orb.QMAtoms() = mol;
     orb.setChargeAndSpin(0, 1);
-    r[i] = ChargeResponseFit::Fit(options, orb, 1e-3, log, i == 0);
+    ChargeResponseFit::FitOptions fit;
+    fit.use_inversion = (i == 0);
+    r[i] = ChargeResponseFit::Fit(options, orb, fit, log);
   }
   BOOST_CHECK_SMALL((r[0].pi - r[1].pi).cwiseAbs().maxCoeff(),
                     1e-6 * r[1].pi.cwiseAbs().maxCoeff());

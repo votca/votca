@@ -46,6 +46,7 @@ class CRFit final : public QMTool {
   bool Run() final;
 
  private:
+  std::string MethodLabel() const;
   void WriteCrm(const QMMolecule& mol,
                 const ChargeResponseFit::Result& r) const;
   void WriteJson(const QMMolecule& mol,
@@ -58,9 +59,8 @@ class CRFit final : public QMTool {
   std::string xyzfile_;
   std::string mpsfile_;
   std::string output_;
-  double step_ = 1e-3;
+  ChargeResponseFit::FitOptions fit_;
   double scf_error_ = 1e-9;
-  bool inversion_ = true;
 };
 
 }  // namespace xtp

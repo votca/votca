@@ -181,6 +181,20 @@ class DFTEngine {
   /// Return the configured AO basis-set name for the DFT calculation.
   std::string getDFTBasisName() const { return dftbasis_name_; };
 
+  /// Static linear response of the converged closed-shell ground state in
+  /// orb (same basis, functional and grid as this engine) to one-electron
+  /// perturbations h_k (AO matrices of an electron's potential energy, per
+  /// unit strength): coupled-perturbed Kohn-Sham,
+  ///   (e_a - e_i) U_ai + [C_v^T G[dP] C_o]_ai = -[C_v^T h C_o]_ai,
+  ///   dP = 2 (C_v U C_o^T + C_o U^T C_v^T),
+  /// G = J + 0.5 a_x K + f_xc (LDA/GGA, global hybrids), solved by
+  /// preconditioned conjugate gradients for all h_k together until
+  /// |residual| < tolerance |rhs|. Returns the first-order density matrices
+  /// dP_k (total). Throws for open-shell states or if CG does not converge.
+  std::vector<Eigen::MatrixXd> StaticResponse(
+      const Orbitals& orb, const std::vector<Eigen::MatrixXd>& perturbations,
+      double tolerance = 1e-7, Index max_iterations = 100);
+
   /// Name of the integration grid of the SCF (xtpdft.integration_grid).
   const std::string& getGridName() const { return grid_name_; }
 

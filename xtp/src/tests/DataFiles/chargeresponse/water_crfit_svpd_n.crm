@@ -1,9 +1,9 @@
-! charge-response matrix (Hirshfeld), XC_HYB_GGA_XC_PBEH/def2-svpd, from water.xyz (xtp_tools -e crfit, finite differences, step 0.001)
+! charge-response matrix (Hirshfeld), XC_HYB_GGA_XC_PBEH/def2-svpd, from water.xyz (xtp_tools -e crfit, coupled-perturbed KS, tolerance 1e-07)
 ! dq = -Pi phi; Pi in e^2/Hartree, atom order as below (Angstrom)
 3
 O      0.000000     0.000000     0.117300
 H      0.000000     0.757200    -0.469200
 H      0.000000    -0.757200    -0.469200
-+6.3639864775e-01 -3.1819932387e-01 -3.1819932389e-01
--3.1819932387e-01 +4.2910792663e-01 -1.1090860276e-01
--3.1819932389e-01 -1.1090860276e-01 +4.2910792665e-01
++6.3639857762e-01 -3.1819928880e-01 -3.1819928882e-01
+-3.1819928880e-01 +4.2910787263e-01 -1.1090858383e-01
+-3.1819928882e-01 -1.1090858383e-01 +4.2910787265e-01
