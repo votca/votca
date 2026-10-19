@@ -65,7 +65,8 @@ AOBasis Basis(const QMMolecule& mol) {
 }
 
 // xtpdft options; without RI if ri is false (4-centre integrals)
-votca::tools::Property DFTOptions(const std::string& functional, bool ri) {
+votca::tools::Property DFTOptions(const std::string& functional, bool ri,
+                                  const std::string& extra = "") {
   const std::string file = "staticresponse_test.xml";
   {
     std::ofstream xml(file);
@@ -89,7 +90,8 @@ votca::tools::Property DFTOptions(const std::string& functional, bool ri) {
         << "<mixing_max>0.98</mixing_max>\n<mixing_end>0.8</mixing_end>\n"
         << "<davidson_max_iter>50</davidson_max_iter>\n"
         << "</convergence>\n<integration_grid>medium</integration_grid>\n"
-        << "<max_iterations>200</max_iterations>\n</xtpdft>\n"
+        << "<max_iterations>200</max_iterations>\n"
+        << extra << "</xtpdft>\n"
         << "</dftpackage>\n";
   }
   votca::tools::Property prop;
@@ -218,6 +220,55 @@ BOOST_AUTO_TEST_CASE(response_matches_perturbed_scfs) {
       BOOST_CHECK_SMALL(dP[k].cwiseProduct(overlap.Matrix()).sum(), 1e-10);
     }
   }
+  libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(polarizability_option) {
+  // xtpdft.polarizability stores the analytic tensor in the orbitals; it
+  // agrees with SCFs in uniform fields and survives the orb file
+  libint2::initialize();
+  Logger log;
+  const Orbitals orb =
+      Ground(DFTOptions("XC_HYB_GGA_XC_PBEH", true,
+                        "<polarizability>true</polarizability>\n"),
+             Eigen::MatrixXd(), nullptr, log);
+  BOOST_REQUIRE(orb.hasPolarizability());
+  const Eigen::Matrix3d alpha = orb.getPolarizability();
+  BOOST_CHECK_SMALL((alpha - alpha.transpose()).norm(), 1e-12);
+
+  const QMMolecule mol = Water();
+  const AOBasis basis = Basis(mol);
+  AODipole dipole;
+  dipole.setCenter(mol.getPos());
+  dipole.Fill(basis);
+  const votca::tools::Property plain = DFTOptions("XC_HYB_GGA_XC_PBEH", true);
+  const double step = 1e-4;
+  for (Index c = 0; c < 3; ++c) {
+    const Eigen::MatrixXd& h = dipole.Matrix()[std::size_t(c)];
+    const Orbitals plus = Ground(plain, step * h, &orb, log);
+    const Orbitals minus = Ground(plain, -step * h, &orb, log);
+    const Eigen::MatrixXd dP =
+        (plus.DensityMatrixGroundState() - minus.DensityMatrixGroundState()) /
+        (2 * step);
+    for (Index a = 0; a < 3; ++a) {
+      const double fd = -dipole.Matrix()[std::size_t(a)].cwiseProduct(dP).sum();
+      BOOST_CHECK_SMALL(alpha(a, c) - fd, 1e-6 * alpha.norm());
+    }
+  }
+
+  const std::string file = "staticresponse_test.orb";
+  orb.WriteToCpt(file);
+  Orbitals read;
+  read.ReadFromCpt(file);
+  BOOST_REQUIRE(read.hasPolarizability());
+  BOOST_CHECK_SMALL((read.getPolarizability() - alpha).norm(), 1e-14);
+  // without the option nothing is stored
+  const Orbitals none = Ground(plain, Eigen::MatrixXd(), nullptr, log);
+  BOOST_CHECK(!none.hasPolarizability());
+  none.WriteToCpt(file);
+  Orbitals read_none;
+  read_none.ReadFromCpt(file);
+  BOOST_CHECK(!read_none.hasPolarizability());
   libint2::finalize();
 }
 

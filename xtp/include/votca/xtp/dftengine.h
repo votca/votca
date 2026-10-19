@@ -279,6 +279,10 @@ class DFTEngine {
   /// Build the Coulomb matrix contribution from the current density matrix.
   Eigen::MatrixXd CalcERIs(const Eigen::MatrixXd& Dmat, double error) const;
 
+  /// Static polarizability of the converged closed-shell state in orb
+  /// (StaticResponse with the dipole operators), stored in orb.
+  void ComputePolarizability(Orbitals& orb);
+
   /// Evaluate() without the timing report.
   bool EvaluateAndTime(Orbitals& orb);
   /// Basis dimensions and the memory of the large intermediates.
@@ -679,6 +683,8 @@ class DFTEngine {
 
   Eigen::Vector3d extfield_ = Eigen::Vector3d::Zero();
   bool integrate_ext_field_ = false;
+  // xtpdft.polarizability: static polarizability after the SCF
+  bool compute_polarizability_ = false;
   Eigen::MatrixXd ext_potential_matrix_;
 
   std::string active_atoms_as_string_;

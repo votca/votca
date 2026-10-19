@@ -116,6 +116,15 @@ Because the intramolecular couplings are part of the model, the site
 polarizabilities are not the molecule's polarizability divided among its
 atoms: ``xtp_tools -e molpol`` adjusts them until the coupled molecule
 reproduces a target polarizability tensor, usually from a DFT calculation.
+The target is read from an ORCA log (``qmpackage=orca``) or computed by
+xtpdft itself: with ``dftpackage.xtpdft.polarizability=true`` the static
+polarizability is obtained analytically after the SCF (coupled-perturbed
+Kohn–Sham; closed shells, LDA/GGA/global hybrids) and stored in the orb
+file, which ``molpol`` reads with ``qmpackage=xtp logfile=system.orb``::
+
+    xtp_tools -e dftgwbse -c job_name=system tasks=input,dft,parse \
+      dftpackage.xtpdft.polarizability=true
+    xtp_tools -e molpol -c job_name=system qmpackage=xtp logfile=system.orb
 
 **Solver.** :math:`(\alpha^{-1} + T)\,\boldsymbol{\mu} = \mathbf{E}` is
 solved by preconditioned conjugate gradients (``tolerance_dipole``,

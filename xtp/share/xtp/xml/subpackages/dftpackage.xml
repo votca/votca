@@ -33,6 +33,7 @@
     <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />
     <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
     <force_uks_path help="forcing UKS path" default="false" choices="bool"/>
+    <polarizability help="After the SCF, compute the static dipole polarizability tensor analytically (coupled-perturbed Kohn-Sham with the three dipole operators; closed-shell states, LDA/GGA/global hybrids) and store it in the orb (HDF5) file, e.g. as the target for molpol (qmpackage xtp)." default="false" choices="bool"/>
     <compute_forces help="Compute analytic ground-state DFT nuclear forces (RI, and hybrid-exchange for UKS) and store them in the orb (HDF5) file. Adds real cost to every converged SCF, so this is opt-in." default="false" choices="bool"/>
     <cdft help="Constrained DFT (CDFT): a Hirshfeld-based charge constraint on a fragment of the molecule, via an outer, warm-started Lagrange-multiplier loop around the ordinary UKS SCF (Wu-Van Voorhis approach). Opt-in via cdft.enabled -- has no effect on any calculation unless explicitly enabled, matching compute_forces's own opt-in convention just above.">
       <enabled help="Enable a CDFT charge constraint on this calculation" default="false" choices="bool"/>

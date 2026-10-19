@@ -300,6 +300,20 @@ class Orbitals {
   /// Report whether nuclear forces have been stored.
   bool hasForces() const { return forces_.rows() > 0; }
 
+  /// Static dipole polarizability tensor of the ground state (a.u.), if
+  /// computed (xtpdft option polarizability).
+  bool hasPolarizability() const { return polarizability_.size() == 9; }
+  Eigen::Matrix3d getPolarizability() const {
+    if (!hasPolarizability()) {
+      throw std::runtime_error("Orbitals: no polarizability stored");
+    }
+    return polarizability_;
+  }
+  void setPolarizability(const Eigen::Matrix3d &alpha) {
+    polarizability_ = alpha;
+  }
+  void clearPolarizability() { polarizability_.resize(0, 0); }
+
   /// Return the stored nuclear forces (Natoms x 3, Hartree/Bohr).
   const Eigen::MatrixXd &getForces() const { return forces_; }
 
@@ -851,6 +865,7 @@ class Orbitals {
   // legitimate force value on any individual component in a way it isn't
   // for a total energy.
   Eigen::MatrixXd forces_;
+  Eigen::MatrixXd polarizability_;  // 3x3 if set
 
   Index total_charge_ = 0;
   Index total_spin_ = 1;

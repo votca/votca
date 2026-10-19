@@ -123,6 +123,11 @@ void DFTEngine::Initialize(tools::Property& options) {
     force_uks_path_ = options.get(key_xtpdft + ".force_uks_path").as<bool>();
   }
 
+  if (options.exists(key_xtpdft + ".polarizability")) {
+    compute_polarizability_ =
+        options.get(key_xtpdft + ".polarizability").as<bool>();
+  }
+
   if (options.exists(key_xtpdft + ".compute_forces")) {
     compute_forces_ = options.get(key_xtpdft + ".compute_forces").as<bool>();
   }
@@ -971,8 +976,13 @@ tools::EigenSystem DFTEngine::ModelPotentialGuess(
 
 bool DFTEngine::Evaluate(Orbitals& orb) {
   timings_.Reset();
+  // a tensor carried over from a guess would describe another state
+  orb.clearPolarizability();
   bool success = EvaluateAndTime(orb);
   timings_.Report(*pLog_, Log::error);
+  if (success && compute_polarizability_) {
+    ComputePolarizability(orb);
+  }
   double peak = DFTTimings::ResidentMemoryGB(true);
   if (peak >= 0) {
     XTP_LOG(Log::error, *pLog_)
@@ -980,6 +990,38 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
         << std::setprecision(3) << peak << " GB" << std::flush;
   }
   return success;
+}
+
+void DFTEngine::ComputePolarizability(Orbitals& orb) {
+  if (num_alpha_electrons_ != num_beta_electrons_) {
+    throw std::runtime_error(
+        "xtpdft polarizability: closed-shell ground states only");
+  }
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp()
+      << " Static polarizability (coupled-perturbed KS, 3 uniform fields)"
+      << std::flush;
+  AODipole dipole;
+  dipole.setCenter(orb.QMAtoms().getPos());
+  dipole.Fill(dftbasis_);
+  const std::vector<Eigen::MatrixXd> h(dipole.Matrix().begin(),
+                                       dipole.Matrix().end());
+  const std::vector<Eigen::MatrixXd> dP = StaticResponse(orb, h);
+  Eigen::Matrix3d alpha;
+  for (Index a = 0; a < 3; ++a) {
+    for (Index c = 0; c < 3; ++c) {
+      alpha(a, c) = -dipole.Matrix()[std::size_t(a)]
+                         .cwiseProduct(dP[std::size_t(c)])
+                         .sum();
+    }
+  }
+  alpha = 0.5 * (alpha + alpha.transpose()).eval();
+  orb.setPolarizability(alpha);
+  const double A3 = std::pow(tools::conv::bohr2ang, 3);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Polarizability [a.u.]:\n"
+      << alpha << "\n isotropic " << alpha.trace() / 3
+      << " a.u. = " << alpha.trace() / 3 * A3 << " A^3" << std::flush;
 }
 
 bool DFTEngine::EvaluateAndTime(Orbitals& orb) {

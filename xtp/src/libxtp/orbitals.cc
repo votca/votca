@@ -1161,6 +1161,9 @@ void Orbitals::WriteToCpt(CheckpointWriter& w) const {
 
   w(qm_energy_, "qm_energy");
   w(forces_, "forces");
+  if (hasPolarizability()) {
+    w(polarizability_, "polarizability");
+  }
   w(qm_package_, "qm_package");
 
   w(rpamin_, "rpamin");
@@ -1267,6 +1270,8 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
        // empty (hasForces() == false), same convention as LMOs below.
   }
   r(qm_package_, "qm_package");
+  // optional: only written if computed; older files have none
+  r_optional(polarizability_, "polarizability");
   try {
     r(lmos_, "LMOs");
     r(lmos_energies_, "LMOs_energies");
