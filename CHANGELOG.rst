@@ -26,6 +26,7 @@ Version 2026-dev
 -  GW-BSE reaction field screening QMMM option (#1253)
 -  faster and leaner DFT for QM/MM with Ewald embedding (#1254)
 -  performance and robustness improvements in GW-BSE (#1257)
+-  QSGW Hartree update and hybrid starts, charge-response environment model, analytic static response and polarizability in xtpdft, sigma dump, macOS build (#1258)
    
 Version 2026 (released 09.03.26)
 ================================
