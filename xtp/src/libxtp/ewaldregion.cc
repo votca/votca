@@ -337,7 +337,39 @@ Eigen::VectorXd EwaldRegion::PotentialAt(
   if (!real_sum_) {
     BuildSums(std::vector<PolarSegment>());
   }
+  return PotentialAtPoints(points);
+}
 
+void EwaldRegion::ApplyPotentialTo(
+    std::vector<PolarSegment>& foreground) const {
+  if (!loaded_) {
+    NotInitialized("ApplyPotentialTo");
+  }
+  if (!real_sum_) {
+    BuildSums(foreground);
+  }
+  CheckForegroundIsSubset(foreground);
+  std::vector<PolarSite*> sites;
+  std::vector<Eigen::Vector3d> points;
+  for (PolarSegment& seg : foreground) {
+    for (PolarSite& site : seg) {
+      if (site.isChargeResponse()) {
+        sites.push_back(&site);
+        points.push_back(site.getPos());
+      }
+    }
+  }
+  if (points.empty()) {
+    return;
+  }
+  const Eigen::VectorXd phi = PotentialAtPoints(points);
+  for (std::size_t i = 0; i < sites.size(); ++i) {
+    sites[i]->Phi() += phi[Index(i)];
+  }
+}
+
+Eigen::VectorXd EwaldRegion::PotentialAtPoints(
+    const std::vector<Eigen::Vector3d>& points) const {
   // A foreground segment's id. It decides only whether the
   // zero-translation self-pair is skipped, and that skip is disabled for
   // sources that have a foreground copy -- which is what a point that is

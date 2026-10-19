@@ -52,8 +52,8 @@ charge-response sites, its potential) to the sites of a polar region:
   same or other polar regions, as point multipoles;
 * the induced moments of other polar regions;
 * the QM region: the field of its electron density and nuclei;
-* the periodic background of an ``ewaldregion`` (Thole molecules only; see
-  `Limitations`_).
+* the periodic background of an ``ewaldregion``: its field, and on
+  charge-response sites also its potential (see `Periodic background`_).
 
 Two accumulators per site keep apart what is counted in the polar region's
 energy (sources in outer regions) and what is counted in the other region's
@@ -278,10 +278,11 @@ responds with :math:`\alpha/\varepsilon` per site.
 Parametrization of charge-response molecules
 ********************************************
 
-XTP does not compute :math:`\Pi`; it is the static linear response of the
-molecule, obtained once per molecule type from a DFT calculation, like the
-target polarizability of ``molpol``. The procedure the files described
-below were validated with:
+:math:`\Pi` is the static linear response of the molecule, obtained once
+per molecule type from a DFT calculation, like the target polarizability of
+``molpol``. The C++ part of XTP does not compute it; the python tools
+``xtp_cr_fit`` and ``xtp_cr_mps`` (see `Tools`_ below) do, with PySCF. The
+procedure:
 
 1. **Perturbations.** An external potential localized on atom :math:`k`
    with Hirshfeld weights [Hirshfeld:1977]_, :math:`v_k(\mathbf{r}) =
@@ -314,8 +315,9 @@ Files
   symmetric, charge conserving and positive semidefinite to
   :math:`10^{-6}` relative, and removes the rounding of the file.
 * ``.mps``: the permanent multipoles as for any polar molecule, with the
-  residual polarizabilities :math:`\alpha_i^\text{res}` on the ``P`` lines,
-  in the frame of the template geometry.
+  residual polarizabilities :math:`\alpha_i^\text{res}` on the ``P`` lines
+  (six components ``xx xy xz yy yz zz`` in Å\ :sup:`3`), in the frame of the
+  template geometry.
 * map file: next to ``<multipoles_n>`` of the segment,
 
   .. code-block:: xml
@@ -336,6 +338,40 @@ site tensors.
 
 Checkpoints store :math:`\Pi`, the induced charges and the options with the
 region; checkpoints without them read as Thole molecules.
+
+Tools
+=====
+
+Both are installed with XTP when their python modules are found at
+configure time: ``xtp_cr_fit`` needs PySCF and numpy, ``xtp_cr_mps`` numpy
+only.
+
+* ``xtp_cr_fit -x mol.xyz -o mol`` runs steps 1–4 for one molecule
+  (restricted Kohn–Sham, i.e. closed shell; ``--charge`` for closed-shell
+  ions) and writes ``mol_cr.json`` (:math:`\Pi`,
+  :math:`\alpha_\text{DFT}`, the charge-flow and residual parts, the
+  residual tensors per atom, the settings) and ``mol.crm``. Defaults:
+  ``--xc pbe0``, ``--basis def2-svpd``, density fitting with
+  ``--auxbasis def2-universal-jkfit``; ``--grid`` sets the DFT grid and
+  ``--response-grid`` (default 1) the coarser grid of the response kernel.
+  An inversion centre of the geometry, if present, is used to halve the
+  number of responses (``--no-inversion`` switches this off). The fit stops
+  with an error if :math:`\Pi` is not positive semidefinite or
+  :math:`\alpha^\text{res}` not positive definite. Use the same functional
+  as the QM region and a basis with diffuse functions; the geometry should
+  be that of the ``.mps`` template (e.g. the ``molpol`` input).
+* ``xtp_cr_mps -m template.mps -j mol_cr.json -o mol_cr_n`` writes the pair
+  of files for the map file: ``mol_cr_n.mps`` keeps the permanent
+  multipoles of the template and replaces its ``P`` lines by the residual
+  polarizabilities, ``mol_cr_n.crm`` holds :math:`\Pi`. The template must
+  list the same atoms in the same order as the fit; if it is in another
+  frame, the residual tensors are rotated into it (a warning is printed if
+  the geometries differ by more than 0.05 Å rms after alignment).
+
+The fit is a single ground-state calculation with :math:`N + 3` response
+right-hand sides; for water in def2-SVPD it takes seconds. The permanent
+multipoles of other states come from the template ``.mps`` files of those
+states as usual.
 
 
 Accuracy and choice of model
@@ -386,13 +422,44 @@ QM/MM loop itself is about as expensive as with Thole sites. Thole molecules
 remain appropriate further out and can be mixed into the same region.
 
 
+Periodic background
+*******************
+
+An ``ewaldregion`` is a frozen periodic background, converged beforehand by
+the ``ewaldbackground`` calculator with Thole molecules; the molecules of
+the job's regions are cut out of it. A polar region in it may hold
+charge-response molecules: the background acts on them like the static
+environment of the other regions, with the field on every site and the
+potential on the charge-response sites, both of its permanent multipoles
+and its induced dipoles (real-space, reciprocal-space and shape terms, minus
+the cut-out copies). The background itself stays a Thole model and does
+not respond to the job.
+
+Two details differ from the coupling between polar regions:
+
+* the field of the background's induced dipoles is Thole-damped (the Ewald
+  real-space convention), also on charge-response sites with
+  ``cr_dipole_damping`` ``gaussian``; and
+* the potential is that at the site as a point, not averaged over the
+  Gaussian of width ``cr_width``.
+
+Both matter only for background molecules at contact distance from the
+polar region; with :math:`s = 0.7` Å the Gaussian average of a point source
+3 Å away differs from the point value by less than :math:`10^{-6}`. The
+potential carries the additive constant of the Ewald sum (the omitted
+:math:`k = 0` term); it cancels, since the induced charges of each molecule
+sum to zero. The energy terms are those of Thole molecules in the
+background, with :math:`\delta q_i \phi_i` added to the external polar
+energy.
+
+
 Limitations
 ***********
 
 * Charge-response molecules need the ``xtp`` DFT package.
-* They cannot be combined with an ``ewaldregion`` (its periodic sums act on
-  point dipoles) or be part of a dielectric shell region of embedded
-  GW-BSE.
+* They cannot be part of a dielectric shell region of embedded GW-BSE.
+* An ``ewaldregion`` background is always made of Thole molecules (see
+  `Periodic background`_).
 * Whole molecules only (see `Files`_), and ``map2md`` 0 for anisotropic
   residual polarizabilities.
 * The dense reaction-field kernel of embedded GW-BSE has the dimension

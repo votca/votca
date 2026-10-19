@@ -1,6 +1,6 @@
 set(XTP_RST_FILES)
 set(XTP_SCRIPTS)
-foreach(_pkg lxml h5py rdkit scipy)
+foreach(_pkg lxml h5py rdkit scipy numpy pyscf)
   if(NOT PY${_pkg}_FOUND)
     execute_process(COMMAND ${Python_EXECUTABLE} -c "import ${_pkg}" RESULT_VARIABLE IMPORT_py${_pkg})
     if(IMPORT_py${_pkg} EQUAL 0)
@@ -20,6 +20,12 @@ if(PYh5py_FOUND)
 endif()
 if(PYscipy_FOUND AND PYlxml_FOUND AND PYh5py_FOUND)
   list(APPEND XTP_SCRIPTS xtp_tightbinding)
+endif()
+if(PYnumpy_FOUND)
+  list(APPEND XTP_SCRIPTS xtp_cr_mps)
+endif()
+if(PYnumpy_FOUND AND PYpyscf_FOUND)
+  list(APPEND XTP_SCRIPTS xtp_cr_fit)
 endif()
 
 if(SPHINX_FOUND)
@@ -44,6 +50,9 @@ set_property(TARGET VOTCA::votca_compare_pdb PROPERTY IMPORTED_LOCATION "${CMAKE
 
 add_executable(VOTCA::votca_compare_mps IMPORTED GLOBAL)
 set_property(TARGET VOTCA::votca_compare_mps PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/votca_compare_mps")
+
+add_executable(VOTCA::votca_compare_crm IMPORTED GLOBAL)
+set_property(TARGET VOTCA::votca_compare_crm PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/votca_compare_crm")
 
 foreach(SCRIPT ${XTP_SCRIPTS}) 
   configure_file(${SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 @ONLY)

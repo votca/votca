@@ -1,0 +1,151 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+"""The .mps and .crm files of a charge-response (CR) molecule from the
+result of xtp_cr_fit (PREFIX_cr.json).
+
+PREFIX.mps keeps the permanent multipoles of a template .mps of the molecule
+type (e.g. from CHELPG or an earlier molpol run) and gets the residual
+polarizabilities of the fit on its P lines; PREFIX.crm holds the
+charge-response matrix. The template must have the same atoms in the same
+order as the fit. If its geometry is in another frame, the residual tensors
+are rotated into it (rigid alignment; a warning is printed if the two
+geometries differ by more than 0.05 Angstrom rms).
+
+Map file entries:
+  <multipoles_n>PREFIX.mps</multipoles_n>
+  <chargeresponse_n>PREFIX.crm</chargeresponse_n>
+"""
+
+import argparse
+import json
+import os
+import sys
+
+import numpy as np
+
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
+PROGTITLE = 'THE VOTCA::XTP charge-response .mps/.crm writer'
+PROGDESCR = ('Write the .mps (permanent multipoles + residual '
+             'polarizabilities) and .crm files of a charge-response molecule '
+             'from an xtp_cr_fit result')
+VOTCAHEADER = f"""
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{PROGTITLE}
+
+please read and cite: @PROJECT_CITATION@
+and submit bugs to @PROJECT_CONTACT@
+xtp_cr_mps, version {VERSION}
+
+"""
+
+ANG2BOHR = 1.8897259886  # tools::conv::ang2bohr
+
+
+class XtpHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
+
+
+def write_cr_files(template, cr, prefix, source=""):
+    """template .mps + xtp_cr_fit result -> prefix.mps, prefix.crm"""
+    lines = open(template).read().split("\n")
+    to_ang = 1.0
+    sites = []
+    for line in lines:
+        t = line.split()
+        if t[:1] == ["Units"]:
+            to_ang = 1.0 if t[1] == "angstrom" else 1.0 / ANG2BOHR
+        if len(t) == 6 and t[4] == "Rank":
+            sites.append((t[0], np.array([float(v) for v in t[1:4]]) * to_ang))
+    elements = [s[0] for s in sites]
+    if elements != cr["elements"]:
+        sys.exit(f"The atoms of {template} ({' '.join(elements)}) are not "
+                 f"those of the fit ({' '.join(cr['elements'])}), in order")
+    P = np.array([s[1] for s in sites])
+    Q = np.array(cr["coords_bohr"]) / ANG2BOHR
+    P0, Q0 = P - P.mean(0), Q - Q.mean(0)
+    V, _, Wt = np.linalg.svd(Q0.T @ P0)
+    d = np.sign(np.linalg.det(V @ Wt))
+    U = (V @ np.diag([1, 1, d]) @ Wt).T  # fit frame -> template frame
+    rmsd = np.sqrt(((Q0 @ U.T - P0) ** 2).sum(1).mean())
+    if rmsd > 0.05:
+        print(f"WARNING: template and fit geometry differ by {rmsd:.3f} A "
+              "rms after alignment")
+    A3 = ANG2BOHR ** 3
+    res = [U @ np.array(a) @ U.T / A3 for a in cr["alpha_res_atoms_au"]]
+
+    out = [f"! charge-response molecule: permanent multipoles of "
+           f"{os.path.basename(template)}, "
+           f"residual polarizabilities of the charge-response fit {source} "
+           f"({cr['xc']}/{cr['basis']})"]
+    k = -1
+    has_p = [False] * len(sites)
+    for line in lines:
+        t = line.split()
+        if len(t) == 6 and t[4] == "Rank":
+            k += 1
+        if t and t[0] == "P":
+            a = res[k]
+            has_p[k] = True
+            line = "     P " + " ".join(
+                "%+.7f" % x
+                for x in (a[0, 0], a[0, 1], a[0, 2], a[1, 1], a[1, 2], a[2, 2]))
+        out.append(line)
+    if not all(has_p):
+        sys.exit(f"{template}: every site needs a P line (the residual "
+                 "polarizabilities replace it)")
+    open(prefix + ".mps", "w").write("\n".join(out))
+    with open(prefix + ".crm", "w") as f:
+        f.write(f"! charge-response matrix (Hirshfeld), {cr['xc']}/"
+                f"{cr['basis']} {source}\n")
+        f.write("! dq = -Pi phi; Pi in e^2/Hartree, atom order as below "
+                "(Angstrom)\n")
+        f.write(f"{len(elements)}\n")
+        for e, p in zip(elements, P):
+            f.write("%-2s %12.6f %12.6f %12.6f\n" % (e, *p))
+        for row in cr["Pi"]:
+            f.write(" ".join("%+.10e" % x for x in row) + "\n")
+    ares = sum(res)
+    print(f"wrote {prefix}.mps and {prefix}.crm; residual polarizability "
+          f"{np.trace(ares) / 3:.3f} A^3 (isotropic), charge flow "
+          f"{np.trace(np.array(cr['alpha_ct_A3'])) / 3:.3f} A^3, total "
+          f"{np.trace(np.array(cr['alpha_dft_A3'])) / 3:.3f} A^3")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog='xtp_cr_mps',
+        formatter_class=lambda prog: XtpHelpFormatter(prog,
+                                                      max_help_position=70),
+        description=PROGDESCR)
+    parser.add_argument("-m", "--mps", required=True,
+                        help="Template .mps of the molecule type")
+    parser.add_argument("-j", "--json", required=True,
+                        help="Result of xtp_cr_fit (PREFIX_cr.json)")
+    parser.add_argument("-o", "--output", required=True,
+                        help="Output prefix (PREFIX.mps, PREFIX.crm)")
+    args = parser.parse_args()
+    print(VOTCAHEADER)
+    write_cr_files(args.mps, json.load(open(args.json)), args.output,
+                   os.path.basename(args.json))
+
+
+if __name__ == "__main__":
+    main()

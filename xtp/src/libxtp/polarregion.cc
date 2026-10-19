@@ -442,17 +442,16 @@ void PolarRegion::ReadFromCpt(CheckpointReader& r) {
 }
 
 double PolarRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
-  if (hasChargeResponse()) {
-    throw std::runtime_error(
-        "polarregion " + std::to_string(this->getId()) +
-        ": charge-response segments cannot be combined with an Ewald region "
-        "(the periodic sums have no induced charges); use Thole segments "
-        "there");
-  }
   // Delegated: the background owns the periodic sums, the foreground
   // bookkeeping and the parameters they must all share, so assembling
   // them here would mean reaching into it for all three.
-  return region.ApplyFieldTo(segments_);
+  const double e = region.ApplyFieldTo(segments_);
+  // induced charges see the background potential (the energy of the
+  // induced moments with the background is in PolarEnergy_extern)
+  if (hasChargeResponse()) {
+    region.ApplyPotentialTo(segments_);
+  }
+  return e;
 }
 
 }  // namespace xtp

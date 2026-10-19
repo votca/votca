@@ -1,0 +1,317 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+"""Parametrization of a charge-response (CR) molecule for XTP polar regions.
+
+Computes the charge-response matrix Pi and the residual polarizabilities of
+a molecule with PySCF (RKS, density fitting) by coupled-perturbed
+Kohn-Sham:
+
+* perturbations: an external potential localized on each atom with
+  Hirshfeld weights w_k (free spherical HF atoms in the same basis;
+  sum_k w_k = 1) and three uniform fields, in one CPKS solve; atoms related
+  by an inversion centre are solved once;
+* Pi_jk = -<w_j|chi|w_k>: Hirshfeld charges of the response to the
+  potentials -- symmetric, positive semidefinite and charge conserving by
+  construction (symmetrized and projected once more against round-off);
+* residual polarizabilities alpha_res = alpha_DFT - X^T Pi X, distributed
+  over the atoms as one tensor scaled by the trace of the Hirshfeld atomic
+  dipole polarizabilities of the field response.
+
+Writes PREFIX.crm (Pi for <chargeresponse_n> in the map file) and
+PREFIX_cr.json (everything, atomic units). Then xtp_cr_mps writes the .mps
+of the molecule (permanent multipoles of a template .mps, residual
+polarizabilities of this fit) and the .crm in the template's frame.
+
+The atom order of the xyz file must be that of the molecule type's .mps
+file. Use a basis with diffuse functions (e.g. def2-svpd, def2-tzvpd) and
+the functional of the QM region.
+"""
+
+import argparse
+import json
+import os
+import sys
+import time
+
+import numpy as np
+
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
+PROGTITLE = 'THE VOTCA::XTP charge-response fit'
+PROGDESCR = ('Charge-response matrix and residual polarizabilities of a '
+             'molecule (PySCF coupled-perturbed KS) for charge-response '
+             'polar regions')
+VOTCAHEADER = f"""
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{PROGTITLE}
+
+please read and cite: @PROJECT_CITATION@
+and submit bugs to @PROJECT_CONTACT@
+xtp_cr_fit, version {VERSION}
+
+"""
+
+ANG2BOHR = 1.8897259886  # tools::conv::ang2bohr
+
+
+class XtpHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
+
+
+def read_xyz(filename):
+    lines = open(filename).read().split("\n")
+    n = int(lines[0])
+    atoms = []
+    for line in lines[2:2 + n]:
+        t = line.split()
+        atoms.append((t[0], tuple(float(v) for v in t[1:4])))
+    return atoms
+
+
+def write_crm(filename, elements, coords_bohr, Pi, header):
+    with open(filename, "w") as f:
+        f.write(f"! {header}\n")
+        f.write("! dq = -Pi phi; Pi in e^2/Hartree, atom order as below "
+                "(Angstrom)\n")
+        f.write(f"{len(elements)}\n")
+        for e, r in zip(elements, coords_bohr / ANG2BOHR):
+            f.write("%-2s %12.6f %12.6f %12.6f\n" % (e, *r))
+        for row in Pi:
+            f.write(" ".join("%+.10e" % x for x in row) + "\n")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog='xtp_cr_fit',
+        formatter_class=lambda prog: XtpHelpFormatter(prog,
+                                                      max_help_position=70),
+        description=PROGDESCR)
+    parser.add_argument("-x", "--xyz", required=True,
+                        help="Geometry (xyz, Angstrom), atom order of the .mps")
+    parser.add_argument("-o", "--output", required=True,
+                        help="Output prefix (PREFIX.crm, PREFIX_cr.json)")
+    parser.add_argument("--xc", default="pbe0",
+                        help="Functional (PySCF name, default pbe0)")
+    parser.add_argument("--basis", default="def2-svpd",
+                        help="Basis set with diffuse functions (default "
+                             "def2-svpd)")
+    parser.add_argument("--auxbasis", default="def2-universal-jkfit",
+                        help="Auxiliary basis for density fitting")
+    parser.add_argument("--charge", type=int, default=0,
+                        help="Molecular charge (default 0)")
+    parser.add_argument("--grid", type=int, default=3,
+                        help="PySCF grid level of the SCF (default 3)")
+    parser.add_argument("--response-grid", type=int, default=1,
+                        help="Grid level of the response kernel (default 1; "
+                             "check alpha against a finite-field value when "
+                             "lowering it)")
+    parser.add_argument("--tol", type=float, default=1e-6,
+                        help="CPKS convergence (default 1e-6)")
+    parser.add_argument("--no-inversion", action="store_true",
+                        help="Do not use an inversion centre")
+    parser.add_argument("--memory", type=int, default=4000,
+                        help="PySCF max_memory in MB (default 4000)")
+    args = parser.parse_args()
+    print(VOTCAHEADER)
+
+    try:
+        from pyscf import gto, dft, lib
+        from pyscf.scf import cphf, atom_hf
+    except ImportError:
+        sys.exit("xtp_cr_fit needs PySCF (pip install pyscf)")
+
+    t0 = time.time()
+
+    def log(*a):
+        print(f"[{time.time() - t0:7.0f} s]", *a, flush=True)
+
+    atoms = read_xyz(args.xyz)
+    mol = gto.M(atom=atoms, basis=args.basis, unit="Angstrom",
+                charge=args.charge, verbose=0)
+    mol.max_memory = args.memory
+    N = mol.natm
+    R = mol.atom_coords()
+    nao = mol.nao
+    elements = [mol.atom_pure_symbol(k) for k in range(N)]
+
+    mf = dft.RKS(mol).density_fit(auxbasis=args.auxbasis)
+    mf.xc = args.xc
+    mf.conv_tol = 1e-10
+    mf.grids.level = args.grid
+    mf.max_memory = args.memory
+    mf.kernel()
+    if not mf.converged:
+        sys.exit("SCF did not converge")
+    log(f"SCF E = {mf.e_tot:.8f} Ha, {nao} basis functions")
+
+    # Hirshfeld weights on the SCF grid
+    coords, wts = mf.grids.coords, mf.grids.weights
+    atm = atom_hf.get_atm_nrhf(mol)
+    rho_free = np.zeros((N, len(coords)))
+    for k in range(N):
+        el = mol.atom_pure_symbol(k)
+        _, _, c, occ = atm[el]
+        am = gto.M(atom=[[el, (0, 0, 0)]], basis={el: mol._basis[el]},
+                   unit="Bohr",
+                   spin=None if gto.charge(el) % 2 == 0 else 1, verbose=0)
+        dm = (c * occ) @ c.T
+        for g0 in range(0, len(coords), 20000):
+            ao = dft.numint.eval_ao(am, coords[g0:g0 + 20000] - R[k])
+            rho_free[k, g0:g0 + 20000] = dft.numint.eval_rho(am, ao, dm)
+    pro = rho_free.sum(0)
+    wH = np.where(pro > 1e-14, rho_free / np.maximum(pro, 1e-300), 1.0 / N)
+    del rho_free
+    W = np.zeros((N, nao, nao))
+    for g0 in range(0, len(coords), 4000):
+        ao = dft.numint.eval_ao(mol, coords[g0:g0 + 4000])
+        aw = ao * wts[g0:g0 + 4000, None]
+        for k in range(N):
+            W[k] += (aw * wH[k, g0:g0 + 4000, None]).T @ ao
+    W = 0.5 * (W + W.transpose(0, 2, 1))
+    log("Hirshfeld partition: max |sum_k W_k - S| = %.1e" %
+        np.abs(W.sum(0) - mol.intor("int1e_ovlp")).max())
+
+    # inversion symmetry: AO map k -> inv(k) with the parity (-1)^l
+    cen = R.mean(0)
+    dmap = np.linalg.norm((2 * cen - R)[:, None] - R[None], axis=2)
+    inv = dmap.argmin(1)
+    use_inv = (not args.no_inversion and dmap.min(1).max() < 1e-4 and
+               all(elements[k] == elements[inv[k]] for k in range(N)))
+    if use_inv:
+        T = np.zeros((nao, nao))
+        aos = mol.aoslice_by_atom()
+        for k in range(N):
+            sh0, sh1, a0, _ = aos[k]
+            b0 = aos[inv[k]][2]
+            off = 0
+            for sh in range(sh0, sh1):
+                l = mol.bas_angular(sh)
+                nf = (2 * l + 1) * mol.bas_nctr(sh)
+                for m in range(nf):
+                    T[b0 + off + m, a0 + off + m] = (-1) ** l
+                off += nf
+        rep = [k for k in range(N) if k <= inv[k]]
+        log(f"inversion centre: {len(rep)} of {N} atoms solved")
+    else:
+        rep = list(range(N))
+
+    # CPKS: localized potentials (electron Hamiltonian -W_k) and fields
+    rints = mol.intor("int1e_r")
+    h_ao = np.concatenate([-W[rep], rints])
+    mo_e, mo_c, mo_occ = mf.mo_energy, mf.mo_coeff, mf.mo_occ
+    orbo, orbv = mo_c[:, mo_occ > 0], mo_c[:, mo_occ == 0]
+    h1 = lib.einsum("xpq,pa,qi->xai", h_ao, orbv, orbo)
+    mf_r = mf.copy()
+    if args.response_grid != args.grid:
+        mf_r.grids = dft.gen_grid.Grids(mol)
+        mf_r.grids.level = args.response_grid
+        mf_r.grids.build()
+    vresp = mf_r.gen_response(hermi=1)
+    ncall = [0]
+
+    def fvind(x):
+        x = x.reshape(-1, *h1.shape[1:])
+        dm1 = lib.einsum("xai,pa,qi->xpq", x, orbv, orbo * 2)
+        dm1 = dm1 + dm1.transpose(0, 2, 1)
+        v1 = vresp(dm1)
+        ncall[0] += 1
+        log(f"  CPKS iteration {ncall[0]}: {len(x)} vectors")
+        return lib.einsum("xpq,pa,qi->xai", v1, orbv, orbo).ravel()
+
+    x1 = cphf.solve(fvind, mo_e, mo_occ, h1, None, max_cycle=100,
+                    tol=args.tol)[0]
+    dD = lib.einsum("xai,pa,qi->xpq", x1.reshape(h1.shape), orbv, orbo * 2)
+    dD = dD + dD.transpose(0, 2, 1)
+    dDF = dD[len(rep):]
+    dDV = np.zeros((N, nao, nao))
+    for i, k in enumerate(rep):
+        dDV[k] = dD[i]
+        if use_inv and inv[k] != k:
+            dDV[inv[k]] = T @ dD[i] @ T.T
+    log("CPKS done")
+
+    # polarizability and Hirshfeld analysis of the field response
+    alpha = -np.einsum("xpq,cpq->xc", rints, dDF)
+    alpha = 0.5 * (alpha + alpha.T)
+    rhoF = np.zeros((3, len(coords)))
+    for g0 in range(0, len(coords), 20000):
+        ao = dft.numint.eval_ao(mol, coords[g0:g0 + 20000])
+        for c in range(3):
+            rhoF[c, g0:g0 + 20000] = dft.numint.eval_rho(mol, ao, dDF[c],
+                                                         hermi=1)
+    alpha_at = np.zeros((N, 3, 3))
+    for k in range(N):
+        alpha_at[k] = -np.einsum("g,gx,cg->xc", wts * wH[k], coords - R[k],
+                                 rhoF)
+
+    # Pi from Hirshfeld charges; symmetrize, project, check
+    Pi = np.einsum("jpq,kpq->jk", W, dDV)
+    asym = np.linalg.norm(Pi - Pi.T) / np.linalg.norm(Pi)
+    P = np.eye(N) - 1.0 / N
+    Pi = P @ (0.5 * (Pi + Pi.T)) @ P
+    ev = np.linalg.eigvalsh(Pi)
+    if ev[0] < -1e-6 * ev[-1]:
+        sys.exit(f"Pi is not positive semidefinite (lowest eigenvalue "
+                 f"{ev[0]:.3e}); tighten --tol or the grids")
+    Rc = R - R.mean(0)
+    alpha_ct = Rc.T @ Pi @ Rc
+    alpha_res = alpha - alpha_ct
+    eres = np.linalg.eigvalsh(alpha_res)
+    if eres[0] <= 0.0:
+        sys.exit("alpha_DFT - X^T Pi X is not positive definite "
+                 f"(eigenvalues {eres}); the charge response over-polarizes")
+    weights = np.array([max(np.trace(a), 0.0) for a in alpha_at])
+    weights /= weights.sum()
+    A3 = ANG2BOHR ** 3
+    log("alpha_DFT eigenvalues %s A^3" %
+        np.round(np.linalg.eigvalsh(alpha) / A3, 3))
+    log("charge-flow part X^T Pi X %s A^3, residual %s A^3" %
+        (np.round(np.linalg.eigvalsh(alpha_ct) / A3, 3),
+         np.round(eres / A3, 3)))
+    log(f"Pi: asymmetry before symmetrizing {asym:.1e}, eigenvalues "
+        f"{ev[1]:.3e} .. {ev[-1]:.3e} e^2/Ha")
+
+    out = {
+        "xyz": os.path.abspath(args.xyz), "xc": args.xc, "basis": args.basis,
+        "auxbasis": args.auxbasis, "charge": args.charge,
+        "units": "atomic (bohr, e, Hartree); Pi in e^2/Hartree",
+        "elements": elements, "coords_bohr": R.tolist(),
+        "alpha_dft_au": alpha.tolist(),
+        "alpha_dft_A3": (alpha / A3).tolist(),
+        "Pi": Pi.tolist(), "Pi_eigenvalues": ev.tolist(),
+        "Pi_asymmetry": asym,
+        "alpha_ct_A3": (alpha_ct / A3).tolist(),
+        "alpha_res_A3": (alpha_res / A3).tolist(),
+        "alpha_res_weights": weights.tolist(),
+        "alpha_res_atoms_au": [(f * alpha_res).tolist() for f in weights],
+        "cpks_tol": args.tol, "grid": args.grid,
+        "response_grid": args.response_grid,
+        "inversion_symmetry_used": bool(use_inv),
+    }
+    json.dump(out, open(args.output + "_cr.json", "w"), indent=1)
+    write_crm(args.output + ".crm", elements, R, Pi,
+              f"charge-response matrix (Hirshfeld), {args.xc}/{args.basis}, "
+              f"from {os.path.basename(args.xyz)} (xtp_cr_fit)")
+    log(f"wrote {args.output}.crm and {args.output}_cr.json; next: "
+        f"xtp_cr_mps -m TEMPLATE.mps -j {args.output}_cr.json -o PREFIX")
+
+
+if __name__ == "__main__":
+    main()
