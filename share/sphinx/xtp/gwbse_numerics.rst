@@ -797,8 +797,23 @@ then the QP energies depend on :math:`\eta` (here 15 meV in the gap between
 1 meV between :math:`s` = 100 and 20000, every converged start reaches the
 same fixed point for :math:`s` = 200--1000 (in vacuum and in an
 environment), and the loop needs 10--50 iterations, fewer for smaller
-:math:`s`. The two forms also differ off the diagonal, so ``srg`` and
-``eta`` at small :math:`\eta` differ by a few meV (5 meV in the HOMO here).
+:math:`s`. For water (def2-TZVP, exact :math:`\Sigma`) the picture is the
+same: PBE and PBE0 starts agree within 0.7 meV for :math:`s` = 200--1000,
+against 32 meV at :math:`\eta = 0.01` Ha.
+
+**SRG and the** ``eta`` **form are different methods.** Off the diagonal the
+two static operators differ even where no regularization acts: for a pole
+far from both levels, ``srg`` gives
+:math:`(\Delta_{np} + \Delta_{n'p})/(\Delta_{np}^2 + \Delta_{n'p}^2)`, the
+``eta`` form :math:`\tfrac12(1/\Delta_{np} + 1/\Delta_{n'p})`. The QP energies
+therefore differ, by an amount that depends on the system: 5 meV in the HOMO
+of methane, but 0.18 eV for water (HOMO :math:`-12.71` eV with ``srg`` for
+any :math:`s` from 50 to 20000, :math:`-12.89` to :math:`-12.91` eV with
+``eta`` for :math:`\eta` = 0.005--0.05 Ha). Marie and Loos find the same
+direction over 50 molecules: SRG-qsGW ionization potentials are 0.06 eV
+lower on average than qsGW ones (water: 0.10 eV) and closer to
+:math:`\Delta`\ CCSD(T). Do not mix results of the two forms in one
+comparison.
 
 The disabled unit tests ``qsgw_fixed_point_seed_scan`` and
 ``qsgw_regularization_scan`` (``test_gw``) reproduce these numbers; run
@@ -808,14 +823,22 @@ Recommended settings
 ====================
 
 * Use ``qsgw_regularization=srg`` with the default ``qsgw_srg_s=500``, and
-  report :math:`s`. To quote a regularization uncertainty, repeat with
-  :math:`s` = 200 and 1000.
+  report :math:`s` and the form. To quote a regularization uncertainty,
+  repeat with :math:`s` = 200 and 1000. Much larger :math:`s` brings back
+  near-singular terms: for water the loop needs 74--172 iterations at
+  :math:`s = 20000`, and the two starts differ by 1.3--1.5 meV for
+  :math:`s` = 5000--20000; Marie and Loos
+  report failed convergence for 11 of 50 molecules at :math:`s = 5000`.
 * Check that the fixed point does not depend on the start before
   interpreting a starting-point dependence -- for instance QSGW from PBE and
   from PBE0 should agree to within ``qsgw_sc_limit``.
 * Keep ``core_exchange=true`` with a frozen core, in particular from hybrid
   starts.
 * With environment screening keep ``qsgw_hartree_screened=true``.
+* Keep the default mixing (``mixing_order=3``, ``mixing_alpha=0.7``). A long
+  Anderson history stalls: for water with ``srg``, order 20 with
+  :math:`\alpha = 0.2` left a residual of 0.3 eV after 200 iterations where
+  the default converges in 20.
 * If the loop does not converge, check the virtual cut
   (``qsgw_max_virt_correction``) and the mixing first; ``mixing_order=0``
   with a small ``mixing_alpha`` shows whether the problem is the mixing or
