@@ -28,6 +28,7 @@ Version 2026-dev
 -  performance and robustness improvements in GW-BSE (#1257)
 -  QSGW Hartree update and hybrid starts, charge-response environment model, analytic static response and polarizability in xtpdft, sigma dump, macOS build (#1258)
 -  add regularized self-energy for QSGW (#1259)
+-  documentation fix (#1260)
    
 Version 2026 (released 09.03.26)
 ================================
