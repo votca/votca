@@ -222,6 +222,13 @@ set_tests_properties(unit_test_dftengine_cdft PROPERTIES TIMEOUT 3600)
 # default and is the binding case here.
 set_tests_properties(unit_test_podcoupling PROPERTIES TIMEOUT 3600)
 
+# unit_test_chargeresponsefit runs 16 hybrid SCFs for water (finite-
+# difference fit, field SCFs) and three analytic fits; with the fine grid
+# the CI clang Debug job exceeded the 1500 sec default. The test now uses
+# the coarse grid (about 4.5 min at -O0 on two cores, > 10 min before);
+# the longer limit is headroom for loaded runners.
+set_tests_properties(unit_test_chargeresponsefit PROPERTIES TIMEOUT 3600)
+
 # Real, direct new external-bond/H-saturation support fields, added
 # this same session to both QMAtom::WriteToCpt (/QMdata/qmmolecule/
 # qmatoms) and MD-level Atom::WriteToCpt (/frame_N/segments/*/atoms)

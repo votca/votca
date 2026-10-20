@@ -56,7 +56,10 @@ QMMolecule Water() {
   return mol;
 }
 
-// xtpdft options; extra is inserted into <dftpackage> (e.g. a field)
+// xtpdft options; extra is inserted into <dftpackage> (e.g. a field).
+// The coarse grid keeps the test affordable in Debug builds (the CI Debug
+// job hit the 1500 s CTest limit with the fine grid); every comparison
+// below is between two calculations on the same grid.
 votca::tools::Property DFTOptions(const std::string& extra = "") {
   const std::string file = "chargeresponsefit_test.xml";
   {
@@ -78,7 +81,7 @@ votca::tools::Property DFTOptions(const std::string& extra = "") {
         << "<DIIS_maxout>false</DIIS_maxout>\n<mixing>0.7</mixing>\n"
         << "<mixing_max>0.98</mixing_max>\n<mixing_end>0.8</mixing_end>\n"
         << "<davidson_max_iter>50</davidson_max_iter>\n"
-        << "</convergence>\n<integration_grid>fine</integration_grid>\n"
+        << "</convergence>\n<integration_grid>coarse</integration_grid>\n"
         << "<max_iterations>200</max_iterations>\n</xtpdft>\n"
         << "</dftpackage>\n";
   }
