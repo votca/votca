@@ -73,17 +73,46 @@ class PolarSite final : public StaticSite {
 
   Eigen::Vector3d& V_noE() { return V_noE_; }
 
+  // Electrostatic potential at the site, accumulated like V() and V_noE()
+  // (same split by region); only used by charge-response sites.
+  double Phi() const { return phi_; }
+  double& Phi() { return phi_; }
+  double Phi_noE() const { return phi_noE_; }
+  double& Phi_noE() { return phi_noE_; }
+
   void Reset() {
     V_.setZero();
     V_noE_.setZero();
+    phi_ = 0.0;
+    phi_noE_ = 0.0;
   }
 
   void Depolarize() {
     this->Reset();
     this->setInduced_Dipole(Eigen::Vector3d::Zero());
+    induced_charge_ = 0.0;
   }
 
-  double deltaQ_V_ext() const { return induced_dipole_.dot(V_); }
+  double deltaQ_V_ext() const {
+    return induced_dipole_.dot(V_) + induced_charge_ * phi_;
+  }
+
+  // Charge-response site (see ChargeResponse): besides its induced dipole
+  // (the residual polarizability) it carries an induced charge, and for
+  // induced-induced and QM couplings both are Gaussians of width
+  // CRWidth() (bohr, density ~ exp(-r^2/s^2)). Dipole-dipole couplings
+  // with a charge-response site use Thole damping instead of the Gaussian
+  // kernel if CRTholeDipoles(). Ordinary (Thole) sites are points.
+  bool isChargeResponse() const { return cr_; }
+  double CRWidth() const { return cr_width_; }
+  bool CRTholeDipoles() const { return cr_thole_dipoles_; }
+  void setChargeResponse(double width, bool thole_dipoles) {
+    cr_ = true;
+    cr_width_ = width;
+    cr_thole_dipoles_ = thole_dipoles;
+  }
+  double Induced_Charge() const { return induced_charge_; }
+  void setInduced_Charge(double dq) { induced_charge_ = dq; }
 
   double InternalEnergy() const {
     return 0.5 * induced_dipole_.transpose() * pinv_ * induced_dipole_;
@@ -165,6 +194,14 @@ class PolarSite final : public StaticSite {
   Eigen::Vector3d induced_dipole_ = Eigen::Vector3d::Zero();
   Eigen::Matrix3d pinv_ = Eigen::Matrix3d::Zero();
   double eigendamp_invsqrt_ = 0.0;
+
+  // potentials belonging to V_ and V_noE_ (charge-response sites)
+  double phi_ = 0.0;
+  double phi_noE_ = 0.0;
+  bool cr_ = false;
+  double cr_width_ = 0.0;
+  bool cr_thole_dipoles_ = false;
+  double induced_charge_ = 0.0;
 };
 
 }  // namespace xtp

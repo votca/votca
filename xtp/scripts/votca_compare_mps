@@ -17,7 +17,7 @@ class AtomRecord:
     pos: Tuple[float, float, float]
     rank: int
     charge: float
-    polarizability: float  # the "P <value>" line
+    polarizability: Tuple[float, ...]  # "P <value>" or "P xx xy xz yy yz zz"
 
 
 # Example atom line:
@@ -34,10 +34,11 @@ ATOM_RE = re.compile(
 # "    -0.0145563"
 NUM_RE = re.compile(r"^\s*([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*$")
 
-# Polarizability line:
+# Polarizability line, isotropic or the six components xx xy xz yy yz zz:
 # "     P +1.3340000"
+_FLOAT = r"[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?"
 P_RE = re.compile(
-    r"^\s*P\s+([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*$"
+    r"^\s*P((?:\s+" + _FLOAT + r"){1}|(?:\s+" + _FLOAT + r"){6})\s*$"
 )
 
 
@@ -81,8 +82,8 @@ def parse_mps_votca(path: str) -> List[AtomRecord]:
 
         m_p = P_RE.match(lines[i + 2])
         if not m_p:
-            raise ValueError(f"{path}: expected 'P <value>' line after charge at line {i+2}, got: {lines[i+2]!r}")
-        pol = float(m_p.group(1))
+            raise ValueError(f"{path}: expected 'P <value>' or 'P <xx xy xz yy yz zz>' line after charge at line {i+2}, got: {lines[i+2]!r}")
+        pol = tuple(float(v) for v in m_p.group(1).split())
 
         records.append(
             AtomRecord(
@@ -168,9 +169,13 @@ def main() -> int:
                 )
 
         # polarizability P
-        if not isclose(a.polarizability, b.polarizability, rtol=args.rtol, atol=args.atol):
+        if len(a.polarizability) != len(b.polarizability):
             issues.append(
-                f"[site {i} {a.element}] P differs: A={a.polarizability:.16g} vs B={b.polarizability:.16g} "
+                f"[site {i} {a.element}] P has {len(a.polarizability)} vs {len(b.polarizability)} components")
+        elif not all(isclose(av, bv, rtol=args.rtol, atol=args.atol)
+                     for av, bv in zip(a.polarizability, b.polarizability)):
+            issues.append(
+                f"[site {i} {a.element}] P differs: A={a.polarizability} vs B={b.polarizability} "
                 f"(rtol={args.rtol}, atol={args.atol})"
             )
 

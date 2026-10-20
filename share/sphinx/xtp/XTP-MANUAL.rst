@@ -19,6 +19,7 @@ software and manual versions match.
    transfer_theory
    transport_theory
    ewald_embedding
+   polarizable_environment
    embedded_gwbse
    pyxtp
    workflows_and_calculators

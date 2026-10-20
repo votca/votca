@@ -41,7 +41,9 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
   Index occupiedLevels = 4;
   Index unoccupiedLevels = 13;
-  Index numElectrons = 12;
+  // a restricted singlet: one alpha electron per occupied level (ReadFromCpt
+  // sets the electron counts of restricted singlets from the occupation)
+  Index numElectrons = occupiedLevels;
 
   Eigen::VectorXd moeTest = Eigen::VectorXd::Random(17);
   Eigen::MatrixXd mocTest = Eigen::MatrixXd::Random(17, 17);

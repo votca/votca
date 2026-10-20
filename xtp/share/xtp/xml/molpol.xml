@@ -7,8 +7,8 @@
     <output help="File to write mps and polarisation to" default="OPTIONAL"/>
     <mode help="Read the polar target from a file or a qmpackage logfile" choices="file,qmpackage" default="qmpackage"/>
     <target_polarisability help="should have this format: pxx pxy pxz pyy pyz pzz" default="OPTIONAL"/>
-    <qmpackage help="qmpackage name if mode is qmpackage" default="orca" choices="orca"/>
-    <logfile help="logfile of qmpackage to read Target polarisability from if mode is qmpackage" default="system.log"/>
+    <qmpackage help="qmpackage name if mode is qmpackage: orca (polarizability tensor in the ORCA log) or xtp (the orb file of an xtpdft run with dftpackage.xtpdft.polarizability=true)" default="orca" choices="orca,xtp"/>
+    <logfile help="logfile of qmpackage to read Target polarisability from if mode is qmpackage (for xtp the orb file)" default="system.log"/>
     <tolerance help="convergence tolerance" default="1e-4" choices="float+"/>
     <iterations help="maximum number of iterations" default="100" choices="int+"/>
   </molpol>

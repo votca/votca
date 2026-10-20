@@ -21,6 +21,9 @@
 #ifndef VOTCA_XTP_POLARREGION_H
 #define VOTCA_XTP_POLARREGION_H
 
+// VOTCA includes
+#include <votca/tools/constants.h>
+
 // Local VOTCA includes
 #include "eeinteractor.h"
 #include "energy_terms.h"
@@ -62,6 +65,11 @@ class PolarRegion : public MMRegion<PolarSegment> {
   // screening must reuse to respond exactly as this region does.
   double ExpDamp() const { return exp_damp_; }
 
+  // charge-response segments (see ChargeResponse) in this region
+  bool hasChargeResponse() const;
+  double CRWidth() const { return cr_width_; }
+  bool CRTholeDipoles() const { return cr_thole_dipoles_; }
+
   void WriteToCpt(CheckpointWriter& w) const override;
 
   void ReadFromCpt(CheckpointReader& r) override;
@@ -94,6 +102,13 @@ class PolarRegion : public MMRegion<PolarSegment> {
   double deltaD_ = 1e-5;
   Index max_iter_ = 100;
   double exp_damp_ = 0.39;
+  // charge-response options (bohr; Thole damping of their dipoles)
+  double cr_width_ = 0.7 * tools::conv::ang2bohr;
+  bool cr_thole_dipoles_ = false;
+
+  // marks the sites of the charge-response segments with the options above
+  void SetupChargeResponseSites();
+  void LogAndStoreEnergies(Energy_terms e_contrib);
 };
 
 }  // namespace xtp

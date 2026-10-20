@@ -195,6 +195,9 @@ void SegmentMapper<AtomContainer>::LoadMappingFile(const std::string& mapfile) {
       for (tools::Property* file : files) {
         seginfo.coordfiles[file->name()] = file->as<std::string>();
       }
+      for (tools::Property* file : seg->Select("chargeresponse_*")) {
+        seginfo.crfiles[file->name()] = file->as<std::string>();
+      }
       std::string segname = seg->get("name").as<std::string>();
       seginfo.segname = segname;
       std::string fragkey = "fragments.fragment";
@@ -416,7 +419,47 @@ AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
                              " segment/state: " + coordsfiletag);
   }
   std::string coordsfilename = seginfo.coordfiles.at(coordsfiletag);
-  return map(seg, coordsfilename);
+  AtomContainer result = map(seg, coordsfilename);
+  AttachChargeResponse(result, seginfo, state);
+  return result;
+}
+
+template <>
+void SegmentMapper<PolarSegment>::AttachChargeResponse(
+    PolarSegment& result, const Seginfo& seginfo, const QMState& state) const {
+  const std::string tag = "chargeresponse_" + state.Type().ToString();
+  if (seginfo.crfiles.count(tag) == 0) {
+    return;
+  }
+  const std::string& filename = seginfo.crfiles.at(tag);
+  ChargeResponse cr;
+  cr.LoadFromFile(filename);
+  // The mapped segment holds the template atoms seginfo.mapatoms in that
+  // order; Pi must follow them. Every atom must be mapped: Pi of a part of
+  // a molecule does not conserve charge.
+  std::vector<Index> order;
+  for (const atom_id& id : seginfo.mapatoms) {
+    if (id.first >= cr.size() ||
+        cr.Elements()[std::size_t(id.first)] != id.second) {
+      throw std::runtime_error(
+          "Segment " + seginfo.segname + ": " + mapatom_xml_.at("atoms") +
+          " entry " + std::to_string(id.first) + ":" + id.second +
+          " does not match the charge-response file " + filename +
+          " (same atoms in the same order as the multipoles file needed)");
+    }
+    order.push_back(id.first);
+  }
+  if (Index(order.size()) != cr.size()) {
+    throw std::runtime_error(
+        "Segment " + seginfo.segname + " maps " + std::to_string(order.size()) +
+        " of the " + std::to_string(cr.size()) +
+        " atoms of its charge-response file " + filename +
+        "; the charge-response model needs the whole molecule");
+  }
+  result.setChargeResponse(cr.Permuted(order));
+  XTP_LOG(Log::info, log_) << "Segment " << seginfo.segname << " "
+                           << result.getId() << ": charge response from "
+                           << filename << std::flush;
 }
 
 template <class AtomContainer>

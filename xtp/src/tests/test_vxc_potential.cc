@@ -277,4 +277,37 @@ BOOST_AUTO_TEST_CASE(blocked_integration_matches_point_by_point) {
   libint2::finalize();
 }
 
+BOOST_AUTO_TEST_CASE(range_separated_hybrids_are_refused) {
+  // HSE06 (screened) and CAM-B3LYP (long-range corrected) need
+  // erf-attenuated exact exchange, which xtp does not implement; global
+  // hybrids and semilocal functionals are accepted as before
+  libint2::initialize();
+  BOOST_CHECK_THROW(
+      Vxc_Potential<Vxc_Grid>::getExactExchange("XC_HYB_GGA_XC_HSE06"),
+      std::runtime_error);
+  BOOST_CHECK_THROW(
+      Vxc_Potential<Vxc_Grid>::getExactExchange("XC_HYB_GGA_XC_CAM_B3LYP"),
+      std::runtime_error);
+  BOOST_CHECK_CLOSE(
+      Vxc_Potential<Vxc_Grid>::getExactExchange("XC_HYB_GGA_XC_PBEH"), 0.25,
+      1e-5);
+
+  QMMolecule mol("none", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/vxc_potential/molecule.xyz");
+  AOBasis aobasis = CreateBasis(mol);
+  Vxc_Grid grid;
+  grid.GridSetup("coarse", mol, aobasis);
+  {
+    Vxc_Potential<Vxc_Grid> num(grid);
+    BOOST_CHECK_THROW(num.setXCfunctional("XC_HYB_GGA_XC_HSE06"),
+                      std::runtime_error);
+  }
+  {
+    Vxc_Potential<Vxc_Grid> num(grid);
+    BOOST_CHECK_NO_THROW(num.setXCfunctional("XC_HYB_GGA_XC_PBEH"));
+  }
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

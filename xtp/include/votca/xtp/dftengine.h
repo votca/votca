@@ -180,6 +180,38 @@ class DFTEngine {
 
   /// Return the configured AO basis-set name for the DFT calculation.
   std::string getDFTBasisName() const { return dftbasis_name_; };
+
+  /// Static linear response of the converged closed-shell ground state in
+  /// orb (same basis, functional and grid as this engine) to one-electron
+  /// perturbations h_k (AO matrices of an electron's potential energy, per
+  /// unit strength): coupled-perturbed Kohn-Sham,
+  ///   (e_a - e_i) U_ai + [C_v^T G[dP] C_o]_ai = -[C_v^T h C_o]_ai,
+  ///   dP = 2 (C_v U C_o^T + C_o U^T C_v^T),
+  /// G = J + 0.5 a_x K + f_xc (LDA/GGA, global hybrids), solved by
+  /// preconditioned conjugate gradients for all h_k together until
+  /// |residual| < tolerance |rhs|. Returns the first-order density matrices
+  /// dP_k (total). Throws for open-shell states or if CG does not converge.
+  std::vector<Eigen::MatrixXd> StaticResponse(
+      const Orbitals& orb, const std::vector<Eigen::MatrixXd>& perturbations,
+      double tolerance = 1e-7, Index max_iterations = 100);
+
+  /// Name of the integration grid of the SCF (xtpdft.integration_grid).
+  const std::string& getGridName() const { return grid_name_; }
+
+  /// A static one-electron perturbation (AO matrix, Hartree) added to the
+  /// core Hamiltonian of every following Evaluate: the potential energy
+  /// operator of an electron, e.g. lambda * W_k for a Hirshfeld-localized
+  /// potential. Its size must match the DFT basis; an empty matrix removes
+  /// it. Used for finite-difference response calculations
+  /// (ChargeResponseFit).
+  void setExternalPotentialMatrix(const Eigen::MatrixXd& v) {
+    ext_potential_matrix_ = v;
+  }
+
+  /// Free-atom reference densities of the Hirshfeld partition of mol (the
+  /// ones CDFT uses), as atom-centred references for HirshfeldPartition.
+  std::vector<HirshfeldPartition::AtomicReference> HirshfeldReferences(
+      const QMMolecule& mol) const;
   /// Spin-resolved density matrices used to pass alpha and beta quantities
   /// together through the UKS workflow.
   struct SpinDensity {
@@ -246,6 +278,10 @@ class DFTEngine {
 
   /// Build the Coulomb matrix contribution from the current density matrix.
   Eigen::MatrixXd CalcERIs(const Eigen::MatrixXd& Dmat, double error) const;
+
+  /// Static polarizability of the converged closed-shell state in orb
+  /// (StaticResponse with the dipole operators), stored in orb.
+  void ComputePolarizability(Orbitals& orb);
 
   /// Evaluate() without the timing report.
   bool EvaluateAndTime(Orbitals& orb);
@@ -647,6 +683,9 @@ class DFTEngine {
 
   Eigen::Vector3d extfield_ = Eigen::Vector3d::Zero();
   bool integrate_ext_field_ = false;
+  // xtpdft.polarizability: static polarizability after the SCF
+  bool compute_polarizability_ = false;
+  Eigen::MatrixXd ext_potential_matrix_;
 
   std::string active_atoms_as_string_;
   double active_threshold_;

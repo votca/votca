@@ -300,6 +300,20 @@ class Orbitals {
   /// Report whether nuclear forces have been stored.
   bool hasForces() const { return forces_.rows() > 0; }
 
+  /// Static dipole polarizability tensor of the ground state (a.u.), if
+  /// computed (xtpdft option polarizability).
+  bool hasPolarizability() const { return polarizability_.size() == 9; }
+  Eigen::Matrix3d getPolarizability() const {
+    if (!hasPolarizability()) {
+      throw std::runtime_error("Orbitals: no polarizability stored");
+    }
+    return polarizability_;
+  }
+  void setPolarizability(const Eigen::Matrix3d &alpha) {
+    polarizability_ = alpha;
+  }
+  void clearPolarizability() { polarizability_.resize(0, 0); }
+
   /// Return the stored nuclear forces (Natoms x 3, Hartree/Bohr).
   const Eigen::MatrixXd &getForces() const { return forces_; }
 
@@ -527,6 +541,34 @@ class Orbitals {
   /// Return writable access to dynamically screened triplet BSE energies.
   Eigen::VectorXd &BSETriplets_dynamic() {
     return BSE_triplet_energies_dynamic_;
+  }
+
+  /// Convergence of the perturbative dynamical screening per state: the
+  /// last energy update |dE| (Hartree; converged if below dyn_screen_tol)
+  /// and the number of iterations done. Empty if not computed.
+  Eigen::VectorXd &BSESinglets_dynamic_change() {
+    return BSE_singlet_dynamic_change_;
+  }
+  const Eigen::VectorXd &BSESinglets_dynamic_change() const {
+    return BSE_singlet_dynamic_change_;
+  }
+  Eigen::VectorXd &BSETriplets_dynamic_change() {
+    return BSE_triplet_dynamic_change_;
+  }
+  const Eigen::VectorXd &BSETriplets_dynamic_change() const {
+    return BSE_triplet_dynamic_change_;
+  }
+  Eigen::VectorXd &BSESinglets_dynamic_iterations() {
+    return BSE_singlet_dynamic_iterations_;
+  }
+  const Eigen::VectorXd &BSESinglets_dynamic_iterations() const {
+    return BSE_singlet_dynamic_iterations_;
+  }
+  Eigen::VectorXd &BSETriplets_dynamic_iterations() {
+    return BSE_triplet_dynamic_iterations_;
+  }
+  const Eigen::VectorXd &BSETriplets_dynamic_iterations() const {
+    return BSE_triplet_dynamic_iterations_;
   }
 
   // access to transition dipole moments
@@ -823,6 +865,7 @@ class Orbitals {
   // legitimate force value on any individual component in a way it isn't
   // for a total energy.
   Eigen::MatrixXd forces_;
+  Eigen::MatrixXd polarizability_;  // 3x3 if set
 
   Index total_charge_ = 0;
   Index total_spin_ = 1;
@@ -861,6 +904,10 @@ class Orbitals {
   // singlet and triplet energies after perturbative dynamical screening
   Eigen::VectorXd BSE_singlet_energies_dynamic_;
   Eigen::VectorXd BSE_triplet_energies_dynamic_;
+  Eigen::VectorXd BSE_singlet_dynamic_change_;
+  Eigen::VectorXd BSE_triplet_dynamic_change_;
+  Eigen::VectorXd BSE_singlet_dynamic_iterations_;
+  Eigen::VectorXd BSE_triplet_dynamic_iterations_;
 
   bool use_Hqp_offdiag_ = false;
   bool is_qsgw_ = false;  // true if QP data comes from a QSGW calculation

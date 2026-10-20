@@ -23,6 +23,7 @@
 
 // Local VOTCA includes
 #include "atomcontainer.h"
+#include "chargeresponse.h"
 #include "polarsite.h"
 #include "staticsite.h"
 
@@ -33,7 +34,9 @@ class ClassicalSegment : public AtomContainer<T> {
  public:
   ClassicalSegment(std::string name, Index id) : AtomContainer<T>(name, id) {};
 
-  ClassicalSegment(CheckpointReader& r) : AtomContainer<T>(r) {};
+  ClassicalSegment(CheckpointReader& r) : AtomContainer<T>(r) {
+    ReadChargeResponseFromCpt(r);
+  };
 
   void LoadFromFile(std::string filename);
 
@@ -56,10 +59,25 @@ class ClassicalSegment : public AtomContainer<T> {
     return out;
   }
 
+  // Charge-response model (polar segments only): induced atomic charges
+  // dq = -Pi phi next to the induced dipoles of the sites. Without it the
+  // segment is an ordinary Thole segment.
+  bool hasChargeResponse() const { return !chargeresponse_.empty(); }
+  const ChargeResponse& getChargeResponse() const { return chargeresponse_; }
+  // Pi must be in the atom order of this segment (checked by element)
+  void setChargeResponse(const ChargeResponse& cr);
+
+  void WriteToCpt(CheckpointWriter& w) const override;
+  void ReadFromCpt(CheckpointReader& r) override;
+
   // additional access functions and tools for Ewald compatibility
   bool IsCharged() const;
   bool IsPolarizable() const;
   Eigen::Vector3d CalcStaticDipole() const;
+
+ private:
+  void ReadChargeResponseFromCpt(CheckpointReader& r);
+  ChargeResponse chargeresponse_;
 };
 
 using PolarSegment = ClassicalSegment<PolarSite>;

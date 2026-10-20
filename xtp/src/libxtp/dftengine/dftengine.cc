@@ -35,6 +35,7 @@
 #include "votca/xtp/IncrementalFockBuilder.h"
 #include "votca/xtp/IndexParser.h"
 #include "votca/xtp/activedensitymatrix.h"
+#include "votca/xtp/aogaussiansites.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/density_integration.h"
@@ -42,6 +43,7 @@
 #include "votca/xtp/dftgradient.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/ewald_potential.h"
+#include "votca/xtp/gaussiankernel.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
@@ -119,6 +121,11 @@ void DFTEngine::Initialize(tools::Property& options) {
 
   if (options.exists(key_xtpdft + ".force_uks_path")) {
     force_uks_path_ = options.get(key_xtpdft + ".force_uks_path").as<bool>();
+  }
+
+  if (options.exists(key_xtpdft + ".polarizability")) {
+    compute_polarizability_ =
+        options.get(key_xtpdft + ".polarizability").as<bool>();
   }
 
   if (options.exists(key_xtpdft + ".compute_forces")) {
@@ -969,8 +976,13 @@ tools::EigenSystem DFTEngine::ModelPotentialGuess(
 
 bool DFTEngine::Evaluate(Orbitals& orb) {
   timings_.Reset();
+  // a tensor carried over from a guess would describe another state
+  orb.clearPolarizability();
   bool success = EvaluateAndTime(orb);
   timings_.Report(*pLog_, Log::error);
+  if (success && compute_polarizability_) {
+    ComputePolarizability(orb);
+  }
   double peak = DFTTimings::ResidentMemoryGB(true);
   if (peak >= 0) {
     XTP_LOG(Log::error, *pLog_)
@@ -978,6 +990,38 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
         << std::setprecision(3) << peak << " GB" << std::flush;
   }
   return success;
+}
+
+void DFTEngine::ComputePolarizability(Orbitals& orb) {
+  if (num_alpha_electrons_ != num_beta_electrons_) {
+    throw std::runtime_error(
+        "xtpdft polarizability: closed-shell ground states only");
+  }
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp()
+      << " Static polarizability (coupled-perturbed KS, 3 uniform fields)"
+      << std::flush;
+  AODipole dipole;
+  dipole.setCenter(orb.QMAtoms().getPos());
+  dipole.Fill(dftbasis_);
+  const std::vector<Eigen::MatrixXd> h(dipole.Matrix().begin(),
+                                       dipole.Matrix().end());
+  const std::vector<Eigen::MatrixXd> dP = StaticResponse(orb, h);
+  Eigen::Matrix3d alpha;
+  for (Index a = 0; a < 3; ++a) {
+    for (Index c = 0; c < 3; ++c) {
+      alpha(a, c) = -dipole.Matrix()[std::size_t(a)]
+                         .cwiseProduct(dP[std::size_t(c)])
+                         .sum();
+    }
+  }
+  alpha = 0.5 * (alpha + alpha.transpose()).eval();
+  orb.setPolarizability(alpha);
+  const double A3 = std::pow(tools::conv::bohr2ang, 3);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Polarizability [a.u.]:\n"
+      << alpha << "\n isotropic " << alpha.trace() / 3
+      << " a.u. = " << alpha.trace() / 3 * A3 << " A^3" << std::flush;
 }
 
 bool DFTEngine::EvaluateAndTime(Orbitals& orb) {
@@ -1969,6 +2013,16 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
     H0 += extdensity_result.matrix();
   }
 
+  if (ext_potential_matrix_.size() > 0) {
+    if (ext_potential_matrix_.rows() != H0.rows() ||
+        ext_potential_matrix_.cols() != H0.cols()) {
+      throw std::runtime_error(
+          "DFTEngine: the external potential matrix does not match the DFT "
+          "basis");
+    }
+    H0 += ext_potential_matrix_;
+  }
+
   if (integrate_ext_field_) {
 
     XTP_LOG(Log::error, *pLog_)
@@ -2892,6 +2946,202 @@ std::map<std::string, Eigen::MatrixXd>
   return reference_densities;
 }
 
+std::vector<Eigen::MatrixXd> DFTEngine::StaticResponse(
+    const Orbitals& orb, const std::vector<Eigen::MatrixXd>& perturbations,
+    double tolerance, Index max_iterations) {
+  timings_.Reset();
+  Orbitals work = orb;
+  Prepare(work);
+  if (num_alpha_electrons_ != num_beta_electrons_) {
+    throw std::runtime_error(
+        "DFTEngine::StaticResponse: closed-shell ground states only");
+  }
+  const Index n_ao = dftbasis_.AOBasisSize();
+  if (!orb.hasMOs() || orb.MOs().eigenvectors().rows() != n_ao) {
+    throw std::runtime_error(
+        "DFTEngine::StaticResponse: the orbitals do not belong to this basis");
+  }
+  const Vxc_Potential<Vxc_Grid> vxc = SetupVxc(work.QMAtoms());
+
+  const Index n_occ = num_docc_;
+  const Index n_mo = orb.MOs().eigenvectors().cols();
+  const Index n_virt = n_mo - n_occ;
+  const Eigen::MatrixXd C_occ = orb.MOs().eigenvectors().leftCols(n_occ);
+  const Eigen::MatrixXd C_virt = orb.MOs().eigenvectors().rightCols(n_virt);
+  const Eigen::VectorXd& e = orb.MOs().eigenvalues();
+  // e_a - e_i
+  Eigen::MatrixXd diag(n_virt, n_occ);
+  for (Index i = 0; i < n_occ; ++i) {
+    diag.col(i) = e.tail(n_virt).array() - e(i);
+  }
+  if (diag.minCoeff() <= 0.0) {
+    throw std::runtime_error(
+        "DFTEngine::StaticResponse: no gap between occupied and virtual "
+        "orbitals");
+  }
+  const Eigen::MatrixXd P0 = 2.0 * C_occ * C_occ.transpose();
+
+  const Index n_rhs = Index(perturbations.size());
+  std::vector<Eigen::MatrixXd> b(static_cast<std::size_t>(n_rhs));
+  for (Index k = 0; k < n_rhs; ++k) {
+    const Eigen::MatrixXd& h = perturbations[std::size_t(k)];
+    if (h.rows() != n_ao || h.cols() != n_ao) {
+      throw std::runtime_error(
+          "DFTEngine::StaticResponse: perturbation does not match the basis");
+    }
+    b[std::size_t(k)] = -(C_virt.transpose() * h * C_occ);
+  }
+
+  auto density = [&](const Eigen::MatrixXd& U) {
+    const Eigen::MatrixXd half = (C_virt * U) * C_occ.transpose();
+    return Eigen::MatrixXd(2.0 * (half + half.transpose()));
+  };
+  // the orbital Hessian (A + B) applied to the U of several right-hand sides
+  auto apply = [&](const std::vector<Eigen::MatrixXd>& U) {
+    std::vector<Eigen::MatrixXd> dP;
+    for (const Eigen::MatrixXd& u : U) {
+      dP.push_back(density(u));
+    }
+    std::vector<Eigen::MatrixXd> G;
+    {
+      auto t = timings_.Measure("response: f_xc");
+      G = vxc.IntegrateFXC(P0, dP);
+    }
+    std::vector<Eigen::MatrixXd> result;
+    for (std::size_t k = 0; k < U.size(); ++k) {
+      if (!auxbasis_name_.empty()) {
+        {
+          auto t = timings_.Measure("response: J (RI)");
+          G[k] += ERIs_.CalculateERIs_3c(dP[k]);
+        }
+        if (ScaHFX_ > 0) {
+          auto t = timings_.Measure("response: K (RI)");
+          const Eigen::MatrixXd A = C_virt * U[k];
+          G[k] +=
+              0.5 * ScaHFX_ * ERIs_.CalculateEXX_factors(A + C_occ, A - C_occ);
+        }
+      } else {
+        auto t = timings_.Measure("response: J+K (4c)");
+        const std::array<Eigen::MatrixXd, 2> jk =
+            ERIs_.CalculateERIs_EXX_4c(dP[k], 1e-12);
+        G[k] += jk[0];
+        if (ScaHFX_ > 0) {
+          G[k] += 0.5 * ScaHFX_ * jk[1];
+        }
+      }
+      result.push_back(diag.cwiseProduct(U[k]) +
+                       C_virt.transpose() * G[k] * C_occ);
+    }
+    return result;
+  };
+
+  // Galerkin projection on one subspace shared by all right-hand sides,
+  // grown by the preconditioned residuals (block preconditioned CG for a
+  // symmetric positive definite Hessian); the right-hand sides profit from
+  // each other's directions.
+  const double kDropNorm = 1e-10;
+  std::vector<Eigen::MatrixXd> V;   // orthonormal (Frobenius)
+  std::vector<Eigen::MatrixXd> AV;  // Hessian applied to V
+  std::vector<Eigen::MatrixXd> x(static_cast<std::size_t>(n_rhs));
+  std::vector<Eigen::MatrixXd> r(static_cast<std::size_t>(n_rhs));
+  std::vector<double> bnorm(static_cast<std::size_t>(n_rhs), 0.0);
+  std::vector<Index> active;
+  for (Index k = 0; k < n_rhs; ++k) {
+    const std::size_t kk = std::size_t(k);
+    bnorm[kk] = b[kk].norm();
+    x[kk] = Eigen::MatrixXd::Zero(n_virt, n_occ);
+    r[kk] = b[kk];
+    if (bnorm[kk] > 0.0) {
+      active.push_back(k);
+    }
+  }
+  Index iteration = 0;
+  while (!active.empty()) {
+    if (iteration == max_iterations) {
+      throw std::runtime_error(
+          "DFTEngine::StaticResponse: CPKS did not converge in " +
+          std::to_string(max_iterations) + " iterations");
+    }
+    ++iteration;
+    // new directions: preconditioned residuals, orthonormalized against the
+    // subspace and each other (twice, for stability)
+    std::vector<Eigen::MatrixXd> fresh;
+    for (Index k : active) {
+      Eigen::MatrixXd v = r[std::size_t(k)].cwiseQuotient(diag);
+      const double norm0 = v.norm();
+      for (Index pass = 0; pass < 2; ++pass) {
+        for (const Eigen::MatrixXd& u : V) {
+          v -= u.cwiseProduct(v).sum() * u;
+        }
+        for (const Eigen::MatrixXd& u : fresh) {
+          v -= u.cwiseProduct(v).sum() * u;
+        }
+      }
+      const double norm = v.norm();
+      if (norm > kDropNorm * norm0) {
+        fresh.push_back(v / norm);
+      }
+    }
+    if (fresh.empty()) {
+      throw std::runtime_error(
+          "DFTEngine::StaticResponse: CPKS subspace stopped growing");
+    }
+    const std::vector<Eigen::MatrixXd> Afresh = apply(fresh);
+    V.insert(V.end(), fresh.begin(), fresh.end());
+    AV.insert(AV.end(), Afresh.begin(), Afresh.end());
+    const Index m = Index(V.size());
+    Eigen::MatrixXd M(m, m);
+    for (Index i = 0; i < m; ++i) {
+      for (Index j = 0; j <= i; ++j) {
+        M(i, j) =
+            0.5 * (V[std::size_t(i)].cwiseProduct(AV[std::size_t(j)]).sum() +
+                   V[std::size_t(j)].cwiseProduct(AV[std::size_t(i)]).sum());
+        M(j, i) = M(i, j);
+      }
+    }
+    const Eigen::LDLT<Eigen::MatrixXd> solver(M);
+    std::vector<Index> still;
+    double worst = 0.0;
+    for (Index k : active) {
+      const std::size_t kk = std::size_t(k);
+      Eigen::VectorXd proj(m);
+      for (Index i = 0; i < m; ++i) {
+        proj(i) = V[std::size_t(i)].cwiseProduct(b[kk]).sum();
+      }
+      const Eigen::VectorXd y = solver.solve(proj);
+      x[kk].setZero();
+      r[kk] = b[kk];
+      for (Index i = 0; i < m; ++i) {
+        x[kk] += y(i) * V[std::size_t(i)];
+        r[kk] -= y(i) * AV[std::size_t(i)];
+      }
+      const double rel = r[kk].norm() / bnorm[kk];
+      worst = std::max(worst, rel);
+      if (rel >= tolerance) {
+        still.push_back(k);
+      }
+    }
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " CPKS iteration " << iteration << ": "
+        << fresh.size() << " new directions, subspace " << m
+        << ", largest relative residual " << worst << std::flush;
+    active = still;
+  }
+
+  std::vector<Eigen::MatrixXd> dP;
+  for (const Eigen::MatrixXd& u : x) {
+    dP.push_back(density(u));
+  }
+  timings_.Report(*pLog_, Log::error);
+  return dP;
+}
+
+std::vector<HirshfeldPartition::AtomicReference> DFTEngine::HirshfeldReferences(
+    const QMMolecule& mol) const {
+  return HirshfeldPartition::BuildAtomicReferences(
+      mol, dftbasis_name_, ComputeHirshfeldReferenceDensities(mol));
+}
+
 HirshfeldPartition::Constraint DFTEngine::BuildCDFTConstraint(
     const QMMolecule& mol, const CDFTConstraintSpec& spec) const {
   std::map<std::string, Eigen::MatrixXd> reference_densities =
@@ -3208,6 +3458,15 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(
   return avdmat;
 }
 
+namespace {
+// The charge-response sites among the external sites (PolarSite with
+// isChargeResponse): their induced charge and dipole are Gaussians.
+const PolarSite* AsChargeResponseSite(const StaticSite& site) {
+  const PolarSite* p = dynamic_cast<const PolarSite*>(&site);
+  return (p != nullptr && p->isChargeResponse()) ? p : nullptr;
+}
+}  // namespace
+
 double DFTEngine::ExternalRepulsion(
     const QMMolecule& mol,
     const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
@@ -3259,7 +3518,16 @@ double DFTEngine::ExternalRepulsion(
       // energy in the package. The counterparty here is a bare nucleus,
       // so no such channel exists and the sum is unambiguous.
       Vector9d Q = site->Q();
-      Q.segment<3>(1) += site->getInducedDipole();  // zero for a StaticSite
+      if (const PolarSite* p = AsChargeResponseSite(*site)) {
+        // induced charge and dipole of a charge-response site: Gaussians,
+        // as the electrons see them (IntegrateExternalMultipoles)
+        const Eigen::Vector3d r = nucleus.getPos() - p->getPos();
+        const GaussianKernel k(r.norm(), p->CRWidth());
+        E_ext += nucleus.getCharge() * (p->Induced_Charge() * k.B0 +
+                                        k.B1 * p->getInducedDipole().dot(r));
+      } else {
+        Q.segment<3>(1) += site->getInducedDipole();  // zero for a StaticSite
+      }
       Index rank = site->getRank();
       if (rank < 1 && Q.segment<3>(1).norm() > 1e-12) {
         rank = 1;  // same promotion, same threshold, as AOMultipole
@@ -3292,6 +3560,44 @@ Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
 
   Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
   result.energy() = ExternalRepulsion(mol, multipoles);
+
+  // Charge-response sites: permanent multipoles as points (below, with all
+  // sites), induced charge and dipole as Gaussians (AOGaussianSites).
+  std::vector<AOGaussianSites::Source> gaussian;
+  for (const std::unique_ptr<StaticSite>& site : multipoles) {
+    if (const PolarSite* p = AsChargeResponseSite(*site)) {
+      gaussian.push_back({p->getPos(), p->CRWidth(), p->Induced_Charge(),
+                          p->getInducedDipole()});
+    }
+  }
+  if (!gaussian.empty()) {
+    // the point sites' induced dipoles, without the charge-response sites
+    std::vector<std::unique_ptr<StaticSite>> point_sites;
+    for (const std::unique_ptr<StaticSite>& site : multipoles) {
+      if (AsChargeResponseSite(*site) != nullptr) {
+        continue;
+      }
+      const PolarSite* p = dynamic_cast<const PolarSite*>(site.get());
+      if (p != nullptr) {
+        point_sites.push_back(std::make_unique<PolarSite>(*p));
+      } else {
+        point_sites.push_back(std::make_unique<StaticSite>(*site));
+      }
+    }
+    AOMultipole permanent;
+    permanent.FillPotential(dftbasis_, multipoles,
+                            AOMultipole::Moments::Permanent);
+    AOMultipole induced;
+    induced.FillPotential(dftbasis_, point_sites,
+                          AOMultipole::Moments::Induced);
+    result.matrix() = permanent.Matrix() + induced.Matrix() -
+                      AOGaussianSites::Potential(dftbasis_, gaussian);
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Filled DFT external multipole potential matrix ("
+        << gaussian.size() << " charge-response sites as Gaussians)"
+        << std::flush;
+    return result;
+  }
 
   if (setup_cache_ == nullptr) {
     AOMultipole dftAOESP;

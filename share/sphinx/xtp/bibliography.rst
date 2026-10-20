@@ -13,6 +13,8 @@ Bibliography
 
 .. [Chirlian:1987] Chirlian, Francl, J. Comput. Chem. 8, 894 (1987)
 
+.. [DAvino:2014] D'Avino, Muccioli, Zannoni, Beljonne, and Soos, J. Chem. Theory Comput. 10, 4959 (2014)
+
 .. [DeLeeuw:1980] de Leeuw, Perram, and Smith, Proc. R. Soc. Lond. A 373, 27 (1980)
 
 .. [Duchemin:2018] Duchemin, Guido, Jacquemin, and Blase, Chem. Sci. 9, 4430 (2018)
@@ -39,6 +41,8 @@ Bibliography
 
 .. [Marcus:1993] Marcus, Rev. Mod. Phys. 65, 599 (1993)
 
+.. [Morita:1997] Morita and Kato, J. Am. Chem. Soc. 119, 4021 (1997)
+
 .. [Mulliken:1955] Mulliken, J. Chem. Phys. 23, 1833 (1955)
 
 .. [Neese:2012] Neese, WIREs Comp. Mol. Sci. 1, 73 (2012)
@@ -56,6 +60,8 @@ Bibliography
 .. [Thole:1981] Thole, Chem. Phys. 59, 341 (1981)
 
 .. [Trefethen:2013] Trefethen, Approximation Theory and Approximation Practice, SIAM (2013)
+
+.. [Tsiper:2001] Tsiper and Soos, Phys. Rev. B 64, 195124 (2001)
 
 .. [vanSetten:2015] van Setten, Caruso, Sharifzadeh, Ren, Scheffler, Liu, Lischner, Lin, Deslippe, Louie, Yang, Weigend, Neaton, Evers, and Rinke, J. Chem. Theory Comput. 11, 5665 (2015)
 

@@ -28,7 +28,8 @@ set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eigen3::Eigen PRIVATE
 	EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
 if(APPLE AND APPLE_ACCELERATE_FOUND)
-  target_link_libraries(votca_tools PUBLIC APPLE_ACCELERATE::LAPACKE )
+  target_link_libraries(votca_tools PUBLIC APPLE_ACCELERATE::Accelerate)
+  install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindAPPLE_ACCELERATE.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
 if(MKL_FOUND)
   target_link_libraries(votca_tools PUBLIC MKL::MKL)
@@ -52,6 +53,7 @@ install(EXPORT VOTCA_TOOLS_Targets FILE VOTCA_TOOLS_Targets.cmake NAMESPACE VOTC
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("VOTCA_TOOLSConfigVersion.cmake" VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
+install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/HomebrewLibomp.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 configure_file(VOTCA_TOOLSConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/VOTCA_TOOLSConfig.cmake @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_TOOLSConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_TOOLSConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 add_library(VOTCA::votca_tools ALIAS votca_tools)

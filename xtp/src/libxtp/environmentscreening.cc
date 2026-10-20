@@ -35,6 +35,9 @@
 #include "votca/xtp/threecenter.h"
 #include <votca/tools/constants.h>
 
+// Local VOTCA includes (charge response)
+#include "votca/xtp/chargeresponsesolver.h"
+
 namespace votca {
 namespace xtp {
 
@@ -83,7 +86,82 @@ Eigen::MatrixXd AssembleThole(const std::vector<const PolarSite*>& sites,
   }
   return A;
 }
+bool HasChargeResponse(const std::vector<PolarSegment>& segments) {
+  return std::any_of(
+      segments.begin(), segments.end(),
+      [](const PolarSegment& seg) { return seg.hasChargeResponse(); });
+}
+
+// Positions and widths of the charge-response sites, in order
+void ChargeResponsePoints(const std::vector<PolarSegment>& segments,
+                          std::vector<Eigen::Vector3d>& points,
+                          std::vector<double>& widths) {
+  for (const PolarSite* site : SitesOf(segments)) {
+    if (site->isChargeResponse()) {
+      points.push_back(site->getPos());
+      widths.push_back(site->CRWidth());
+    }
+  }
+}
+
+// The pieces of ChargeResponseKernel: M^1/2 C and the Cholesky factor of
+// A = 1 + M^1/2 T M^1/2 (ok() false if A is not positive definite)
+struct ChargeResponseSystem {
+  Eigen::MatrixXd MhC;
+  CholeskyFactor llt;
+};
+
+ChargeResponseSystem BuildChargeResponseSystem(
+    const Eigen::MatrixXd& F, const Eigen::MatrixXd& Phi,
+    const std::vector<PolarSegment>& segments, double exp_damp) {
+  std::vector<PolarSegment> segs = segments;  // the solver needs its own
+  const eeInteractor interactor(exp_damp);
+  ChargeResponseSolver solver(segs, interactor);
+  const Index nq = solver.NumCharges();
+  const Index ns = Index(SitesOf(segments).size());
+  if (Phi.cols() != nq || Phi.rows() != F.rows()) {
+    throw std::runtime_error(
+        "EnvironmentScreening::ChargeResponseKernel: Phi is " +
+        std::to_string(Phi.rows()) + "x" + std::to_string(Phi.cols()) +
+        ", expected " + std::to_string(F.rows()) + "x" + std::to_string(nq) +
+        " (AuxPotentialAtPoints at the charge-response sites, in order).");
+  }
+  // sources c = (-phi, E) per auxiliary function, unknowns in the solver's
+  // order: charges first (site order), then 3 dipole components per site
+  Eigen::MatrixXd C(solver.size(), F.rows());
+  C.topRows(nq) = -Phi.transpose();
+  C.bottomRows(3 * ns) = F.transpose();
+  ChargeResponseSystem sys;
+  sys.MhC = solver.ApplyMhalf(C);
+  sys.llt.compute(solver.DenseOperator());
+  return sys;
+}
 }  // namespace
+
+Eigen::MatrixXd EnvironmentScreening::ChargeResponseKernel(
+    const Eigen::MatrixXd& F, const Eigen::MatrixXd& Phi,
+    const std::vector<PolarSegment>& segments, double exp_damp) {
+  const Index n = Index(SitesOf(segments).size());
+  CheckShape(F, n, "ChargeResponseKernel");
+  if (n == 0) {
+    return Eigen::MatrixXd::Zero(F.rows(), F.rows());
+  }
+  const ChargeResponseSystem sys =
+      BuildChargeResponseSystem(F, Phi, segments, exp_damp);
+  if (!sys.llt.ok()) {
+    throw std::runtime_error(
+        "EnvironmentScreening::ChargeResponseKernel: 1 + M^1/2 T M^1/2 of "
+        "the polar region (" +
+        std::to_string(n) +
+        " sites, charge response) is not positive definite: a polarization "
+        "catastrophe, no stable response to screen with.");
+  }
+  // B = -(L^-1 M^1/2 C)^T (L^-1 M^1/2 C)
+  const Eigen::MatrixXd Y = sys.llt.SolveL(sys.MhC);
+  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(F.rows(), F.rows());
+  B.selfadjointView<Eigen::Lower>().rankUpdate(Y.transpose(), -1.0);
+  return B.selfadjointView<Eigen::Lower>();
+}
 
 Eigen::MatrixXd EnvironmentScreening::ReactionFieldKernel(
     const Eigen::MatrixXd& F, const std::vector<PolarSegment>& segments,
@@ -179,6 +257,10 @@ std::vector<double> EnvironmentScreening::SiteWidths(
   }
   std::vector<double> widths;
   for (const PolarSite* site : SitesOf(segments)) {
+    if (site->isChargeResponse()) {
+      widths.push_back(site->CRWidth());
+      continue;
+    }
     const double alpha_iso = site->getPInv().inverse().trace() / 3.0;
     widths.push_back(site_width * std::cbrt(alpha_iso));
   }
@@ -200,7 +282,16 @@ Eigen::MatrixXd EnvironmentScreening::Kernel(const AOBasis& auxbasis,
     const Eigen::MatrixXd F =
         AuxFieldAtPoints(auxbasis, positions(env.explicit_segments),
                          SiteWidths(env.explicit_segments, env.site_width));
-    B += ReactionFieldKernel(F, env.explicit_segments, env.exp_damp);
+    if (HasChargeResponse(env.explicit_segments)) {
+      std::vector<Eigen::Vector3d> cr_points;
+      std::vector<double> cr_widths;
+      ChargeResponsePoints(env.explicit_segments, cr_points, cr_widths);
+      const Eigen::MatrixXd Phi =
+          AuxPotentialAtPoints(auxbasis, cr_points, cr_widths);
+      B += ChargeResponseKernel(F, Phi, env.explicit_segments, env.exp_damp);
+    } else {
+      B += ReactionFieldKernel(F, env.explicit_segments, env.exp_damp);
+    }
   }
   if (!env.shell_segments.empty()) {
     const Eigen::MatrixXd F =
@@ -320,6 +411,8 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
   Eigen::MatrixXd B = Eigen::MatrixXd::Zero(naux, naux);
   Eigen::MatrixXd F_exp, F_sh;
   CholeskyFactor llt;
+  ChargeResponseSystem cr_sys;
+  bool have_cr = false;
   {
     std::vector<Eigen::Vector3d> pos;
     for (const SiteInfo& si : info) {
@@ -327,7 +420,28 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
         pos.push_back(si.site->getPos());
       }
     }
-    if (!pos.empty()) {
+    if (!pos.empty() && HasChargeResponse(env.explicit_segments)) {
+      F_exp = AuxFieldAtPoints(
+          auxbasis, pos, SiteWidths(env.explicit_segments, env.site_width));
+      std::vector<Eigen::Vector3d> cr_points;
+      std::vector<double> cr_widths;
+      ChargeResponsePoints(env.explicit_segments, cr_points, cr_widths);
+      cr_sys = BuildChargeResponseSystem(
+          F_exp, AuxPotentialAtPoints(auxbasis, cr_points, cr_widths),
+          env.explicit_segments, env.exp_damp);
+      if (!cr_sys.llt.ok()) {
+        out.lowest = -std::numeric_limits<double>::infinity();
+        out.report = rep.str() +
+                     "  1 + M^1/2 T M^1/2 of the explicit polar sites (charge "
+                     "response) is not positive definite: a polarization "
+                     "catastrophe inside the environment itself.\n";
+        return out;
+      }
+      const Eigen::MatrixXd Y = cr_sys.llt.SolveL(cr_sys.MhC);
+      B.selfadjointView<Eigen::Lower>().rankUpdate(Y.transpose(), -1.0);
+      B = B.selfadjointView<Eigen::Lower>();
+      have_cr = true;
+    } else if (!pos.empty()) {
       F_exp = AuxFieldAtPoints(
           auxbasis, pos, SiteWidths(env.explicit_segments, env.site_width));
       llt.compute(AssembleThole(SitesOf(env.explicit_segments), env.exp_damp));
@@ -412,7 +526,21 @@ ScreeningCheck EnvironmentScreening::Check(const AOBasis& auxbasis,
     // sites, mu its induced dipoles, and -c^T B c = sum_j g_j . mu_j.
     std::vector<double> e_site(info.size(), 0.0);
     double e_total = 0.0;
-    if (F_exp.size() > 0) {
+    if (have_cr) {
+      // -c^T B c = |L^-1 M^1/2 C c|^2 = sum_i (M^1/2 C c)_i (A^-1 M^1/2 C c)_i
+      // over the unknowns; summed per site (its charge and dipole)
+      const Eigen::VectorXd g = cr_sys.MhC * c;
+      const Eigen::VectorXd y = cr_sys.llt.Solve(g);
+      const Eigen::VectorXd gy = g.cwiseProduct(y);
+      const Index nq = gy.size() - 3 * n_explicit;
+      Index q = 0;
+      for (Index j = 0; j < n_explicit; ++j) {
+        e_site[std::size_t(j)] = gy.segment<3>(nq + 3 * j).sum();
+        if (info[std::size_t(j)].site->isChargeResponse()) {
+          e_site[std::size_t(j)] += gy(q++);
+        }
+      }
+    } else if (F_exp.size() > 0) {
       const Eigen::VectorXd g = F_exp.transpose() * c;
       const Eigen::VectorXd mu = llt.Solve(g);
       for (Index j = 0; j < n_explicit; ++j) {

@@ -1,5 +1,8 @@
 include(CMakeFindDependencyMacro)
 if(@OpenMP_FOUND@)
+  if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../VOTCA_TOOLS/HomebrewLibomp.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/../VOTCA_TOOLS/HomebrewLibomp.cmake")
+  endif()
   find_dependency(OpenMP 4.5)
 endif()
 find_dependency(HDF5 REQUIRED COMPONENTS CXX)

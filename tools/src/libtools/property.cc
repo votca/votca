@@ -263,10 +263,16 @@ void Property::LoadFromXML(string filename) {
       throw std::runtime_error("Property::LoadFromXML: line is too long");
     }
     if (!XML_Parse(parser, line.c_str(), (int)line.length(), fl.eof())) {
-      throw std::ios_base::failure(
-          filename + ": Parse error at line " +
-          boost::lexical_cast<string>(XML_GetCurrentLineNumber(parser)) + "\n" +
-          XML_ErrorString(XML_GetErrorCode(parser)));
+      // expat 2.9 deprecates XML_GetCurrentLineNumber for the 64-bit variant
+#if XML_MAJOR_VERSION > 2 || (XML_MAJOR_VERSION == 2 && XML_MINOR_VERSION >= 9)
+      const auto line_number = XML_GetCurrentLineNumber64(parser);
+#else
+      const auto line_number = XML_GetCurrentLineNumber(parser);
+#endif
+      throw std::ios_base::failure(filename + ": Parse error at line " +
+                                   boost::lexical_cast<string>(line_number) +
+                                   "\n" +
+                                   XML_ErrorString(XML_GetErrorCode(parser)));
     }
   }
   fl.close();

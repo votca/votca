@@ -20,13 +20,17 @@
 
 // Standard includes
 #include <algorithm>
+#include <cstdint>
 #include <fstream>
+#include <random>
 #include <sstream>
+#include <vector>
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include "votca/xtp/ERIs.h"
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/gw.h"
 #include "votca/xtp/gw_uks.h"
@@ -447,6 +451,166 @@ BOOST_AUTO_TEST_CASE(qsgw_ppm) {
   libint2::finalize();
 }
 
+BOOST_AUTO_TEST_CASE(qsgw_hybrid_start) {
+  // QSGW from a hybrid start must equal QSGW from the GGA start with the same
+  // orbitals and H_KS: a "hybrid" with exchange fraction a and semilocal
+  // potential vxc_h = vxc - a (K + X) (K: exchange of the DFT orbitals in the
+  // window, X: frozen-core exchange) has the same H_KS = diag(e). Its
+  // perturbative seed, e - vxc_h + (1 - a)(K + X) + Sigma_c, and its QSGW H0
+  // after removing a (K + X) are those of the GGA run, so the results agree.
+  if (!libint2::initialized()) libint2::initialize();
+
+  Eigen::VectorXd mo_eigenvalues = Eigen::VectorXd::Zero(17);
+  mo_eigenvalues << -10.6784, -0.746424, -0.394948, -0.394948, -0.394948,
+      0.165212, 0.227713, 0.227713, 0.227713, 0.763971, 0.763971, 0.763971,
+      1.05054, 1.13372, 1.13372, 1.13372, 1.72964;
+  Eigen::MatrixXd mo_eigenvectors =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/gw/mo_eigenvectors.mm");
+  Eigen::MatrixXd vxc = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/gw/vxc.mm");
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/gw/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+
+  GW::options opt = MakeGWTestOptions();
+  opt.do_qsgw = true;
+  opt.qsgw_max_iterations = 50;
+  opt.qsgw_sc_limit = 1e-6;
+  opt.gw_mixing_order = 20;
+  opt.gw_mixing_alpha = 0.2;
+  opt.qpmax = 13;
+  opt.qsgw_max_virt_correction = 0.35;
+  opt.gw_sc_max_iterations = 1;
+  const votca::Index qptotal = opt.qpmax - opt.qpmin + 1;
+  const Eigen::MatrixXd vxc_gw =
+      vxc.block(opt.qpmin, opt.qpmin, qptotal, qptotal);
+
+  // exchange of the DFT orbitals in the window
+  TCMatrix_gwbse MmnK;
+  MmnK.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
+  MmnK.Fill(aobasis, aobasis, mo_eigenvectors);
+  Logger logK;
+  RPA rpaK(logK, MmnK);
+  rpaK.configure(opt.homo, opt.rpamin, opt.rpamax);
+  std::unique_ptr<Sigma_base> sig = SigmaFactory().Create("ppm", MmnK, rpaK);
+  Sigma_base::options sopt;
+  sopt.homo = opt.homo;
+  sopt.qpmin = opt.qpmin;
+  sopt.qpmax = opt.qpmax;
+  sopt.rpamin = opt.rpamin;
+  sopt.rpamax = opt.rpamax;
+  sopt.eta = opt.eta;
+  sig->configure(sopt);
+  const Eigen::MatrixXd K = sig->CalcExchangeMatrix();
+  // a small symmetric stand-in for the frozen-core exchange
+  Eigen::MatrixXd X = 0.01 * Eigen::MatrixXd::Random(qptotal, qptotal);
+  X = 0.5 * (X + X.transpose()).eval();
+
+  auto run = [&](double a, const Eigen::MatrixXd& v) {
+    GW::options o = opt;
+    o.ScaHFX = a;
+    Logger log;
+    TCMatrix_gwbse Mmn;
+    Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
+    Mmn.Fill(aobasis, aobasis, mo_eigenvectors);
+    GW gw(log, Mmn, v, mo_eigenvalues);
+    gw.configure(o);
+    gw.setCoreExchange(X);
+    gw.CalculateGWPerturbation();
+    const Eigen::VectorXd seed = gw.getGWAResults();
+    Mmn.Fill(aobasis, aobasis, mo_eigenvectors);
+    gw.CalculateQSGW();
+    return std::make_pair(seed, Eigen::VectorXd(gw.getGWAResults()));
+  };
+  const double a = 0.25;
+  const Eigen::MatrixXd vxc_hybrid = vxc_gw - a * (K + X);
+  const auto gga = run(0.0, vxc_gw);
+  const auto hyb = run(a, vxc_hybrid);
+
+  BOOST_CHECK_SMALL((gga.first - hyb.first).cwiseAbs().maxCoeff(), 1e-6);
+  BOOST_CHECK_SMALL((gga.second - hyb.second).cwiseAbs().maxCoeff(), 1e-6);
+  if ((gga.second - hyb.second).cwiseAbs().maxCoeff() > 1e-6) {
+    cout << "QSGW GGA:    " << gga.second.transpose() << endl;
+    cout << "QSGW hybrid: " << hyb.second.transpose() << endl;
+  }
+  libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(qsgw_hartree_matrix) {
+  // Sigma_base::CalcHartreeMatrix against RI-J from the AO density, in the
+  // DFT orbitals and after a rotation mixing occupied and virtual levels
+  // (TCMatrix_gwbse::RotateOrbitals, as in the QSGW loop).
+  if (!libint2::initialized()) libint2::initialize();
+  Eigen::MatrixXd C = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/gw/mo_eigenvectors.mm");
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/gw/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+  const votca::Index homo = 4, qpmin = 1, qpmax = 12, nlev = 17;
+  const votca::Index nq = qpmax - qpmin + 1;
+
+  TCMatrix_gwbse Mmn;
+  Mmn.Initialize(aobasis.AOBasisSize(), 0, nlev - 1, 0, nlev - 1);
+  Mmn.Fill(aobasis, aobasis, C);
+  Logger log;
+  RPA rpa(log, Mmn);
+  rpa.configure(homo, 0, nlev - 1);
+  std::unique_ptr<Sigma_base> sig = SigmaFactory().Create("ppm", Mmn, rpa);
+  Sigma_base::options sopt;
+  sopt.homo = homo;
+  sopt.qpmin = qpmin;
+  sopt.qpmax = qpmax;
+  sopt.rpamin = 0;
+  sopt.rpamax = nlev - 1;
+  sopt.eta = 1e-3;
+  sig->configure(sopt);
+
+  ERIs eris;
+  eris.Initialize(aobasis, aobasis);
+  auto reference = [&](const Eigen::MatrixXd& Cmo) {
+    const Eigen::MatrixXd occ = Cmo.leftCols(homo + 1);
+    const Eigen::MatrixXd D = 2.0 * occ * occ.transpose();
+    const Eigen::MatrixXd Jao = eris.CalculateERIs_3c(D);
+    return Eigen::MatrixXd(
+        (Cmo.transpose() * Jao * Cmo).block(qpmin, qpmin, nq, nq));
+  };
+
+  const Eigen::MatrixXd J0 = sig->CalcHartreeMatrix();
+  const Eigen::MatrixXd R0 = reference(C);
+  BOOST_TEST_MESSAGE(
+      "max |J - J_ref| (DFT orbitals) = " << (J0 - R0).cwiseAbs().maxCoeff());
+  BOOST_CHECK_SMALL((J0 - R0).cwiseAbs().maxCoeff(), 1e-6);
+
+  // orthogonal rotation of the window mixing occupied and virtual levels
+  Eigen::MatrixXd A = 0.3 * Eigen::MatrixXd::Random(nq, nq);
+  A = (A - A.transpose()).eval();
+  const Eigen::MatrixXd U = Eigen::HouseholderQR<Eigen::MatrixXd>(
+                                Eigen::MatrixXd::Identity(nq, nq) + A)
+                                .householderQ();
+  Mmn.RotateOrbitals(U, qpmin, qpmax);
+  Eigen::MatrixXd Crot = C;
+  Crot.middleCols(qpmin, nq) = C.middleCols(qpmin, nq) * U;
+  const Eigen::MatrixXd J1 = sig->CalcHartreeMatrix();
+  const Eigen::MatrixXd R1 = reference(Crot);
+  BOOST_TEST_MESSAGE("max |J - J_ref| (rotated) = "
+                     << (J1 - R1).cwiseAbs().maxCoeff()
+                     << ", change of J by the rotation "
+                     << (U * J1 * U.transpose() - J0).cwiseAbs().maxCoeff());
+  BOOST_CHECK_SMALL((J1 - R1).cwiseAbs().maxCoeff(), 1e-6);
+  // the rotation changes the density: J must change
+  BOOST_CHECK_GT((U * J1 * U.transpose() - J0).cwiseAbs().maxCoeff(), 1e-3);
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_CASE(qsgw_virtual_threshold) {
   // Virtual-level threshold auto-trims level 16 and preserves its
   // perturbative seed energy exactly in getGWAResults().
@@ -524,6 +688,56 @@ Eigen::MatrixXd SomeReactionField(votca::Index n) {
   std::srand(42);
   const Eigen::MatrixXd G = Eigen::MatrixXd::Random(n, n);
   return -0.05 * G * G.transpose() / double(n);
+}
+
+// A physical reaction field for GWTestSystem: five smeared Thole sites
+// (site_width 0.5) 6-8 bohr from methane, through the production pipeline
+// (aux field, Thole kernel, R = T^T B T in the fill-time frame). The
+// auxiliary basis of GWTestSystem is the 3-21G DFT basis.
+Eigen::MatrixXd PolarSitesReactionField(const TCMatrix_gwbse& Mmn) {
+  QMMolecule mol("methane", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/gw/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  AOBasis aux;
+  aux.Fill(basis, mol);
+  const std::vector<Eigen::Vector3d> pos = {
+      Eigen::Vector3d(6.5, 0.0, 0.0), Eigen::Vector3d(7.5, 2.5, 0.3),
+      Eigen::Vector3d(-0.4, 6.8, 1.0), Eigen::Vector3d(0.5, -1.0, -7.0),
+      Eigen::Vector3d(-6.0, -3.5, 1.5)};
+  PolarSegment seg("env", 0);
+  votca::Index k = 0;
+  for (const Eigen::Vector3d& p : pos) {
+    PolarSite site(k++, "C", p);
+    site.setpolarization(10.0 * Eigen::Matrix3d::Identity());
+    seg.push_back(site);
+  }
+  const std::vector<PolarSegment> segs = {seg};
+  const Eigen::MatrixXd F = EnvironmentScreening::AuxFieldAtPoints(
+      aux, pos, EnvironmentScreening::SiteWidths(segs, 0.5));
+  const Eigen::MatrixXd B =
+      EnvironmentScreening::ReactionFieldKernel(F, segs, 0.39);
+  return EnvironmentScreening::SymmetrizedReactionField(B, Mmn.InvSqrt());
+}
+
+// J_mn = 2 sum_PQ M_mn,P K_PQ d_Q, d = sum_{i occ} M_ii, written out from
+// integrals in the fill-time frame: the reference for CalcHartreeMatrix.
+Eigen::MatrixXd HartreeByHand(const TCMatrix_gwbse& Mmn,
+                              const Eigen::MatrixXd& K, votca::Index homo,
+                              votca::Index qpmin, votca::Index qpmax) {
+  Eigen::VectorXd d = Eigen::VectorXd::Zero(Mmn.auxsize());
+  for (votca::Index i = 0; i <= homo; ++i) {
+    d += Mmn[i].row(i).transpose();
+  }
+  const Eigen::VectorXd Kd = K * d;
+  const votca::Index nq = qpmax - qpmin + 1;
+  Eigen::MatrixXd J(nq, nq);
+  for (votca::Index m = 0; m < nq; ++m) {
+    for (votca::Index n = 0; n < nq; ++n) {
+      J(m, n) = 2.0 * Mmn[m + qpmin].row(n + qpmin).dot(Kd);
+    }
+  }
+  return J;
 }
 }  // namespace
 
@@ -700,6 +914,327 @@ BOOST_AUTO_TEST_CASE(exchange_is_bare_on_dressed_integrals) {
   BOOST_CHECK(!system.Mmn.AuxFrameIsOrthogonal());
   BOOST_CHECK_SMALL(
       (sigma->CalcExchangeMatrix() - sx_bare).cwiseAbs().maxCoeff(), 1e-11);
+  libint2::finalize();
+}
+
+// The screened Hartree matrix J_u = 2 M (1 + R) d of the QSGW update, in
+// the frame QSGW evaluates it in: orbitals rotated (occupied-virtual
+// mixing), auxiliary index rotated as by the PPM, then dressed with
+// (1 + R)^1/2. Against the same sum written out on undressed integrals in
+// the fill-time frame, J + 2 M_fill R d; and the bare J must stay bare.
+BOOST_AUTO_TEST_CASE(screened_hartree_matrix_on_dressed_integrals) {
+  if (!libint2::initialized()) libint2::initialize();
+  GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+  const GW::options gwopt = MakeGWTestOptions();
+  const votca::Index qpmin = 1, qpmax = 12, nq = qpmax - qpmin + 1;
+  RPA rpa(system.log, system.Mmn);
+  rpa.configure(gwopt.homo, gwopt.rpamin, gwopt.rpamax);
+  std::unique_ptr<Sigma_base> sigma =
+      SigmaFactory().Create("ppm", system.Mmn, rpa);
+  Sigma_base::options opt;
+  opt.homo = gwopt.homo;
+  opt.qpmin = qpmin;
+  opt.qpmax = qpmax;
+  opt.rpamin = gwopt.rpamin;
+  opt.rpamax = gwopt.rpamax;
+  opt.eta = gwopt.eta;
+  sigma->configure(opt);
+
+  const votca::Index n = system.Mmn.auxsize();
+  const Eigen::MatrixXd I = Eigen::MatrixXd::Identity(n, n);
+  const Eigen::MatrixXd R = PolarSitesReactionField(system.Mmn);
+  BOOST_REQUIRE_GT(R.cwiseAbs().maxCoeff(), 1e-4);
+
+  // DFT orbitals, fill-time frame
+  const Eigen::MatrixXd Jb0 =
+      HartreeByHand(system.Mmn, I, gwopt.homo, qpmin, qpmax);
+  const Eigen::MatrixXd Ju0 =
+      HartreeByHand(system.Mmn, I + R, gwopt.homo, qpmin, qpmax);
+  BOOST_CHECK_SMALL((sigma->CalcHartreeMatrix() - Jb0).cwiseAbs().maxCoeff(),
+                    1e-10);
+  BOOST_CHECK_SMALL((sigma->CalcHartreeMatrix(R) - Ju0).cwiseAbs().maxCoeff(),
+                    1e-10);
+  // the environment's part is there, and of a sensible size
+  const double reac = (Ju0 - Jb0).cwiseAbs().maxCoeff();
+  BOOST_TEST_MESSAGE("max |J_u - J| (DFT orbitals) = " << reac << " Ha");
+  BOOST_CHECK_GT(reac, 1e-4);
+
+  // QP orbitals: rotate the window, mixing occupied and virtual levels
+  Eigen::MatrixXd A = 0.3 * Eigen::MatrixXd::Random(nq, nq);
+  A = (A - A.transpose()).eval();
+  const Eigen::MatrixXd U = Eigen::HouseholderQR<Eigen::MatrixXd>(
+                                Eigen::MatrixXd::Identity(nq, nq) + A)
+                                .householderQ();
+  system.Mmn.RotateOrbitals(U, qpmin, qpmax);
+  const Eigen::MatrixXd Jb1 =
+      HartreeByHand(system.Mmn, I, gwopt.homo, qpmin, qpmax);
+  const Eigen::MatrixXd Ju1 =
+      HartreeByHand(system.Mmn, I + R, gwopt.homo, qpmin, qpmax);
+  // the rotation changes the density, so the environment's response too
+  BOOST_CHECK_GT(
+      ((Ju1 - Jb1) - U.transpose() * (Ju0 - Jb0) * U).cwiseAbs().maxCoeff(),
+      1e-5);
+
+  // auxiliary index rotated as the PPM does, then dressed
+  std::srand(11);
+  const Eigen::HouseholderQR<Eigen::MatrixXd> qr(
+      Eigen::MatrixXd(Eigen::MatrixXd::Random(n, n)));
+  const Eigen::MatrixXd Q = qr.householderQ();
+  system.Mmn.MultiplyRightWithAuxMatrix(Q);
+  system.Mmn.DressAuxIndex(EnvironmentScreening::DressingMatrix(R));
+  BOOST_REQUIRE(!system.Mmn.AuxFrameIsOrthogonal());
+  const double err_b = (sigma->CalcHartreeMatrix() - Jb1).cwiseAbs().maxCoeff();
+  const double err_u =
+      (sigma->CalcHartreeMatrix(R) - Ju1).cwiseAbs().maxCoeff();
+  BOOST_TEST_MESSAGE("dressed frame: max |J - J_ref| = "
+                     << err_b << ", max |J_u - J_u,ref| = " << err_u);
+  BOOST_CHECK_SMALL(err_b, 1e-9);
+  BOOST_CHECK_SMALL(err_u, 1e-9);
+  // With F F^T = 1 + R the dressed integrals carry u by themselves: the
+  // plain contraction (identity kernel in the current frame) is J_u.
+  BOOST_CHECK_SMALL(
+      (HartreeByHand(system.Mmn, I, gwopt.homo, qpmin, qpmax) - Ju1)
+          .cwiseAbs()
+          .maxCoeff(),
+      1e-9);
+  BOOST_CHECK_THROW(sigma->CalcHartreeMatrix(Eigen::MatrixXd::Zero(3, 3)),
+                    std::runtime_error);
+  libint2::finalize();
+}
+
+namespace {
+// Uniform entries in [-1, 1) from std::mt19937, filled column by column.
+// The standard fixes the mt19937 sequence; std::rand (behind
+// Eigen::MatrixXd::Random) and the <random> distributions are
+// implementation-defined and give other matrices with libc/libc++ (macOS)
+// than with glibc/libstdc++ for the same seed.
+Eigen::MatrixXd PortableRandomMatrix(votca::Index rows, votca::Index cols,
+                                     std::uint32_t seed) {
+  std::mt19937 gen(seed);
+  Eigen::MatrixXd m(rows, cols);
+  for (votca::Index j = 0; j < cols; ++j) {
+    for (votca::Index i = 0; i < rows; ++i) {
+      m(i, j) = 2.0 * (double(gen()) / 4294967296.0) - 1.0;
+    }
+  }
+  return m;
+}
+
+// Start B of qsgw_same_fixed_point_from_two_starts
+constexpr std::uint32_t kFixedPointSeed = 1;
+constexpr double kFixedPointAmplitude = 0.08;
+constexpr double kFixedPointEta = 0.05;
+
+struct StartSpreads {
+  // E_QP^A - E_QP^B (Ha), all levels
+  Eigen::VectorXd vacuum;
+  Eigen::VectorXd environment;
+  Eigen::VectorXd environment_bare;
+  bool converged;          // all six QSGW runs
+  votca::Index max_iters;  // the most iterations any of them needed
+};
+
+// Iterations of a converged QSGW run from its log, -1 if it did not converge
+votca::Index QSGWIterations(Logger& log) {
+  std::stringstream ss;
+  ss << log;
+  const std::string text = ss.str();
+  const std::string key = "QSGW converged in ";
+  const std::size_t pos = text.find(key);
+  if (pos == std::string::npos) {
+    return -1;
+  }
+  return std::stoi(text.substr(pos + key.size()));
+}
+
+// QSGW forgets its starting point once H depends on nothing but the QP
+// density -- also in an environment, provided the Hartree update is with
+// u = v + v_reac, the interaction the environment's response adds to H_KS.
+//
+// Two starting points of the same model h + J_u[rho] + v_xc:
+//   A: the test system, H_KS = diag(e_A), V_xc^A;
+//   B: the orbitals of A rotated over the whole space (occupied-virtual
+//      mixing, as another functional would give; generator `amplitude` *
+//      PortableRandomMatrix(seed), antisymmetrized), other energies, and
+//      V_xc^B such that diag(e_B) - V_xc^B = h + J_u[rho_B] in the B
+//      orbitals, with h = diag(e_A) - V_xc^A - J_u[rho_A].
+// All levels in the window, nothing trimmed, no frozen core. Returns the
+// differences E_QP^A - E_QP^B (Ha) in vacuum, in the environment, and in the
+// environment with the bare Hartree update, and whether all runs converged.
+StartSpreads QSGWStartSpreads(std::uint32_t seed, double amplitude,
+                              double eta) {
+  GW::options opt = MakeGWTestOptions();
+  opt.do_qsgw = true;
+  opt.qsgw_max_iterations = 100;
+  opt.qsgw_sc_limit = 1e-7;
+  opt.gw_mixing_order = 20;
+  opt.gw_mixing_alpha = 0.2;
+  opt.qsgw_max_virt_correction = 1e10;  // keep all levels in the window
+  // At eta = 1e-3 this system has several QSGW fixed points, with the PPM
+  // and with the exact Sigma: start B ends on another one for 5-10 of 20
+  // directions, mostly in the highest virtual but with 8-180 meV in HOMO and
+  // LUMO, and 10-25 % of the runs do not converge. At eta = 0.05 all 60
+  // starts of qsgw_fixed_point_seed_scan converge (<= 17 iterations) to one
+  // fixed point, in vacuum and in the environment.
+  opt.sigma_integration = "exact";
+  opt.eta = eta;
+  const votca::Index nmo = 17;
+  const votca::Index nocc = opt.homo + 1;
+
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  QMMolecule mol("methane", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/gw/molecule.xyz");
+  AOBasis aobasis;
+  aobasis.Fill(basis, mol);
+
+  GWTestSystem a("mo_eigenvectors.mm", "vxc.mm");
+  const Eigen::MatrixXd R = PolarSitesReactionField(a.Mmn);
+
+  // J (or J_u) of all levels for orbitals C, from fresh integrals
+  auto hartree = [&](const Eigen::MatrixXd& C, const Eigen::MatrixXd& Rk) {
+    TCMatrix_gwbse M;
+    M.Initialize(aobasis.AOBasisSize(), 0, nmo - 1, 0, nmo - 1);
+    M.Fill(aobasis, aobasis, C);
+    Logger log;
+    RPA rpa(log, M);
+    rpa.configure(opt.homo, 0, nmo - 1);
+    std::unique_ptr<Sigma_base> s = SigmaFactory().Create("ppm", M, rpa);
+    Sigma_base::options so;
+    so.homo = opt.homo;
+    so.qpmin = 0;
+    so.qpmax = nmo - 1;
+    so.rpamin = 0;
+    so.rpamax = nmo - 1;
+    so.eta = opt.eta;
+    s->configure(so);
+    return Eigen::MatrixXd(s->CalcHartreeMatrix(Rk));
+  };
+
+  bool converged = true;
+  votca::Index max_iters = 0;
+  // QSGW energies from orbitals C, energies e, V_xc
+  auto run = [&](const Eigen::MatrixXd& C, const Eigen::VectorXd& e,
+                 const Eigen::MatrixXd& vxc, const Eigen::MatrixXd& Rk,
+                 bool screened) {
+    GW::options o = opt;
+    o.qsgw_hartree_screened = screened;
+    Logger log;
+    TCMatrix_gwbse M;
+    M.Initialize(aobasis.AOBasisSize(), 0, nmo - 1, 0, nmo - 1);
+    M.Fill(aobasis, aobasis, C);
+    GW gw(log, M, vxc, e);
+    gw.configure(o);
+    if (Rk.size() > 0) {
+      gw.setReactionField(Rk);
+    }
+    gw.CalculateGWPerturbation();
+    gw.CalculateQSGW();
+    const votca::Index iters = QSGWIterations(log);
+    converged = converged && iters > 0;
+    max_iters = std::max(max_iters, iters);
+    return Eigen::VectorXd(gw.getGWAResults());
+  };
+
+  // start B: orbitals rotated over the whole space, mixing occupied and
+  // virtual levels, and other energies
+  Eigen::MatrixXd G = amplitude * PortableRandomMatrix(nmo, nmo, seed);
+  G = (G - G.transpose()).eval();
+  const Eigen::MatrixXd UB = Eigen::HouseholderQR<Eigen::MatrixXd>(
+                                 Eigen::MatrixXd::Identity(nmo, nmo) + G)
+                                 .householderQ();
+  const Eigen::MatrixXd CB = a.mo_eigenvectors * UB;
+  Eigen::VectorXd eB = a.mo_eigenvalues;
+  eB.head(nocc).array() -= 0.02;
+  eB.tail(nmo - nocc).array() += 0.03;
+
+  // The spread between the two starts, both of the ground-state model with
+  // Rk (J_u[rho] in H_KS); `screened` picks the Hartree update.
+  auto spread = [&](const Eigen::MatrixXd& Rk, bool screened) {
+    const Eigen::MatrixXd JA = hartree(a.mo_eigenvectors, Rk);
+    const Eigen::MatrixXd JB = hartree(CB, Rk);
+    Eigen::MatrixXd h = -a.vxc - JA;
+    h.diagonal() += a.mo_eigenvalues;
+    Eigen::MatrixXd vxcB = -UB.transpose() * h * UB - JB;
+    vxcB.diagonal() += eB;
+    const Eigen::VectorXd A =
+        run(a.mo_eigenvectors, a.mo_eigenvalues, a.vxc, Rk, screened);
+    const Eigen::VectorXd B = run(CB, eB, vxcB, Rk, screened);
+    return Eigen::VectorXd(A - B);
+  };
+
+  const Eigen::VectorXd vacuum = spread(Eigen::MatrixXd(), true);
+  const Eigen::VectorXd environment = spread(R, true);
+  const Eigen::VectorXd environment_bare = spread(R, false);
+  return {vacuum, environment, environment_bare, converged, max_iters};
+}
+}  // namespace
+
+// The fixed points of the two starts must agree, in vacuum and in the
+// environment with the screened Hartree update; with the bare update in the
+// environment, J_reac[rho_B] - J_reac[rho_A] stays in H and they must not.
+// Eta = 0.05: at 1e-3 the fixed point is not unique (see QSGWStartSpreads),
+// and which start direction reaches which one is a property of the solution
+// landscape, not of the Hartree update this test is about.
+BOOST_AUTO_TEST_CASE(qsgw_same_fixed_point_from_two_starts) {
+  if (!libint2::initialized()) libint2::initialize();
+  const StartSpreads s =
+      QSGWStartSpreads(kFixedPointSeed, kFixedPointAmplitude, kFixedPointEta);
+  const double vac = s.vacuum.cwiseAbs().maxCoeff();
+  const double env = s.environment.cwiseAbs().maxCoeff();
+  const double env_bare = s.environment_bare.cwiseAbs().maxCoeff();
+  BOOST_TEST_MESSAGE("QSGW start-point spread: vacuum "
+                     << vac * votca::tools::conv::hrt2ev << " eV, environment "
+                     << env * votca::tools::conv::hrt2ev
+                     << " eV, environment with bare Hartree update "
+                     << env_bare * votca::tools::conv::hrt2ev << " eV");
+  BOOST_REQUIRE(s.converged);
+  BOOST_CHECK_SMALL(vac, 1e-6);
+  BOOST_CHECK_SMALL(env, 1e-6);
+  BOOST_CHECK_GT(env_bare, 1e-4);
+  libint2::finalize();
+}
+
+// Not part of the regular run: how often does start B end on another fixed
+// point? One line per eta, amplitude and seed: largest spread and its level,
+// HOMO and LUMO spreads (meV), whether all six runs converged. Run with
+//   unit_test_gw --run_test=gw_test/qsgw_fixed_point_seed_scan
+//                --log_level=message
+BOOST_AUTO_TEST_CASE(qsgw_fixed_point_seed_scan,
+                     *boost::unit_test::disabled()) {
+  if (!libint2::initialized()) libint2::initialize();
+  const double mev = 1000.0 * votca::tools::conv::hrt2ev;
+  const votca::Index homo = MakeGWTestOptions().homo;
+  auto describe = [&](const Eigen::VectorXd& d) {
+    votca::Index level = 0;
+    const double max = d.cwiseAbs().maxCoeff(&level);
+    std::stringstream ss;
+    ss << max * mev << " " << level << " " << std::abs(d(homo)) * mev << " "
+       << std::abs(d(homo + 1)) * mev;
+    return ss.str();
+  };
+  BOOST_TEST_MESSAGE(
+      "seed_scan columns: eta amplitude seed | vacuum max level homo lumo | "
+      "env max level homo lumo | env_bare max level homo lumo | converged "
+      "max_iters");
+  for (double eta : {1e-3, 0.05}) {
+    for (double amplitude : {0.02, 0.08, 0.15}) {
+      for (std::uint32_t seed = 1; seed <= 20; ++seed) {
+        try {
+          const StartSpreads s = QSGWStartSpreads(seed, amplitude, eta);
+          BOOST_TEST_MESSAGE("seed_scan "
+                             << eta << " " << amplitude << " " << seed << " | "
+                             << describe(s.vacuum) << " | "
+                             << describe(s.environment) << " | "
+                             << describe(s.environment_bare) << " | "
+                             << s.converged << " " << s.max_iters);
+        } catch (const std::runtime_error& err) {
+          BOOST_TEST_MESSAGE("seed_scan " << eta << " " << amplitude << " "
+                                          << seed << " failed: " << err.what());
+        }
+      }
+    }
+  }
   libint2::finalize();
 }
 
@@ -1168,7 +1703,20 @@ double QSGWFixedPointResidual(const std::string& sigma_integration) {
   sigma->PrepareScreening();
   Eigen::MatrixXd H0 = -vxc_gw;
   H0.diagonal() += system.mo_eigenvalues.segment(opt.qpmin, qptotal);
-  Eigen::MatrixXd H = U.transpose() * H0 * U + sigma->CalcExchangeMatrix() +
+  // Hartree update (qsgw_hartree_update, default on): H0 contains
+  // J[rho_DFT]; the fixed point has J[rho_QP] instead
+  TCMatrix_gwbse Mdft;
+  Mdft.Initialize(aobasis.AOBasisSize(), opt.rpamin, opt.rpamax, opt.rpamin,
+                  opt.rpamax);
+  Mdft.Fill(aobasis, aobasis, system.mo_eigenvectors);
+  RPA rpa_dft(log, Mdft);
+  rpa_dft.configure(opt.homo, opt.rpamin, opt.rpamax);
+  std::unique_ptr<Sigma_base> sigma_dft =
+      SigmaFactory().Create(opt.sigma_integration, Mdft, rpa_dft);
+  sigma_dft->configure(sopt);
+  H0 -= sigma_dft->CalcHartreeMatrix();
+  Eigen::MatrixXd H = U.transpose() * H0 * U + sigma->CalcHartreeMatrix() +
+                      sigma->CalcExchangeMatrix() +
                       sigma->CalcCorrelationOffDiag(E);
   H.diagonal() += sigma->CalcCorrelationDiag(E);
   H.diagonal() -= E;

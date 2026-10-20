@@ -26,6 +26,7 @@ if (CMAKE_CXX_COMPILER MATCHES "clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LE
   # in case OpenMP was detected somewhere else
   unset(OpenMP_FOUND)
 else()
+  # on macOS OpenMP_ROOT may come from CMakeModules/HomebrewLibomp.cmake
   find_package(OpenMP 4.5)
   set_package_properties(OpenMP PROPERTIES TYPE RECOMMENDED PURPOSE "Used for thread parallelization in tools")
 endif()

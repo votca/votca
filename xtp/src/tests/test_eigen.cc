@@ -169,7 +169,8 @@ BOOST_AUTO_TEST_CASE(backend_description_matches_the_build) {
   BOOST_CHECK_EQUAL(description, "MKL overload for Eigen (BLAS and LAPACK)");
 #elif defined(APPLE_ACCELERATE_FOUND)
   BOOST_CHECK_EQUAL(description,
-                    "Apple Accelerate BLAS and LAPACKE overload for Eigen");
+                    "Apple Accelerate BLAS overload for Eigen, Accelerate "
+                    "LAPACK for eigensolvers and Cholesky");
 #else
   BOOST_CHECK_EQUAL(description,
                     "native Eigen implementation, no BLAS overload");

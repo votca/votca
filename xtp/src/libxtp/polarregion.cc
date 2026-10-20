@@ -18,10 +18,12 @@
  */
 
 // Standard includes
+#include <algorithm>
 #include <iomanip>
 #include <numeric>
 
 // Local VOTCA includes
+#include "votca/xtp/chargeresponsesolver.h"
 #include "votca/xtp/dipoledipoleinteraction.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/ewaldregion.h"
@@ -39,6 +41,49 @@ void PolarRegion::Initialize(const tools::Property& prop) {
   deltaD_ = prop.get("tolerance_dipole").as<double>();
   deltaE_ = prop.get("tolerance_energy").as<double>();
   exp_damp_ = prop.get("exp_damp").as<double>();
+  cr_width_ = prop.ifExistsReturnElseReturnDefault<double>("cr_width", 0.7) *
+              tools::conv::ang2bohr;
+  const std::string dd = prop.ifExistsReturnElseReturnDefault<std::string>(
+      "cr_dipole_damping", "gaussian");
+  if (dd != "gaussian" && dd != "thole") {
+    throw std::runtime_error(
+        "polarregion: cr_dipole_damping must be gaussian "
+        "or thole, got " +
+        dd);
+  }
+  cr_thole_dipoles_ = (dd == "thole");
+  if (!(cr_width_ >= 0.0)) {
+    throw std::runtime_error("polarregion: cr_width must be >= 0");
+  }
+  SetupChargeResponseSites();
+}
+
+bool PolarRegion::hasChargeResponse() const {
+  return std::any_of(
+      segments_.begin(), segments_.end(),
+      [](const PolarSegment& seg) { return seg.hasChargeResponse(); });
+}
+
+void PolarRegion::SetupChargeResponseSites() {
+  Index ncr = 0;
+  for (PolarSegment& seg : segments_) {
+    if (!seg.hasChargeResponse()) {
+      continue;
+    }
+    ncr++;
+    for (PolarSite& site : seg) {
+      site.setChargeResponse(cr_width_, cr_thole_dipoles_);
+    }
+  }
+  if (ncr > 0) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Region:" << this->identify() << " " << this->getId()
+        << ": " << ncr << " of " << segments_.size()
+        << " segments with charge response, Gaussian width "
+        << cr_width_ * tools::conv::bohr2ang << " Angstrom, "
+        << (cr_thole_dipoles_ ? "Thole-damped" : "Gaussian")
+        << " dipoles between molecules" << std::flush;
+  }
 }
 
 bool PolarRegion::Converged() const {
@@ -237,6 +282,29 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
       << TimeStamp() << " Starting Solving for classical polarization with "
       << dof_polarization << " degrees of freedom." << std::flush;
 
+  if (hasChargeResponse()) {
+    // induced charges and dipoles together (ChargeResponseSolver)
+    eeInteractor interactor(exp_damp_);
+    ChargeResponseSolver solver(segments_, interactor);
+    const ChargeResponseSolver::Info info =
+        solver.Solve(deltaD_, max_iter_, E_hist_.filled());
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Charge response: " << solver.size()
+        << " unknowns, CG #iterations: " << info.iterations
+        << ", relative residual: " << info.error << std::flush;
+    if (!info.converged) {
+      info_ = false;
+      errormsg_ = "charge-response CG iterations did not converge";
+      return;
+    }
+    eeInteractor::E_terms terms = PolarEnergy();
+    terms.E_internal() += solver.InternalChargeEnergy();
+    e_contrib.addInternalPolarContrib(terms);
+    e_contrib.E_polar_ext() = PolarEnergy_extern();
+    LogAndStoreEnergies(e_contrib);
+    return;
+  }
+
   Eigen::VectorXd initial_induced_dipoles;
   if (!E_hist_.filled() || segments_.size() == 1) {
     initial_induced_dipoles = CalcInducedDipoleInsideSegments();
@@ -266,6 +334,10 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
                            << " Calculated polar interaction with other regions"
                            << std::flush;
 
+  LogAndStoreEnergies(e_contrib);
+}
+
+void PolarRegion::LogAndStoreEnergies(Energy_terms e_contrib) {
   XTP_LOG(Log::info, log_) << std::setprecision(10)
                            << "   Internal static energy [hrt]= "
                            << e_contrib.E_static_static() << std::flush;
@@ -354,17 +426,32 @@ double PolarRegion::InteractwithStaticRegion(const StaticRegion& region) {
 
 void PolarRegion::WriteToCpt(CheckpointWriter& w) const {
   MMRegion<PolarSegment>::WriteToCpt(w);
+  w(cr_width_, "cr_width");
+  w(cr_thole_dipoles_, "cr_thole_dipoles");
 }
 
 void PolarRegion::ReadFromCpt(CheckpointReader& r) {
   MMRegion<PolarSegment>::ReadFromCpt(r);
+  if (hasChargeResponse()) {
+    // written with the segments' charge response (not in older checkpoints,
+    // which have no charge-response segments)
+    r(cr_width_, "cr_width");
+    r(cr_thole_dipoles_, "cr_thole_dipoles");
+    SetupChargeResponseSites();
+  }
 }
 
 double PolarRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
   // Delegated: the background owns the periodic sums, the foreground
   // bookkeeping and the parameters they must all share, so assembling
   // them here would mean reaching into it for all three.
-  return region.ApplyFieldTo(segments_);
+  const double e = region.ApplyFieldTo(segments_);
+  // induced charges see the background potential (the energy of the
+  // induced moments with the background is in PolarEnergy_extern)
+  if (hasChargeResponse()) {
+    region.ApplyPotentialTo(segments_);
+  }
+  return e;
 }
 
 }  // namespace xtp

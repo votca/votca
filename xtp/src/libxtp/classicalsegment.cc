@@ -17,6 +17,10 @@
  *
  */
 
+// Standard includes
+#include <algorithm>
+#include <type_traits>
+
 // Third party includes
 #include <boost/format.hpp>
 
@@ -196,6 +200,75 @@ void ClassicalSegment<T>::WriteMPS(std::string filename,
     ofs << site.WriteMpsLine("angstrom");
   }
   ofs.close();
+}
+
+template <class T>
+void ClassicalSegment<T>::setChargeResponse(const ChargeResponse& cr) {
+  if (cr.size() != this->size()) {
+    throw std::runtime_error(
+        "Segment " + this->getType() + " " + std::to_string(this->getId()) +
+        " has " + std::to_string(this->size()) +
+        " sites, its charge-response matrix " + std::to_string(cr.size()));
+  }
+  for (Index i = 0; i < this->size(); ++i) {
+    if (cr.Elements()[std::size_t(i)] != this->atomlist_[i].getElement()) {
+      throw std::runtime_error(
+          "Segment " + this->getType() + " " + std::to_string(this->getId()) +
+          ": site " + std::to_string(i) + " is " +
+          this->atomlist_[i].getElement() +
+          ", but the charge-response matrix has " +
+          cr.Elements()[std::size_t(i)] + " there (atom order must agree)");
+    }
+  }
+  chargeresponse_ = cr;
+}
+
+template <class T>
+void ClassicalSegment<T>::WriteToCpt(CheckpointWriter& w) const {
+  AtomContainer<T>::WriteToCpt(w);
+  if (hasChargeResponse()) {
+    CheckpointWriter v = w.openChild("chargeresponse");
+    chargeresponse_.WriteToCpt(v);
+    if constexpr (std::is_same_v<T, PolarSite>) {
+      Eigen::VectorXd dq(this->size());
+      for (Index i = 0; i < this->size(); ++i) {
+        dq(i) = this->atomlist_[i].Induced_Charge();
+      }
+      v(dq, "induced_charges");
+    }
+  }
+}
+
+template <class T>
+void ClassicalSegment<T>::ReadFromCpt(CheckpointReader& r) {
+  AtomContainer<T>::ReadFromCpt(r);
+  ReadChargeResponseFromCpt(r);
+}
+
+template <class T>
+void ClassicalSegment<T>::ReadChargeResponseFromCpt(CheckpointReader& r) {
+  chargeresponse_ = ChargeResponse();
+  // optional: checkpoints without it (and all older ones) are Thole segments
+  const std::vector<std::string> children = r.getChildGroupNames();
+  if (std::find(children.begin(), children.end(), "chargeresponse") !=
+      children.end()) {
+    CheckpointReader v = r.openChild("chargeresponse");
+    ChargeResponse cr;
+    cr.ReadFromCpt(v);
+    setChargeResponse(cr);
+    if constexpr (std::is_same_v<T, PolarSite>) {
+      Eigen::VectorXd dq;
+      v(dq, "induced_charges");
+      if (dq.size() != this->size()) {
+        throw std::runtime_error("Segment " + this->getType() +
+                                 ": induced charges in the checkpoint do not "
+                                 "match its sites");
+      }
+      for (Index i = 0; i < this->size(); ++i) {
+        this->atomlist_[i].setInduced_Charge(dq(i));
+      }
+    }
+  }
 }
 
 template <class T>

@@ -17,6 +17,8 @@
  *
  */
 
+#include <stdexcept>
+
 // Local VOTCA includes
 #include "sigma_exact.h"
 #include "votca/xtp/exact_pole_sums.h"
@@ -37,7 +39,7 @@ void Sigma_Exact::PrepareScreening() {
   rpa_omegas_ = rpa_solution.omega;
   // residues of level m: M_m Z with the screening modes
   // Z = sum_v M_v,virt^T (X+Y)_v, once for all levels
-  const Eigen::MatrixXd modes = ScreeningModes(rpa_solution.XpY);
+  Eigen::MatrixXd modes = ScreeningModes(rpa_solution.XpY);
   const Index B = Mmn_.nsize();
   const Index S = rpa_omegas_.size();
   residues_.resize(B * S, qptotal_);
@@ -47,6 +49,45 @@ void Sigma_Exact::PrepareScreening() {
     Eigen::Map<Eigen::MatrixXd>(residues_.col(gw_level).data(), B, S)
         .noalias() = Mmn_[gw_level + qpoffset] * modes;
   }
+  if (keep_screening_data_) {
+    modes_ = std::move(modes);
+    screening_energies_ = rpa_.getRPAInputEnergies();
+  }
+}
+
+Sigma_base::DiagPoleForm Sigma_Exact::PoleForm(Index gw_level) const {
+  // factor 2: both (identical) spin channels
+  return DiagPoleForm{Poles(), Residues(gw_level), nullptr, 2.0};
+}
+
+Sigma_base::ScreeningData Sigma_Exact::ScreeningDump(
+    const Eigen::VectorXd& nu) const {
+  if (modes_.size() == 0) {
+    throw std::runtime_error(
+        "Sigma_Exact::ScreeningDump: screening modes were not kept "
+        "(setKeepScreeningData before PrepareScreening)");
+  }
+  ScreeningData data;
+  data.omegas = rpa_omegas_;
+  data.energies = screening_energies_;
+  // W_c(i nu) = -4 sum_s Z_s Z_s^T Omega_s / (nu^2 + Omega_s^2) in the aux
+  // frame of the integrals (2 for the spin sum times 2 from the two poles
+  // +-Omega_s), so eps^-1(0) - 1 = -4 Z Omega^-1 Z^T; its eigenvectors are
+  // those of eps(0), i.e. the plasmon-pole frame, eigenvalues -w_i.
+  const Eigen::VectorXd inv_omega = rpa_omegas_.cwiseInverse();
+  // A = 4 Z Omega^-1 Z^T as a rank-k update (lower triangle, which is all
+  // SymmetricEigen reads; dsyevd with MKL or Accelerate)
+  const Index naux = modes_.rows();
+  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(naux, naux);
+  A.selfadjointView<Eigen::Lower>().rankUpdate(
+      modes_ * (4.0 * inv_omega).cwiseSqrt().asDiagonal());
+  const SymmetricEigenSystem es = SymmetricEigen(A);
+  data.frame_weights = es.values;
+  const Eigen::MatrixXd a =
+      4.0 * (es.vectors.transpose() * modes_).array().square().matrix();
+  data.strength = (a.colwise().sum().transpose()).cwiseProduct(inv_omega);
+  FrameSums(a, rpa_omegas_, nu, data);
+  return data;
 }
 
 ExactPoles Sigma_Exact::Poles() const {

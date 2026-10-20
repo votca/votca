@@ -193,7 +193,23 @@ class EwaldRegion : public Region {
   // a segment, so there is nothing to fall back on.
   Eigen::VectorXd PotentialAt(const std::vector<Eigen::Vector3d>& points) const;
 
+  // Adds the background's potential to Phi() of the charge-response sites
+  // of `foreground` (the polar region's own segments), the partner of
+  // ApplyFieldTo for induced charges. The potential is PotentialAt's: the
+  // permanent background with its induced dipoles, at the site as a point
+  // (the charge-response width is irrelevant at the distances of
+  // background sites). Its additive constant cancels, since the induced
+  // charges of a molecule sum to zero. Like ApplyFieldTo, it falls back on
+  // `foreground` when no foreground has been declared. Sites without
+  // charge response are untouched.
+  void ApplyPotentialTo(std::vector<PolarSegment>& foreground) const;
+
  private:
+  // PotentialAt without the check for a declared foreground: the sums
+  // must already be built.
+  Eigen::VectorXd PotentialAtPoints(
+      const std::vector<Eigen::Vector3d>& points) const;
+
   // Built once, on first use, from the calling region's geometry. The
   // foreground's positions are fixed for the whole job even though its
   // dipoles change every SCF iteration, so the sums -- and the neighbour

@@ -26,6 +26,7 @@
 
 // Local VOTCA includes
 #include "eigen.h"
+#include "exact_pole_sums.h"
 #include "screening_kernels.h"
 
 namespace votca {
@@ -60,6 +61,22 @@ class Sigma_base {
 
   // Calculates full exchange matrix
   Eigen::MatrixXd CalcExchangeMatrix() const;
+  /// Hartree matrix of the active occupied levels (rpamin..homo) in the QP
+  /// window, in the current orbitals of the integrals:
+  ///   J_mn = 2 sum_{i occ} (mn|ii) = 2 sum_PQ M_mn,P v_PQ d_Q,
+  ///   d = sum_{i occ} M_ii
+  /// (the frozen core below rpamin is not included). QSGW uses the change
+  /// of J between the DFT and the QP orbitals.
+  ///
+  /// Without R the interaction is the bare v. With R, the reaction field of
+  /// a static environment in the FILL-TIME auxiliary frame (as for
+  /// CalcReactionFieldMatrix), it is u = v + v_reac, i.e. the kernel 1 + R:
+  ///   J^u_mn = 2 sum_PQ M_mn,P (1 + R)_PQ d_Q,
+  /// which adds the potential of the dipoles the environment induces in
+  /// response to the density. Both are evaluated in whatever frame the
+  /// integrals are in now (rotated, dressed or not).
+  Eigen::MatrixXd CalcHartreeMatrix(
+      const Eigen::MatrixXd& R = Eigen::MatrixXd()) const;
 
   /**
    * \brief Static self-energy of an environment reaction field: the
@@ -103,6 +120,43 @@ class Sigma_base {
   virtual std::string ScreeningSummary() const { return ""; }
   /// False if CalcCorrelationOffDiag only returns zeros (CDA).
   virtual bool HasOffDiagonal() const { return true; }
+
+  /// Pole form of the diagonal correlation self-energy (ppm and exact):
+  ///   Sigma_c,nn(w) = prefactor sum_{m,s} c_s r_n(m,s)^2 f(w - z_ms),
+  ///   z_ms = e_m - Omega_s (m occupied), e_m + Omega_s (m virtual),
+  ///   f(t) = t / (t^2 + eta^2),
+  /// with r_n = residues (B x S, column-major), c_s = mode_factors (nullptr:
+  /// all 1). The references point into the evaluator and the RPA; they are
+  /// valid until the next PrepareScreening or RPA energy update.
+  struct DiagPoleForm {
+    ExactPoles poles;
+    const double* residues;
+    const double* mode_factors;
+    double prefactor;
+  };
+  virtual bool HasPoleForm() const { return false; }
+  virtual DiagPoleForm PoleForm(Index gw_level) const;
+
+  /// The screening W_c = W - v in modes s, for the self-energy dump.
+  /// Frame: the eigenvectors phi_i of eps^-1(0) in the auxiliary basis of
+  /// the integrals (the plasmon-pole frame); W_c in it,
+  ///   eps^-1_ii(i nu) - 1 = - sum_s a_is Omega_s / (nu^2 + Omega_s^2),
+  /// with a_is = 4 (phi_i^T Z_s)^2 (exact; Z_s the aux vector of RPA mode s)
+  /// or a_ii = w_i Omega_i (plasmon pole: one pole per mode).
+  struct ScreeningData {
+    Eigen::VectorXd omegas;         // Omega_s
+    Eigen::VectorXd strength;       // sum_i a_is / Omega_s: share of mode s in
+                                    // -Tr[eps^-1(0) - 1]
+    Eigen::VectorXd frame_weights;  // w_i = 1 - 1/eps_i(0) = -(eps^-1(0)-1)_ii
+    Eigen::MatrixXd frame_moments;  // (i, k): sum_s a_is Omega_s^(k-1),
+                                    // k = 0, 1, 2 (k = 0 equals w_i)
+    Eigen::MatrixXd frame_eps_inv_imag;  // (i, j): eps^-1_ii(i nu_j) - 1
+    Eigen::VectorXd energies;            // RPA input energies W was built with
+  };
+  /// Keep what ScreeningDump needs from the next PrepareScreening on (the
+  /// exact evaluator then keeps the aux x modes array Z).
+  void setKeepScreeningData(bool keep) { keep_screening_data_ = keep; }
+  virtual ScreeningData ScreeningDump(const Eigen::VectorXd& nu) const;
   // Calculates Sigma_c diagonal elements
   virtual double CalcCorrelationDiagElementDerivative(
       Index gw_level, double frequency) const = 0;
@@ -145,6 +199,13 @@ class Sigma_base {
 
   Index qptotal_ = 0;
   Index rpatotal_ = 0;
+  bool keep_screening_data_ = false;
+
+  /// ScreeningData from modes a_is given as (phi^T Z)^2-like weights:
+  /// fills frame_moments and frame_eps_inv_imag from the weights
+  /// a (frame x modes) and the mode frequencies.
+  static void FrameSums(const Eigen::MatrixXd& a, const Eigen::VectorXd& omegas,
+                        const Eigen::VectorXd& nu, ScreeningData& data);
 
   void CountDiagEval() const { diag_eval_counter_.fetch_add(1); }
 

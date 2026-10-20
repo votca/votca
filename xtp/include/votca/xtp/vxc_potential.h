@@ -50,6 +50,15 @@ class Vxc_Potential {
   void setXCfunctional(const std::string& functional);
 
   Mat_p_Energy IntegrateVXC(const Eigen::MatrixXd& density_matrix) const;
+
+  /// The xc kernel of the closed-shell density P (density_matrix, total)
+  /// applied to symmetric first-order density matrices dP_k (total): the
+  /// first-order change of IntegrateVXC, int f_xc[rho] drho_k chi chi, with
+  /// the gradient terms for GGAs. The AO values are evaluated once for all
+  /// k. Throws if the functional has no second derivatives in libxc.
+  std::vector<Eigen::MatrixXd> IntegrateFXC(
+      const Eigen::MatrixXd& density_matrix,
+      const std::vector<Eigen::MatrixXd>& response_matrices) const;
   SpinResult IntegrateVXCSpin(const Eigen::MatrixXd& dmat_alpha,
                               const Eigen::MatrixXd& dmat_beta) const;
 
@@ -192,6 +201,11 @@ class Vxc_Potential {
                        double* exc, double* vrho, double* vsigma) const;
   void EvaluateXCSpinBatch(Index n, const double* rho, const double* sigma,
                            double* exc, double* vrho, double* vsigma) const;
+  // first and second derivatives for n points, unpolarized, exchange and
+  // correlation summed; vsigma, v2rhosigma, v2sigma2 are zero for LDA
+  void EvaluateFXCBatch(Index n, const double* rho, const double* sigma,
+                        double* vsigma, double* v2rho2, double* v2rhosigma,
+                        double* v2sigma2) const;
 
   // Grid points processed together inside a box.
   static constexpr Index kPointBlock = 128;

@@ -129,6 +129,13 @@ if(INJECT_MARCH_NATIVE)
   check_cxx_compiler_flag("-march=native" COMPILER_SUPPORTS_march_native)
   if(COMPILER_SUPPORTS_march_native)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+  else()
+    # AArch64 compilers that reject -march=native (older Apple clang) take
+    # the CPU instead; without either, Apple clang tunes for the M1
+    check_cxx_compiler_flag("-mcpu=native" COMPILER_SUPPORTS_mcpu_native)
+    if(COMPILER_SUPPORTS_mcpu_native)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=native")
+    endif()
   endif()
 endif()
 
@@ -157,6 +164,9 @@ message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 find_package(Threads REQUIRED)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
+
+# before GROMACS: its config file may look for OpenMP itself
+include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/HomebrewLibomp.cmake)
 
 find_package(GROMACS 2021 CONFIG NAMES gromacs gromacs_d)
 set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read/write gromacs data files")

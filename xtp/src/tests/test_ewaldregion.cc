@@ -35,10 +35,12 @@
 
 // Local VOTCA includes
 #include "votca/tools/property.h"
+#include "votca/xtp/chargeresponse.h"
 #include "votca/xtp/ewaldparameters.h"
 #include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/ewaldregistry.h"
 #include "votca/xtp/logger.h"
+#include "votca/xtp/polarregion.h"
 
 using namespace votca;
 using namespace votca::xtp;
@@ -1016,6 +1018,186 @@ BOOST_AUTO_TEST_CASE(potential_at_is_pointwise) {
                     1e-14 * scale);
   BOOST_CHECK_SMALL((phi_all.tail(2) - phi_nuclei).cwiseAbs().maxCoeff(),
                     1e-14 * scale);
+}
+
+namespace {
+// Charge-response tests: a background of three water-like molecules (one of
+// them the foreground), with or without induced dipoles.
+const std::vector<Eigen::Vector3d> kWater = {Eigen::Vector3d(0, 0, 0.22),
+                                             Eigen::Vector3d(0, 1.43, -0.89),
+                                             Eigen::Vector3d(0, -1.43, -0.89)};
+const std::vector<Eigen::Vector3d> kOffsets = {Eigen::Vector3d(0, 0, 0),
+                                               Eigen::Vector3d(5.5, 1.0, 0.5),
+                                               Eigen::Vector3d(-1.0, 6.0, 2.5)};
+
+PolarSegment Water(Index id, bool induced) {
+  PolarSegment seg("water", id);
+  const std::vector<double> q = {-0.8, 0.4, 0.4};
+  for (Index i = 0; i < 3; ++i) {
+    PolarSite site(i, (i == 0) ? "O" : "H",
+                   kWater[std::size_t(i)] + kOffsets[std::size_t(id)]);
+    site.setpolarization(((i == 0) ? 5.5 : 2.0) * Eigen::Matrix3d::Identity());
+    site.setCharge(q[std::size_t(i)]);
+    const double scale = induced ? 1.0 + 0.3 * double(id + i) : 0.0;
+    site.setInduced_Dipole(scale * Eigen::Vector3d(2e-2, -1e-2, 3e-2));
+    seg.push_back(site);
+  }
+  return seg;
+}
+
+Eigen::MatrixXd WaterPi() {
+  Eigen::MatrixXd pi(3, 3);
+  pi << 2.4, -1.2, -1.2, -1.2, 1.5, -0.3, -1.2, -0.3, 1.5;
+  return pi;
+}
+
+// segment 0 as a charge-response molecule (induced dipoles cleared)
+PolarSegment CRWater() {
+  PolarSegment seg = Water(0, false);
+  for (PolarSite& site : seg) {
+    site.setChargeResponse(1.3, false);
+  }
+  seg.setChargeResponse(ChargeResponse({"O", "H", "H"}, WaterPi()));
+  return seg;
+}
+
+void WriteWaterBackground(const std::string& file, bool induced) {
+  EwaldRegistry registry;
+  for (Index id = 0; id < 3; ++id) {
+    registry.Register(id, EwaldChargeState::Neutral, Water(id, induced));
+  }
+  EwaldParameters params;
+  params.alpha = 0.35;
+  params.k_max = 12.0 * params.alpha;
+  params.r_min = 12.0;
+  params.field_tol = 1e-12;
+  params.thole_a = 0.39;
+  params.screening_factor = 6.0;
+  params.shape = EwaldShape::Cube;
+  params.box = 24.0 * Eigen::Matrix3d::Identity();
+  CheckpointFile cpf(file, CheckpointAccessLevel::CREATE);
+  CheckpointWriter w = cpf.getWriter();
+  registry.WriteToCpt(w);
+  CheckpointWriter wp = w.openChild("ewald_parameters");
+  params.WriteToCpt(wp);
+}
+
+Eigen::Vector3d CentroidOf(const PolarSegment& seg) {
+  Eigen::Vector3d c = Eigen::Vector3d::Zero();
+  for (const PolarSite& site : seg) {
+    c += site.getPos();
+  }
+  return c / double(seg.size());
+}
+}  // namespace
+
+// ApplyPotentialTo puts PotentialAt on the charge-response sites (with or
+// without a declared foreground) and nothing on other sites, and the
+// potential is consistent with the field ApplyFieldTo delivers: in the
+// polar region's convention V = grad phi. The background has no induced
+// dipoles here, as the field on a polarizable site is Thole-damped against
+// them and the potential at a point is not.
+BOOST_AUTO_TEST_CASE(potential_on_charge_response_sites) {
+  const std::string file = "ewaldregion_test_cr_potential.hdf5";
+  WriteWaterBackground(file, false);
+  Logger log;
+  log.setReportLevel(Log::error);
+  const tools::Property prop = RegionDefinition(file);
+
+  // reference: declared foreground, PotentialAt
+  EwaldRegion reference(1, log);
+  reference.Initialize(prop.get("ewaldregion"));
+  std::vector<PolarSegment> foreground = {CRWater(), Water(1, false)};
+  reference.RegisterForeground(
+      {{0, CentroidOf(foreground[0])}, {1, CentroidOf(foreground[1])}});
+  std::vector<Eigen::Vector3d> points;
+  for (const PolarSite& site : foreground[0]) {
+    points.push_back(site.getPos());
+  }
+  const Eigen::VectorXd phi_ref = reference.PotentialAt(points);
+
+  // no declared foreground: ApplyFieldTo and ApplyPotentialTo fall back on
+  // the segments they are handed
+  EwaldRegion region(1, log);
+  region.Initialize(prop.get("ewaldregion"));
+  region.ApplyFieldTo(foreground);
+  region.ApplyPotentialTo(foreground);
+  BOOST_REQUIRE_GT(phi_ref.cwiseAbs().maxCoeff(), 1e-3);
+  for (Index i = 0; i < 3; ++i) {
+    BOOST_CHECK_CLOSE(foreground[0][i].Phi(), phi_ref[i], 1e-10);
+    BOOST_CHECK_EQUAL(foreground[1][i].Phi(), 0.0);
+  }
+
+  // V = grad phi on the charge-response sites
+  const double h = 1e-3;
+  for (Index i = 0; i < 3; ++i) {
+    Eigen::Vector3d grad;
+    for (Index k = 0; k < 3; ++k) {
+      auto phi = [&](double t) {
+        Eigen::Vector3d p = foreground[0][i].getPos();
+        p(k) += t;
+        return reference.PotentialAt({p})[0];
+      };
+      grad(k) =
+          (-phi(2 * h) + 8 * phi(h) - 8 * phi(-h) + phi(-2 * h)) / (12 * h);
+    }
+    BOOST_CHECK_SMALL((foreground[0][i].V() - grad).norm(), 1e-7 * grad.norm());
+  }
+  std::remove(file.c_str());
+}
+
+// A polar region of one charge-response molecule in an Ewald background
+// (with induced dipoles): without intramolecular couplings the response is
+// dq = -Pi phi and mu = -alpha V, with the background's potential and
+// field, which the region's sites carry.
+BOOST_AUTO_TEST_CASE(charge_response_region_in_ewald_background) {
+  const std::string file = "ewaldregion_test_cr_region.hdf5";
+  WriteWaterBackground(file, true);
+  Logger log;
+  log.setReportLevel(Log::error);
+  const tools::Property prop = RegionDefinition(file);
+
+  std::vector<std::unique_ptr<Region>> regions;
+  auto polar = std::make_unique<PolarRegion>(0, log);
+  polar->push_back(CRWater());
+  tools::Property popt;
+  popt.add("max_iter", "200");
+  popt.add("tolerance_dipole", "1e-12");
+  popt.add("tolerance_energy", "1e-8");
+  popt.add("exp_damp", "0.39");
+  popt.add("cr_width", "0.7");
+  polar->Initialize(popt);
+  auto ewald = std::make_unique<EwaldRegion>(1, log);
+  ewald->Initialize(prop.get("ewaldregion"));
+  ewald->RegisterForeground({{0, CentroidOf(CRWater())}});
+  PolarRegion* p = polar.get();
+  EwaldRegion* e = ewald.get();
+  regions.push_back(std::move(polar));
+  regions.push_back(std::move(ewald));
+  p->Evaluate(regions);
+
+  // background potential and field on the same sites
+  std::vector<PolarSegment> probe = {CRWater()};
+  e->ApplyFieldTo(probe);
+  e->ApplyPotentialTo(probe);
+  Eigen::VectorXd phi(3);
+  for (Index i = 0; i < 3; ++i) {
+    phi[i] = probe[0][i].Phi();
+  }
+  BOOST_REQUIRE_GT(phi.cwiseAbs().maxCoeff(), 1e-3);
+  const Eigen::VectorXd dq = -WaterPi() * phi;
+  const PolarSegment& seg = (*p)[0];
+  for (Index i = 0; i < 3; ++i) {
+    BOOST_CHECK_CLOSE(seg[i].Phi(), phi[i], 1e-10);
+    BOOST_CHECK_SMALL((seg[i].V() - probe[0][i].V()).norm(),
+                      1e-12 * probe[0][i].V().norm());
+    BOOST_CHECK_SMALL(seg[i].Induced_Charge() - dq[i],
+                      1e-8 * dq.cwiseAbs().maxCoeff());
+    const Eigen::Vector3d mu = -((i == 0) ? 5.5 : 2.0) * probe[0][i].V();
+    BOOST_CHECK_SMALL((seg[i].Induced_Dipole() - mu).norm(),
+                      1e-8 * mu.norm() + 1e-14);
+  }
+  std::remove(file.c_str());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

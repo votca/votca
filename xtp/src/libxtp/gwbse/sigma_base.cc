@@ -24,6 +24,8 @@
 #include <boost/math/constants/constants.hpp>
 
 #include <algorithm>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 // VOTCA includes
@@ -81,6 +83,38 @@ Eigen::MatrixXd Sigma_base::PairContraction(
   return A;
 }
 
+Sigma_base::DiagPoleForm Sigma_base::PoleForm(Index) const {
+  throw std::runtime_error(
+      "The pole form of Sigma_c is only available for sigma_integrator ppm "
+      "and exact");
+}
+
+Sigma_base::ScreeningData Sigma_base::ScreeningDump(
+    const Eigen::VectorXd&) const {
+  throw std::runtime_error(
+      "Screening data are only available for sigma_integrator ppm and exact");
+}
+
+void Sigma_base::FrameSums(const Eigen::MatrixXd& a,
+                           const Eigen::VectorXd& omegas,
+                           const Eigen::VectorXd& nu, ScreeningData& data) {
+  const Index S = omegas.size();
+  // columns: Omega^-1, Omega^0, Omega^1, then Omega/(nu^2+Omega^2)
+  Eigen::MatrixXd g(S, 3 + nu.size());
+  for (Index s = 0; s < S; ++s) {
+    const double w = omegas(s);
+    g(s, 0) = 1.0 / w;
+    g(s, 1) = 1.0;
+    g(s, 2) = w;
+    for (Index j = 0; j < nu.size(); ++j) {
+      g(s, 3 + j) = -w / (nu(j) * nu(j) + w * w);
+    }
+  }
+  const Eigen::MatrixXd sums = a * g;
+  data.frame_moments = sums.leftCols(3);
+  data.frame_eps_inv_imag = sums.rightCols(nu.size());
+}
+
 Eigen::MatrixXd Sigma_base::CalcExchangeMatrix() const {
   const Index occlevel = opt_.homo - opt_.rpamin + 1;
   const Index qpmin = opt_.qpmin - opt_.rpamin;
@@ -104,6 +138,43 @@ Eigen::MatrixXd Sigma_base::CalcExchangeMatrix() const {
         }
       });
   return -0.5 * (A + A.transpose());
+}
+
+Eigen::MatrixXd Sigma_base::CalcHartreeMatrix(const Eigen::MatrixXd& R) const {
+  const Index occlevel = opt_.homo - opt_.rpamin + 1;
+  const Index qpmin = opt_.qpmin - opt_.rpamin;
+  // d_P = sum_{i occ} M_ii,P (the density in the auxiliary basis)
+  Eigen::VectorXd d = Eigen::VectorXd::Zero(Mmn_.auxsize());
+  for (Index i = 0; i < occlevel; ++i) {
+    d += Mmn_[i].row(i).transpose();
+  }
+  // Kernel 1 (bare v) or 1 + R (u = v + v_reac), given in the fill-time
+  // frame and brought into the current one (see CalcExchangeMatrix). On
+  // dressed integrals F F^T = 1 + R, so the screened kernel is close to the
+  // identity there; it is still taken explicitly, which keeps this right
+  // in any frame.
+  if (R.size() > 0) {
+    if (R.rows() != Mmn_.auxsize() || R.cols() != Mmn_.auxsize()) {
+      throw std::runtime_error(
+          "Sigma_base::CalcHartreeMatrix: reaction field is " +
+          std::to_string(R.rows()) + "x" + std::to_string(R.cols()) +
+          ", auxiliary basis has " + std::to_string(Mmn_.auxsize()) +
+          " functions.");
+    }
+    d = Mmn_.ToCurrentAuxFrame(
+            Eigen::MatrixXd::Identity(Mmn_.auxsize(), Mmn_.auxsize()) + R) *
+        d;
+  } else if (!Mmn_.AuxFrameIsOrthogonal()) {
+    d = Mmn_.ToCurrentAuxFrame(
+            Eigen::MatrixXd::Identity(Mmn_.auxsize(), Mmn_.auxsize())) *
+        d;
+  }
+  Eigen::MatrixXd J(qptotal_, qptotal_);
+#pragma omp parallel for schedule(dynamic)
+  for (Index m = 0; m < qptotal_; ++m) {
+    J.col(m) = 2.0 * Mmn_[m + qpmin].middleRows(qpmin, qptotal_) * d;
+  }
+  return 0.5 * (J + J.transpose());
 }
 
 Eigen::MatrixXd Sigma_base::CalcReactionFieldMatrix(

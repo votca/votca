@@ -23,6 +23,7 @@
 // Local private VOTCA includes
 #include "tools/apdft.h"
 #include "tools/coupling.h"
+#include "tools/crfit.h"
 #include "tools/densityanalysis.h"
 #include "tools/dftgwbse.h"
 #include "tools/diabatization.h"
@@ -51,6 +52,7 @@ void QMToolFactory::RegisterAll() {
   this->Register<DensityAnalysis>("densityanalysis");
   this->Register<Coupling>("coupling");
   this->Register<MolPol>("molpol");
+  this->Register<CRFit>("crfit");
   this->Register<APDFT>("apdft");
   this->Register<Mol2Orb>("mol2orb");
   this->Register<Orb2Mol>("orb2mol");

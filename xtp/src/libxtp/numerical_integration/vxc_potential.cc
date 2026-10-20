@@ -40,6 +40,22 @@
 namespace votca {
 namespace xtp {
 
+namespace {
+// Range-separated hybrids (HSE, CAM-B3LYP, ...) need erf-attenuated exact
+// exchange, which neither the DFT nor GW parts implement: the code would use
+// cam_alpha as a global exchange fraction and run a different functional
+// without notice. Refuse them.
+void RejectRangeSeparated(const xc_func_type& func, const std::string& name) {
+  if (func.cam_beta != 0.0 || func.cam_omega != 0.0) {
+    throw std::runtime_error(
+        "Functional " + name +
+        " is a range-separated hybrid; range-separated exact exchange is not "
+        "implemented in xtp (DFT and GW). Use a global hybrid or a semilocal "
+        "functional.");
+  }
+}
+}  // namespace
+
 template <class Grid>
 Vxc_Potential<Grid>::~Vxc_Potential() {
   if (setXC_) {
@@ -77,6 +93,13 @@ double Vxc_Potential<Grid>::getExactExchange(const std::string& functional) {
     if (xc_func_init(&func, func_id, XC_UNPOLARIZED) != 0) {
       throw std::runtime_error(
           (boost::format("Functional %s not found\n") % functional_name).str());
+    }
+
+    try {
+      RejectRangeSeparated(func, functional_name);
+    } catch (...) {
+      xc_func_end(&func);
+      throw;
     }
 
     if (exactexchange > 0 && func.cam_alpha > 0) {
@@ -122,6 +145,13 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
         (boost::format("Functional %s not found\n") % strs[0]).str());
   }
 
+  try {
+    RejectRangeSeparated(xfunc, strs[0]);
+  } catch (...) {
+    xc_func_end(&xfunc);
+    throw;
+  }
+
   if (xfunc.info->kind != 2 && !use_separate_) {
     throw std::runtime_error(
         "Your functional misses either correlation or exchange, please specify "
@@ -133,6 +163,14 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
       xc_func_end(&xfunc);
       throw std::runtime_error(
           (boost::format("Functional %s not found\n") % strs[1]).str());
+    }
+
+    try {
+      RejectRangeSeparated(cfunc, strs[1]);
+    } catch (...) {
+      xc_func_end(&xfunc);
+      xc_func_end(&cfunc);
+      throw;
     }
 
     if ((xfunc.info->kind + cfunc.info->kind) != 1) {
@@ -352,6 +390,186 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
   }
 
   return Mat_p_Energy(vxc.energy(), vxc.matrix() + vxc.matrix().transpose());
+}
+
+namespace {
+// first and second derivatives of one functional (unpolarized)
+void CallLibxcFXC(const xc_func_type& f, Index n, const double* rho,
+                  const double* sigma, double* vrho, double* vsigma,
+                  double* v2rho2, double* v2rhosigma, double* v2sigma2) {
+  if (!(f.info->flags & XC_FLAGS_HAVE_FXC)) {
+    throw std::runtime_error(std::string("Functional ") + f.info->name +
+                             " has no second derivatives in libxc");
+  }
+  switch (f.info->family) {
+    case XC_FAMILY_LDA:
+      xc_lda_vxc_fxc(&f, std::size_t(n), rho, vrho, v2rho2);
+      break;
+    case XC_FAMILY_GGA:
+    case XC_FAMILY_HYB_GGA:
+      xc_gga_vxc_fxc(&f, std::size_t(n), rho, sigma, vrho, vsigma, v2rho2,
+                     v2rhosigma, v2sigma2);
+      break;
+    default:
+      throw std::runtime_error("Unsupported XC functional family.");
+  }
+}
+}  // namespace
+
+template <class Grid>
+void Vxc_Potential<Grid>::EvaluateFXCBatch(Index n, const double* rho,
+                                           const double* sigma, double* vsigma,
+                                           double* v2rho2, double* v2rhosigma,
+                                           double* v2sigma2) const {
+  std::vector<double> vrho(n);
+  std::fill(vsigma, vsigma + n, 0.0);
+  std::fill(v2rhosigma, v2rhosigma + n, 0.0);
+  std::fill(v2sigma2, v2sigma2 + n, 0.0);
+  CallLibxcFXC(xfunc, n, rho, sigma, vrho.data(), vsigma, v2rho2, v2rhosigma,
+               v2sigma2);
+  if (use_separate_) {
+    std::vector<double> vr(n), vs(n, 0.0), rr(n), rs(n, 0.0), ss(n, 0.0);
+    CallLibxcFXC(cfunc, n, rho, sigma, vr.data(), vs.data(), rr.data(),
+                 rs.data(), ss.data());
+    for (Index i = 0; i < n; ++i) {
+      vsigma[i] += vs[i];
+      v2rho2[i] += rr[i];
+      v2rhosigma[i] += rs[i];
+      v2sigma2[i] += ss[i];
+    }
+  }
+}
+
+// First-order change of IntegrateVXC. With sigma = |grad rho|^2, at a point
+//   drho, dg = grad drho, dsigma = 2 g.dg
+//   dv_rho   = v2rho2 drho + v2rhosigma dsigma
+//   dv_sigma = v2rhosigma drho + v2sigma2 dsigma
+//   dV = int dv_rho chi chi + 2 (dv_sigma g + vsigma dg).grad(chi chi)
+// assembled like IntegrateVXC: a = w (dv_rho/2 phi + 2 dphi.(...)),
+// dV = a phi^T + transpose. The points IntegrateVXC skips are skipped.
+template <class Grid>
+std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::IntegrateFXC(
+    const Eigen::MatrixXd& density_matrix,
+    const std::vector<Eigen::MatrixXd>& response_matrices) const {
+  const Index n_ao = density_matrix.rows();
+  const Index n_resp = Index(response_matrices.size());
+  std::vector<Eigen::MatrixXd> result(static_cast<std::size_t>(n_resp),
+                                      Eigen::MatrixXd::Zero(n_ao, n_ao));
+  if (n_resp == 0) {
+    return result;
+  }
+  for (const Eigen::MatrixXd& m : response_matrices) {
+    if (m.rows() != n_ao || m.cols() != n_ao) {
+      throw std::runtime_error(
+          "IntegrateFXC: response matrix does not match the density matrix");
+    }
+  }
+  // fail before the grid loop for functionals without fxc
+  {
+    const double rho = 0.1;
+    const double sigma = 0.01;
+    double vs, rr, rs, ss;
+    EvaluateFXCBatch(1, &rho, &sigma, &vs, &rr, &rs, &ss);
+  }
+
+#pragma omp parallel for schedule(guided)
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+    const Eigen::MatrixXd DMAT_here = 2 * box.ReadFromBigMatrix(density_matrix);
+    std::vector<Eigen::MatrixXd> dmat_k(static_cast<std::size_t>(n_resp));
+    for (Index k = 0; k < n_resp; ++k) {
+      dmat_k[std::size_t(k)] =
+          2 * box.ReadFromBigMatrix(response_matrices[std::size_t(k)]);
+    }
+    const Index nf = box.Matrixsize();
+    const Index block = std::min(kPointBlock, box.size());
+    std::vector<Eigen::MatrixXd> fxc_here(static_cast<std::size_t>(n_resp),
+                                          Eigen::MatrixXd::Zero(nf, nf));
+    Eigen::MatrixXd phi(nf, block);
+    Eigen::MatrixXd dphi(nf, 3 * block);
+    Eigen::MatrixXd y(nf, block);
+    Eigen::MatrixXd yk(nf, block);
+    Eigen::MatrixXd a(nf, block);
+    std::vector<Index> kept;
+    std::vector<double> rho, sigma, vsigma, v2rho2, v2rhosigma, v2sigma2;
+    std::vector<Eigen::Vector3d> grad;
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+
+    for (Index start = 0; start < box.size(); start += block) {
+      const Index nb = std::min(block, box.size() - start);
+      for (Index p = 0; p < nb; ++p) {
+        box.CalcAOValues(points[start + p], phi, dphi, p);
+      }
+      y.leftCols(nb).noalias() = DMAT_here * phi.leftCols(nb);
+      kept.clear();
+      rho.clear();
+      sigma.clear();
+      grad.clear();
+      for (Index p = 0; p < nb; ++p) {
+        const double r = 0.5 * phi.col(p).dot(y.col(p));
+        if (r * weights[start + p] < 1.e-20) {
+          continue;
+        }
+        const Eigen::Vector3d g =
+            dphi.middleCols(3 * p, 3).transpose() * y.col(p);
+        kept.push_back(p);
+        rho.push_back(r);
+        sigma.push_back(g.squaredNorm());
+        grad.push_back(g);
+      }
+      const Index nk = Index(kept.size());
+      if (nk == 0) {
+        continue;
+      }
+      vsigma.resize(nk);
+      v2rho2.resize(nk);
+      v2rhosigma.resize(nk);
+      v2sigma2.resize(nk);
+      EvaluateFXCBatch(nk, rho.data(), sigma.data(), vsigma.data(),
+                       v2rho2.data(), v2rhosigma.data(), v2sigma2.data());
+      Eigen::MatrixXd phik(nf, nk);
+      for (Index q = 0; q < nk; ++q) {
+        phik.col(q) = phi.col(kept[q]);
+      }
+
+      for (Index k = 0; k < n_resp; ++k) {
+        yk.leftCols(nb).noalias() = dmat_k[std::size_t(k)] * phi.leftCols(nb);
+        for (Index q = 0; q < nk; ++q) {
+          const Index p = kept[q];
+          const double w = weights[start + p];
+          const double drho = 0.5 * phi.col(p).dot(yk.col(p));
+          if (is_gga_) {
+            const Eigen::Vector3d dg =
+                dphi.middleCols(3 * p, 3).transpose() * yk.col(p);
+            const double dsigma = 2.0 * grad[q].dot(dg);
+            const double dv_rho = v2rho2[q] * drho + v2rhosigma[q] * dsigma;
+            const double dv_sigma = v2rhosigma[q] * drho + v2sigma2[q] * dsigma;
+            const Eigen::Vector3d vec =
+                2.0 * (dv_sigma * grad[q] + vsigma[q] * dg);
+            a.col(q) = (w * 0.5 * dv_rho) * phi.col(p) +
+                       w * (dphi.middleCols(3 * p, 3) * vec);
+          } else {
+            a.col(q) = (w * 0.5 * v2rho2[q] * drho) * phi.col(p);
+          }
+        }
+        fxc_here[std::size_t(k)].noalias() += a.leftCols(nk) * phik.transpose();
+      }
+    }
+#pragma omp critical
+    {
+      for (Index k = 0; k < n_resp; ++k) {
+        box.AddtoBigMatrix(result[std::size_t(k)], fxc_here[std::size_t(k)]);
+      }
+    }
+  }
+  for (Eigen::MatrixXd& m : result) {
+    m = (m + m.transpose()).eval();
+  }
+  return result;
 }
 
 // ===========================================================================

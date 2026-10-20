@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+"""Compare two charge-response matrix (.crm) files: elements, positions and
+Pi within tolerances."""
+
+import argparse
+import sys
+
+import numpy as np
+
+
+def read_crm(path):
+    lines = [ln for ln in open(path).read().split("\n")
+             if ln.strip() and not ln.lstrip().startswith("!")]
+    n = int(lines[0])
+    elements = [ln.split()[0] for ln in lines[1:1 + n]]
+    pos = np.array([[float(v) for v in ln.split()[1:4]]
+                    for ln in lines[1:1 + n]])
+    pi = np.array([[float(v) for v in ln.split()]
+                   for ln in lines[1 + n:1 + 2 * n]])
+    if pi.shape != (n, n):
+        raise ValueError(f"{path}: expected a {n}x{n} matrix")
+    return elements, pos, pi
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("file_a")
+    ap.add_argument("file_b")
+    ap.add_argument("--rtol", type=float, default=1e-8)
+    ap.add_argument("--atol", type=float, default=1e-12)
+    args = ap.parse_args()
+    try:
+        ea, pa, ma = read_crm(args.file_a)
+        eb, pb, mb = read_crm(args.file_b)
+    except Exception as e:  # pylint: disable=broad-except
+        print(f"[compare_crm] ERROR: {e}", file=sys.stderr)
+        return 2
+    issues = []
+    if ea != eb:
+        issues.append(f"elements differ: {ea} vs {eb}")
+    elif not np.allclose(pa, pb, rtol=args.rtol, atol=args.atol):
+        issues.append(f"positions differ by up to {np.abs(pa - pb).max():.3g}")
+    elif not np.allclose(ma, mb, rtol=args.rtol, atol=args.atol):
+        issues.append(f"Pi differs by up to {np.abs(ma - mb).max():.3g}")
+    if issues:
+        print("[compare_crm] FAIL: " + "; ".join(issues))
+        return 1
+    print("[compare_crm] OK: files match (within tolerances)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

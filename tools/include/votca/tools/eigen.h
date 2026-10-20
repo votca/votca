@@ -24,9 +24,9 @@
 #include "votca_tools_config.h"
 
 #ifdef APPLE_ACCELERATE_FOUND
-#include <lapacke.h>
+// BLAS only: the LAPACK of Accelerate is used directly where it matters
+// (xtp accelerate_lapack.h); see CMakeModules/FindAPPLE_ACCELERATE.cmake
 #define EIGEN_USE_BLAS
-#define EIGEN_USE_LAPACKE
 #endif
 
 #ifdef MKL_FOUND

@@ -56,11 +56,19 @@ class Sigma_Exact : public Sigma_base {
   Eigen::MatrixXd CalcCorrelationOffDiag(
       const Eigen::VectorXd& frequencies) const final;
 
+  bool HasPoleForm() const final { return true; }
+  DiagPoleForm PoleForm(Index gw_level) const final;
+  ScreeningData ScreeningDump(const Eigen::VectorXd& nu) const final;
+
  private:
   Eigen::VectorXd rpa_omegas_;  // Eigenvalues from RPA
   // residues of GW level n (column n): the RPA levels x modes array
   // M_n Z, column-major (pole m + B s)
   Eigen::MatrixXd residues_;
+  // kept for ScreeningDump only (keep_screening_data_): Z and the RPA
+  // energies W was built with
+  Eigen::MatrixXd modes_;
+  Eigen::VectorXd screening_energies_;
 
   ExactPoles Poles() const;
   const double* Residues(Index gw_level) const {

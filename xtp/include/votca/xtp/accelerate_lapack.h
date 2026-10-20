@@ -27,11 +27,11 @@ namespace xtp {
 /**
  * \brief LAPACK routines of Apple Accelerate, called directly.
  *
- * With Accelerate, Eigen's LAPACK calls go through LAPACKE, and the LAPACKE
- * the build finds (e.g. Homebrew's) sits on a reference LAPACK and BLAS:
- * single threaded and slow. These wrappers call Accelerate's own LAPACK
- * (the interface of macOS 13.3 and later) instead. They live in a file that
- * does not see lapacke.h, so the two LAPACK declarations never meet.
+ * Accelerate has no LAPACKE, so Eigen only takes its BLAS (EIGEN_USE_BLAS);
+ * the large eigensolvers and Cholesky factorisations call Accelerate's own
+ * LAPACK (the interface of macOS 13.3 and later) through these wrappers.
+ * They live in a file that does not include Eigen, so Accelerate's
+ * declarations never meet the BLAS prototypes Eigen declares itself.
  *
  * Column-major double matrices, leading dimension lda. Each function returns
  * the LAPACK info (0 on success), or kAccelerateUnavailable when this build

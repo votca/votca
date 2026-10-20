@@ -35,6 +35,19 @@ namespace votca {
 namespace xtp {
 using namespace std;
 
+Eigen::Matrix3d XTPDFT::GetPolarizability() const {
+  const std::string file = run_dir_ + "/" + log_file_name_;
+  Orbitals orb;
+  orb.ReadFromCpt(file);
+  if (!orb.hasPolarizability()) {
+    throw std::runtime_error(file +
+                             " contains no polarizability; run xtpdft with "
+                             "dftpackage.xtpdft.polarizability=true");
+  }
+  XTP_LOG(Log::error, *pLog_) << "Polarizability read from " << file << flush;
+  return orb.getPolarizability();
+}
+
 void XTPDFT::ParseSpecificOptions(const tools::Property& options) {
   const std::string job_name = options.get("temporary_file").as<std::string>();
   log_file_name_ = job_name + ".orb";

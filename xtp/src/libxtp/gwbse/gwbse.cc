@@ -26,6 +26,7 @@
 // VOTCA includes
 #include <stdexcept>
 #include <votca/tools/constants.h>
+#include <votca/tools/version.h>
 
 // Local VOTCA includes
 #include "votca/xtp/accelerate_lapack.h"
@@ -639,6 +640,10 @@ void GWBSE::Initialize(tools::Property& options) {
   gwopt_.qsgw_max_virt_correction =
       options.ifExistsReturnElseReturnDefault<double>(
           "gw.qsgw_max_virt_correction", 0.5);
+  gwopt_.qsgw_hartree_update = options.ifExistsReturnElseReturnDefault<bool>(
+      "gw.qsgw_hartree_update", true);
+  gwopt_.qsgw_hartree_screened = options.ifExistsReturnElseReturnDefault<bool>(
+      "gw.qsgw_hartree_screened", true);
   gwopt_.out_of_window_shift.mode = OutOfWindowShift::Parse(
       options.ifExistsReturnElseReturnDefault<std::string>(
           "gw.out_of_window_shift", "max"));
@@ -702,6 +707,41 @@ void GWBSE::Initialize(tools::Property& options) {
         << " Sigma plot spacing: " << sigma_plot_spacing_ << flush;
     XTP_LOG(Log::error, *pLog_)
         << " Sigma plot filename: " << sigma_plot_filename_ << flush;
+  }
+
+  if (options.exists("gw.sigma_dump")) {
+    if (is_uks) {
+      throw std::runtime_error("gw.sigma_dump is not implemented for UKS");
+    }
+    if (gwopt_.sigma_integration != "ppm" &&
+        gwopt_.sigma_integration != "exact") {
+      throw std::runtime_error(
+          "gw.sigma_dump needs sigma_integrator ppm or exact");
+    }
+    if (gwopt_.do_qsgw) {
+      throw std::runtime_error("gw.sigma_dump is not implemented for QSGW");
+    }
+    do_sigma_dump_ = true;
+    sigma_dump_opt_.filename =
+        options.get("gw.sigma_dump.filename").as<std::string>();
+    sigma_dump_opt_.levels_emax_ev =
+        options.get("gw.sigma_dump.levels_emax").as<double>();
+    sigma_dump_opt_.imag_points =
+        options.get("gw.sigma_dump.imag_points").as<Index>();
+    sigma_dump_opt_.imag_scale =
+        options.get("gw.sigma_dump.imag_scale").as<double>();
+    sigma_dump_opt_.spectral_min =
+        options.get("gw.sigma_dump.spectral_min").as<double>();
+    sigma_dump_opt_.spectral_max =
+        options.get("gw.sigma_dump.spectral_max").as<double>();
+    sigma_dump_opt_.spectral_binwidth =
+        options.get("gw.sigma_dump.spectral_binwidth").as<double>();
+    sigma_dump_opt_.plot_steps =
+        options.get("gw.sigma_dump.plot_steps").as<Index>();
+    sigma_dump_opt_.plot_spacing =
+        options.get("gw.sigma_dump.plot_spacing").as<double>();
+    XTP_LOG(Log::error, *pLog_)
+        << " Sigma dump filename: " << sigma_dump_opt_.filename << flush;
   }
 }
 
@@ -1187,6 +1227,7 @@ bool GWBSE::Evaluate() {
       Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
       GW gw = GW(*pLog_, Mmn, vxc, orbitals_.MOs().eigenvalues());
       gw.configure(gwopt_);
+      gw.setKeepScreeningData(do_sigma_dump_);
       gw.setReactionField(reaction_field);
       if (gwopt_.rpamin > 0 && core_exchange_) {
         gw.setCoreExchange(TCMatrix_gwbse::CoreExchange(
@@ -1252,6 +1293,12 @@ bool GWBSE::Evaluate() {
             << flush;
 
         Hqp = gw.getHQP();
+
+        if (do_sigma_dump_) {
+          gw.DumpSigma(sigma_dump_opt_,
+                       (gwopt_.gw_sc_max_iterations > 1) ? "evGW" : "G0W0",
+                       votca::tools::ToolsVersionStr());
+        }
 
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
             gw.DiagonalizeQPHamiltonian();
@@ -1410,6 +1457,10 @@ bool GWBSE::Evaluate() {
         std::chrono::system_clock::now() - start;
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " BSE calculation took "
                                 << elapsed_time.count() << " seconds." << flush;
+  }
+  if (const std::string usage = MemoryBudget::Usage(); !usage.empty()) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " End of GWBSE: " << usage << flush;
   }
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " GWBSE calculation finished " << flush;
