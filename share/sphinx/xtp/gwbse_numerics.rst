@@ -466,7 +466,7 @@ Eigenvalue self-consistency (evGW)
 :math:`W` by the QP energies and iterates until they are consistent;
 ``mode=G0W0`` stops after the first QP solve. Only the energies are updated,
 the orbitals stay the DFT ones (for orbital self-consistency see
-``do_qsgw``).
+:ref:`gwbse_qsgw`).
 
 The fixed-point problem
 =======================
@@ -597,6 +597,269 @@ self-consistent solutions, tracking may end on another one than the full
 search would. Root continuity (the default) has neither problem: it uses the
 full window in every iteration but chooses the root nearest the current
 input, a function of the current energies only.
+
+
+.. _gwbse_qsgw:
+
+Quasiparticle self-consistent GW (QSGW)
+***************************************
+
+evGW updates only the energies; the orbitals stay those of the DFT start, and
+so does the dependence of the result on the functional. QSGW
+[vanSchilfgaarde:2006]_ also updates the orbitals: it replaces the
+exchange-correlation potential by a static, Hermitian approximation of the
+self-energy and iterates until the orbitals and energies of that
+Hamiltonian reproduce themselves. ``do_qsgw=true`` runs QSGW after the
+perturbative step (``mode=G0W0`` or ``evGW``), whose QP energies are the
+starting point. The QSGW energies replace the perturbative ones, and the
+BSE is set up in the QSGW orbitals.
+
+QSGW is available for closed shells (RKS) with ``sigma_integrator=ppm`` or
+``exact``. With ``cda`` it stops with an error: the quadrature becomes
+ill-conditioned as the orbitals rotate.
+
+The QSGW Hamiltonian
+====================
+
+In the DFT orbitals of the GW window the QSGW Hamiltonian is
+
+.. math::
+   :label: equ:gwbse:hqsgw
+
+   H^\mathrm{QSGW} = \operatorname{diag}(\varepsilon^\mathrm{DFT})
+     - V^\mathrm{xc} - a\,K[\rho^\mathrm{DFT}]
+     + \Delta J
+     + U\,\tilde\Sigma\,U^\mathsf{T} ,
+
+with :math:`U` the current QP orbitals (columns, expanded in the DFT
+orbitals) and :math:`\tilde\Sigma` the static self-energy in those orbitals.
+Its eigenvalues are the QP energies, its eigenvectors the new QP orbitals.
+The terms:
+
+* :math:`\tilde\Sigma = \Sigma^\mathrm{x} + \tilde\Sigma^\mathrm{c}`
+  (+ :math:`\Sigma^\mathrm{reac}` in a polarizable environment, see
+  :doc:`embedded_gwbse`). :math:`\Sigma^\mathrm{x}` is the full exchange of
+  the QP orbitals, with the frozen-core exchange if ``core_exchange=true``.
+  :math:`\tilde\Sigma^\mathrm{c}` is the static correlation part, see
+  :ref:`gwbse_qsgw_static`.
+* **Hybrid starts.** :math:`V^\mathrm{xc}` holds only the semilocal part of
+  a hybrid functional with exact-exchange fraction :math:`a`; the term
+  :math:`-a K[\rho^\mathrm{DFT}]` removes the hybrid's exchange (including
+  the frozen core) once, so that QSGW from PBE and from PBE0 solve the same
+  equations. With a frozen core and ``core_exchange=false`` the core
+  exchange would stay at :math:`a` times its value and the result would
+  depend on the functional; the log warns about it. Range-separated hybrids
+  are refused.
+* **Hartree update** (``qsgw_hartree_update``, default true).
+  :math:`H^\mathrm{KS}` holds the Hartree potential of the DFT density;
+  :math:`\Delta J = J[\rho^\mathrm{QP}] - J[\rho^\mathrm{DFT}]` replaces it
+  by that of the QP density of the active occupied levels (the frozen core
+  does not change). Without it the occupied orbitals rotate in a fixed
+  Hartree potential, which is not self-consistent.
+* **Screened Hartree update** (``qsgw_hartree_screened``, default true). In
+  a polarizable environment :math:`H^\mathrm{KS}` also holds the potential
+  of the dipoles the DFT density induced. The update then uses
+  :math:`u = v + v^\mathrm{reac}`, the interaction :math:`W` is built
+  from, so the induced dipoles follow the QP density. ``false`` keeps the
+  environment's response to the DFT density, a control: with it the fixed
+  point still depends on the start (6--40 meV median spread for methane in
+  five Thole sites, depending on how far the starts are apart).
+
+The loop
+========
+
+Each iteration
+
+#. rotates the three-centre integrals to the current QP orbitals (both
+   orbital indices) and rebuilds :math:`W` with the current QP energies;
+#. evaluates :math:`\tilde\Sigma` and :math:`\Delta J` in these orbitals
+   and transforms them to the DFT orbitals;
+#. mixes :math:`\tilde\Sigma` (the whole matrix) with the history of
+   previous iterations: Anderson mixing over ``mixing_order`` previous
+   iterations followed by linear mixing with ``mixing_alpha``;
+   ``mixing_order=0`` is linear mixing alone;
+#. diagonalises :eq:`equ:gwbse:hqsgw` for the next QP energies and
+   orbitals.
+
+The loop has converged when the self-energy it produces differs from the one
+it was given by less than ``qsgw_sc_limit`` (largest matrix element) and the
+QP energies change by less than ``qsgw_sc_limit``; the result is then the
+eigensystem of the produced Hamiltonian. After ``qsgw_max_iterations``
+without convergence the log warns and the last iterate is kept.
+
+Every iteration logs ``max|dE_QP|`` and ``max|Sigma_out - Sigma_in|``. With
+the Hartree update or an environment a second line gives the largest change
+of the Hartree potential (bare and environment parts), the change of
+:math:`\Sigma^\mathrm{reac}` for HOMO and LUMO, and the largest rotation
+between the occupied DFT and QP spaces in degrees.
+
+**Virtual levels far from their DFT energy.** High virtual levels often have
+perturbative corrections of several eV and destabilise the loop. Before the
+loop, the GW window is cut below the first virtual level whose perturbative
+correction exceeds ``qsgw_max_virt_correction`` (default 0.5 Ha); the
+levels above keep their perturbative energies and DFT orbitals. The log
+reports the cut.
+
+.. _gwbse_qsgw_static:
+
+The static self-energy and its regularization
+=============================================
+
+:math:`\tilde\Sigma^\mathrm{c}` has to be static and Hermitian, but the
+correlation self-energy is neither. Off the diagonal it generalises the pole
+sum :eq:`equ:gwbse:polesum` to
+
+.. math::
+
+   \Sigma^\mathrm{c}_{nn'}(\omega) = \sum_{p}
+     \frac{b_{nn'p}\,(\omega - z_{p})}{(\omega - z_{p})^2 + \eta^2},
+   \qquad b_{nn'p} = c_p\, r_{np}\, r_{n'p} ,
+
+with :math:`p = (m,s)` running over the poles, :math:`r_{np}` the residues
+and :math:`c_p` the mode weights of the self-energy model. Two static forms
+are implemented (``qsgw_regularization``).
+
+``eta`` (default)
+    the symmetrised self-energy at the QP energies,
+
+    .. math::
+
+       \tilde\Sigma^\mathrm{c}_{nn'} = \tfrac12\left[
+         \Sigma^\mathrm{c}_{nn'}(E_n) + \Sigma^\mathrm{c}_{nn'}(E_{n'})\right] ,
+
+    with the broadening ``eta``. A pole :math:`z_p` close to a QP energy
+    gives a term up to :math:`1/(2\eta)` in size, so with the default
+    :math:`\eta = 10^{-3}` Ha the Hamiltonian changes abruptly as levels
+    move past poles.
+
+``srg``
+    the form of the similarity-renormalization-group derivation of Marie
+    and Loos [Marie:2023]_ (their eq. 44): with
+    :math:`\Delta_{np} = E_n - z_p`,
+
+    .. math::
+
+       \tilde\Sigma^\mathrm{c}_{nn'} = \sum_p b_{nn'p}\,
+         \frac{\Delta_{np} + \Delta_{n'p}}{\Delta_{np}^2 + \Delta_{n'p}^2}
+         \left[1 - e^{-s(\Delta_{np}^2 + \Delta_{n'p}^2)}\right] ,
+
+    on the diagonal
+    :math:`b_{nnp}\,(1 - e^{-2s\Delta_{np}^2})/\Delta_{np}`. It is
+    Hermitian without symmetrisation, and every term stays finite: a pole at
+    distance :math:`\Delta` from both levels contributes at most
+    :math:`\sim\sqrt{s}`, and terms with :math:`|\Delta| \gg s^{-1/2}`
+    are the undamped :math:`1/\Delta`. The flow parameter
+    ``qsgw_srg_s`` (in Ha\ :sup:`-2`, default 500) plays the role of
+    :math:`1/(2\eta^2)`: :math:`s = 200` corresponds to
+    :math:`\eta = 0.05` Ha, the default 500 to :math:`\eta \approx 0.032` Ha.
+    For :math:`s \to \infty` the diagonal becomes that of the ``eta`` form at
+    :math:`\eta \to 0`; for :math:`s \to 0` the correlation part vanishes
+    (Hartree-Fock). Marie and Loos recommend :math:`s` = 500 or 1000; in their
+    molecular test set qsGW did not converge for larger :math:`s`.
+
+**Why the regularization matters.** QSGW is a nonlinear fixed-point problem
+and can have several solutions. With small :math:`\eta` it often does: for
+methane/3-21G with exact :math:`\Sigma` and all levels in the window, starts
+from 20 randomly rotated orbital sets reach another fixed point in 3--10
+cases, with HOMO or LUMO up to 0.18 eV apart; 10--25 % of the runs do not
+converge in 100 iterations, and the others need 45--90. A start-dependent result is then not
+a property of the method but of the solution the run happened to find. Both
+regularizations remove this, at a price that differs:
+
+.. list-table:: QSGW of methane/3-21G in vacuum, exact :math:`\Sigma` (eV)
+   :header-rows: 1
+   :widths: 30 20 20 30
+
+   * - Setting
+     - HOMO
+     - Gap
+     - Unique fixed point
+   * - ``eta``, :math:`\eta = 10^{-3}` Ha
+     - -17.6708
+     - 24.9863
+     - no
+   * - ``eta``, :math:`\eta = 0.05` Ha
+     - -17.6623
+     - 24.9711
+     - yes
+   * - ``srg``, :math:`s = 100`
+     - -17.6654
+     - 24.9814
+     - yes
+   * - ``srg``, :math:`s = 20000`
+     - -17.6654
+     - 24.9819
+     - yes
+
+With ``eta``, a fixed point is unique only once :math:`\eta` is large, and
+then the QP energies depend on :math:`\eta` (here 15 meV in the gap between
+:math:`10^{-3}` and 0.05 Ha). With ``srg``, the energies change by less than
+1 meV between :math:`s` = 100 and 20000, every converged start reaches the
+same fixed point for :math:`s` = 200--1000 (in vacuum and in an
+environment), and the loop needs 10--50 iterations, fewer for smaller
+:math:`s`. The two forms also differ off the diagonal, so ``srg`` and
+``eta`` at small :math:`\eta` differ by a few meV (5 meV in the HOMO here).
+
+The disabled unit tests ``qsgw_fixed_point_seed_scan`` and
+``qsgw_regularization_scan`` (``test_gw``) reproduce these numbers; run
+them with ``--run_test=gw_test/<name>``.
+
+Recommended settings
+====================
+
+* Use ``qsgw_regularization=srg`` with the default ``qsgw_srg_s=500``, and
+  report :math:`s`. To quote a regularization uncertainty, repeat with
+  :math:`s` = 200 and 1000.
+* Check that the fixed point does not depend on the start before
+  interpreting a starting-point dependence -- for instance QSGW from PBE and
+  from PBE0 should agree to within ``qsgw_sc_limit``.
+* Keep ``core_exchange=true`` with a frozen core, in particular from hybrid
+  starts.
+* With environment screening keep ``qsgw_hartree_screened=true``.
+* If the loop does not converge, check the virtual cut
+  (``qsgw_max_virt_correction``) and the mixing first; ``mixing_order=0``
+  with a small ``mixing_alpha`` shows whether the problem is the mixing or
+  the fixed point.
+
+.. list-table:: QSGW options (``gwbse.gw``)
+   :header-rows: 1
+   :widths: 30 15 55
+
+   * - Option
+     - Default
+     - Meaning
+   * - ``do_qsgw``
+     - false
+     - run QSGW after G0W0 or evGW
+   * - ``qsgw_regularization``
+     - ``eta``
+     - static self-energy: ``eta`` or ``srg``
+   * - ``qsgw_srg_s``
+     - 500
+     - SRG flow parameter (Ha\ :sup:`-2`)
+   * - ``eta``
+     - 1e-3
+     - broadening of the ``eta`` form (Ha); also used by the perturbative
+       step
+   * - ``qsgw_hartree_update``
+     - true
+     - Hartree potential of the QP density
+   * - ``qsgw_hartree_screened``
+     - true
+     - with environment screening: update with :math:`v + v^\mathrm{reac}`
+   * - ``qsgw_sc_limit``
+     - 1e-5
+     - convergence threshold (Ha)
+   * - ``qsgw_max_iterations``
+     - 50
+     - maximum number of iterations
+   * - ``qsgw_max_virt_correction``
+     - 0.5
+     - cut of the window above the first virtual level with a larger
+       perturbative correction (Ha)
+   * - ``mixing_order``, ``mixing_alpha``
+     - 3, 0.7
+     - mixing of :math:`\tilde\Sigma` (shared with evGW)
 
 
 .. _gwbse_satellites:

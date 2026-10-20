@@ -1258,6 +1258,14 @@ void GW::CalculateQSGW() {
         "basis, causing numerical divergence. Use sigma_integration=ppm or "
         "sigma_integration=exact instead.");
   }
+  if (opt_.qsgw_regularization == "srg") {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp()
+        << "  QSGW static self-energy: SRG regularization (Marie and Loos), "
+           "s = "
+        << opt_.qsgw_srg_s << " Ha^-2 (eta-equivalent "
+        << std::sqrt(0.5 / opt_.qsgw_srg_s) << " Ha)" << std::flush;
+  }
 
   // H0 = diag(e_DFT) - V_xc in the DFT-MO basis of the window (the full
   // V_xc matrix: H_KS is diagonal there, H_KS - V_xc is not)
@@ -1423,12 +1431,16 @@ void GW::CalculateQSGW() {
 
     // ── Step 2: S_out, the symmetrised static self-energy in the QP basis
     // (e_qp(i) is the energy of QP orbital i), then in the DFT-MO basis
-    Eigen::MatrixXd tilde_Sigma =
-        Sigma_x_ + sigma_->CalcCorrelationOffDiag(e_qp);
+    Eigen::MatrixXd tilde_Sigma = Sigma_x_;
+    if (opt_.qsgw_regularization == "srg") {
+      tilde_Sigma += sigma_->CalcCorrelationSRG(e_qp, opt_.qsgw_srg_s);
+    } else {
+      tilde_Sigma += sigma_->CalcCorrelationOffDiag(e_qp);
+      tilde_Sigma.diagonal() += sigma_->CalcCorrelationDiag(e_qp);
+    }
     if (sigma_reac.size() > 0) {
       tilde_Sigma += sigma_reac;  // static, symmetric: no symmetrization
     }
-    tilde_Sigma.diagonal() += sigma_->CalcCorrelationDiag(e_qp);
     tilde_Sigma = qsgw_rotation_ * tilde_Sigma * qsgw_rotation_.transpose();
     double dj_max = 0.0;       // max |J[rho_QP] - J[rho_DFT]|, bare v
     double dj_reac_max = 0.0;  // max of its v_reac part (screened only)

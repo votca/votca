@@ -1061,9 +1061,12 @@ votca::Index QSGWIterations(Logger& log) {
 // All levels in the window, nothing trimmed, no frozen core. Returns the
 // differences E_QP^A - E_QP^B (Ha) in vacuum, in the environment, and in the
 // environment with the bare Hartree update, and whether all runs converged.
-StartSpreads QSGWStartSpreads(std::uint32_t seed, double amplitude,
-                              double eta) {
+StartSpreads QSGWStartSpreads(std::uint32_t seed, double amplitude, double eta,
+                              const std::string& regularization = "eta",
+                              double srg_s = 500.0) {
   GW::options opt = MakeGWTestOptions();
+  opt.qsgw_regularization = regularization;
+  opt.qsgw_srg_s = srg_s;
   opt.do_qsgw = true;
   opt.qsgw_max_iterations = 100;
   opt.qsgw_sc_limit = 1e-7;
@@ -1234,6 +1237,133 @@ BOOST_AUTO_TEST_CASE(qsgw_fixed_point_seed_scan,
         }
       }
     }
+  }
+  // SRG regularization (the eta passed only sets the G0W0 seed)
+  for (double srg_s : {200.0, 500.0, 1000.0}) {
+    for (double amplitude : {0.02, 0.08, 0.15}) {
+      for (std::uint32_t seed = 1; seed <= 20; ++seed) {
+        try {
+          const StartSpreads s =
+              QSGWStartSpreads(seed, amplitude, 1e-3, "srg", srg_s);
+          BOOST_TEST_MESSAGE("seed_scan srg"
+                             << srg_s << " " << amplitude << " " << seed
+                             << " | " << describe(s.vacuum) << " | "
+                             << describe(s.environment) << " | "
+                             << describe(s.environment_bare) << " | "
+                             << s.converged << " " << s.max_iters);
+        } catch (const std::runtime_error& err) {
+          BOOST_TEST_MESSAGE("seed_scan srg" << srg_s << " " << amplitude << " "
+                                             << seed
+                                             << " failed: " << err.what());
+        }
+      }
+    }
+  }
+  libint2::finalize();
+}
+
+// The SRG-regularized static self-energy of QSGW (Marie and Loos): its
+// diagonal goes to the eta -> 0 diagonal for s -> infinity, it vanishes
+// linearly for s -> 0, and it is symmetric by construction; exact and ppm.
+BOOST_AUTO_TEST_CASE(srg_self_energy_limits) {
+  if (!libint2::initialized()) libint2::initialize();
+  GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+  const GW::options opt = MakeGWTestOptions();
+  for (const std::string kind : {"exact", "ppm"}) {
+    Logger log;
+    RPA rpa(log, system.Mmn);
+    rpa.configure(opt.homo, opt.rpamin, opt.rpamax);
+    rpa.UpdateRPAInputEnergies(
+        system.mo_eigenvalues,
+        system.mo_eigenvalues.segment(opt.qpmin, opt.qpmax - opt.qpmin + 1),
+        opt.qpmin);
+    std::unique_ptr<Sigma_base> sigma =
+        SigmaFactory().Create(kind, system.Mmn, rpa);
+    Sigma_base::options sopt;
+    sopt.homo = opt.homo;
+    sopt.qpmin = opt.qpmin;
+    sopt.qpmax = opt.qpmax;
+    sopt.rpamin = opt.rpamin;
+    sopt.rpamax = opt.rpamax;
+    sopt.eta = 1e-7;
+    sigma->configure(sopt);
+    sigma->PrepareScreening();
+    const Eigen::VectorXd w =
+        system.mo_eigenvalues.segment(opt.qpmin, opt.qpmax - opt.qpmin + 1);
+    const Eigen::MatrixXd big = sigma->CalcCorrelationSRG(w, 1e12);
+    const Eigen::VectorXd diag = sigma->CalcCorrelationDiag(w);
+    BOOST_TEST_MESSAGE(kind << ": max |SRG(s=1e12) - Sigma(eta=1e-7)| diag "
+                            << (big.diagonal() - diag).cwiseAbs().maxCoeff()
+                            << " of " << diag.cwiseAbs().maxCoeff());
+    BOOST_CHECK_SMALL((big.diagonal() - diag).cwiseAbs().maxCoeff(),
+                      1e-6 * diag.cwiseAbs().maxCoeff());
+    const Eigen::MatrixXd mid = sigma->CalcCorrelationSRG(w, 500.0);
+    BOOST_CHECK_EQUAL((mid - mid.transpose()).cwiseAbs().maxCoeff(), 0.0);
+    // for s -> 0 the whole matrix is proportional to s (Hartree-Fock limit)
+    const Eigen::MatrixXd s1 = sigma->CalcCorrelationSRG(w, 1e-8);
+    const Eigen::MatrixXd s2 = sigma->CalcCorrelationSRG(w, 2e-8);
+    BOOST_CHECK_SMALL((s2 - 2.0 * s1).cwiseAbs().maxCoeff(),
+                      1e-6 * s2.cwiseAbs().maxCoeff());
+    BOOST_CHECK_GT(s2.cwiseAbs().maxCoeff(), 0.0);
+  }
+  libint2::finalize();
+}
+
+// SRG-regularized QSGW at the recommended s reaches one fixed point from
+// both starts of qsgw_same_fixed_point_from_two_starts, in vacuum and in the
+// environment with the screened Hartree update.
+BOOST_AUTO_TEST_CASE(qsgw_srg_same_fixed_point_from_two_starts) {
+  if (!libint2::initialized()) libint2::initialize();
+  const StartSpreads s = QSGWStartSpreads(kFixedPointSeed, kFixedPointAmplitude,
+                                          kFixedPointEta, "srg", 500.0);
+  const double vac = s.vacuum.cwiseAbs().maxCoeff();
+  const double env = s.environment.cwiseAbs().maxCoeff();
+  BOOST_TEST_MESSAGE("SRG QSGW (s = 500) start-point spread: vacuum "
+                     << vac * votca::tools::conv::hrt2ev << " eV, environment "
+                     << env * votca::tools::conv::hrt2ev << " eV, max "
+                     << s.max_iters << " iterations");
+  BOOST_REQUIRE(s.converged);
+  BOOST_CHECK_SMALL(vac, 1e-6);
+  BOOST_CHECK_SMALL(env, 1e-6);
+  libint2::finalize();
+}
+
+// Not part of the regular run: HOMO, LUMO and gap of QSGW (exact Sigma, all
+// levels, vacuum) for several eta and SRG s. Run with
+//   unit_test_gw --run_test=gw_test/qsgw_regularization_scan
+//                --log_level=message
+BOOST_AUTO_TEST_CASE(qsgw_regularization_scan, *boost::unit_test::disabled()) {
+  if (!libint2::initialized()) libint2::initialize();
+  const double ev = votca::tools::conv::hrt2ev;
+  auto run = [&](const std::string& reg, double eta, double srg_s) {
+    GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+    GW::options opt = MakeGWTestOptions();
+    opt.do_qsgw = true;
+    opt.qsgw_max_iterations = 300;
+    opt.qsgw_sc_limit = 1e-7;
+    opt.gw_mixing_order = 20;
+    opt.gw_mixing_alpha = 0.2;
+    opt.qsgw_max_virt_correction = 1e10;
+    opt.sigma_integration = "exact";
+    opt.eta = eta;
+    opt.qsgw_regularization = reg;
+    opt.qsgw_srg_s = srg_s;
+    GW gw(system.log, system.Mmn, system.vxc, system.mo_eigenvalues);
+    gw.configure(opt);
+    gw.CalculateGWPerturbation();
+    gw.CalculateQSGW();
+    const Eigen::VectorXd e = gw.getGWAResults();
+    BOOST_TEST_MESSAGE("regularization_scan "
+                       << reg << " eta " << eta << " s " << srg_s << " | HOMO "
+                       << e(opt.homo) * ev << " LUMO " << e(opt.homo + 1) * ev
+                       << " gap " << (e(opt.homo + 1) - e(opt.homo)) * ev
+                       << " eV | iterations " << QSGWIterations(system.log));
+  };
+  for (double eta : {1e-3, 0.005, 0.01, 0.02, 0.05}) {
+    run("eta", eta, 500.0);
+  }
+  for (double srg_s : {100.0, 200.0, 500.0, 1000.0, 5000.0, 20000.0}) {
+    run("srg", 1e-3, srg_s);
   }
   libint2::finalize();
 }

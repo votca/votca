@@ -202,6 +202,68 @@ Eigen::VectorXd Sigma_base::CalcCorrelationDiag(
   return result;
 }
 
+Eigen::MatrixXd Sigma_base::CalcCorrelationSRG(
+    const Eigen::VectorXd& frequencies, double s) const {
+  if (!HasPoleForm()) {
+    throw std::runtime_error(
+        "SRG-regularized QSGW needs a self-energy with a pole form (exact or "
+        "ppm)");
+  }
+  if (!(s > 0.0)) {
+    throw std::runtime_error("SRG flow parameter s must be positive");
+  }
+  if (frequencies.size() != qptotal_) {
+    throw std::runtime_error("CalcCorrelationSRG: one frequency per level");
+  }
+  std::vector<DiagPoleForm> forms;
+  forms.reserve(std::size_t(qptotal_));
+  for (Index n = 0; n < qptotal_; ++n) {
+    forms.push_back(PoleForm(n));
+  }
+  const DiagPoleForm& first = forms.front();
+  const ExactPoles& poles = first.poles;
+  const Index B = poles.nlevels();
+  const Index S = poles.nmodes();
+  const Index P = poles.npoles();
+  // pole positions and factors, p = m + B s
+  Eigen::ArrayXd z(P);
+  Eigen::ArrayXd c = Eigen::ArrayXd::Ones(P);
+  for (Index mode = 0; mode < S; ++mode) {
+    for (Index m = 0; m < B; ++m) {
+      z(m + B * mode) = poles.energies(m) +
+                        ((m < poles.n_occ) ? -1.0 : 1.0) * poles.omegas(mode);
+      if (first.mode_factors != nullptr) {
+        c(m + B * mode) = first.mode_factors[mode];
+      }
+    }
+  }
+  Eigen::MatrixXd result(qptotal_, qptotal_);
+#pragma omp parallel for schedule(dynamic)
+  for (Index n1 = 0; n1 < qptotal_; ++n1) {
+    const Eigen::Map<const Eigen::ArrayXd> r1(forms[std::size_t(n1)].residues,
+                                              P);
+    const Eigen::ArrayXd d1 = frequencies(n1) - z;
+    const Eigen::ArrayXd cr1 = c * r1;
+    for (Index n2 = 0; n2 <= n1; ++n2) {
+      const Eigen::Map<const Eigen::ArrayXd> r2(forms[std::size_t(n2)].residues,
+                                                P);
+      const Eigen::ArrayXd d2 = frequencies(n2) - z;
+      const Eigen::ArrayXd D = d1.square() + d2.square();
+      // (1 - exp(-s D)) / D, with its limit s at D -> 0
+      const Eigen::ArrayXd damp = (s * D < 1e-12)
+                                      .select(Eigen::ArrayXd::Constant(P, s),
+                                              -(-s * D).unaryExpr([](double x) {
+                                                return std::expm1(x);
+                                              }) / D.max(1e-300));
+      const double value =
+          first.prefactor * (cr1 * r2 * (d1 + d2) * damp).sum();
+      result(n1, n2) = value;
+      result(n2, n1) = value;
+    }
+  }
+  return result;
+}
+
 Eigen::MatrixXd Sigma_base::CalcCorrelationOffDiag(
     const Eigen::VectorXd& frequencies) const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(qptotal_, qptotal_);

@@ -644,6 +644,19 @@ void GWBSE::Initialize(tools::Property& options) {
       "gw.qsgw_hartree_update", true);
   gwopt_.qsgw_hartree_screened = options.ifExistsReturnElseReturnDefault<bool>(
       "gw.qsgw_hartree_screened", true);
+  gwopt_.qsgw_regularization =
+      options.ifExistsReturnElseReturnDefault<std::string>(
+          "gw.qsgw_regularization", "eta");
+  if (gwopt_.qsgw_regularization != "eta" &&
+      gwopt_.qsgw_regularization != "srg") {
+    throw std::runtime_error("gw.qsgw_regularization must be eta or srg, got " +
+                             gwopt_.qsgw_regularization);
+  }
+  gwopt_.qsgw_srg_s =
+      options.ifExistsReturnElseReturnDefault<double>("gw.qsgw_srg_s", 500.0);
+  if (!(gwopt_.qsgw_srg_s > 0.0)) {
+    throw std::runtime_error("gw.qsgw_srg_s must be positive");
+  }
   gwopt_.out_of_window_shift.mode = OutOfWindowShift::Parse(
       options.ifExistsReturnElseReturnDefault<std::string>(
           "gw.out_of_window_shift", "max"));

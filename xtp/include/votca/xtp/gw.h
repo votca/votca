@@ -135,6 +135,12 @@ class GW {
     // the environment's induced dipoles follow the QP density as well.
     // false: bare v (a control; inconsistent with the dressed W).
     bool qsgw_hartree_screened = true;
+    // Static self-energy of QSGW: "eta" = the symmetrised
+    // 1/2 Re[Sigma(e_p) + Sigma(e_q)] with denominators t/(t^2 + eta^2);
+    // "srg" = the similarity-renormalization-group form of Marie and Loos,
+    // Hermitian by construction, regularized by the flow parameter s (1/Ha^2)
+    std::string qsgw_regularization = "eta";
+    double qsgw_srg_s = 500.0;
     // RPA energies of levels outside the GW window (OutOfWindowShift)
     OutOfWindowShift out_of_window_shift;
   };

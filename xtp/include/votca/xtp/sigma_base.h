@@ -113,6 +113,17 @@ class Sigma_base {
   virtual Eigen::MatrixXd CalcCorrelationOffDiag(
       const Eigen::VectorXd& frequencies) const;
 
+  /// Static correlation self-energy of SRG-regularized QSGW (Marie and
+  /// Loos, arXiv:2303.05984, eq. 44), diagonal and off-diagonal, from the
+  /// pole form (exact and ppm): with D_n(p) = w_n - z_p,
+  ///   S_n1n2 = prefactor sum_p c_p r_n1(p) r_n2(p) (D1 + D2) / (D1^2 + D2^2)
+  ///            [1 - exp(-s (D1^2 + D2^2))],
+  /// on the diagonal (1 - exp(-2 s D^2)) / D. Hermitian without
+  /// symmetrisation; s -> infinity gives the eta -> 0 limit of the
+  /// symmetrised form on the diagonal. Throws without a pole form.
+  Eigen::MatrixXd CalcCorrelationSRG(const Eigen::VectorXd& frequencies,
+                                     double s) const;
+
   // Sets up the screening parametrisation
   virtual void PrepareScreening() = 0;
 
