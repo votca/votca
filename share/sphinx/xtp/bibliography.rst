@@ -37,6 +37,8 @@ Bibliography
 
 .. [Li:2018] Li, D'Avino, Duchemin, Beljonne, and Blase, Phys. Rev. B 97, 035108 (2018)
 
+.. [Marie:2023] Marie and Loos, J. Chem. Theory Comput. 19, 3943 (2023)
+
 .. [Manby:2012] Manby, Stella, Goodpaster, and Miller, J. Chem. Theory Comput. 8, 2564 (2012)
 
 .. [Marcus:1993] Marcus, Rev. Mod. Phys. 65, 599 (1993)
@@ -62,6 +64,8 @@ Bibliography
 .. [Trefethen:2013] Trefethen, Approximation Theory and Approximation Practice, SIAM (2013)
 
 .. [Tsiper:2001] Tsiper and Soos, Phys. Rev. B 64, 195124 (2001)
+
+.. [vanSchilfgaarde:2006] van Schilfgaarde, Kotani, and Faleev, Phys. Rev. Lett. 96, 226402 (2006)
 
 .. [vanSetten:2015] van Setten, Caruso, Sharifzadeh, Ren, Scheffler, Liu, Lischner, Lin, Deslippe, Louie, Yang, Weigend, Neaton, Evers, and Rinke, J. Chem. Theory Comput. 11, 5665 (2015)
 
