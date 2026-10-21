@@ -23,6 +23,9 @@
 
 #include <xc.h>
 
+#include <array>
+#include <vector>
+
 #include "grid_containers.h"
 #include "gridbox.h"
 
@@ -61,6 +64,16 @@ class Vxc_Potential {
       const std::vector<Eigen::MatrixXd>& response_matrices) const;
   SpinResult IntegrateVXCSpin(const Eigen::MatrixXd& dmat_alpha,
                               const Eigen::MatrixXd& dmat_beta) const;
+
+  /// Spin-polarized analogue of IntegrateFXC: the first-order changes
+  /// {dV_alpha, dV_beta} of IntegrateVXCSpin at the spin densities
+  /// (dmat_alpha, dmat_beta) for symmetric first-order spin densities
+  /// response[k] = {dP_alpha, dP_beta}, from the polarized second
+  /// derivatives of libxc (LDA/GGA). The AO values are evaluated once for
+  /// all k. Throws if the functional has no second derivatives in libxc.
+  std::vector<std::array<Eigen::MatrixXd, 2>> IntegrateFXCSpin(
+      const Eigen::MatrixXd& dmat_alpha, const Eigen::MatrixXd& dmat_beta,
+      const std::vector<std::array<Eigen::MatrixXd, 2>>& response) const;
 
   // ===========================================================================
   // STATUS: originally basis-function/Pulay term only (LDA-only); a
@@ -206,6 +219,12 @@ class Vxc_Potential {
   void EvaluateFXCBatch(Index n, const double* rho, const double* sigma,
                         double* vsigma, double* v2rho2, double* v2rhosigma,
                         double* v2sigma2) const;
+  // the same, polarized (libxc layout): rho 2n, sigma and vsigma 3n,
+  // v2rho2 3n (aa, ab, bb), v2rhosigma 6n (a_aa, a_ab, a_bb, b_aa, b_ab,
+  // b_bb), v2sigma2 6n (aa_aa, aa_ab, aa_bb, ab_ab, ab_bb, bb_bb)
+  void EvaluateFXCSpinBatch(Index n, const double* rho, const double* sigma,
+                            double* vsigma, double* v2rho2, double* v2rhosigma,
+                            double* v2sigma2) const;
 
   // Grid points processed together inside a box.
   static constexpr Index kPointBlock = 128;

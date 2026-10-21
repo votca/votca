@@ -39,7 +39,10 @@
 #include <votca/xtp/aopotential.h>
 #include <votca/xtp/dftengine.h>
 #include <votca/xtp/logger.h>
+#include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmmolecule.h>
+#include <votca/xtp/trah.h>
+#include <votca/xtp/uks_convergenceacc.h>
 
 using namespace votca::xtp;
 using namespace votca;
@@ -132,6 +135,29 @@ class DFTEngineTestAccess {
       const tools::EigenSystem& MOs_alpha, const tools::EigenSystem& MOs_beta) {
     return e.ComputeNonXCGradientUKS(mol, Dspin, MOs_alpha, MOs_beta);
   }
+
+  static Vxc_Potential<Vxc_Grid> SetupVxc(DFTEngine& e, const QMMolecule& mol) {
+    return e.SetupVxc(mol);
+  }
+  static Eigen::MatrixXd SetupH0(const DFTEngine& e, const QMMolecule& mol) {
+    return e.SetupH0(mol).matrix();
+  }
+  static UKSConvergenceAcc::SpinFock BuildUKSFock(
+      DFTEngine& e, const Eigen::MatrixXd& H0,
+      const Vxc_Potential<Vxc_Grid>& vxc, const Eigen::MatrixXd& Da,
+      const Eigen::MatrixXd& Db) {
+    return e.BuildUKSFock(H0, vxc, Da, Db);
+  }
+  static Eigen::MatrixXd UKSOrbitalHessian(DFTEngine& e,
+                                           const Vxc_Potential<Vxc_Grid>& vxc,
+                                           const tools::EigenSystem& Ma,
+                                           const tools::EigenSystem& Mb,
+                                           const Eigen::MatrixXd& Fa,
+                                           const Eigen::MatrixXd& Fb,
+                                           const Eigen::MatrixXd& X) {
+    return e.UKSOrbitalHessian(vxc, Ma, Mb, Fa, Fb, X);
+  }
+  static const AOBasis& Basis(const DFTEngine& e) { return e.dftbasis_; }
 
   static Eigen::MatrixXd ComputeOverlapPulayGradientUKS(
       const DFTEngine& e, const QMMolecule& mol,
@@ -707,4 +733,99 @@ BOOST_AUTO_TEST_CASE(overlap_pulay_gradient_uks_reduces_to_rks) {
   }
 
   libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(uks_orbital_hessian_matches_finite_differences) {
+  // Analytic UKS Hessian products (spin-polarized f_xc, J, K) against
+  // finite differences of the coupled Fock matrices, for water+ with a
+  // hybrid and RI and with a GGA and 4-centre integrals: at the converged
+  // orbitals and at orbitals rotated away from them.
+  const std::string data = std::string(XTP_TEST_DATA_FOLDER);
+  for (const bool hybrid_ri : {true, false}) {
+    libint2::initialize();
+    {
+      std::ofstream xml("uks_hessian.xml");
+      xml << "<dftpackage>\n<spin>2</spin>\n<name>xtp</name>\n"
+          << "<charge>1</charge>\n<functional>"
+          << (hybrid_ri ? "XC_HYB_GGA_XC_PBEH" : "XC_GGA_X_PBE XC_GGA_C_PBE")
+          << "</functional>\n<basisset>" << data
+          << "/hirshfeldpartition/3-21G.xml</basisset>\n";
+      if (hybrid_ri) {
+        xml << "<auxbasisset>" << data
+            << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
+      }
+      xml << "<initial_guess>independent</initial_guess>\n<xtpdft>\n"
+          << "<screening_eps>1e-12</screening_eps>\n"
+          << "<fock_matrix_reset>5</fock_matrix_reset>\n<convergence>\n"
+          << "<energy>1e-12</energy>\n<method>DIIS</method>\n"
+          << "<DIIS_start>0.002</DIIS_start>\n<ADIIS_start>0.8</ADIIS_start>\n"
+          << "<DIIS_length>20</DIIS_length>\n<levelshift>0.0</levelshift>\n"
+          << "<levelshift_end>0.2</levelshift_end>\n"
+          << "<max_iterations>100</max_iterations>\n<error>1e-10</error>\n"
+          << "<DIIS_maxout>false</DIIS_maxout>\n<mixing>0.7</mixing>\n"
+          << "<mixing_max>0.98</mixing_max>\n<mixing_end>0.8</mixing_end>\n"
+          << "<davidson_max_iter>50</davidson_max_iter>\n"
+          << "<second_order>off</second_order>\n"
+          << "</convergence>\n<integration_grid>medium</integration_grid>\n"
+          << "</xtpdft>\n</dftpackage>\n";
+    }
+    votca::tools::Property prop;
+    prop.LoadFromXML("uks_hessian.xml");
+    Logger log;
+    DFTEngine engine;
+    engine.setLogger(&log);
+    engine.Initialize(prop.get("dftpackage"));
+    Orbitals orb;
+    orb.QMAtoms().LoadFromFile(data + "/chargeresponse/water.xyz");
+    orb.setChargeAndSpin(1, 2);
+    BOOST_REQUIRE(engine.Evaluate(orb));
+
+    const QMMolecule& mol = orb.QMAtoms();
+    const Vxc_Potential<Vxc_Grid> vxc =
+        DFTEngineTestAccess::SetupVxc(engine, mol);
+    const Eigen::MatrixXd H0 = DFTEngineTestAccess::SetupH0(engine, mol);
+    AOOverlap overlap;
+    overlap.Fill(DFTEngineTestAccess::Basis(engine));
+    UKSConvergenceAcc conv;
+    conv.setLogger(&log);
+    conv.setOverlap(overlap, 1e-8);
+    const Index na = orb.getNumberOfAlphaElectrons();
+    const Index nb = orb.getNumberOfBetaElectrons();
+    auto builder = [&](const Eigen::MatrixXd& Da, const Eigen::MatrixXd& Db) {
+      return DFTEngineTestAccess::BuildUKSFock(engine, H0, vxc, Da, Db);
+    };
+
+    for (const double displacement : {0.0, 0.02}) {
+      tools::EigenSystem Ma = orb.MOs();
+      tools::EigenSystem Mb = orb.MOs_beta();
+      const Index n = Ma.eigenvectors().cols();
+      const Index n_ov = na * (n - na) + nb * (n - nb);
+      std::srand(21);
+      const Eigen::VectorXd shift =
+          displacement * Eigen::VectorXd::Random(n_ov);
+      Ma.eigenvectors() = trah::RotateOrbitals(Ma.eigenvectors(),
+                                               shift.head(na * (n - na)), na);
+      Mb.eigenvectors() = trah::RotateOrbitals(Mb.eigenvectors(),
+                                               shift.tail(nb * (n - nb)), nb);
+      const Eigen::MatrixXd Ca_occ = Ma.eigenvectors().leftCols(na);
+      const Eigen::MatrixXd Cb_occ = Mb.eigenvectors().leftCols(nb);
+      const UKSConvergenceAcc::SpinFock F =
+          builder(Ca_occ * Ca_occ.transpose(), Cb_occ * Cb_occ.transpose());
+
+      const Eigen::MatrixXd V = Eigen::MatrixXd::Random(n_ov, 2);
+      const Eigen::MatrixXd analytic = DFTEngineTestAccess::UKSOrbitalHessian(
+          engine, vxc, Ma, Mb, F.alpha, F.beta, V);
+      for (Index k = 0; k < V.cols(); ++k) {
+        const Eigen::VectorXd fd =
+            conv.BuildCoupledSigmaVector(V.col(k), Ma.eigenvectors(), na,
+                                         Mb.eigenvectors(), nb, builder, 1e-4);
+        const double rel = (analytic.col(k) - fd).norm() / fd.norm();
+        BOOST_TEST_MESSAGE((hybrid_ri ? "PBE0/RI" : "PBE/4c")
+                           << ", displacement " << displacement
+                           << ": |analytic - fd| / |fd| = " << rel);
+        BOOST_CHECK_SMALL(rel, 1e-6);
+      }
+    }
+    libint2::finalize();
+  }
 }

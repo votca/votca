@@ -259,6 +259,25 @@ class DFTEngine {
   /// current molecule.
   Vxc_Potential<Vxc_Grid> SetupVxc(const QMMolecule& mol);
 
+  /// C_v^T G[dP_k] C_o for dP_k = 2 (C_v U_k C_o^T + C_o U_k^T C_v^T), with
+  /// G the closed-shell response of J, 0.5 a_x K and V_xc (f_xc at the
+  /// density P0): the coupling part of the orbital Hessian, shared by
+  /// StaticResponse and the second-order SCF.
+  UKSConvergenceAcc::SpinFock BuildUKSFock(
+      const Eigen::MatrixXd& H0, const Vxc_Potential<Vxc_Grid>& vxcpotential,
+      const Eigen::MatrixXd& alpha_new, const Eigen::MatrixXd& beta_new);
+  Eigen::MatrixXd UKSOrbitalHessian(const Vxc_Potential<Vxc_Grid>& vxc,
+                                    const tools::EigenSystem& mos_alpha,
+                                    const tools::EigenSystem& mos_beta,
+                                    const Eigen::MatrixXd& F_alpha,
+                                    const Eigen::MatrixXd& F_beta,
+                                    const Eigen::MatrixXd& X);
+
+  std::vector<Eigen::MatrixXd> CoupledResponse(
+      const Vxc_Potential<Vxc_Grid>& vxc, const Eigen::MatrixXd& P0,
+      const Eigen::MatrixXd& C_occ, const Eigen::MatrixXd& C_virt,
+      const std::vector<Eigen::MatrixXd>& U);
+
   /// Orthonormalize an initial MO guess with respect to the AO overlap matrix.
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;
   /// Print a one-spin list of orbital energies and occupations to the logger.

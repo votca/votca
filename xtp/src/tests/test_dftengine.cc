@@ -958,4 +958,78 @@ BOOST_AUTO_TEST_CASE(setup_cache_reuses_ri_integrals) {
   libint2::finalize();
 }
 
+namespace {
+// Water, PBE0/3-21G, 4-centre integrals, with the given second_order
+// setting; returns the converged energy and the number of SCF iterations.
+std::pair<double, Index> RunSecondOrder(const std::string& second_order,
+                                        Index charge, Index spin,
+                                        const std::string& guess) {
+  libint2::initialize();
+  DFTEngine dft;
+  WriteBasis321G();
+  Orbitals orb;
+  orb.QMAtoms() = Water();
+  std::ofstream xml("dftengine_second_order.xml");
+  xml << "<dftpackage>\n<spin>" << spin << "</spin>\n<name>xtp</name>\n";
+  xml << "<charge>" << charge << "</charge>\n";
+  xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>\n";
+  xml << "<basisset>3-21G.xml</basisset>\n";
+  xml << "<initial_guess>" << guess << "</initial_guess>\n<xtpdft>\n";
+  xml << "<screening_eps>1e-9</screening_eps>\n";
+  xml << "<fock_matrix_reset>5</fock_matrix_reset>\n<convergence>\n";
+  xml << "<energy>1e-7</energy>\n<method>DIIS</method>\n";
+  xml << "<DIIS_start>0.002</DIIS_start>\n<ADIIS_start>0.8</ADIIS_start>\n";
+  xml << "<DIIS_length>20</DIIS_length>\n<levelshift>0.0</levelshift>\n";
+  xml << "<levelshift_end>0.2</levelshift_end>\n";
+  xml << "<max_iterations>100</max_iterations>\n<error>1e-7</error>\n";
+  xml << "<DIIS_maxout>false</DIIS_maxout>\n<mixing>0.7</mixing>\n";
+  xml << "<mixing_max>0.98</mixing_max>\n<mixing_end>0.8</mixing_end>\n";
+  xml << "<davidson_max_iter>50</davidson_max_iter>\n";
+  xml << "<second_order>" << second_order << "</second_order>\n";
+  xml << "</convergence>\n<integration_grid>xcoarse</integration_grid>\n";
+  xml << "</xtpdft>\n</dftpackage>\n";
+  xml.close();
+  votca::tools::Property prop;
+  prop.LoadFromXML("dftengine_second_order.xml");
+  Logger log;
+  log.setReportLevel(votca::Log::warning);
+  dft.setLogger(&log);
+  dft.Initialize(prop.get("dftpackage"));
+  orb.setChargeAndSpin(int(charge), int(spin));
+  BOOST_REQUIRE(dft.Evaluate(orb));
+  std::stringstream ss;
+  ss << log;
+  const std::string text = ss.str();
+  Index iterations = 0;
+  for (std::size_t pos = text.find(" Iteration "); pos != std::string::npos;
+       pos = text.find(" Iteration ", pos + 1)) {
+    ++iterations;
+  }
+  BOOST_CHECK(second_order != "always" ||
+              text.find("TRAH step") != std::string::npos);
+  libint2::finalize();
+  return {orb.getDFTTotalEnergy(), iterations};
+}
+}  // namespace
+
+BOOST_AUTO_TEST_CASE(second_order_scf_closed_shell) {
+  // TRAH from the first iteration (exact closed-shell Hessian) reaches the
+  // DIIS energy of dft_full, in fewer iterations.
+  auto [e_diis, it_diis] = RunSecondOrder("off", 0, 1, "independent");
+  auto [e_trah, it_trah] = RunSecondOrder("always", 0, 1, "independent");
+  BOOST_TEST_MESSAGE("closed shell: DIIS " << it_diis << " iterations, TRAH "
+                                           << it_trah);
+  BOOST_CHECK_CLOSE(e_diis, -75.891017293070945, 1e-5);
+  BOOST_CHECK_CLOSE(e_trah, e_diis, 1e-6);
+  BOOST_CHECK_LT(it_trah, it_diis);
+}
+
+BOOST_AUTO_TEST_CASE(second_order_scf_open_shell) {
+  // UKS TRAH (finite-difference Hessian products) reaches the energy of
+  // dft_cation.
+  auto [e_trah, it_trah] = RunSecondOrder("always", 1, 2, "huckel_dft");
+  BOOST_TEST_MESSAGE("open shell: TRAH " << it_trah << " iterations");
+  BOOST_CHECK_CLOSE(e_trah, -75.456593793657646, 1e-5);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

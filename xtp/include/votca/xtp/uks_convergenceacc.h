@@ -32,9 +32,9 @@
 #include "votca/xtp/adiis.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/convergenceacc.h"
-#include "votca/xtp/davidsonsolver.h"
 #include "votca/xtp/diis.h"
 #include "votca/xtp/logger.h"
+#include "votca/xtp/trah.h"
 
 namespace votca {
 namespace xtp {
@@ -84,6 +84,19 @@ class UKSConvergenceAcc {
     coupled_fock_builder_ = builder;
   }
 
+  /// Analytic UKS energy Hessian d^2E/dx dx (both channels, layout of
+  /// trah.h) at the orbitals (MOs_alpha, MOs_beta) with Fock matrices
+  /// (F_alpha, F_beta), applied to the columns of X. If set, it replaces
+  /// the finite-difference products of BuildCoupledSigmaVector; if it
+  /// throws (no second derivatives in libxc), those are used instead.
+  using OrbitalHessian = std::function<Eigen::MatrixXd(
+      const tools::EigenSystem& MOs_alpha, const tools::EigenSystem& MOs_beta,
+      const Eigen::MatrixXd& F_alpha, const Eigen::MatrixXd& F_beta,
+      const Eigen::MatrixXd& X)>;
+  void setOrbitalHessian(const OrbitalHessian& hessian) {
+    orbital_hessian_ = hessian;
+  }
+
   SpinDensity DensityMatrix(const tools::EigenSystem& MOs_alpha,
                             const tools::EigenSystem& MOs_beta) const;
 
@@ -116,39 +129,49 @@ class UKSConvergenceAcc {
       const Eigen::VectorXd& v, Index nao_alpha, Index nocclevels_alpha,
       Index nao_beta, Index nocclevels_beta) const;
 
-  /// Coupled analogue of BuildSigmaVector: rotates BOTH spin channels
-  /// SIMULTANEOUSLY by +-a small step (unlike BuildSigmaVector, which
-  /// rotates one channel while holding the other fixed), builds BOTH
-  /// new densities together, and calls coupled_fock_builder ONCE per
-  /// perturbation to get BOTH new Fock matrices together -- capturing
-  /// the genuine alpha-beta coupling (through the shared Coulomb
-  /// potential and the XC kernel's cross-spin terms) that
-  /// BuildSigmaVector's own, deliberately decoupled treatment
-  /// discards. Returns the combined sigma vector (alpha's own block
-  /// first, beta's immediately after, matching v's own layout).
-  /// Central difference, for the identical reason BuildSigmaVector
-  /// itself uses one (see that function's own header comment).
+  /// Orbital rotations C' = C (1 + kappa), with kappa_ia = x_ia (i
+  /// occupied, a virtual) and kappa_ai = -x_ia, followed by Lowdin
+  /// orthonormalisation. Occupied orbital i changes by -x_ia phi_a, so for
+  /// one spin channel the energy gradient is dE/dx_ia = -2 F_ia, with F the
+  /// Fock matrix in the current MO basis. All gradients, Hessian products
+  /// and predicted energy changes of the second-order fallback use this
+  /// scale.
+  static constexpr double EnergyGradientScale = -2.0;
+
+  /// Product of the energy Hessian d^2E/dx dx (both spin channels, with
+  /// the alpha-beta coupling through J and the XC kernel) with v: a
+  /// central finite difference of EnergyGradientScale * F_ia along v, with
+  /// BOTH channels rotated together and one coupled_fock_builder call per
+  /// displacement. Layout as UnflattenCoupledRotation: alpha block first.
   Eigen::VectorXd BuildCoupledSigmaVector(
       const Eigen::VectorXd& v, const Eigen::MatrixXd& C_alpha,
       Index nocclevels_alpha, const Eigen::MatrixXd& C_beta,
       Index nocclevels_beta, const CoupledFockBuilder& coupled_fock_builder,
       double finite_diff_step = 1e-3) const;
 
-  /// Solves ONE augmented-Hessian eigenvalue problem over the COMBINED
-  /// (alpha+beta) rotation space, rather than treating the two spin
-  /// channels independently -- see this class's own CoupledFockBuilder
-  /// comment for the full motivation. Returns BOTH new MO coefficient
-  /// matrices together, since a single, coupled step inherently
-  /// produces both simultaneously. predicted_energy_change (output):
-  /// the ONE, combined quadratic model's own predicted energy change
-  /// for this step -- Iterate's own Fletcher accept/reject logic uses
-  /// this directly.
+  /// TRAH step (trah::Step) over the combined (alpha+beta) rotation space,
+  /// with Hessian products from the analytic OrbitalHessian if set (else
+  /// BuildCoupledSigmaVector with coupled_fock_builder) and the orbitals
+  /// rotated by exp(kappa). Returns both new MO coefficient matrices and, in
+  /// predicted_energy_change, g.x + 1/2 x.H.x of the step taken (used by
+  /// Iterate's Fletcher accept/reject check).
   std::pair<Eigen::MatrixXd, Eigen::MatrixXd> CoupledAugmentedHessianStep(
       const Eigen::MatrixXd& H_AO_alpha, const tools::EigenSystem& MOs_alpha,
       Index nocclevels_alpha, const Eigen::MatrixXd& H_AO_beta,
       const tools::EigenSystem& MOs_beta, Index nocclevels_beta,
       const CoupledFockBuilder& coupled_fock_builder, double trust_radius,
       double& predicted_energy_change) const;
+
+  /// Diagonal-Hessian direct-minimisation step for one spin channel,
+  /// used when no coupled Fock builder is set (e.g. the atomic UKS guess):
+  /// kappa_ia = -g_ia / h_ia with g_ia = -2 F_ia and h_ia = 2 (eps_a -
+  /// eps_i) (gaps below 1e-3 Ha raised to 1e-3), each element clamped to
+  /// 0.1 and the whole step to the current trust radius (Frobenius norm of
+  /// the antisymmetric kappa). predicted_energy_change: the model's
+  /// Sum_ia [g_ia kappa_ia + 1/2 h_ia kappa_ia^2] for the step taken.
+  Eigen::MatrixXd DirectMinimizationRotation(
+      const Eigen::MatrixXd& H_AO, const tools::EigenSystem& MOs,
+      Index nocclevels, double& predicted_energy_change) const;
 
   bool isConverged() const;
   double getDIIsError() const { return diiserror_; }
@@ -168,43 +191,13 @@ class UKSConvergenceAcc {
   double CombinedError(const Eigen::MatrixXd& err_alpha,
                        const Eigen::MatrixXd& err_beta) const;
 
-  /// Approximate ARH-style direct energy minimization step: builds new
-  /// MO coefficients directly via an orbital rotation (occ-virt block
-  /// only, since occ-occ/virt-virt rotations leave the density matrix
-  /// unchanged), using the orbital gradient (the occ-virt block of the
-  /// MO-basis Fock matrix, which vanishes exactly at self-consistency)
-  /// and an approximate, diagonal Hessian (orbital energy differences --
-  /// the same cheap approximation used as the starting point for most
-  /// quasi-Newton SCF methods, e.g. SOSCF's own initial Hessian guess).
-  /// The step is trust-radius bounded, and the resulting (only
-  /// approximately unitary) rotation is re-orthonormalized via the same
-  /// Lowdin approach as OrthogonalizeGuess. See the design discussion
-  /// this grew out of for the full reasoning: this is a deliberately
-  /// simplified relative of the ARH/TRAH family of direct-minimization
-  /// SCF methods (confirmed directly, on this exact system, to resolve
-  /// an ADIIS/DIIS convergence failure that ORCA's own auto-TRAH
-  /// fallback also had to invoke), not a full implementation of either.
-  /// predicted_energy_change (output): the quadratic model's own
-  /// predicted E_new - E_old, Sum_ia[g_ia*kappa_ia + 0.5*h_ia*kappa_ia^2]
-  /// using the SAME (possibly per-element- and trust-radius-clamped)
-  /// kappa actually applied -- needed by Iterate's own Fletcher-style
-  /// accept/reject logic (see its own header comment) to compute the
-  /// ratio r = E_actual_change / E_predicted_change once the actual,
-  /// post-step energy becomes available (on the NEXT Iterate() call,
-  /// once the caller has built a new Fock matrix from this step's own
-  /// density and passed its energy back in).
-  ///
-  /// STATUS: superseded by CoupledAugmentedHessianStep below whenever a
-  /// coupled Fock-builder callback has been injected (i.e. DFTEngine
-  /// has wired up setCoupledFockBuilder) -- kept as the fallback for
-  /// any caller that has not done so (e.g.
-  /// DFTEngine::RunAtomicDFT_unrestricted), and because
-  /// CoupledAugmentedHessianStep itself still uses this same diagonal
-  /// approximation as the Davidson preconditioner, exactly as the
-  /// TRAH paper's own Sec. II B describes doing.
-  Eigen::MatrixXd DirectMinimizationRotation(
-      const Eigen::MatrixXd& H_AO, const tools::EigenSystem& MOs,
-      Index nocclevels, double& predicted_energy_change) const;
+  bool TrailingAverageStalled() const;
+
+  /// One second-order step from the current orbitals (or their density
+  /// first, if dmat is not it); see Iterate.
+  SpinDensity SecondOrderStep(const SpinDensity& dmat, const SpinFock& H,
+                              tools::EigenSystem& MOs_alpha,
+                              tools::EigenSystem& MOs_beta, double totE);
 
   options opt_alpha_;
   options opt_beta_;
@@ -214,6 +207,8 @@ class UKSConvergenceAcc {
   Eigen::MatrixXd Sminusahalf;
 
   CoupledFockBuilder coupled_fock_builder_;
+  OrbitalHessian orbital_hessian_;
+  mutable bool analytic_hessian_failed_ = false;
 
   Index nocclevels_alpha_ = 0;
   Index nocclevels_beta_ = 0;
@@ -268,17 +263,9 @@ class UKSConvergenceAcc {
   static constexpr Index kAutoStartIteration = 50;
   static constexpr double kMeanRatioTolerance = 1.125;
 
-  // Fletcher's trust-radius update (Helmich-Paris, J. Chem. Phys. 154,
-  // 164104 (2021), Sec. II D -- ORCA's own TRAH-SCF paper, confirmed
-  // directly by reading it rather than reconstructed from memory): the
-  // trust radius is no longer a fixed constant. direct_min_pending_
-  // marks that the MOs/density just returned came from a direct-
-  // minimization step (either DirectMinimizationRotation or
-  // CoupledAugmentedHessianStep) whose actual effect on the energy has
-  // not yet been verified -- checked at the START of the NEXT Iterate()
-  // call (see this class's own header comment on
-  // DirectMinimizationRotation for why it can only be checked then,
-  // not within the same call that took the step).
+  // A second-order step has been returned and is checked (Fletcher,
+  // trust_) at the start of the next Iterate call, once its energy is known;
+  // the pre-step state is kept to undo a rejected step.
   bool direct_min_pending_ = false;
   double direct_min_pre_energy_ = 0.0;
   double direct_min_predicted_change_ = 0.0;
@@ -286,38 +273,20 @@ class UKSConvergenceAcc {
   Eigen::MatrixXd direct_min_pre_MOs_beta_;
   Eigen::VectorXd direct_min_pre_MOs_alpha_energies_;
   Eigen::VectorXd direct_min_pre_MOs_beta_energies_;
-  double trust_radius_current_ = 0.2;
+  trah::TrustRadius trust_{0.5};
+  trah::StepOptions trah_options_;
+  // second-order (TRAH) steps in use for this SCF
+  bool trah_active_ = false;
 
-  // Trust-radius floor tied to BuildSigmaVector's own finite-
-  // difference step size (kFiniteDiffStep = 1e-3, defined there): a
-  // real run showed trust_radius_current_ shrinking past 1e-6 with
-  // an IDENTICAL step/predicted-change/actual-change every single
-  // time, since the bisection's own alpha_min=1 floor means the
-  // gentlest achievable step cannot shrink any further -- the reject
-  // loop could never resolve on its own and only ended when the
-  // outer SCF's own iteration budget ran out. A trust radius below
-  // the sigma vector's own probing resolution is also asking for
-  // precision the underlying finite-difference model was never built
-  // to provide. direct_min_floor_hit_ marks that this floor has been
-  // reached without an accepted step, at which point Iterate() stops
-  // retriggering CoupledAugmentedHessianStep/DirectMinimizationRotation
-  // and falls back to plain mixing instead -- reset naturally each time a
-  // new UKSConvergenceAcc is constructed (a fresh instance per
-  // DFTEngine::EvaluateUKS call, i.e. per outer CDFT lambda trial or
-  // per geometry step), not explicitly reset within one instance's
-  // own lifetime.
+  // Trust-radius floor: once a rejected step shrinks the trust radius
+  // below it, direct minimisation is given up for this SCF and Iterate
+  // falls back to mixing (direct_min_floor_hit_). Reset with each new
+  // UKSConvergenceAcc (one per DFTEngine::EvaluateUKS call).
   bool direct_min_floor_hit_ = false;
-  // Lowered from 1e-2 to 3e-3 -- still 3x above BuildSigmaVector's own
-  // finite-difference resolution (kFiniteDiffStep = 1e-3), so the
-  // original justification for having a floor at all still holds, but
-  // a real run (He2+, the coupled alpha-beta path) showed
-  // actual_dE shrinking monotonically and r steadily climbing back
-  // toward the accept range (r=0) right up until it hit the OLD
-  // 1e-2 floor and fell back to mixing -- which then settled into a
-  // 2-period oscillation rather than converging. Giving that
-  // trajectory more room, rather than cutting it off exactly where it
-  // was still improving, is a direct, testable next step.
   static constexpr double kMinTrustRadius = 3e-3;
+  // Largest element of |D(MOs) - D| for which the input density is
+  // treated as the density of the current orbitals (see Iterate).
+  static constexpr double kDensityMismatchTolerance = 1e-8;
 };
 
 }  // namespace xtp

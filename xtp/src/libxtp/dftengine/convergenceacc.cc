@@ -98,7 +98,37 @@ void ConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
 Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
                                         Eigen::MatrixXd& H,
                                         tools::EigenSystem& MOs, double totE) {
+  // Check the second-order step returned by the previous call, now that
+  // the energy of its density (totE) is known: Fletcher's trust-radius
+  // update; a rejected step is undone.
+  if (trah_pending_) {
+    trah_pending_ = false;
+    const double actual = totE - trah_pre_energy_;
+    const bool accepted = trust_.Update(trah_predicted_, actual);
+    XTP_LOG(Log::warning, *log_)
+        << TimeStamp() << " Second-order step check: actual dE=" << actual
+        << ", predicted dE=" << trah_predicted_ << ", r=" << trust_.LastRatio()
+        << (accepted ? " (accepted)" : " (rejected)")
+        << ", new trust radius=" << trust_.Radius() << std::flush;
+    if (!accepted) {
+      if (trust_.Radius() < kMinTrustRadius) {
+        trah_active_ = false;
+        trah_disabled_ = true;
+        XTP_LOG(Log::warning, *log_)
+            << TimeStamp() << " Trust radius below " << kMinTrustRadius
+            << " without an accepted step; leaving second-order steps for "
+               "this SCF"
+            << std::flush;
+      }
+      MOs = trah_pre_MOs_;
+      totE_.push_back(trah_pre_energy_);
+      usedmixing_ = false;
+      return DensityMatrix(MOs);
+    }
+  }
+
   totE_.push_back(totE);
+  ++scf_iterations_;
   // The MOs of the previous step, for the level shift.
   const Eigen::MatrixXd MOs_old = MOs.eigenvectors();
   const Eigen::VectorXd MOs_old_energies = MOs.eigenvalues();
@@ -118,7 +148,7 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
   // that produced it is discarded and the SCF continues, damped, from the
   // lowest-energy density so far.
   ++iterations_since_reset_;
-  if (opt_.energy_reset > 0.0 && have_best_ &&
+  if (opt_.energy_reset > 0.0 && have_best_ && !trah_active_ &&
       totE > best_energy_ + opt_.energy_reset &&
       iterations_since_reset_ > kResetCooldown &&
       energy_resets_ < kMaxEnergyResets) {
@@ -171,6 +201,28 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
   dmatHist_.push_back(dmat);
   errhist_.push_back(diiserror_);
   diis_.Update(drop, errormatrix);
+  error_history_.push_back(diiserror_);
+  if (Index(error_history_.size()) > kTrailingWindow) {
+    error_history_.erase(error_history_.begin());
+  }
+
+  // Second-order (TRAH) steps: from the start with second_order "always";
+  // with "auto" once (A)DIIS has failed repeatedly or the DIIS error has
+  // stalled. Once started they continue for the rest of this SCF, unless
+  // the trust radius collapses.
+  if (SecondOrderAvailable() && !trah_active_ &&
+      (opt_.second_order == "always" || SecondOrderStalled())) {
+    XTP_LOG(Log::warning, *log_)
+        << TimeStamp() << " Switching to second-order (TRAH) steps"
+        << (opt_.second_order == "always"
+                ? ""
+                : " ((A)DIIS failed repeatedly or the DIIS error stalled)")
+        << std::flush;
+    trah_active_ = true;
+  }
+  if (trah_active_) {
+    return SecondOrderStep(dmat, H, MOs, totE);
+  }
 
   bool diis_error = false;
   Eigen::MatrixXd H_guess = H;
@@ -200,10 +252,12 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
           << TimeStamp() << " Using DIIS for next guess" << std::flush;
     }
     if (diis_error) {
+      ++consecutive_failures_;
       XTP_LOG(Log::warning, *log_)
           << TimeStamp() << " (A)DIIS failed using mixing instead"
           << std::flush;
     } else {
+      consecutive_failures_ = 0;
       H_guess.setZero();
       for (Index i = 0; i < coeffs.size(); i++) {
         if (std::abs(coeffs(i)) < 1e-8) {
@@ -263,6 +317,100 @@ bool ConvergenceAcc::HistoryIsAligned() const {
   return true;
 }
 
+bool ConvergenceAcc::SecondOrderStalled() const {
+  if (consecutive_failures_ >= kMaxConsecutiveFailures) {
+    return true;
+  }
+  if (scf_iterations_ < kAutoStartIteration ||
+      Index(error_history_.size()) < kTrailingWindow) {
+    return false;
+  }
+  double mean_ratio = 0.0;
+  Index count = 0;
+  for (std::size_t i = 1; i < error_history_.size(); ++i) {
+    if (error_history_[i - 1] > 1e-12) {
+      mean_ratio += error_history_[i] / error_history_[i - 1];
+      ++count;
+    }
+  }
+  return count > 0 && mean_ratio / double(count) > 1.0 / kMeanRatioTolerance;
+}
+
+// One TRAH step from the current orbitals. The gradient (from H) and the
+// Fletcher check (against totE) belong to dmat; if dmat is not the density
+// of MOs (a guess or damped density), the orbital density is returned first
+// and the step follows on the next call.
+Eigen::MatrixXd ConvergenceAcc::SecondOrderStep(const Eigen::MatrixXd& dmat,
+                                                const Eigen::MatrixXd& H,
+                                                tools::EigenSystem& MOs,
+                                                double totE) {
+  const Eigen::MatrixXd dmat_mos = DensityMatrix(MOs);
+  const double mismatch = (dmat_mos - dmat).cwiseAbs().maxCoeff();
+  if (mismatch > kDensityMismatchTolerance) {
+    XTP_LOG(Log::warning, *log_)
+        << TimeStamp()
+        << " Density differs from that of the current orbitals (max "
+           "deviation "
+        << mismatch << "); returning the orbital density first" << std::flush;
+    usedmixing_ = false;
+    return dmat_mos;
+  }
+
+  const Eigen::MatrixXd& C = MOs.eigenvectors();
+  const Eigen::MatrixXd F_MO = C.transpose() * H * C;
+  const Index nocc = nocclevels_;
+  const Index nvirt = C.cols() - nocc;
+  const Eigen::VectorXd g = EnergyGradientScale * trah::OccVirt(F_MO, nocc);
+  // diagonal of the energy Hessian, 4 (F_aa - F_ii), for preconditioning
+  Eigen::VectorXd diag(nocc * nvirt);
+  constexpr double kMinGap = 1e-3;
+  for (Index i = 0; i < nocc; ++i) {
+    for (Index a = 0; a < nvirt; ++a) {
+      diag(i * nvirt + a) =
+          4.0 *
+          std::max(std::abs(F_MO(nocc + a, nocc + a) - F_MO(i, i)), kMinGap);
+    }
+  }
+  const tools::EigenSystem MOs_now = MOs;
+  trah::HessianProduct hessian = [&](const Eigen::MatrixXd& X) {
+    return orbital_hessian_(MOs_now, H, X);
+  };
+  trah::StepResult step;
+  try {
+    step = trah::Step(g, diag, hessian, trust_.Radius(), trah_options_);
+  } catch (const std::runtime_error& error) {
+    XTP_LOG(Log::error, *log_)
+        << TimeStamp()
+        << " Second-order step not possible, continuing without: "
+        << error.what() << std::flush;
+    trah_active_ = false;
+    trah_disabled_ = true;
+    usedmixing_ = false;
+    return dmat_mos;
+  }
+  XTP_LOG(Log::warning, *log_)
+      << TimeStamp() << " TRAH step: |g|=" << g.norm()
+      << ", |x|=" << step.x.norm() << ", trust radius=" << trust_.Radius()
+      << ", alpha=" << step.alpha << ", micro-iterations=" << step.iterations
+      << ", Hessian products=" << step.products
+      << ", residual=" << step.residual
+      << (step.converged ? "" : " (not converged)")
+      << ", predicted dE=" << step.predicted << std::flush;
+
+  trah_pre_energy_ = totE;
+  trah_pre_MOs_ = MOs;
+  trah_predicted_ = step.predicted;
+  trah_pending_ = true;
+
+  const Eigen::MatrixXd C_new = trah::RotateOrbitals(C, step.x, nocc);
+  MOs.eigenvectors() = C_new;
+  // diagonal of the old Fock matrix in the rotated orbitals, for the level
+  // shift gap check and the preconditioner until the next diagonalisation
+  MOs.eigenvalues() = (C_new.transpose() * H * C_new).diagonal();
+  usedmixing_ = false;
+  return DensityMatrix(MOs);
+}
+
 void ConvergenceAcc::PrintConfigOptions() const {
   XTP_LOG(Log::error, *log_)
       << TimeStamp() << " Convergence Options:" << std::flush;
@@ -292,6 +440,8 @@ void ConvergenceAcc::PrintConfigOptions() const {
       << "\t\t Mixing Parameter alpha: " << opt_.mixingparameter << std::flush;
   XTP_LOG(Log::error, *log_)
       << "\t\t Mixing end: " << opt_.mixingend << std::flush;
+  XTP_LOG(Log::error, *log_)
+      << "\t\t Second-order (TRAH) steps: " << opt_.second_order << std::flush;
   XTP_LOG(Log::error, *log_)
       << "\t\t Energy reset [Ha]: " << opt_.energy_reset
       << (opt_.energy_reset > 0.0 ? "" : " (off)") << std::flush;

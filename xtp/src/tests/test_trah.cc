@@ -1,0 +1,191 @@
+/*
+ * Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+#define BOOST_TEST_MAIN
+
+#define BOOST_TEST_MODULE trah_test
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/trah.h"
+
+#include <cmath>
+#include <cstdlib>
+
+using namespace votca::xtp;
+using namespace votca;
+
+namespace {
+Eigen::MatrixXd RandomSymmetric(Index n, double shift) {
+  Eigen::MatrixXd A = Eigen::MatrixXd::Random(n, n);
+  return 0.5 * (A + A.transpose()) + shift * Eigen::MatrixXd::Identity(n, n);
+}
+
+trah::HessianProduct Dense(const Eigen::MatrixXd& H, Index& calls) {
+  return [&H, &calls](const Eigen::MatrixXd& V) {
+    calls += V.cols();
+    return Eigen::MatrixXd(H * V);
+  };
+}
+
+double Model(const Eigen::VectorXd& g, const Eigen::MatrixXd& H,
+             const Eigen::VectorXd& x) {
+  return g.dot(x) + 0.5 * x.dot(H * x);
+}
+
+// exp of an antisymmetric matrix by scaling and squaring of a Taylor series
+Eigen::MatrixXd ExpAntisymmetric(const Eigen::MatrixXd& K) {
+  const Index n = K.rows();
+  const int squarings = 10;
+  const Eigen::MatrixXd A = K / std::pow(2.0, squarings);
+  Eigen::MatrixXd term = Eigen::MatrixXd::Identity(n, n);
+  Eigen::MatrixXd result = term;
+  for (int k = 1; k < 20; ++k) {
+    term = (term * A / double(k)).eval();
+    result += term;
+  }
+  for (int k = 0; k < squarings; ++k) {
+    result = (result * result).eval();
+  }
+  return result;
+}
+}  // namespace
+
+BOOST_AUTO_TEST_SUITE(trah_test)
+
+BOOST_AUTO_TEST_CASE(step_inside_trust_radius_solves_shifted_newton) {
+  // Large trust radius: a = 1, and the step solves (H - mu) x = -g with the
+  // mu of the dense augmented Hessian.
+  std::srand(5);
+  const Index n = 40;
+  const Eigen::MatrixXd H = RandomSymmetric(n, 6.0);
+  const Eigen::VectorXd g = 0.1 * Eigen::VectorXd::Random(n);
+  const Eigen::VectorXd diag = H.diagonal();
+  Index calls = 0;
+  trah::StepOptions opt;
+  opt.max_forcing = 1e-8;
+  trah::StepResult res = trah::Step(g, diag, Dense(H, calls), 10.0, opt);
+  BOOST_CHECK(res.converged);
+  BOOST_CHECK_EQUAL(res.alpha, 1.0);
+
+  Eigen::MatrixXd M = Eigen::MatrixXd::Zero(n + 1, n + 1);
+  M.block(0, 1, 1, n) = g.transpose();
+  M.block(1, 0, n, 1) = g;
+  M.bottomRightCorner(n, n) = H;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(M);
+  const Eigen::VectorXd y = es.eigenvectors().col(0);
+  const Eigen::VectorXd x_ref = y.tail(n) / y(0);
+  BOOST_CHECK_SMALL((res.x - x_ref).norm() / x_ref.norm(), 1e-6);
+  BOOST_CHECK_CLOSE(res.predicted, Model(g, H, res.x), 1e-6);
+  BOOST_CHECK_LT(calls, n);
+}
+
+BOOST_AUTO_TEST_CASE(step_on_trust_radius) {
+  // Small trust radius: |x| within [0.8, 1] of it, and the model decrease
+  // at least that of steepest descent of the same length (the Cauchy
+  // point, which the first micro-iteration already gives).
+  std::srand(6);
+  const Index n = 60;
+  const Eigen::MatrixXd H = RandomSymmetric(n, 5.0);
+  const Eigen::VectorXd g = Eigen::VectorXd::Random(n);
+  Index calls = 0;
+  const double trust = 0.05;
+  trah::StepResult res = trah::Step(g, H.diagonal(), Dense(H, calls), trust);
+  BOOST_CHECK(res.converged);
+  BOOST_CHECK_GT(res.alpha, 1.0);
+  BOOST_CHECK_LE(res.x.norm(), trust * (1 + 1e-12));
+  BOOST_CHECK_GE(res.x.norm(), 0.8 * trust);
+  const Eigen::VectorXd sd = -res.x.norm() * g.normalized();
+  BOOST_CHECK_LE(Model(g, H, res.x), Model(g, H, sd) + 1e-12);
+  BOOST_CHECK_CLOSE(res.predicted, Model(g, H, res.x), 1e-6);
+}
+
+BOOST_AUTO_TEST_CASE(step_with_negative_curvature) {
+  // Indefinite Hessian: the step must still lower the model.
+  std::srand(7);
+  const Index n = 30;
+  const Eigen::MatrixXd H = RandomSymmetric(n, 0.0);
+  const Eigen::VectorXd g = Eigen::VectorXd::Random(n);
+  Eigen::VectorXd diag = H.diagonal().cwiseAbs().array() + 1.0;
+  Index calls = 0;
+  trah::StepResult res = trah::Step(g, diag, Dense(H, calls), 0.3);
+  BOOST_CHECK_LE(res.x.norm(), 0.3 * (1 + 1e-12));
+  BOOST_CHECK_LT(res.predicted, 0.0);
+  BOOST_CHECK_CLOSE(res.predicted, Model(g, H, res.x), 1e-6);
+}
+
+BOOST_AUTO_TEST_CASE(subspace_restart) {
+  // A small subspace limit forces restarts; the step still converges.
+  std::srand(8);
+  const Index n = 80;
+  const Eigen::MatrixXd H = RandomSymmetric(n, 8.0);
+  const Eigen::VectorXd g = Eigen::VectorXd::Random(n);
+  trah::StepOptions opt;
+  opt.max_subspace = 6;
+  opt.max_iterations = 200;
+  Index calls = 0;
+  trah::StepResult res = trah::Step(g, H.diagonal(), Dense(H, calls), 0.2, opt);
+  BOOST_CHECK(res.converged);
+  BOOST_CHECK_LE(res.x.norm(), 0.2 * (1 + 1e-12));
+}
+
+BOOST_AUTO_TEST_CASE(rotate_orbitals_is_exact_exponential) {
+  std::srand(9);
+  const Index n = 9;
+  const Index nocc = 4;
+  const Index nvirt = n - nocc;
+  Eigen::MatrixXd A = Eigen::MatrixXd::Random(n, n);
+  const Eigen::MatrixXd S =
+      A * A.transpose() / double(n) + Eigen::MatrixXd::Identity(n, n);
+  // S-orthonormal orbitals
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S);
+  const Eigen::MatrixXd C = es.operatorInverseSqrt();
+  const Eigen::VectorXd x = 0.4 * Eigen::VectorXd::Random(nocc * nvirt);
+
+  Eigen::MatrixXd kappa = Eigen::MatrixXd::Zero(n, n);
+  for (Index i = 0; i < nocc; ++i) {
+    for (Index a = 0; a < nvirt; ++a) {
+      kappa(i, nocc + a) = x(i * nvirt + a);
+      kappa(nocc + a, i) = -x(i * nvirt + a);
+    }
+  }
+  const Eigen::MatrixXd ref = C * ExpAntisymmetric(kappa);
+  const Eigen::MatrixXd C_new = trah::RotateOrbitals(C, x, nocc);
+  BOOST_CHECK_SMALL((C_new - ref).cwiseAbs().maxCoeff(), 1e-10);
+  BOOST_CHECK_SMALL(
+      (C_new.transpose() * S * C_new - Eigen::MatrixXd::Identity(n, n))
+          .cwiseAbs()
+          .maxCoeff(),
+      1e-10);
+  const Eigen::VectorXd ov = trah::OccVirt(kappa, nocc);
+  BOOST_CHECK_SMALL((ov - x).norm(), 1e-14);
+}
+
+BOOST_AUTO_TEST_CASE(trust_radius_update) {
+  trah::TrustRadius t(0.5);
+  BOOST_CHECK(t.Update(-1.0, -0.9));  // good model: grow
+  BOOST_CHECK_CLOSE(t.Radius(), 0.6, 1e-12);
+  BOOST_CHECK(t.Update(-1.0, -0.5));  // keep
+  BOOST_CHECK_CLOSE(t.Radius(), 0.6, 1e-12);
+  BOOST_CHECK(t.Update(-1.0, -0.1));  // accept, shrink
+  BOOST_CHECK_CLOSE(t.Radius(), 0.42, 1e-12);
+  BOOST_CHECK(!t.Update(-1.0, 0.1));  // energy rose: reject, shrink
+  BOOST_CHECK_CLOSE(t.Radius(), 0.294, 1e-12);
+  BOOST_CHECK(t.Update(-1e-12, 2e-12));  // both below the noise floor
+}
+
+BOOST_AUTO_TEST_SUITE_END()

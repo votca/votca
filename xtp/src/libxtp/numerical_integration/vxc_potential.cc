@@ -440,6 +440,218 @@ void Vxc_Potential<Grid>::EvaluateFXCBatch(Index n, const double* rho,
   }
 }
 
+template <class Grid>
+void Vxc_Potential<Grid>::EvaluateFXCSpinBatch(Index n, const double* rho,
+                                               const double* sigma,
+                                               double* vsigma, double* v2rho2,
+                                               double* v2rhosigma,
+                                               double* v2sigma2) const {
+  std::vector<double> vrho(2 * n);
+  std::fill(vsigma, vsigma + 3 * n, 0.0);
+  std::fill(v2rhosigma, v2rhosigma + 6 * n, 0.0);
+  std::fill(v2sigma2, v2sigma2 + 6 * n, 0.0);
+  CallLibxcFXC(xfunc_pol_, n, rho, sigma, vrho.data(), vsigma, v2rho2,
+               v2rhosigma, v2sigma2);
+  if (use_separate_) {
+    std::vector<double> vr(2 * n), vs(3 * n, 0.0), rr(3 * n), rs(6 * n, 0.0),
+        ss(6 * n, 0.0);
+    CallLibxcFXC(cfunc_pol_, n, rho, sigma, vr.data(), vs.data(), rr.data(),
+                 rs.data(), ss.data());
+    for (Index i = 0; i < 3 * n; ++i) {
+      vsigma[i] += vs[i];
+      v2rho2[i] += rr[i];
+    }
+    for (Index i = 0; i < 6 * n; ++i) {
+      v2rhosigma[i] += rs[i];
+      v2sigma2[i] += ss[i];
+    }
+  }
+}
+
+// First-order change of IntegrateVXCSpin. Per point, with g_s = grad rho_s,
+// sigma = (g_a.g_a, g_a.g_b, g_b.g_b) and the first-order changes drho_s,
+// dg_s = grad drho_s:
+//   dsigma = (2 g_a.dg_a, g_a.dg_b + dg_a.g_b, 2 g_b.dg_b)
+//   dv_rho_s   = sum_t v2rho2_st drho_t + sum_c v2rhosigma_sc dsigma_c
+//   dv_sigma_c = sum_t v2rhosigma_tc drho_t + sum_d v2sigma2_cd dsigma_d
+//   dV_a = int dv_rho_a chi chi + (2 dv_aa g_a + 2 v_aa dg_a + dv_ab g_b
+//          + v_ab dg_b).grad(chi chi)
+// and dV_b likewise (a <-> b, aa <-> bb); assembled as in IntegrateVXCSpin.
+template <class Grid>
+std::vector<std::array<Eigen::MatrixXd, 2>>
+    Vxc_Potential<Grid>::IntegrateFXCSpin(
+        const Eigen::MatrixXd& dmat_alpha, const Eigen::MatrixXd& dmat_beta,
+        const std::vector<std::array<Eigen::MatrixXd, 2>>& response) const {
+  const Index n_ao = dmat_alpha.rows();
+  const Index n_resp = Index(response.size());
+  std::vector<std::array<Eigen::MatrixXd, 2>> result(
+      static_cast<std::size_t>(n_resp),
+      {Eigen::MatrixXd::Zero(n_ao, n_ao), Eigen::MatrixXd::Zero(n_ao, n_ao)});
+  if (n_resp == 0) {
+    return result;
+  }
+  for (const std::array<Eigen::MatrixXd, 2>& r : response) {
+    for (const Eigen::MatrixXd& m : r) {
+      if (m.rows() != n_ao || m.cols() != n_ao) {
+        throw std::runtime_error(
+            "IntegrateFXCSpin: response matrix does not match the density "
+            "matrix");
+      }
+    }
+  }
+  // fail before the grid loop for functionals without fxc
+  {
+    const double rho[2] = {0.1, 0.05};
+    const double sigma[3] = {0.01, 0.005, 0.004};
+    double vs[3], rr[3], rs[6], ss[6];
+    EvaluateFXCSpinBatch(1, rho, sigma, vs, rr, rs, ss);
+  }
+
+#pragma omp parallel for schedule(guided)
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+    const Eigen::MatrixXd DMa = box.ReadFromBigMatrix(dmat_alpha);
+    const Eigen::MatrixXd DMb = box.ReadFromBigMatrix(dmat_beta);
+    std::vector<Eigen::MatrixXd> dDa(static_cast<std::size_t>(n_resp));
+    std::vector<Eigen::MatrixXd> dDb(static_cast<std::size_t>(n_resp));
+    for (Index k = 0; k < n_resp; ++k) {
+      dDa[std::size_t(k)] = box.ReadFromBigMatrix(response[std::size_t(k)][0]);
+      dDb[std::size_t(k)] = box.ReadFromBigMatrix(response[std::size_t(k)][1]);
+    }
+    const Index nf = box.Matrixsize();
+    const Index block = std::min(kPointBlock, box.size());
+    std::vector<Eigen::MatrixXd> fxc_a(static_cast<std::size_t>(n_resp),
+                                       Eigen::MatrixXd::Zero(nf, nf));
+    std::vector<Eigen::MatrixXd> fxc_b(static_cast<std::size_t>(n_resp),
+                                       Eigen::MatrixXd::Zero(nf, nf));
+    Eigen::MatrixXd phi(nf, block);
+    Eigen::MatrixXd dphi(nf, 3 * block);
+    Eigen::MatrixXd ya(nf, block);
+    Eigen::MatrixXd yb(nf, block);
+    Eigen::MatrixXd yka(nf, block);
+    Eigen::MatrixXd ykb(nf, block);
+    Eigen::MatrixXd aa(nf, block);
+    Eigen::MatrixXd ab(nf, block);
+    std::vector<Index> kept;
+    std::vector<double> rho, sigma, vsigma, v2rho2, v2rhosigma, v2sigma2;
+    std::vector<Eigen::Vector3d> grad_a, grad_b;
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+
+    for (Index start = 0; start < box.size(); start += block) {
+      const Index nb = std::min(block, box.size() - start);
+      for (Index p = 0; p < nb; ++p) {
+        box.CalcAOValues(points[start + p], phi, dphi, p);
+      }
+      ya.leftCols(nb).noalias() = DMa * phi.leftCols(nb);
+      yb.leftCols(nb).noalias() = DMb * phi.leftCols(nb);
+      kept.clear();
+      rho.clear();
+      sigma.clear();
+      grad_a.clear();
+      grad_b.clear();
+      for (Index p = 0; p < nb; ++p) {
+        const double rho_a = phi.col(p).dot(ya.col(p));
+        const double rho_b = phi.col(p).dot(yb.col(p));
+        if ((rho_a + rho_b) * weights[start + p] < 1.e-20) {
+          continue;
+        }
+        const Eigen::Vector3d ga =
+            2.0 * (dphi.middleCols(3 * p, 3).transpose() * ya.col(p));
+        const Eigen::Vector3d gb =
+            2.0 * (dphi.middleCols(3 * p, 3).transpose() * yb.col(p));
+        kept.push_back(p);
+        rho.push_back(rho_a);
+        rho.push_back(rho_b);
+        sigma.push_back(ga.dot(ga));
+        sigma.push_back(ga.dot(gb));
+        sigma.push_back(gb.dot(gb));
+        grad_a.push_back(ga);
+        grad_b.push_back(gb);
+      }
+      const Index nk = Index(kept.size());
+      if (nk == 0) {
+        continue;
+      }
+      vsigma.resize(3 * nk);
+      v2rho2.resize(3 * nk);
+      v2rhosigma.resize(6 * nk);
+      v2sigma2.resize(6 * nk);
+      EvaluateFXCSpinBatch(nk, rho.data(), sigma.data(), vsigma.data(),
+                           v2rho2.data(), v2rhosigma.data(), v2sigma2.data());
+      Eigen::MatrixXd phik(nf, nk);
+      for (Index q = 0; q < nk; ++q) {
+        phik.col(q) = phi.col(kept[q]);
+      }
+
+      for (Index k = 0; k < n_resp; ++k) {
+        yka.leftCols(nb).noalias() = dDa[std::size_t(k)] * phi.leftCols(nb);
+        ykb.leftCols(nb).noalias() = dDb[std::size_t(k)] * phi.leftCols(nb);
+        for (Index q = 0; q < nk; ++q) {
+          const Index p = kept[q];
+          const double w = weights[start + p];
+          const double dra = phi.col(p).dot(yka.col(p));
+          const double drb = phi.col(p).dot(ykb.col(p));
+          const double* r2 = &v2rho2[3 * q];
+          if (!is_gga_) {
+            const double dva = r2[0] * dra + r2[1] * drb;
+            const double dvb = r2[1] * dra + r2[2] * drb;
+            aa.col(q) = (w * 0.5 * dva) * phi.col(p);
+            ab.col(q) = (w * 0.5 * dvb) * phi.col(p);
+            continue;
+          }
+          const auto d = dphi.middleCols(3 * p, 3);
+          const Eigen::Vector3d dga = 2.0 * (d.transpose() * yka.col(p));
+          const Eigen::Vector3d dgb = 2.0 * (d.transpose() * ykb.col(p));
+          const Eigen::Vector3d& ga = grad_a[q];
+          const Eigen::Vector3d& gb = grad_b[q];
+          const double ds[3] = {2.0 * ga.dot(dga), ga.dot(dgb) + dga.dot(gb),
+                                2.0 * gb.dot(dgb)};
+          const double* rs = &v2rhosigma[6 * q];
+          const double* s2 = &v2sigma2[6 * q];
+          const double* vs = &vsigma[3 * q];
+          // v2sigma2 as a symmetric 3x3 matrix
+          const double S[3][3] = {{s2[0], s2[1], s2[2]},
+                                  {s2[1], s2[3], s2[4]},
+                                  {s2[2], s2[4], s2[5]}};
+          const double dva = r2[0] * dra + r2[1] * drb + rs[0] * ds[0] +
+                             rs[1] * ds[1] + rs[2] * ds[2];
+          const double dvb = r2[1] * dra + r2[2] * drb + rs[3] * ds[0] +
+                             rs[4] * ds[1] + rs[5] * ds[2];
+          double dvs[3];
+          for (int c = 0; c < 3; ++c) {
+            dvs[c] = rs[c] * dra + rs[3 + c] * drb + S[c][0] * ds[0] +
+                     S[c][1] * ds[1] + S[c][2] * ds[2];
+          }
+          const Eigen::Vector3d vec_a =
+              2.0 * dvs[0] * ga + 2.0 * vs[0] * dga + dvs[1] * gb + vs[1] * dgb;
+          const Eigen::Vector3d vec_b =
+              2.0 * dvs[2] * gb + 2.0 * vs[2] * dgb + dvs[1] * ga + vs[1] * dga;
+          aa.col(q) = (w * 0.5 * dva) * phi.col(p) + w * (d * vec_a);
+          ab.col(q) = (w * 0.5 * dvb) * phi.col(p) + w * (d * vec_b);
+        }
+        fxc_a[std::size_t(k)].noalias() += aa.leftCols(nk) * phik.transpose();
+        fxc_b[std::size_t(k)].noalias() += ab.leftCols(nk) * phik.transpose();
+      }
+    }
+#pragma omp critical
+    {
+      for (Index k = 0; k < n_resp; ++k) {
+        box.AddtoBigMatrix(result[std::size_t(k)][0], fxc_a[std::size_t(k)]);
+        box.AddtoBigMatrix(result[std::size_t(k)][1], fxc_b[std::size_t(k)]);
+      }
+    }
+  }
+  for (std::array<Eigen::MatrixXd, 2>& m : result) {
+    m[0] = (m[0] + m[0].transpose()).eval();
+    m[1] = (m[1] + m[1].transpose()).eval();
+  }
+  return result;
+}
+
 // First-order change of IntegrateVXC. With sigma = |grad rho|^2, at a point
 //   drho, dg = grad drho, dsigma = 2 g.dg
 //   dv_rho   = v2rho2 drho + v2rhosigma dsigma
