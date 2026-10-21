@@ -125,6 +125,40 @@ BOOST_AUTO_TEST_CASE(onaxis_symmetry_and_sign) {
   BOOST_CHECK(target.V().x() > 0.0);
 }
 
+// A site may be listed more than once in a batch; every occurrence must
+// be added, as if AddFieldAt were called once per entry.
+BOOST_AUTO_TEST_CASE(add_field_at_many_handles_repeated_targets) {
+  Eigen::Matrix3d box = 10.0 * Eigen::Matrix3d::Identity();
+  EwaldRegistry registry;
+  registry.Register(1, EwaldChargeState::Neutral,
+                    MakeChargeSegment(1, Eigen::Vector3d::Zero(), 1.0));
+  EwaldReciprocalSpaceSum recip(box, registry, 0.35, /*k_max=*/10.0);
+
+  const Index n_sites = 40;
+  const Index copies = 4;
+  std::vector<PolarSite> serial_sites;
+  std::vector<PolarSite> batched_sites;
+  for (Index i = 0; i < n_sites; ++i) {
+    const Eigen::Vector3d pos(0.2 * double(i % 7) + 1.0,
+                              0.3 * double(i % 5) - 0.5, 0.1 * double(i));
+    serial_sites.emplace_back(10 + i, "H", pos);
+    batched_sites.emplace_back(10 + i, "H", pos);
+  }
+  std::vector<PolarSite*> batch;
+  for (Index c = 0; c < copies; ++c) {
+    for (Index i = 0; i < n_sites; ++i) {
+      batch.push_back(&batched_sites[std::size_t(i)]);
+      recip.AddFieldAt<Estatic::V>(serial_sites[std::size_t(i)],
+                                   EwaldChargeState::Neutral);
+    }
+  }
+  recip.AddFieldAtMany<Estatic::V>(batch, EwaldChargeState::Neutral);
+  for (Index i = 0; i < n_sites; ++i) {
+    BOOST_CHECK(serial_sites[std::size_t(i)].V().isApprox(
+        batched_sites[std::size_t(i)].V(), 1e-12));
+  }
+}
+
 // EwaldReciprocalSpaceSum, unlike EwaldRealSpaceSum, never excludes
 // anything from its own global structure factor -- not even the
 // target's own registered segment (see this class's own class

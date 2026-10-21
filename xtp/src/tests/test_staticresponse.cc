@@ -166,6 +166,59 @@ BOOST_AUTO_TEST_CASE(fxc_is_the_derivative_of_vxc) {
   libint2::finalize();
 }
 
+BOOST_AUTO_TEST_CASE(fxc_spin_is_the_derivative_of_vxc_spin) {
+  // IntegrateFXCSpin against central differences of IntegrateVXCSpin at a
+  // spin-polarized density, for an LDA, a GGA (exchange and correlation
+  // separate) and a hybrid GGA; and against IntegrateFXC for a closed-shell
+  // density and spin-symmetric response
+  libint2::initialize();
+  Logger log;
+  const Orbitals orb = Ground(DFTOptions("XC_GGA_X_PBE XC_GGA_C_PBE", true),
+                              Eigen::MatrixXd(), nullptr, log);
+  const QMMolecule mol = Water();
+  const AOBasis basis = Basis(mol);
+  Vxc_Grid grid;
+  grid.GridSetup("medium", mol, basis);
+  const Eigen::MatrixXd P = orb.DensityMatrixGroundState();
+  const Index n = basis.AOBasisSize();
+  // polarized: more alpha than beta density
+  const Eigen::MatrixXd Pa = 0.6 * P;
+  const Eigen::MatrixXd Pb = 0.4 * P;
+  std::srand(13);
+  const Eigen::MatrixXd dPa = RandomSymmetric(n, 0.05);
+  const Eigen::MatrixXd dPb = RandomSymmetric(n, 0.03);
+  for (const std::string functional :
+       {"XC_LDA_X XC_LDA_C_VWN", "XC_GGA_X_PBE XC_GGA_C_PBE",
+        "XC_HYB_GGA_XC_PBEH"}) {
+    Vxc_Potential<Vxc_Grid> vxc(grid);
+    vxc.setXCfunctional(functional);
+    const std::array<Eigen::MatrixXd, 2> fxc =
+        vxc.IntegrateFXCSpin(Pa, Pb, {{dPa, dPb}})[0];
+    const double h = 1e-4;
+    const auto plus = vxc.IntegrateVXCSpin(Pa + h * dPa, Pb + h * dPb);
+    const auto minus = vxc.IntegrateVXCSpin(Pa - h * dPa, Pb - h * dPb);
+    const Eigen::MatrixXd fd_a = (plus.vxc_alpha - minus.vxc_alpha) / (2 * h);
+    const Eigen::MatrixXd fd_b = (plus.vxc_beta - minus.vxc_beta) / (2 * h);
+    const double scale =
+        std::max(fd_a.cwiseAbs().maxCoeff(), fd_b.cwiseAbs().maxCoeff());
+    const double err = std::max((fxc[0] - fd_a).cwiseAbs().maxCoeff(),
+                                (fxc[1] - fd_b).cwiseAbs().maxCoeff());
+    BOOST_TEST_MESSAGE(functional << ": max |fxc_spin - fd| " << err << " of "
+                                  << scale);
+    BOOST_CHECK_SMALL(err, 1e-6 * scale);
+
+    // closed shell: alpha and beta response equal IntegrateFXC of the total
+    const Eigen::MatrixXd dP = dPa + dPa.transpose();
+    const Eigen::MatrixXd closed = vxc.IntegrateFXC(P, {dP})[0];
+    const std::array<Eigen::MatrixXd, 2> spin =
+        vxc.IntegrateFXCSpin(0.5 * P, 0.5 * P, {{0.5 * dP, 0.5 * dP}})[0];
+    const double cs = closed.cwiseAbs().maxCoeff();
+    BOOST_CHECK_SMALL((spin[0] - closed).cwiseAbs().maxCoeff(), 1e-8 * cs);
+    BOOST_CHECK_SMALL((spin[1] - closed).cwiseAbs().maxCoeff(), 1e-8 * cs);
+  }
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_CASE(response_matches_perturbed_scfs) {
   // first-order densities from CPKS against central differences of SCFs in
   // the same perturbations (a uniform field and a localized potential),

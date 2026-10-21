@@ -24,6 +24,8 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_map>
+#include <vector>
 
 // Local VOTCA includes
 #include "votca/xtp/ewaldrealspacesum.h"
@@ -673,12 +675,28 @@ void EwaldRealSpaceSum::AddFieldAtMany(
   // on-demand search would have used, so results do not depend on
   // whether a target was prepared here or found on demand.
   PrepareNeighborCacheImpl<CE>(targets, source_state, include_static);
-  const Index n_targets = Index(targets.size());
+  // A site may appear more than once in targets. Its occurrences are
+  // grouped and applied by one thread, in input order, so no two threads
+  // add to the same site and the sum matches the serial one bit for bit.
+  std::unordered_map<const PolarSite*, std::size_t> group_of;
+  std::vector<std::vector<std::size_t>> groups;
+  group_of.reserve(targets.size());
+  groups.reserve(targets.size());
+  for (std::size_t i = 0; i < targets.size(); ++i) {
+    const auto inserted = group_of.emplace(targets[i].second, groups.size());
+    if (inserted.second) {
+      groups.emplace_back();
+    }
+    groups[inserted.first->second].push_back(i);
+  }
+  const Index n_groups = Index(groups.size());
 #pragma omp parallel for schedule(dynamic, 16)
-  for (Index i = 0; i < n_targets; ++i) {
-    const auto& entry = targets[std::size_t(i)];
-    const auto cached = neighbor_cache_.find({entry.second, source_state});
-    ApplyNeighborList<CE>(cached->second, *entry.second, include_static);
+  for (Index g = 0; g < n_groups; ++g) {
+    for (const std::size_t i : groups[std::size_t(g)]) {
+      PolarSite& target = *targets[i].second;
+      const auto cached = neighbor_cache_.find({&target, source_state});
+      ApplyNeighborList<CE>(cached->second, target, include_static);
+    }
   }
 }
 

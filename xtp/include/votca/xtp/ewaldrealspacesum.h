@@ -191,11 +191,12 @@ class EwaldRealSpaceSum {
 
   // AddFieldAt for a whole batch, in parallel. Every missing neighbour
   // list is built first by PrepareNeighborCache (parallel search, serial
-  // insertion), after which the field pass only reads this object and
-  // each iteration writes only its own target, so it is safe to spread
-  // over threads. The result is bit-identical to calling AddFieldAt on
-  // every target in turn: each target sees the same (source, translation)
-  // list, applied in the same order.
+  // insertion), after which the field pass only reads this object.
+  // Targets are spread over threads by site: repeated entries of the same
+  // site are applied by one thread, in input order. The result is
+  // bit-identical to calling AddFieldAt on every entry in turn: each
+  // target sees the same (source, translation) list, applied in the same
+  // order.
   //
   // This, not an omp loop around AddFieldAt, is how a caller evaluates
   // many targets concurrently: AddFieldAt inserts into neighbor_cache_
