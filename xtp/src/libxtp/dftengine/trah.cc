@@ -50,6 +50,48 @@ bool SolveProjected(const Eigen::MatrixXd& Hs, const Eigen::VectorXd& gs,
   return true;
 }
 
+// alpha > 1 for a step with |x| in [lower_fraction, 1] x trust_radius:
+// bisection in log(alpha) on the projected problem (no Hessian products).
+// If even alpha_max gives a step longer than lower_fraction x trust_radius,
+// that step is returned (Step scales it back onto the trust radius). xs and
+// mu are updated with every solved alpha.
+double SearchAlpha(const Eigen::MatrixXd& Hs, const Eigen::VectorXd& gs,
+                   double trust_radius, const StepOptions& opt,
+                   Eigen::VectorXd& xs, double& mu) {
+  Eigen::VectorXd xs_hi;
+  double mu_hi = 0.0;
+  if (SolveProjected(Hs, gs, opt.alpha_max, xs_hi, mu_hi) &&
+      xs_hi.norm() > opt.lower_fraction * trust_radius) {
+    xs = xs_hi;
+    mu = mu_hi;
+    return opt.alpha_max;
+  }
+  double alpha = 1.0;
+  double lo = 1.0;
+  double hi = opt.alpha_max;
+  for (int k = 0; k < 100; ++k) {
+    const double a = std::sqrt(lo * hi);
+    Eigen::VectorXd xs_a;
+    double mu_a = 0.0;
+    if (!SolveProjected(Hs, gs, a, xs_a, mu_a)) {
+      lo = a;
+      continue;
+    }
+    alpha = a;
+    xs = xs_a;
+    mu = mu_a;
+    const double norm = xs_a.norm();
+    if (norm > trust_radius) {
+      lo = a;
+    } else if (norm < opt.lower_fraction * trust_radius) {
+      hi = a;
+    } else {
+      break;
+    }
+  }
+  return alpha;
+}
+
 // Orthonormalises v against the columns of B (twice) and normalises it.
 // False if nothing new is left.
 bool Orthonormalize(const Eigen::MatrixXd& B, Eigen::VectorXd& v) {
@@ -127,38 +169,7 @@ StepResult Step(const Eigen::VectorXd& g, const Eigen::VectorXd& diag,
       break;
     }
     if (xs.norm() > trust_radius) {
-      double lo = 1.0;
-      double hi = opt.alpha_max;
-      Eigen::VectorXd xs_hi;
-      double mu_hi = 0.0;
-      if (SolveProjected(Hs, gs, hi, xs_hi, mu_hi) &&
-          xs_hi.norm() > opt.lower_fraction * trust_radius) {
-        // even the largest a gives a long step; it is scaled back below
-        alpha = hi;
-        xs = xs_hi;
-        mu = mu_hi;
-      } else {
-        for (int k = 0; k < 100; ++k) {
-          const double a = std::sqrt(lo * hi);
-          Eigen::VectorXd xs_a;
-          double mu_a = 0.0;
-          if (!SolveProjected(Hs, gs, a, xs_a, mu_a)) {
-            lo = a;
-            continue;
-          }
-          alpha = a;
-          xs = xs_a;
-          mu = mu_a;
-          const double norm = xs_a.norm();
-          if (norm > trust_radius) {
-            lo = a;
-          } else if (norm < opt.lower_fraction * trust_radius) {
-            hi = a;
-          } else {
-            break;
-          }
-        }
-      }
+      alpha = SearchAlpha(Hs, gs, trust_radius, opt, xs, mu);
     }
 
     // residual of (H - mu) x = -g in the full space

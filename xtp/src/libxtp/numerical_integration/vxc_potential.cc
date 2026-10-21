@@ -490,14 +490,14 @@ std::vector<std::array<Eigen::MatrixXd, 2>>
   if (n_resp == 0) {
     return result;
   }
-  for (const std::array<Eigen::MatrixXd, 2>& r : response) {
-    for (const Eigen::MatrixXd& m : r) {
-      if (m.rows() != n_ao || m.cols() != n_ao) {
-        throw std::runtime_error(
-            "IntegrateFXCSpin: response matrix does not match the density "
-            "matrix");
-      }
-    }
+  auto wrong_size = [n_ao](const std::array<Eigen::MatrixXd, 2>& r) {
+    return r[0].rows() != n_ao || r[0].cols() != n_ao || r[1].rows() != n_ao ||
+           r[1].cols() != n_ao;
+  };
+  if (std::any_of(response.begin(), response.end(), wrong_size)) {
+    throw std::runtime_error(
+        "IntegrateFXCSpin: response matrix does not match the density "
+        "matrix");
   }
   // fail before the grid loop for functionals without fxc
   {
@@ -670,11 +670,12 @@ std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::IntegrateFXC(
   if (n_resp == 0) {
     return result;
   }
-  for (const Eigen::MatrixXd& m : response_matrices) {
-    if (m.rows() != n_ao || m.cols() != n_ao) {
-      throw std::runtime_error(
-          "IntegrateFXC: response matrix does not match the density matrix");
-    }
+  if (std::any_of(response_matrices.begin(), response_matrices.end(),
+                  [n_ao](const Eigen::MatrixXd& m) {
+                    return m.rows() != n_ao || m.cols() != n_ao;
+                  })) {
+    throw std::runtime_error(
+        "IntegrateFXC: response matrix does not match the density matrix");
   }
   // fail before the grid loop for functionals without fxc
   {
