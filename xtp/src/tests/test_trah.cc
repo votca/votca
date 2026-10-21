@@ -205,6 +205,33 @@ BOOST_AUTO_TEST_CASE(subspace_reuse_after_rejection) {
   BOOST_CHECK(!other.reused);
 }
 
+BOOST_AUTO_TEST_CASE(failed_projected_solve_keeps_last_step) {
+  // A direction of strong negative curvature that the gradient almost
+  // misses: the first projected problem is solved, the second, after that
+  // direction has entered the subspace, has a lowest eigenvector with no
+  // component along the augmented coordinate and cannot give a step. The
+  // step of the first solve must be returned, consistent with the model
+  // (previously the predicted change mixed vectors from the two subspaces).
+  Eigen::MatrixXd H(2, 2);
+  H << 1.0, 1e-14, 1e-14, -100.0;
+  Eigen::VectorXd g(2);
+  g << 1.0, 0.0;
+  Eigen::VectorXd diag(2);
+  diag << 1.0, 100.0;
+  trah::StepOptions opt;
+  opt.max_forcing = 1e-30;
+  opt.residual_floor = 0.0;
+  Index calls = 0;
+  trah::StepResult res = trah::Step(g, diag, Dense(H, calls), 10.0, opt);
+  BOOST_TEST_MESSAGE(
+      "products " << res.products << ", iterations " << res.iterations << ", x "
+                  << res.x.transpose() << ", predicted " << res.predicted);
+  BOOST_CHECK(res.x.allFinite());
+  BOOST_CHECK_LT(res.predicted, 0.0);
+  BOOST_CHECK_SMALL(res.predicted - Model(g, H, res.x), 1e-12);
+  BOOST_CHECK_CLOSE(res.linear, g.dot(res.x), 1e-10);
+}
+
 BOOST_AUTO_TEST_CASE(rotate_orbitals_is_exact_exponential) {
   Seed(9);
   const Index n = 9;

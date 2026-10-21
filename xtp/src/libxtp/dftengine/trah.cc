@@ -155,7 +155,14 @@ StepResult Step(const Eigen::VectorXd& g, const Eigen::VectorXd& diag,
   Eigen::VectorXd gs;
   Eigen::MatrixXd Hs;
   double mu = 0.0;
-  double alpha = 1.0;
+  // The last solved step, in the full space, with g.x and x.H.x from the
+  // subspace it was solved in. Kept separately because B, gs and Hs change
+  // afterwards (new vectors, restarts) and a later projected solve can
+  // fail, which leaves xs from an earlier, smaller subspace.
+  bool solved = false;
+  Eigen::VectorXd x_full = Eigen::VectorXd::Zero(n);
+  double g_dot_x = 0.0;
+  double x_H_x = 0.0;
   for (Index it = 0; it < opt.max_iterations; ++it) {
     result.iterations = it + 1;
     Hs = B.transpose() * HB;
@@ -164,7 +171,7 @@ StepResult Step(const Eigen::VectorXd& g, const Eigen::VectorXd& diag,
 
     // a = 1 if its step is inside the trust radius; otherwise bisection in
     // log(a), with no further Hessian products.
-    alpha = 1.0;
+    double alpha = 1.0;
     if (!SolveProjected(Hs, gs, alpha, xs, mu)) {
       break;
     }
@@ -172,8 +179,15 @@ StepResult Step(const Eigen::VectorXd& g, const Eigen::VectorXd& diag,
       alpha = SearchAlpha(Hs, gs, trust_radius, opt, xs, mu);
     }
 
+    solved = true;
+    x_full = B * xs;
+    g_dot_x = gs.dot(xs);
+    x_H_x = xs.dot(Hs * xs);
+    result.alpha = alpha;
+    result.mu = mu;
+
     // residual of (H - mu) x = -g in the full space
-    const Eigen::VectorXd r = HB * xs + g - mu * (B * xs);
+    const Eigen::VectorXd r = HB * xs + g - mu * x_full;
     result.residual = r.norm();
     if (result.residual <= tolerance) {
       result.converged = true;
@@ -205,20 +219,23 @@ StepResult Step(const Eigen::VectorXd& g, const Eigen::VectorXd& diag,
     }
   }
 
-  // predicted change g.x + 1/2 x.H.x, exact in the subspace; a step still
-  // outside the trust radius is scaled back onto it
-  const double norm = xs.norm();
-  const double s = (norm > trust_radius) ? trust_radius / norm : 1.0;
-  result.predicted = s * gs.dot(xs) + 0.5 * s * s * xs.dot(Hs * xs);
-  result.linear = s * gs.dot(xs);
-  result.x = s * (B * xs);
   if (subspace != nullptr) {
     subspace->B = B;
     subspace->HB = HB;
     subspace->g = g;
   }
-  result.alpha = alpha;
-  result.mu = mu;
+  if (!solved) {
+    // no projected problem could be solved (g orthogonal to its lowest
+    // eigenvector): no step
+    return result;
+  }
+  // predicted change g.x + 1/2 x.H.x, exact in the subspace; a step still
+  // outside the trust radius is scaled back onto it
+  const double norm = x_full.norm();
+  const double s = (norm > trust_radius) ? trust_radius / norm : 1.0;
+  result.linear = s * g_dot_x;
+  result.predicted = s * g_dot_x + 0.5 * s * s * x_H_x;
+  result.x = s * x_full;
   return result;
 }
 
