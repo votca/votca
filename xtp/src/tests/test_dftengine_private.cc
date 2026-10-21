@@ -928,3 +928,93 @@ BOOST_AUTO_TEST_CASE(rks_orbital_hessian_matches_finite_differences) {
     libint2::finalize();
   }
 }
+
+BOOST_AUTO_TEST_CASE(trah_converges_below_the_diis_saddle_point) {
+  // Stretched O2 triplet (1.8 Angstrom), PBE0/3-21G, UKS. DIIS converges to
+  // a stationary point with five negative orbital-Hessian eigenvalues
+  // (lowest -0.105); TRAH (second_order=always) converges 12 mHa lower, to
+  // a stationary point with fewer and much smaller negative eigenvalues.
+  // These remaining ones are symmetry-breaking directions with no gradient
+  // component, which a gradient-driven method does not leave (it would
+  // need instability following); thread-order noise occasionally lets TRAH
+  // slide further, so only the comparison with DIIS is tested.
+  const std::string data = std::string(XTP_TEST_DATA_FOLDER);
+  {
+    std::ofstream xyz("o2_stretched.xyz");
+    xyz << "2\n\nO 0 0 0\nO 0 0 1.8\n";
+  }
+  struct Result {
+    double energy;
+    double lowest_hessian_eigenvalue;
+    Index negative_eigenvalues;
+  };
+  auto run = [&](const std::string& second_order) {
+    libint2::initialize();
+    {
+      std::ofstream xml("o2_stretched.xml");
+      xml << "<dftpackage>\n<spin>3</spin>\n<name>xtp</name>\n"
+          << "<charge>0</charge>\n<functional>XC_HYB_GGA_XC_PBEH</functional>\n"
+          << "<basisset>" << data
+          << "/hirshfeldpartition/3-21G.xml</basisset>\n"
+          << "<initial_guess>atom</initial_guess>\n<xtpdft>\n"
+          << "<screening_eps>1e-12</screening_eps>\n"
+          << "<fock_matrix_reset>5</fock_matrix_reset>\n<convergence>\n"
+          << "<energy>1e-9</energy>\n<method>DIIS</method>\n"
+          << "<DIIS_start>0.002</DIIS_start>\n<ADIIS_start>0.8</ADIIS_start>\n"
+          << "<DIIS_length>20</DIIS_length>\n<levelshift>0.0</levelshift>\n"
+          << "<levelshift_end>0.2</levelshift_end>\n"
+          << "<max_iterations>100</max_iterations>\n<error>1e-7</error>\n"
+          << "<DIIS_maxout>false</DIIS_maxout>\n<mixing>0.7</mixing>\n"
+          << "<mixing_max>0.98</mixing_max>\n<mixing_end>0.8</mixing_end>\n"
+          << "<davidson_max_iter>50</davidson_max_iter>\n"
+          << "<second_order>" << second_order << "</second_order>\n"
+          << "</convergence>\n<integration_grid>medium</integration_grid>\n"
+          << "</xtpdft>\n</dftpackage>\n";
+    }
+    votca::tools::Property prop;
+    prop.LoadFromXML("o2_stretched.xml");
+    Logger log;
+    DFTEngine engine;
+    engine.setLogger(&log);
+    engine.Initialize(prop.get("dftpackage"));
+    Orbitals orb;
+    orb.QMAtoms().LoadFromFile("o2_stretched.xyz");
+    orb.setChargeAndSpin(0, 3);
+    BOOST_REQUIRE(engine.Evaluate(orb));
+
+    // full UKS orbital Hessian at the converged orbitals
+    const QMMolecule& mol = orb.QMAtoms();
+    const Vxc_Potential<Vxc_Grid> vxc =
+        DFTEngineTestAccess::SetupVxc(engine, mol);
+    const Eigen::MatrixXd H0 = DFTEngineTestAccess::SetupH0(engine, mol);
+    const Index na = orb.getNumberOfAlphaElectrons();
+    const Index nb = orb.getNumberOfBetaElectrons();
+    const Eigen::MatrixXd Ca = orb.MOs().eigenvectors().leftCols(na);
+    const Eigen::MatrixXd Cb = orb.MOs_beta().eigenvectors().leftCols(nb);
+    const UKSConvergenceAcc::SpinFock F = DFTEngineTestAccess::BuildUKSFock(
+        engine, H0, vxc, Ca * Ca.transpose(), Cb * Cb.transpose());
+    const Index n = orb.MOs().eigenvectors().cols();
+    const Index n_ov = na * (n - na) + nb * (n - nb);
+    Eigen::MatrixXd H = DFTEngineTestAccess::UKSOrbitalHessian(
+        engine, vxc, orb.MOs(), orb.MOs_beta(), F.alpha, F.beta,
+        Eigen::MatrixXd::Identity(n_ov, n_ov));
+    H = 0.5 * (H + H.transpose()).eval();
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H);
+    libint2::finalize();
+    const Index negative = (es.eigenvalues().array() < -1e-6).count();
+    return Result{orb.getDFTTotalEnergy(), es.eigenvalues()(0), negative};
+  };
+
+  const Result diis = run("off");
+  const Result trah = run("always");
+  BOOST_TEST_MESSAGE("DIIS: E = " << diis.energy << ", lowest eigenvalue "
+                                  << diis.lowest_hessian_eigenvalue << ", "
+                                  << diis.negative_eigenvalues << " negative");
+  BOOST_TEST_MESSAGE("TRAH: E = " << trah.energy << ", lowest eigenvalue "
+                                  << trah.lowest_hessian_eigenvalue << ", "
+                                  << trah.negative_eigenvalues << " negative");
+  BOOST_CHECK_LT(diis.lowest_hessian_eigenvalue, -0.05);
+  BOOST_CHECK_GT(trah.lowest_hessian_eigenvalue, -0.05);
+  BOOST_CHECK_LT(trah.negative_eigenvalues, diis.negative_eigenvalues);
+  BOOST_CHECK_LT(trah.energy, diis.energy - 0.01);
+}
