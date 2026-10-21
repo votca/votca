@@ -100,11 +100,16 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
                                         tools::EigenSystem& MOs, double totE) {
   // Check the second-order step returned by the previous call, now that
   // the energy of its density (totE) is known: Fletcher's trust-radius
-  // update; a rejected step is undone.
+  // update. A rejected step is undone and, while second-order steps
+  // continue, repeated at once with the smaller radius from the stored
+  // Fock matrix and Davidson subspace: no Fock build, no SCF iteration and
+  // usually no Hessian products.
+  last_rejected_ = false;
   if (trah_pending_) {
     trah_pending_ = false;
     const double actual = totE - trah_pre_energy_;
-    const bool accepted = trust_.Update(trah_predicted_, actual);
+    const bool accepted =
+        trust_.Update(trah_predicted_, actual, trah_linear_, trah_step_norm_);
     XTP_LOG(Log::warning, *log_)
         << TimeStamp() << " Second-order step check: actual dE=" << actual
         << ", predicted dE=" << trah_predicted_ << ", r=" << trust_.LastRatio()
@@ -122,7 +127,13 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
       }
       MOs = trah_pre_MOs_;
       totE_.push_back(trah_pre_energy_);
+      last_rejected_ = true;
       usedmixing_ = false;
+      if (trah_active_) {
+        const Eigen::MatrixXd H_pre = trah_pre_H_;
+        return SecondOrderStep(DensityMatrix(MOs), H_pre, MOs,
+                               trah_pre_energy_);
+      }
       return DensityMatrix(MOs);
     }
   }
@@ -377,7 +388,8 @@ Eigen::MatrixXd ConvergenceAcc::SecondOrderStep(const Eigen::MatrixXd& dmat,
   };
   trah::StepResult step;
   try {
-    step = trah::Step(g, diag, hessian, trust_.Radius(), trah_options_);
+    step = trah::Step(g, diag, hessian, trust_.Radius(), trah_options_,
+                      &trah_subspace_);
   } catch (const std::runtime_error& error) {
     XTP_LOG(Log::error, *log_)
         << TimeStamp()
@@ -393,13 +405,17 @@ Eigen::MatrixXd ConvergenceAcc::SecondOrderStep(const Eigen::MatrixXd& dmat,
       << ", |x|=" << step.x.norm() << ", trust radius=" << trust_.Radius()
       << ", alpha=" << step.alpha << ", micro-iterations=" << step.iterations
       << ", Hessian products=" << step.products
+      << (step.reused ? " (subspace reused)" : "")
       << ", residual=" << step.residual
       << (step.converged ? "" : " (not converged)")
       << ", predicted dE=" << step.predicted << std::flush;
 
   trah_pre_energy_ = totE;
   trah_pre_MOs_ = MOs;
+  trah_pre_H_ = H;
   trah_predicted_ = step.predicted;
+  trah_linear_ = step.linear;
+  trah_step_norm_ = step.x.norm();
   trah_pending_ = true;
 
   const Eigen::MatrixXd C_new = trah::RotateOrbitals(C, step.x, nocc);

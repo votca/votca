@@ -68,12 +68,15 @@ struct StepOptions {
 
 struct StepResult {
   Eigen::VectorXd x;
-  // g.x + 1/2 x.H.x of the step taken
+  // g.x + 1/2 x.H.x of the step taken, and g.x alone
   double predicted = 0.0;
+  double linear = 0.0;
   double alpha = 1.0;
   double mu = 0.0;
   Index iterations = 0;
   Index products = 0;
+  // the step started from the subspace passed in
+  bool reused = false;
   double residual = 0.0;
   bool converged = false;
 };
@@ -81,9 +84,26 @@ struct StepResult {
 /// Hessian applied to the columns of V (n x k), returning n x k.
 using HessianProduct = std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)>;
 
+/// Davidson subspace of a step (orthonormal B, H B) and the gradient it
+/// was built for. Passed to Step, it is reused when the gradient is the
+/// same, i.e. when a rejected step is repeated with a smaller trust radius
+/// from the same orbitals: the new step then needs no Hessian products
+/// beyond those still missing for the residual tolerance.
+struct Subspace {
+  Eigen::MatrixXd B;
+  Eigen::MatrixXd HB;
+  Eigen::VectorXd g;
+  void Clear() {
+    B.resize(0, 0);
+    HB.resize(0, 0);
+    g.resize(0);
+  }
+};
+
 StepResult Step(const Eigen::VectorXd& g, const Eigen::VectorXd& diag,
                 const HessianProduct& hessian, double trust_radius,
-                const StepOptions& opt = StepOptions());
+                const StepOptions& opt = StepOptions(),
+                Subspace* subspace = nullptr);
 
 /// Fletcher's trust-radius update. Returns whether the step is accepted
 /// (actual and predicted energy changes of the same sign, or both below
@@ -97,6 +117,12 @@ class TrustRadius {
   double Radius() const { return radius_; }
   double LastRatio() const { return ratio_; }
   bool Update(double predicted, double actual);
+  /// The same, with the linear term g.x and the length |x| of the step:
+  /// a rejected step then sets the radius from the energy along it,
+  /// E(t) = E0 + linear t + c t^2 with c = actual - linear, to the
+  /// minimum t* = -linear / (2c), clamped to [0.1, 0.7] x |x| (else
+  /// 0.7 x min(radius, |x|)).
+  bool Update(double predicted, double actual, double linear, double step_norm);
 
   static constexpr double noise_floor = 1e-10;
 

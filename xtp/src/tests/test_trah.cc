@@ -143,6 +143,46 @@ BOOST_AUTO_TEST_CASE(subspace_restart) {
   BOOST_CHECK_LE(res.x.norm(), 0.2 * (1 + 1e-12));
 }
 
+BOOST_AUTO_TEST_CASE(subspace_reuse_after_rejection) {
+  // A step repeated with a smaller trust radius for the same gradient
+  // starts from the stored subspace: few or no new Hessian products, and
+  // the same step as a fresh solve.
+  std::srand(10);
+  const Index n = 70;
+  const Eigen::MatrixXd H = RandomSymmetric(n, 3.0);
+  const Eigen::VectorXd g = Eigen::VectorXd::Random(n);
+  trah::StepOptions opt;
+  opt.max_forcing = 1e-6;  // tight, so that a step needs many products
+  trah::Subspace subspace;
+  Index calls = 0;
+  trah::StepResult first =
+      trah::Step(g, H.diagonal(), Dense(H, calls), 0.5, opt, &subspace);
+  BOOST_CHECK(!first.reused);
+  BOOST_CHECK_EQUAL(subspace.B.cols(), first.products);
+
+  calls = 0;
+  trah::StepResult again =
+      trah::Step(g, H.diagonal(), Dense(H, calls), 0.1, opt, &subspace);
+  BOOST_CHECK(again.reused);
+  Index fresh_calls = 0;
+  trah::StepResult fresh =
+      trah::Step(g, H.diagonal(), Dense(H, fresh_calls), 0.1, opt);
+  BOOST_TEST_MESSAGE("first " << first.products << " products, repeated "
+                              << again.products << ", fresh "
+                              << fresh.products);
+  BOOST_CHECK(again.converged);
+  BOOST_CHECK_LT(again.products, fresh.products);
+  BOOST_CHECK_LE(again.x.norm(), 0.1 * (1 + 1e-12));
+  BOOST_CHECK_SMALL(again.predicted - Model(g, H, again.x), 1e-10);
+  BOOST_CHECK_SMALL((again.x - fresh.x).norm(), 1e-4 * fresh.x.norm());
+
+  // a different gradient does not reuse
+  trah::StepResult other =
+      trah::Step(g + 0.1 * Eigen::VectorXd::Ones(n), H.diagonal(),
+                 Dense(H, calls), 0.1, opt, &subspace);
+  BOOST_CHECK(!other.reused);
+}
+
 BOOST_AUTO_TEST_CASE(rotate_orbitals_is_exact_exponential) {
   std::srand(9);
   const Index n = 9;
@@ -186,6 +226,20 @@ BOOST_AUTO_TEST_CASE(trust_radius_update) {
   BOOST_CHECK(!t.Update(-1.0, 0.1));  // energy rose: reject, shrink
   BOOST_CHECK_CLOSE(t.Radius(), 0.294, 1e-12);
   BOOST_CHECK(t.Update(-1e-12, 2e-12));  // both below the noise floor
+
+  // rejection with the energy along the step: E(t) = linear t + c t^2,
+  // c = actual - linear = 0.3, minimum at t* = 0.1 / 0.6 = 1/6
+  trah::TrustRadius u(0.8);
+  BOOST_CHECK(!u.Update(-0.05, 0.2, -0.1, 0.6));
+  BOOST_CHECK_CLOSE(u.Radius(), 0.6 / 6.0, 1e-10);
+  // t* outside [0.1, 0.7] is clamped
+  trah::TrustRadius v(0.8);
+  BOOST_CHECK(!v.Update(-0.05, 10.0, -0.1, 0.5));
+  BOOST_CHECK_CLOSE(v.Radius(), 0.05, 1e-10);
+  // accepted steps follow the plain update
+  trah::TrustRadius w(0.5);
+  BOOST_CHECK(w.Update(-1.0, -0.9, -1.5, 0.5));
+  BOOST_CHECK_CLOSE(w.Radius(), 0.6, 1e-12);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

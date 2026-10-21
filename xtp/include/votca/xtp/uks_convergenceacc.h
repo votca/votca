@@ -273,6 +273,14 @@ class UKSConvergenceAcc {
   Eigen::MatrixXd direct_min_pre_MOs_beta_;
   Eigen::VectorXd direct_min_pre_MOs_alpha_energies_;
   Eigen::VectorXd direct_min_pre_MOs_beta_energies_;
+  SpinFock direct_min_pre_H_;
+  double direct_min_linear_ = 0.0;
+  double direct_min_step_norm_ = 0.0;
+  mutable double last_step_linear_ = 0.0;
+  mutable double last_step_norm_ = 0.0;
+  // subspace of the last step, reused when a rejected step is repeated
+  mutable trah::Subspace trah_subspace_;
+  bool last_rejected_ = false;
   trah::TrustRadius trust_{0.5};
   trah::StepOptions trah_options_;
   // second-order (TRAH) steps in use for this SCF

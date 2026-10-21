@@ -73,7 +73,7 @@ bool Orthonormalize(const Eigen::MatrixXd& B, Eigen::VectorXd& v) {
 
 StepResult Step(const Eigen::VectorXd& g, const Eigen::VectorXd& diag,
                 const HessianProduct& hessian, double trust_radius,
-                const StepOptions& opt) {
+                const StepOptions& opt, Subspace* subspace) {
   const Index n = g.size();
   StepResult result;
   result.x = Eigen::VectorXd::Zero(n);
@@ -99,7 +99,15 @@ StepResult Step(const Eigen::VectorXd& g, const Eigen::VectorXd& diag,
     HB.col(HB.cols() - 1) = Hv.col(0);
     return true;
   };
-  add(g / gnorm);
+  if (subspace != nullptr && subspace->B.cols() > 0 &&
+      subspace->B.rows() == n && subspace->g.size() == n &&
+      (subspace->g - g).norm() <= 1e-12 * gnorm) {
+    B = subspace->B;
+    HB = subspace->HB;
+    result.reused = true;
+  } else {
+    add(g / gnorm);
+  }
 
   Eigen::VectorXd xs;
   Eigen::VectorXd gs;
@@ -191,10 +199,31 @@ StepResult Step(const Eigen::VectorXd& g, const Eigen::VectorXd& diag,
   const double norm = xs.norm();
   const double s = (norm > trust_radius) ? trust_radius / norm : 1.0;
   result.predicted = s * gs.dot(xs) + 0.5 * s * s * xs.dot(Hs * xs);
+  result.linear = s * gs.dot(xs);
   result.x = s * (B * xs);
+  if (subspace != nullptr) {
+    subspace->B = B;
+    subspace->HB = HB;
+    subspace->g = g;
+  }
   result.alpha = alpha;
   result.mu = mu;
   return result;
+}
+
+bool TrustRadius::Update(double predicted, double actual, double linear,
+                         double step_norm) {
+  const double radius_before = radius_;
+  const bool accepted = Update(predicted, actual);
+  if (!accepted && step_norm > 0.0) {
+    const double c = actual - linear;
+    double factor = 0.7;
+    if (linear < 0.0 && c > 0.0) {
+      factor = std::clamp(-linear / (2.0 * c), 0.1, 0.7);
+    }
+    radius_ = factor * std::min(radius_before, step_norm);
+  }
+  return accepted;
 }
 
 bool TrustRadius::Update(double predicted, double actual) {

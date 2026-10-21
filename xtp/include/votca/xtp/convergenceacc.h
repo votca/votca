@@ -147,6 +147,8 @@ class ConvergenceAcc {
     trah_active_ = false;
     trah_pending_ = false;
     trah_disabled_ = false;
+    last_rejected_ = false;
+    trah_subspace_.Clear();
     trust_ = trah::TrustRadius(kInitialTrustRadius);
     consecutive_failures_ = 0;
     error_history_.clear();
@@ -179,7 +181,9 @@ class ConvergenceAcc {
     if (totE_.size() < 2) {
       return false;
     } else {
-      return std::abs(getDeltaE()) < opt_.Econverged &&
+      // not on the call that undid a rejected second-order step: totE and
+      // the DIIS error then belong to the restored, not the returned, state
+      return !last_rejected_ && std::abs(getDeltaE()) < opt_.Econverged &&
              getDIIsError() < opt_.error_converged;
     }
   }
@@ -268,7 +272,13 @@ class ConvergenceAcc {
   trah::StepOptions trah_options_;
   double trah_pre_energy_ = 0.0;
   double trah_predicted_ = 0.0;
+  double trah_linear_ = 0.0;
+  double trah_step_norm_ = 0.0;
   tools::EigenSystem trah_pre_MOs_;
+  Eigen::MatrixXd trah_pre_H_;
+  // subspace of the last step, reused when a rejected step is repeated
+  trah::Subspace trah_subspace_;
+  bool last_rejected_ = false;
   // "auto" trigger: kMaxConsecutiveFailures (A)DIIS failures in a row, or,
   // after kAutoStartIteration iterations, a DIIS error that over the last
   // kTrailingWindow iterations has on average shrunk by less than a factor

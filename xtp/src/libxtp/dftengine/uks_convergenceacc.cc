@@ -383,9 +383,11 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
     }
     return HV;
   };
-  const trah::StepResult step =
-      trah::Step(g, diag_h, hessian, trust_radius, trah_options_);
+  const trah::StepResult step = trah::Step(g, diag_h, hessian, trust_radius,
+                                           trah_options_, &trah_subspace_);
   predicted_energy_change = step.predicted;
+  last_step_linear_ = step.linear;
+  last_step_norm_ = step.x.norm();
 
   XTP_LOG(Log::warning, *log_)
       << TimeStamp() << " TRAH step: |g|=" << g.norm()
@@ -393,6 +395,7 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
       << ", alpha=" << step.alpha << ", micro-iterations=" << step.iterations
       << ", Hessian products=" << step.products
       << (analytic ? " (analytic)" : " (finite differences)")
+      << (step.reused ? " (subspace reused)" : "")
       << ", residual=" << step.residual
       << (step.converged ? "" : " (not converged)")
       << ", predicted dE=" << predicted_energy_change << std::flush;
@@ -460,12 +463,16 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
 
   // Check the second-order step returned by the previous call, now that
   // the energy of its density (totE) is known: Fletcher's trust-radius
-  // update; a rejected step is undone.
+  // update. A rejected step is undone and, while second-order steps
+  // continue, repeated at once with the smaller radius from the stored
+  // Fock matrices and Davidson subspace (see ConvergenceAcc::Iterate).
+  last_rejected_ = false;
   if (direct_min_pending_) {
     direct_min_pending_ = false;
     const double actual_change = totE - direct_min_pre_energy_;
     const bool accepted =
-        trust_.Update(direct_min_predicted_change_, actual_change);
+        trust_.Update(direct_min_predicted_change_, actual_change,
+                      direct_min_linear_, direct_min_step_norm_);
     XTP_LOG(Log::warning, *log_)
         << TimeStamp()
         << " Second-order step check: actual dE=" << actual_change
@@ -488,7 +495,13 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
       MOs_alpha.eigenvalues() = direct_min_pre_MOs_alpha_energies_;
       MOs_beta.eigenvalues() = direct_min_pre_MOs_beta_energies_;
       totE_.push_back(direct_min_pre_energy_);
+      last_rejected_ = true;
       usedmixing_ = false;
+      if (trah_active_) {
+        const SpinFock H_pre = direct_min_pre_H_;
+        return SecondOrderStep(DensityMatrix(MOs_alpha, MOs_beta), H_pre,
+                               MOs_alpha, MOs_beta, direct_min_pre_energy_);
+      }
       return DensityMatrix(MOs_alpha, MOs_beta);
     }
   }
@@ -779,14 +792,20 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::SecondOrderStep(
   direct_min_pre_MOs_beta_ = MOs_beta.eigenvectors();
   direct_min_pre_MOs_alpha_energies_ = MOs_alpha.eigenvalues();
   direct_min_pre_MOs_beta_energies_ = MOs_beta.eigenvalues();
+  direct_min_pre_H_ = H;
 
   Eigen::MatrixXd C_new_alpha;
   Eigen::MatrixXd C_new_beta;
+  // without the linear term (diagonal path) a rejection shrinks by 0.7
+  direct_min_linear_ = 0.0;
+  direct_min_step_norm_ = 0.0;
   if (coupled_fock_builder_ || orbital_hessian_) {
     std::tie(C_new_alpha, C_new_beta) = CoupledAugmentedHessianStep(
         H.alpha, MOs_alpha, nocclevels_alpha_, H.beta, MOs_beta,
         nocclevels_beta_, coupled_fock_builder_, trust_.Radius(),
         direct_min_predicted_change_);
+    direct_min_linear_ = last_step_linear_;
+    direct_min_step_norm_ = last_step_norm_;
   } else {
     // no Fock builder (e.g. the atomic UKS guess): diagonal Hessian, one
     // channel at a time
@@ -820,7 +839,9 @@ double UKSConvergenceAcc::getDeltaE() const {
 }
 
 bool UKSConvergenceAcc::isConverged() const {
-  return (getDeltaE() < opt_alpha_.Econverged &&
+  // not on the call that undid a rejected second-order step (see
+  // ConvergenceAcc::isConverged)
+  return (!last_rejected_ && getDeltaE() < opt_alpha_.Econverged &&
           diiserror_ < opt_alpha_.error_converged);
 }
 
