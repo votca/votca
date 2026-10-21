@@ -1433,37 +1433,12 @@ bool DFTEngine::EvaluateClosedShell(
   // dP = 2 (C_v X C_o^T + C_o X^T C_v^T) and G the response of J, K and
   // V_xc, as in StaticResponse (there in canonical orbitals).
   if (conv_opt_.mode == ConvergenceAcc::KSmode::closed) {
-    conv_accelerator_.setOrbitalHessian([this, &vxcpotential](
-                                            const tools::EigenSystem& mos,
-                                            const Eigen::MatrixXd& F,
-                                            const Eigen::MatrixXd& X) {
-      const Index nocc = num_docc_;
-      const Eigen::MatrixXd& C = mos.eigenvectors();
-      const Index nvirt = C.cols() - nocc;
-      const Eigen::MatrixXd C_occ = C.leftCols(nocc);
-      const Eigen::MatrixXd C_virt = C.rightCols(nvirt);
-      const Eigen::MatrixXd F_oo = C_occ.transpose() * F * C_occ;
-      const Eigen::MatrixXd F_vv = C_virt.transpose() * F * C_virt;
-      const Eigen::MatrixXd P0 = 2.0 * C_occ * C_occ.transpose();
-      using RowMajor = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
-                                     Eigen::RowMajor>;
-      std::vector<Eigen::MatrixXd> U;
-      for (Index k = 0; k < X.cols(); ++k) {
-        const Eigen::VectorXd x = X.col(k);
-        U.push_back(
-            Eigen::Map<const RowMajor>(x.data(), nocc, nvirt).transpose());
-      }
-      const std::vector<Eigen::MatrixXd> G =
-          CoupledResponse(vxcpotential, P0, C_occ, C_virt, U);
-      Eigen::MatrixXd HX(X.rows(), X.cols());
-      for (Index k = 0; k < X.cols(); ++k) {
-        const RowMajor R = 4.0 * (F_vv * U[std::size_t(k)] -
-                                  U[std::size_t(k)] * F_oo + G[std::size_t(k)])
-                                     .transpose();
-        HX.col(k) = Eigen::Map<const Eigen::VectorXd>(R.data(), R.size());
-      }
-      return HX;
-    });
+    conv_accelerator_.setOrbitalHessian(
+        [this, &vxcpotential](const tools::EigenSystem& mos,
+                              const Eigen::MatrixXd& F,
+                              const Eigen::MatrixXd& X) {
+          return RKSOrbitalHessian(vxcpotential, mos, F, X);
+        });
   }
 
   XTP_LOG(Log::error, *pLog_)
@@ -3012,6 +2987,42 @@ UKSConvergenceAcc::SpinFock DFTEngine::BuildUKSFock(
     H_new.beta += (c.lambda * c.spin_beta_coefficient) * c.weight_matrix;
   }
   return H_new;
+}
+
+// Closed-shell energy Hessian d^2E/dx dx (layout of trah.h) at the orbitals
+// mos with Fock matrix F, applied to the columns of X. With X(a, i) = x_ia:
+//   (H x) = 4 [F_vv X - X F_oo + C_v^T G[dP] C_o],
+//   dP = 2 (C_v X C_o^T + C_o X^T C_v^T),
+// G the response of J, 0.5 a_x K and V_xc (CoupledResponse).
+Eigen::MatrixXd DFTEngine::RKSOrbitalHessian(const Vxc_Potential<Vxc_Grid>& vxc,
+                                             const tools::EigenSystem& mos,
+                                             const Eigen::MatrixXd& F,
+                                             const Eigen::MatrixXd& X) {
+  const Index nocc = num_docc_;
+  const Eigen::MatrixXd& C = mos.eigenvectors();
+  const Index nvirt = C.cols() - nocc;
+  const Eigen::MatrixXd C_occ = C.leftCols(nocc);
+  const Eigen::MatrixXd C_virt = C.rightCols(nvirt);
+  const Eigen::MatrixXd F_oo = C_occ.transpose() * F * C_occ;
+  const Eigen::MatrixXd F_vv = C_virt.transpose() * F * C_virt;
+  const Eigen::MatrixXd P0 = 2.0 * C_occ * C_occ.transpose();
+  using RowMajor =
+      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+  std::vector<Eigen::MatrixXd> U;
+  for (Index k = 0; k < X.cols(); ++k) {
+    const Eigen::VectorXd x = X.col(k);
+    U.push_back(Eigen::Map<const RowMajor>(x.data(), nocc, nvirt).transpose());
+  }
+  const std::vector<Eigen::MatrixXd> G =
+      CoupledResponse(vxc, P0, C_occ, C_virt, U);
+  Eigen::MatrixXd HX(X.rows(), X.cols());
+  for (Index k = 0; k < X.cols(); ++k) {
+    const RowMajor R = 4.0 * (F_vv * U[std::size_t(k)] -
+                              U[std::size_t(k)] * F_oo + G[std::size_t(k)])
+                                 .transpose();
+    HX.col(k) = Eigen::Map<const Eigen::VectorXd>(R.data(), R.size());
+  }
+  return HX;
 }
 
 // UKS energy Hessian d^2E/dx dx (layout of trah.h, alpha block first) at

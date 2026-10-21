@@ -266,6 +266,10 @@ class DFTEngine {
   UKSConvergenceAcc::SpinFock BuildUKSFock(
       const Eigen::MatrixXd& H0, const Vxc_Potential<Vxc_Grid>& vxcpotential,
       const Eigen::MatrixXd& alpha_new, const Eigen::MatrixXd& beta_new);
+  Eigen::MatrixXd RKSOrbitalHessian(const Vxc_Potential<Vxc_Grid>& vxc,
+                                    const tools::EigenSystem& mos,
+                                    const Eigen::MatrixXd& F,
+                                    const Eigen::MatrixXd& X);
   Eigen::MatrixXd UKSOrbitalHessian(const Vxc_Potential<Vxc_Grid>& vxc,
                                     const tools::EigenSystem& mos_alpha,
                                     const tools::EigenSystem& mos_beta,
