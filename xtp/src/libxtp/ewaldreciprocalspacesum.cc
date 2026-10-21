@@ -20,6 +20,7 @@
 // Standard includes
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 // Local VOTCA includes
 #include "votca/xtp/ewaldreciprocalspacesum.h"
@@ -373,15 +374,17 @@ void EwaldReciprocalSpaceSum::AddFieldAtMany(
   const double prefactor = 4.0 * kPi / volume_;
 
   // Parallel over targets. The structure factors S were reduced over
-  // every site above and are read-only here, and each iteration writes
-  // only to its own target's accumulator, so distinct targets cannot
-  // collide. The progress callback is deliberately not invoked from
-  // inside this loop -- it is called during TotalStructureFactors, which
-  // stays serial.
+  // every site above and are read-only here; each field is written to its
+  // own slot and added to the sites serially afterwards, in input order,
+  // so a site listed twice is not updated by two threads at once and the
+  // result matches the serial one. The progress callback is deliberately
+  // not invoked from inside this loop -- it is called during
+  // TotalStructureFactors, which stays serial.
   const Index n_targets = Index(targets.size());
+  std::vector<Eigen::Vector3d> fields(targets.size());
 #pragma omp parallel for schedule(static)
   for (Index t_i = 0; t_i < n_targets; ++t_i) {
-    PolarSite& target = *targets[std::size_t(t_i)];
+    const PolarSite& target = *targets[std::size_t(t_i)];
 
     const Eigen::Vector3d r = target.getPos();
     Eigen::Vector3d field = Eigen::Vector3d::Zero();
@@ -397,11 +400,14 @@ void EwaldReciprocalSpaceSum::AddFieldAtMany(
       double im_part = (S[idx] * phase).imag();
       field += prefactor * weight * im_part * kv.k;
     }
+    fields[std::size_t(t_i)] = field;
+  }
 
+  for (std::size_t t_i = 0; t_i < targets.size(); ++t_i) {
     if (CE == Estatic::noE_V) {
-      target.V_noE() += field;
+      targets[t_i]->V_noE() += fields[t_i];
     } else {
-      target.V() += field;
+      targets[t_i]->V() += fields[t_i];
     }
   }
 }
