@@ -133,11 +133,11 @@ class TrustRadius {
 };
 
 /// C exp(kappa) for the occupied-virtual rotation x (n_occ x n_virt values,
-/// layout above), exact via the singular value decomposition of the
-/// occupied-virtual block X = U s V^T:
+/// layout above), exact: with the occupied-virtual block X = U s V^T,
 ///   exp(kappa) = [[1 + U (cos s - 1) U^T,  U sin s V^T],
-///                 [-V sin s U^T,           1 + V (cos s - 1) V^T]].
-/// S-orthonormal orbitals stay S-orthonormal.
+///                 [-V sin s U^T,           1 + V (cos s - 1) V^T]],
+/// evaluated from the eigendecomposition of X X^T. S-orthonormal orbitals
+/// stay S-orthonormal.
 Eigen::MatrixXd RotateOrbitals(const Eigen::MatrixXd& C,
                                const Eigen::VectorXd& x, Index nocc);
 

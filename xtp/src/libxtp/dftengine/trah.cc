@@ -254,19 +254,30 @@ Eigen::MatrixXd RotateOrbitals(const Eigen::MatrixXd& C,
   const Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
                                        Eigen::RowMajor>>
       X(x.data(), nocc, nvirt);
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(X,
-                                     Eigen::ComputeThinU | Eigen::ComputeThinV);
-  const Eigen::MatrixXd& U = svd.matrixU();
-  const Eigen::MatrixXd& V = svd.matrixV();
-  const Eigen::ArrayXd s = svd.singularValues().array();
-  const Eigen::VectorXd cos_m1 = (s.cos() - 1.0).matrix();
-  const Eigen::VectorXd sin_s = s.sin().matrix();
-
-  const Eigen::MatrixXd E_oo = Eigen::MatrixXd::Identity(nocc, nocc) +
-                               U * cos_m1.asDiagonal() * U.transpose();
-  const Eigen::MatrixXd E_ov = U * sin_s.asDiagonal() * V.transpose();
+  // With X = U s V^T and A = X X^T = U s^2 U^T, every block is a function
+  // of A, so one symmetric eigendecomposition of the (nocc x nocc) matrix A
+  // suffices (no SVD):
+  //   E_oo = U cos(s) U^T,  E_ov = U (sin s / s) U^T X,
+  //   E_vv = 1 + X^T U ((cos s - 1) / s^2) U^T X.
+  // The two quotients are taken from their series where s is small.
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(X * X.transpose());
+  const Eigen::MatrixXd& U = es.eigenvectors();
+  const Index m = es.eigenvalues().size();
+  Eigen::VectorXd cos_s(m);
+  Eigen::VectorXd sinc_s(m);
+  Eigen::VectorXd cosm1_s2(m);
+  for (Index k = 0; k < m; ++k) {
+    const double s2 = std::max(es.eigenvalues()(k), 0.0);
+    const double s = std::sqrt(s2);
+    cos_s(k) = std::cos(s);
+    sinc_s(k) = (s > 1e-4) ? std::sin(s) / s : 1.0 - s2 / 6.0;
+    cosm1_s2(k) = (s > 1e-4) ? (std::cos(s) - 1.0) / s2 : -0.5 + s2 / 24.0;
+  }
+  const Eigen::MatrixXd UtX = U.transpose() * X;
+  const Eigen::MatrixXd E_oo = U * cos_s.asDiagonal() * U.transpose();
+  const Eigen::MatrixXd E_ov = U * sinc_s.asDiagonal() * UtX;
   const Eigen::MatrixXd E_vv = Eigen::MatrixXd::Identity(nvirt, nvirt) +
-                               V * cos_m1.asDiagonal() * V.transpose();
+                               UtX.transpose() * cosm1_s2.asDiagonal() * UtX;
 
   const auto C_occ = C.leftCols(nocc);
   const auto C_virt = C.rightCols(nvirt);
