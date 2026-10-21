@@ -24,14 +24,36 @@
 #include "votca/xtp/trah.h"
 
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 
 using namespace votca::xtp;
 using namespace votca;
 
 namespace {
+// Deterministic pseudo-random numbers in [-1, 1) from a 64-bit linear
+// congruential generator: the same with every Eigen version and C library
+// (Eigen::Random is not). Seeded per test via Seed(); all tests were
+// checked to pass with the seeds offset by 0-40.
+std::uint64_t random_state = 1;
+void Seed(std::uint64_t seed) { random_state = seed; }
+double NextRandom() {
+  random_state = random_state * 6364136223846793005ULL + 1442695040888963407ULL;
+  return double(random_state >> 11) * (2.0 / 9007199254740992.0) - 1.0;
+}
+Eigen::MatrixXd RandomMatrix(Index rows, Index cols) {
+  Eigen::MatrixXd m(rows, cols);
+  for (Index j = 0; j < cols; ++j) {
+    for (Index i = 0; i < rows; ++i) {
+      m(i, j) = NextRandom();
+    }
+  }
+  return m;
+}
+Eigen::VectorXd RandomVector(Index n) { return RandomMatrix(n, 1).col(0); }
+
 Eigen::MatrixXd RandomSymmetric(Index n, double shift) {
-  Eigen::MatrixXd A = Eigen::MatrixXd::Random(n, n);
+  Eigen::MatrixXd A = RandomMatrix(n, n);
   return 0.5 * (A + A.transpose()) + shift * Eigen::MatrixXd::Identity(n, n);
 }
 
@@ -70,10 +92,10 @@ BOOST_AUTO_TEST_SUITE(trah_test)
 BOOST_AUTO_TEST_CASE(step_inside_trust_radius_solves_shifted_newton) {
   // Large trust radius: a = 1, and the step solves (H - mu) x = -g with the
   // mu of the dense augmented Hessian.
-  std::srand(5);
+  Seed(5);
   const Index n = 40;
   const Eigen::MatrixXd H = RandomSymmetric(n, 6.0);
-  const Eigen::VectorXd g = 0.1 * Eigen::VectorXd::Random(n);
+  const Eigen::VectorXd g = 0.1 * RandomVector(n);
   const Eigen::VectorXd diag = H.diagonal();
   Index calls = 0;
   trah::StepOptions opt;
@@ -98,10 +120,10 @@ BOOST_AUTO_TEST_CASE(step_on_trust_radius) {
   // Small trust radius: |x| within [0.8, 1] of it, and the model decrease
   // at least that of steepest descent of the same length (the Cauchy
   // point, which the first micro-iteration already gives).
-  std::srand(6);
+  Seed(6);
   const Index n = 60;
   const Eigen::MatrixXd H = RandomSymmetric(n, 5.0);
-  const Eigen::VectorXd g = Eigen::VectorXd::Random(n);
+  const Eigen::VectorXd g = RandomVector(n);
   Index calls = 0;
   const double trust = 0.05;
   trah::StepResult res = trah::Step(g, H.diagonal(), Dense(H, calls), trust);
@@ -116,10 +138,10 @@ BOOST_AUTO_TEST_CASE(step_on_trust_radius) {
 
 BOOST_AUTO_TEST_CASE(step_with_negative_curvature) {
   // Indefinite Hessian: the step must still lower the model.
-  std::srand(7);
+  Seed(7);
   const Index n = 30;
   const Eigen::MatrixXd H = RandomSymmetric(n, 0.0);
-  const Eigen::VectorXd g = Eigen::VectorXd::Random(n);
+  const Eigen::VectorXd g = RandomVector(n);
   Eigen::VectorXd diag = H.diagonal().cwiseAbs().array() + 1.0;
   Index calls = 0;
   trah::StepResult res = trah::Step(g, diag, Dense(H, calls), 0.3);
@@ -130,10 +152,10 @@ BOOST_AUTO_TEST_CASE(step_with_negative_curvature) {
 
 BOOST_AUTO_TEST_CASE(subspace_restart) {
   // A small subspace limit forces restarts; the step still converges.
-  std::srand(8);
+  Seed(8);
   const Index n = 80;
   const Eigen::MatrixXd H = RandomSymmetric(n, 8.0);
-  const Eigen::VectorXd g = Eigen::VectorXd::Random(n);
+  const Eigen::VectorXd g = RandomVector(n);
   trah::StepOptions opt;
   opt.max_subspace = 6;
   opt.max_iterations = 200;
@@ -147,10 +169,10 @@ BOOST_AUTO_TEST_CASE(subspace_reuse_after_rejection) {
   // A step repeated with a smaller trust radius for the same gradient
   // starts from the stored subspace: few or no new Hessian products, and
   // the same step as a fresh solve.
-  std::srand(10);
+  Seed(10);
   const Index n = 70;
   const Eigen::MatrixXd H = RandomSymmetric(n, 3.0);
-  const Eigen::VectorXd g = Eigen::VectorXd::Random(n);
+  const Eigen::VectorXd g = RandomVector(n);
   trah::StepOptions opt;
   opt.max_forcing = 1e-6;  // tight, so that a step needs many products
   trah::Subspace subspace;
@@ -184,17 +206,17 @@ BOOST_AUTO_TEST_CASE(subspace_reuse_after_rejection) {
 }
 
 BOOST_AUTO_TEST_CASE(rotate_orbitals_is_exact_exponential) {
-  std::srand(9);
+  Seed(9);
   const Index n = 9;
   const Index nocc = 4;
   const Index nvirt = n - nocc;
-  Eigen::MatrixXd A = Eigen::MatrixXd::Random(n, n);
+  Eigen::MatrixXd A = RandomMatrix(n, n);
   const Eigen::MatrixXd S =
       A * A.transpose() / double(n) + Eigen::MatrixXd::Identity(n, n);
   // S-orthonormal orbitals
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S);
   const Eigen::MatrixXd C = es.operatorInverseSqrt();
-  const Eigen::VectorXd x = 0.4 * Eigen::VectorXd::Random(nocc * nvirt);
+  const Eigen::VectorXd x = 0.4 * RandomVector(nocc * nvirt);
 
   Eigen::MatrixXd kappa = Eigen::MatrixXd::Zero(n, n);
   for (Index i = 0; i < nocc; ++i) {
