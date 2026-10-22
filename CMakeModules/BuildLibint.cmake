@@ -17,11 +17,11 @@ include(ExternalProject)
 # planned RI-J/RI-K gradient work needs derivatives of exactly these two
 # integral types.
 ExternalProject_Add(Libint_build
-  URL https://github.com/evaleev/libint/archive/v2.7.1.tar.gz
-  URL_MD5 78507c1d3de77bcd519dfd8d6afc8468
+  URL https://github.com/evaleev/libint/archive/refs/tags/v2.13.1.zip
+  URL_MD5 21ed1dd1e69d1d9023ccd9c2cb7c8c40
   BUILD_IN_SOURCE 1
   PREFIX libint INSTALL_DIR libint/install
-  CONFIGURE_COMMAND ./autogen.sh COMMAND ./configure --prefix=<INSTALL_DIR> --libdir=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR} --disable-shared --with-pic --enable-eri2=1 --enable-eri3=1 --enable-1body=1 --with-max-am=6
+  CONFIGURE_COMMAND ./autogen.sh COMMAND ./configure --prefix=<INSTALL_DIR> --libdir=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR} --disable-shared --with-pic --enable-eri2=1 --enable-eri3=1 --enable-1body=1 --with-max-am=6 --with-cxxgen-optflags
   BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libint2.a
 )
 ExternalProject_get_property(Libint_build INSTALL_DIR)
