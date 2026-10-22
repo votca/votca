@@ -149,7 +149,7 @@ for different architectures:
 
 Intel Processors
 ^^^^^^^^^^^^^^^^
-``g++``, ``clang``, and ``ipcx`` from the Intel OneAPI basekit give similar performance 
+``g++``, ``clang``, and ``icpx`` from the Intel OneAPI basekit give similar performance 
 when used with the MKL. No special flags have to be supplied to ``CMake``.
 
 If ``g++`` or ``clang`` are used, the compiler option ``-march=native`` is automatically injected
@@ -163,16 +163,53 @@ vectorization. Use of ``MKL`` reduces them by another 50%.
 
 AMD Processors
 ^^^^^^^^^^^^^^
-We recommend using ``g++`` or ``clang`` rather than an Intel compiler on AMD. Vectorization 
+We recommend using ``g++`` or ``clang`` rather than an Intel compiler on AMD. Vectorization
 in ``Eigen`` is automatically enabled by injection of ``-march=native``. See above comment
-about heterogeneous envionments. 
+about heterogeneous environments.
 
-If you have Intel's MKL installed, and it is found by ``CMake``, performance will be helped 
-but by how much idepends on which architecture-specific implementation MKL picks at runtime. 
-This can be affected by a `vendor lock-in <https://en.wikipedia.org/wiki/Math_Kernel_Library>`__, 
-and work-arounds are documented `for Intel MKL on AMD Zen <https://danieldk.eu/Posts/2020-08-31-MKL-Zen.html>`__ 
-and `in general <https://documentation.sigma2.no/jobs/mkl.html#using-mkl-efficiently>`__. 
-We advise that you test this on your specific architecture.
+Intel's MKL also works on AMD processors and is found by ``CMake`` in the same way. Every DFT
+and GW-BSE log names the backend; a build with MKL prints
+
+::
+
+    Using MKL overload for Eigen (BLAS and LAPACK)
+
+The largest gain is in the symmetric eigensolvers and the multithreaded rank-k updates, which
+Eigen's own implementation runs on a single core. On an 8-core AMD EPYC 7262 (Zen 2) with
+oneMKL 2026.2, MKL's ``dsyevd`` diagonalized a 3000 x 3000 matrix in 1.1 s, against 25 s for
+Eigen's own solver.
+
+At runtime, MKL checks whether it runs on an Intel processor and otherwise takes slower code
+paths. This check can be overridden by preloading a small library. Save as ``mkl_cpu_trick.c``
+
+.. code-block:: c
+
+    int mkl_serv_intel_cpu_true(void) { return 1; }
+
+    /* MKL 2025.0 and later call this function instead */
+    typedef int (*fakeintel_fptr)(void);
+    fakeintel_fptr mkl_serv_get_cpu_true(void) { return &mkl_serv_intel_cpu_true; }
+
+then compile it and preload it when running VOTCA:
+
+::
+
+    gcc -O2 -shared -fPIC -o libmkl_cpu_trick.so mkl_cpu_trick.c
+    LD_PRELOAD=/path/to/libmkl_cpu_trick.so xtp_tools ...
+
+On the system above, this made MKL's matrix products 18-48% faster and its eigensolvers
+1.5 times faster. A naphthalene def2-TZVP evGW-BSE calculation took 5% less time
+(DFT 11%, BSE 20%, GW 2%) with unchanged results. Older recipes that define only
+``mkl_serv_intel_cpu_true``, or that set ``MKL_DEBUG_CPU_TYPE=5``, have no effect with current
+MKL versions. The override relies on MKL internals that Intel does not document or support,
+so it may stop working with a future release; check the MKL license terms before using it.
+Background: `Intel MKL on AMD Zen <https://danieldk.eu/software/misc/intel-mkl-on-amd-zen>`__
+and `Using MKL efficiently <https://documentation.sigma2.no/jobs/mkl.html#using-mkl-efficiently>`__.
+We have only measured Zen 2, so we advise that you test this on your specific architecture.
+
+AMD's own AOCL libraries are currently not supported as a backend by VOTCA. In the same
+benchmark, they matched the patched MKL for matrix products but were 4-11 times slower in the
+eigensolvers.
 
 Apple Silicon
 ^^^^^^^^^^^^^
@@ -355,6 +392,18 @@ another cause might be ABI incompability between libraries due to
 different libraries being compiled with different compilers or compiler
 versions. Click `here <https://github.com/ICRAR/shark/issues/1>`__ for
 an example.
+
+MKL and OpenMP thread pinning
+-----------------------------
+
+With ``g++``, VOTCA links MKL's GNU threading layer (``MKL_THREADING=gnu_thread``), so only
+GCC's OpenMP runtime ``libgomp`` is loaded. If MKL's Intel threading layer is used with ``g++``
+instead (``-DMKL_THREADING=intel_thread``, or a build directory configured with an older VOTCA
+version), Intel's OpenMP runtime ``libiomp5`` is loaded next to ``libgomp``. This works, but do
+not set ``OMP_PROC_BIND`` or ``OMP_PLACES`` with such a build: ``libgomp`` then pins the main
+thread to one core, and all of MKL's threads end up on that core (visible in ``htop`` as one
+core at 100% and the rest idle). ``ldd $(which xtp_tools) | grep iomp5`` shows whether
+``libiomp5`` is linked; configure a new build directory to switch.
 
 GCC and MKL : undefined symbol:
 -------------------------------

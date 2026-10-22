@@ -7,6 +7,15 @@ set(MKL_INTERFACE "lp64")
 # Replace the below with CMAKE_REQUIRE_FIND_PACKAGE_MKL, when we switch to
 # CMake-3.22+
 option(REQUIRE_MKL "Require MKL" OFF)
+# MKL's default threading layer (intel_thread) brings Intel's OpenMP runtime
+# libiomp5. With GCC, that would be loaded next to GCC's own libgomp, and
+# OMP_PROC_BIND/OMP_PLACES then pin all MKL threads to one core. MKL's GNU
+# layer uses libgomp only, at the same speed. Clang (libomp) and the Intel
+# compilers (libiomp5) work with intel_thread, so they keep MKL's default.
+# Override with -DMKL_THREADING=<sequential|intel_thread|gnu_thread|tbb_thread>.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT WIN32 AND NOT DEFINED MKL_THREADING)
+  set(MKL_THREADING "gnu_thread" CACHE STRING "MKL threading layer")
+endif()
 if(REQUIRE_MKL)
   find_package(MKL CONFIG REQUIRED)
 else()
