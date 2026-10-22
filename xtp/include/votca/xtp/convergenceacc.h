@@ -29,6 +29,7 @@
 #include "aomatrix.h"
 #include "diis.h"
 #include "logger.h"
+#include "trah.h"
 
 namespace votca {
 namespace xtp {
@@ -95,6 +96,9 @@ class ConvergenceAcc {
     // the solver still short of its own convergence tolerance at the
     // previous, hardcoded default of 50).
     Index davidson_max_iter = 50;
+    // Second-order (TRAH) SCF steps: "auto" switches to them when (A)DIIS
+    // stalls, "always" uses them from the start, "off" never.
+    std::string second_order = "auto";
     // Energy rise (Hartree) above the lowest energy reached so far at which
     // the SCF discards its extrapolation history and restarts from the
     // lowest-energy density. 0 disables.
@@ -128,6 +132,7 @@ class ConvergenceAcc {
           std::max(opt_.number_alpha_electrons, opt_.number_beta_electrons);
     }
     diis_.setHistLength(opt_.histlength);
+    trah_options_.max_iterations = opt_.davidson_max_iter;
     StartNewSCF();
   }
 
@@ -139,7 +144,31 @@ class ConvergenceAcc {
     have_best_ = false;
     energy_resets_ = 0;
     iterations_since_reset_ = kResetCooldown;
+    trah_active_ = false;
+    trah_pending_ = false;
+    trah_disabled_ = false;
+    last_rejected_ = false;
+    trah_subspace_.Clear();
+    trust_ = trah::TrustRadius(kInitialTrustRadius);
+    consecutive_failures_ = 0;
+    error_history_.clear();
+    scf_iterations_ = 0;
   }
+
+  /// Closed-shell energy Hessian d^2E/dx dx (rotation layout of trah.h, x
+  /// of the doubly occupied orbitals) at the orbitals MOs with AO Fock
+  /// matrix F, applied to the columns of X. Set by DFTEngine; without it no
+  /// second-order steps are taken.
+  using OrbitalHessian = std::function<Eigen::MatrixXd(
+      const tools::EigenSystem& MOs, const Eigen::MatrixXd& F,
+      const Eigen::MatrixXd& X)>;
+  void setOrbitalHessian(const OrbitalHessian& hessian) {
+    orbital_hessian_ = hessian;
+  }
+  /// dE/dx_ia = EnergyGradientScale * F_ia for doubly occupied orbitals
+  /// (C' = C exp(kappa), kappa_ia = x_ia, kappa_ai = -x_ia).
+  static constexpr double EnergyGradientScale = -4.0;
+  bool SecondOrderActive() const { return trah_active_; }
   /// Attach the logger used for convergence diagnostics.
   void setLogger(Logger* log) { log_ = log; }
 
@@ -152,7 +181,9 @@ class ConvergenceAcc {
     if (totE_.size() < 2) {
       return false;
     } else {
-      return std::abs(getDeltaE()) < opt_.Econverged &&
+      // not on the call that undid a rejected second-order step: totE and
+      // the DIIS error then belong to the restored, not the returned, state
+      return !last_rejected_ && std::abs(getDeltaE()) < opt_.Econverged &&
              getDIIsError() < opt_.error_converged;
     }
   }
@@ -220,6 +251,45 @@ class ConvergenceAcc {
   /// determinant.
   SpinDensity DensityMatrixGroundState_restricted_open(
       const Eigen::MatrixXd& MOs) const;
+
+  // Second-order (TRAH) steps, closed shell only; see Iterate.
+  bool SecondOrderAvailable() const {
+    return opt_.mode == KSmode::closed && bool(orbital_hessian_) &&
+           opt_.second_order != "off" && !trah_disabled_;
+  }
+  bool SecondOrderStalled() const;
+  Eigen::MatrixXd SecondOrderStep(const Eigen::MatrixXd& dmat,
+                                  const Eigen::MatrixXd& H,
+                                  tools::EigenSystem& MOs, double totE);
+  OrbitalHessian orbital_hessian_;
+  bool trah_active_ = false;
+  bool trah_pending_ = false;
+  bool trah_disabled_ = false;
+  static constexpr double kInitialTrustRadius = 0.5;
+  static constexpr double kMinTrustRadius = 3e-3;
+  static constexpr double kDensityMismatchTolerance = 1e-8;
+  trah::TrustRadius trust_{kInitialTrustRadius};
+  trah::StepOptions trah_options_;
+  double trah_pre_energy_ = 0.0;
+  double trah_predicted_ = 0.0;
+  double trah_linear_ = 0.0;
+  double trah_step_norm_ = 0.0;
+  tools::EigenSystem trah_pre_MOs_;
+  Eigen::MatrixXd trah_pre_H_;
+  // subspace of the last step, reused when a rejected step is repeated
+  trah::Subspace trah_subspace_;
+  bool last_rejected_ = false;
+  // "auto" trigger: kMaxConsecutiveFailures (A)DIIS failures in a row, or,
+  // after kAutoStartIteration iterations, a DIIS error that over the last
+  // kTrailingWindow iterations has on average shrunk by less than a factor
+  // kMeanRatioTolerance per iteration (whether or not (A)DIIS was tried).
+  Index consecutive_failures_ = 0;
+  Index scf_iterations_ = 0;
+  std::vector<double> error_history_;
+  static constexpr Index kMaxConsecutiveFailures = 5;
+  static constexpr Index kAutoStartIteration = 50;
+  static constexpr Index kTrailingWindow = 10;
+  static constexpr double kMeanRatioTolerance = 1.125;
 
   bool usedmixing_ = true;
   double diiserror_ = std::numeric_limits<double>::max();

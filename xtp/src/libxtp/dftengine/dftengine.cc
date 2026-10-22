@@ -297,6 +297,14 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.davidson_max_iter").as<Index>();
   conv_opt_.energy_reset = options.ifExistsReturnElseReturnDefault<double>(
       key_xtpdft + ".convergence.energy_reset", 1.0);
+  conv_opt_.second_order = options.ifExistsReturnElseReturnDefault<std::string>(
+      key_xtpdft + ".convergence.second_order", "auto");
+  if (conv_opt_.second_order != "auto" && conv_opt_.second_order != "always" &&
+      conv_opt_.second_order != "off") {
+    throw std::runtime_error(
+        "xtpdft.convergence.second_order must be auto, always or off, not " +
+        conv_opt_.second_order);
+  }
   overlap_tolerance_ = options.ifExistsReturnElseReturnDefault<double>(
       key_xtpdft + ".overlap_tolerance", 1e-8);
   ri_pair_threshold_ = options.ifExistsReturnElseReturnDefault<double>(
@@ -1420,6 +1428,19 @@ bool DFTEngine::EvaluateClosedShell(
       << Dmat.cwiseProduct(dftAOoverlap_.Matrix()).sum() << " electrons."
       << std::flush;
 
+  // Closed-shell energy Hessian for second-order (TRAH) SCF steps:
+  // d^2E/dx dx = 4 [F_vv X - X F_oo + C_v^T G[dP] C_o], with X(a, i) = x_ia,
+  // dP = 2 (C_v X C_o^T + C_o X^T C_v^T) and G the response of J, K and
+  // V_xc, as in StaticResponse (there in canonical orbitals).
+  if (conv_opt_.mode == ConvergenceAcc::KSmode::closed) {
+    conv_accelerator_.setOrbitalHessian(
+        [this, &vxcpotential](const tools::EigenSystem& mos,
+                              const Eigen::MatrixXd& F,
+                              const Eigen::MatrixXd& X) {
+          return RKSOrbitalHessian(vxcpotential, mos, F, X);
+        });
+  }
+
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " STARTING SCF cycle" << std::flush;
   XTP_LOG(Log::error, *pLog_)
@@ -1789,34 +1810,20 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
     // above, so a perturbed density that happens to equal the current
     // one reproduces the identical Fock matrix.
     conv_uks.setCoupledFockBuilder(
-        [this, &H0, &vxcpotential](
-            const Eigen::MatrixXd& alpha_new,
-            const Eigen::MatrixXd& beta_new) -> UKSConvergenceAcc::SpinFock {
-          UKSConvergenceAcc::SpinFock H_new;
-          H_new.alpha = H0.matrix();
-          H_new.beta = H0.matrix();
-          constexpr double kIntegralError = 1e-8;
-          if (ScaHFX_ > 0) {
-            std::array<Eigen::MatrixXd, 2> both_alpha_new = CalcERIs_EXX(
-                Eigen::MatrixXd::Zero(0, 0), alpha_new, kIntegralError);
-            std::array<Eigen::MatrixXd, 2> both_beta_new = CalcERIs_EXX(
-                Eigen::MatrixXd::Zero(0, 0), beta_new, kIntegralError);
-            Eigen::MatrixXd J_new = both_alpha_new[0] + both_beta_new[0];
-            H_new.alpha += J_new + ScaHFX_ * both_alpha_new[1];
-            H_new.beta += J_new + ScaHFX_ * both_beta_new[1];
-          } else {
-            Eigen::MatrixXd D_total_new = alpha_new + beta_new;
-            Eigen::MatrixXd J_new = CalcERIs(D_total_new, kIntegralError);
-            H_new.alpha += J_new;
-            H_new.beta += J_new;
-          }
-          auto vxc_new = [&]() {
-            auto t = timings_.Measure("Vxc");
-            return vxcpotential.IntegrateVXCSpin(alpha_new, beta_new);
-          }();
-          H_new.alpha += vxc_new.vxc_alpha;
-          H_new.beta += vxc_new.vxc_beta;
-          return H_new;
+        [this, &H0, &vxcpotential](const Eigen::MatrixXd& alpha_new,
+                                   const Eigen::MatrixXd& beta_new) {
+          return BuildUKSFock(H0.matrix(), vxcpotential, alpha_new, beta_new);
+        });
+    // Analytic Hessian products (spin-polarized f_xc); without second
+    // derivatives in libxc UKSConvergenceAcc falls back to finite
+    // differences of the coupled Fock builder.
+    conv_uks.setOrbitalHessian(
+        [this, &vxcpotential](
+            const tools::EigenSystem& mos_alpha,
+            const tools::EigenSystem& mos_beta, const Eigen::MatrixXd& F_alpha,
+            const Eigen::MatrixXd& F_beta, const Eigen::MatrixXd& X) {
+          return UKSOrbitalHessian(vxcpotential, mos_alpha, mos_beta, F_alpha,
+                                   F_beta, X);
         });
 
     {
@@ -2946,6 +2953,229 @@ std::map<std::string, Eigen::MatrixXd>
   return reference_densities;
 }
 
+// Coupled UKS Fock matrices of the spin densities (alpha_new, beta_new):
+// H0 + J + a_x K + V_xc, plus the CDFT constraint potential, exactly as in
+// the EvaluateUKS loop. Used for the finite-difference Hessian products.
+UKSConvergenceAcc::SpinFock DFTEngine::BuildUKSFock(
+    const Eigen::MatrixXd& H0, const Vxc_Potential<Vxc_Grid>& vxcpotential,
+    const Eigen::MatrixXd& alpha_new, const Eigen::MatrixXd& beta_new) {
+  UKSConvergenceAcc::SpinFock H_new;
+  H_new.alpha = H0;
+  H_new.beta = H0;
+  constexpr double kIntegralError = 1e-8;
+  if (ScaHFX_ > 0) {
+    std::array<Eigen::MatrixXd, 2> both_alpha_new =
+        CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), alpha_new, kIntegralError);
+    std::array<Eigen::MatrixXd, 2> both_beta_new =
+        CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), beta_new, kIntegralError);
+    Eigen::MatrixXd J_new = both_alpha_new[0] + both_beta_new[0];
+    H_new.alpha += J_new + ScaHFX_ * both_alpha_new[1];
+    H_new.beta += J_new + ScaHFX_ * both_beta_new[1];
+  } else {
+    Eigen::MatrixXd J_new = CalcERIs(alpha_new + beta_new, kIntegralError);
+    H_new.alpha += J_new;
+    H_new.beta += J_new;
+  }
+  auto vxc_new = [&]() {
+    auto t = timings_.Measure("Vxc");
+    return vxcpotential.IntegrateVXCSpin(alpha_new, beta_new);
+  }();
+  H_new.alpha += vxc_new.vxc_alpha;
+  H_new.beta += vxc_new.vxc_beta;
+  for (const HirshfeldPartition::Constraint& c : constraints_) {
+    H_new.alpha += (c.lambda * c.spin_alpha_coefficient) * c.weight_matrix;
+    H_new.beta += (c.lambda * c.spin_beta_coefficient) * c.weight_matrix;
+  }
+  return H_new;
+}
+
+// Closed-shell energy Hessian d^2E/dx dx (layout of trah.h) at the orbitals
+// mos with Fock matrix F, applied to the columns of X. With X(a, i) = x_ia:
+//   (H x) = 4 [F_vv X - X F_oo + C_v^T G[dP] C_o],
+//   dP = 2 (C_v X C_o^T + C_o X^T C_v^T),
+// G the response of J, 0.5 a_x K and V_xc (CoupledResponse).
+Eigen::MatrixXd DFTEngine::RKSOrbitalHessian(const Vxc_Potential<Vxc_Grid>& vxc,
+                                             const tools::EigenSystem& mos,
+                                             const Eigen::MatrixXd& F,
+                                             const Eigen::MatrixXd& X) {
+  const Index nocc = num_docc_;
+  const Eigen::MatrixXd& C = mos.eigenvectors();
+  const Index nvirt = C.cols() - nocc;
+  const Eigen::MatrixXd C_occ = C.leftCols(nocc);
+  const Eigen::MatrixXd C_virt = C.rightCols(nvirt);
+  const Eigen::MatrixXd F_oo = C_occ.transpose() * F * C_occ;
+  const Eigen::MatrixXd F_vv = C_virt.transpose() * F * C_virt;
+  const Eigen::MatrixXd P0 = 2.0 * C_occ * C_occ.transpose();
+  using RowMajor =
+      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+  std::vector<Eigen::MatrixXd> U;
+  for (Index k = 0; k < X.cols(); ++k) {
+    const Eigen::VectorXd x = X.col(k);
+    U.push_back(Eigen::Map<const RowMajor>(x.data(), nocc, nvirt).transpose());
+  }
+  const std::vector<Eigen::MatrixXd> G =
+      CoupledResponse(vxc, P0, C_occ, C_virt, U);
+  Eigen::MatrixXd HX(X.rows(), X.cols());
+  for (Index k = 0; k < X.cols(); ++k) {
+    const RowMajor R = 4.0 * (F_vv * U[std::size_t(k)] -
+                              U[std::size_t(k)] * F_oo + G[std::size_t(k)])
+                                 .transpose();
+    HX.col(k) = Eigen::Map<const Eigen::VectorXd>(R.data(), R.size());
+  }
+  return HX;
+}
+
+// UKS energy Hessian d^2E/dx dx (layout of trah.h, alpha block first) at
+// the orbitals mos_alpha/mos_beta with Fock matrices F_alpha/F_beta,
+// applied to the columns of X. Per spin s, with X_s(a, i) = x_ia:
+//   (H x)_s = 2 [F_vv X_s - X_s F_oo + C_v^T G_s C_o],
+//   dP_s = C_v X_s C_o^T + C_o X_s^T C_v^T,
+//   G_s = J[dP_a + dP_b] + a_x K[dP_s] + dV_xc,s[dP_a, dP_b].
+// The constraint potential of CDFT is in F; it has no response.
+Eigen::MatrixXd DFTEngine::UKSOrbitalHessian(
+    const Vxc_Potential<Vxc_Grid>& vxc, const tools::EigenSystem& mos_alpha,
+    const tools::EigenSystem& mos_beta, const Eigen::MatrixXd& F_alpha,
+    const Eigen::MatrixXd& F_beta, const Eigen::MatrixXd& X) {
+  using RowMajor =
+      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+  struct Channel {
+    Index nocc;
+    Index nvirt;
+    Eigen::MatrixXd C_occ;
+    Eigen::MatrixXd C_virt;
+    Eigen::MatrixXd F_oo;
+    Eigen::MatrixXd F_vv;
+    Eigen::MatrixXd P;
+  };
+  auto setup = [](const tools::EigenSystem& mos, const Eigen::MatrixXd& F,
+                  Index nocc) {
+    Channel c;
+    const Eigen::MatrixXd& C = mos.eigenvectors();
+    c.nocc = nocc;
+    c.nvirt = C.cols() - nocc;
+    c.C_occ = C.leftCols(nocc);
+    c.C_virt = C.rightCols(c.nvirt);
+    c.F_oo = c.C_occ.transpose() * F * c.C_occ;
+    c.F_vv = c.C_virt.transpose() * F * c.C_virt;
+    c.P = c.C_occ * c.C_occ.transpose();
+    return c;
+  };
+  const std::array<Channel, 2> ch = {
+      setup(mos_alpha, F_alpha, num_alpha_electrons_),
+      setup(mos_beta, F_beta, num_beta_electrons_)};
+  const std::array<Index, 2> offset = {0, ch[0].nocc * ch[0].nvirt};
+
+  const Index ncols = X.cols();
+  std::vector<std::array<Eigen::MatrixXd, 2>> U(
+      static_cast<std::size_t>(ncols));
+  std::vector<std::array<Eigen::MatrixXd, 2>> dP(
+      static_cast<std::size_t>(ncols));
+  for (Index k = 0; k < ncols; ++k) {
+    for (std::size_t s = 0; s < 2; ++s) {
+      const Channel& c = ch[s];
+      const Eigen::VectorXd x = X.col(k).segment(offset[s], c.nocc * c.nvirt);
+      U[std::size_t(k)][s] =
+          Eigen::Map<const RowMajor>(x.data(), c.nocc, c.nvirt).transpose();
+      const Eigen::MatrixXd half =
+          c.C_virt * U[std::size_t(k)][s] * c.C_occ.transpose();
+      dP[std::size_t(k)][s] = half + half.transpose();
+    }
+  }
+  std::vector<std::array<Eigen::MatrixXd, 2>> G;
+  {
+    auto t = timings_.Measure("second order: f_xc (spin)");
+    G = vxc.IntegrateFXCSpin(ch[0].P, ch[1].P, dP);
+  }
+  Eigen::MatrixXd HX(X.rows(), ncols);
+  for (Index k = 0; k < ncols; ++k) {
+    std::array<Eigen::MatrixXd, 2>& g = G[std::size_t(k)];
+    const std::array<Eigen::MatrixXd, 2>& d = dP[std::size_t(k)];
+    if (!auxbasis_name_.empty()) {
+      {
+        auto t = timings_.Measure("second order: J (RI)");
+        const Eigen::MatrixXd J = ERIs_.CalculateERIs_3c(d[0] + d[1]);
+        g[0] += J;
+        g[1] += J;
+      }
+      if (ScaHFX_ > 0) {
+        auto t = timings_.Measure("second order: K (RI)");
+        for (std::size_t s = 0; s < 2; ++s) {
+          // dP_s = 1/2 [(A + C_o)(A + C_o)^T - (A - C_o)(A - C_o)^T]
+          const Eigen::MatrixXd A = ch[s].C_virt * U[std::size_t(k)][s];
+          g[s] += 0.5 * ScaHFX_ *
+                  ERIs_.CalculateEXX_factors(A + ch[s].C_occ, A - ch[s].C_occ);
+        }
+      }
+    } else {
+      auto t = timings_.Measure("second order: J+K (4c)");
+      const std::array<Eigen::MatrixXd, 2> jk_a =
+          ERIs_.CalculateERIs_EXX_4c(d[0], 1e-12);
+      const std::array<Eigen::MatrixXd, 2> jk_b =
+          ERIs_.CalculateERIs_EXX_4c(d[1], 1e-12);
+      g[0] += jk_a[0] + jk_b[0];
+      g[1] += jk_a[0] + jk_b[0];
+      if (ScaHFX_ > 0) {
+        g[0] += ScaHFX_ * jk_a[1];
+        g[1] += ScaHFX_ * jk_b[1];
+      }
+    }
+    for (std::size_t s = 0; s < 2; ++s) {
+      const Channel& c = ch[s];
+      const Eigen::MatrixXd& u = U[std::size_t(k)][s];
+      const RowMajor R = 2.0 * (c.F_vv * u - u * c.F_oo +
+                                c.C_virt.transpose() * g[s] * c.C_occ)
+                                   .transpose();
+      HX.col(k).segment(offset[s], c.nocc * c.nvirt) =
+          Eigen::Map<const Eigen::VectorXd>(R.data(), R.size());
+    }
+  }
+  return HX;
+}
+
+std::vector<Eigen::MatrixXd> DFTEngine::CoupledResponse(
+    const Vxc_Potential<Vxc_Grid>& vxc, const Eigen::MatrixXd& P0,
+    const Eigen::MatrixXd& C_occ, const Eigen::MatrixXd& C_virt,
+    const std::vector<Eigen::MatrixXd>& U) {
+  auto density = [&](const Eigen::MatrixXd& u) {
+    const Eigen::MatrixXd half = (C_virt * u) * C_occ.transpose();
+    return Eigen::MatrixXd(2.0 * (half + half.transpose()));
+  };
+  std::vector<Eigen::MatrixXd> dP;
+  for (const Eigen::MatrixXd& u : U) {
+    dP.push_back(density(u));
+  }
+  std::vector<Eigen::MatrixXd> G;
+  {
+    auto t = timings_.Measure("response: f_xc");
+    G = vxc.IntegrateFXC(P0, dP);
+  }
+  std::vector<Eigen::MatrixXd> result;
+  for (std::size_t k = 0; k < U.size(); ++k) {
+    if (!auxbasis_name_.empty()) {
+      {
+        auto t = timings_.Measure("response: J (RI)");
+        G[k] += ERIs_.CalculateERIs_3c(dP[k]);
+      }
+      if (ScaHFX_ > 0) {
+        auto t = timings_.Measure("response: K (RI)");
+        const Eigen::MatrixXd A = C_virt * U[k];
+        G[k] +=
+            0.5 * ScaHFX_ * ERIs_.CalculateEXX_factors(A + C_occ, A - C_occ);
+      }
+    } else {
+      auto t = timings_.Measure("response: J+K (4c)");
+      const std::array<Eigen::MatrixXd, 2> jk =
+          ERIs_.CalculateERIs_EXX_4c(dP[k], 1e-12);
+      G[k] += jk[0];
+      if (ScaHFX_ > 0) {
+        G[k] += 0.5 * ScaHFX_ * jk[1];
+      }
+    }
+    result.push_back(C_virt.transpose() * G[k] * C_occ);
+  }
+  return result;
+}
+
 std::vector<Eigen::MatrixXd> DFTEngine::StaticResponse(
     const Orbitals& orb, const std::vector<Eigen::MatrixXd>& perturbations,
     double tolerance, Index max_iterations) {
@@ -2998,39 +3228,10 @@ std::vector<Eigen::MatrixXd> DFTEngine::StaticResponse(
   };
   // the orbital Hessian (A + B) applied to the U of several right-hand sides
   auto apply = [&](const std::vector<Eigen::MatrixXd>& U) {
-    std::vector<Eigen::MatrixXd> dP;
-    for (const Eigen::MatrixXd& u : U) {
-      dP.push_back(density(u));
-    }
-    std::vector<Eigen::MatrixXd> G;
-    {
-      auto t = timings_.Measure("response: f_xc");
-      G = vxc.IntegrateFXC(P0, dP);
-    }
-    std::vector<Eigen::MatrixXd> result;
+    std::vector<Eigen::MatrixXd> result =
+        CoupledResponse(vxc, P0, C_occ, C_virt, U);
     for (std::size_t k = 0; k < U.size(); ++k) {
-      if (!auxbasis_name_.empty()) {
-        {
-          auto t = timings_.Measure("response: J (RI)");
-          G[k] += ERIs_.CalculateERIs_3c(dP[k]);
-        }
-        if (ScaHFX_ > 0) {
-          auto t = timings_.Measure("response: K (RI)");
-          const Eigen::MatrixXd A = C_virt * U[k];
-          G[k] +=
-              0.5 * ScaHFX_ * ERIs_.CalculateEXX_factors(A + C_occ, A - C_occ);
-        }
-      } else {
-        auto t = timings_.Measure("response: J+K (4c)");
-        const std::array<Eigen::MatrixXd, 2> jk =
-            ERIs_.CalculateERIs_EXX_4c(dP[k], 1e-12);
-        G[k] += jk[0];
-        if (ScaHFX_ > 0) {
-          G[k] += 0.5 * ScaHFX_ * jk[1];
-        }
-      }
-      result.push_back(diag.cwiseProduct(U[k]) +
-                       C_virt.transpose() * G[k] * C_occ);
+      result[k] += diag.cwiseProduct(U[k]);
     }
     return result;
   };

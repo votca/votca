@@ -30,6 +30,8 @@
 #include <boost/test/tools/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 
+#include <algorithm>
+
 // Local VOTCA includes
 #include "votca/xtp/ewaldrealspaceinteractor.h"
 #include "votca/xtp/ewaldrealspacesum.h"
@@ -577,6 +579,47 @@ BOOST_AUTO_TEST_CASE(add_field_at_many_matches_serial_add_field_at) {
     batched.AddFieldAtMany<Estatic::V>(
         batched_targets, EwaldChargeState::Neutral, include_static);
     BOOST_CHECK_EQUAL(batched.GetNeighborStats().targets, b.targets);
+  }
+
+  // Every target four times, the copies of a block of 16 sites next to
+  // each other, so that with schedule(dynamic, 16) four threads start on
+  // the same sites at once. Every occurrence must still be applied, in
+  // order: the batched result equals four serial passes exactly.
+  {
+    EwaldRealSpaceSum serial(box, registry, alpha, thole, 12.0, 1e-12, 0.945,
+                             15, 6.0, foreground);
+    EwaldRealSpaceSum batched(box, registry, alpha, thole, 12.0, 1e-12, 0.945,
+                              15, 6.0, foreground);
+    std::vector<PolarSite> serial_sites;
+    std::vector<PolarSite> batched_sites;
+    const auto serial_targets = make_targets(serial_sites);
+    const auto batched_once = make_targets(batched_sites);
+    const std::size_t block = 16;
+    const int copies = 4;
+    std::vector<std::pair<Index, PolarSite*>> batched_targets;
+    for (std::size_t start = 0; start < batched_once.size(); start += block) {
+      const std::size_t end = std::min(start + block, batched_once.size());
+      for (int c = 0; c < copies; ++c) {
+        for (std::size_t i = start; i < end; ++i) {
+          batched_targets.push_back(batched_once[i]);
+        }
+      }
+    }
+    for (int c = 0; c < copies; ++c) {
+      for (const auto& entry : serial_targets) {
+        serial.AddFieldAt<Estatic::V>(entry.first, *entry.second,
+                                      EwaldChargeState::Neutral, true);
+      }
+    }
+    batched.AddFieldAtMany<Estatic::V>(batched_targets,
+                                       EwaldChargeState::Neutral, true);
+    Index mismatches = 0;
+    for (std::size_t i = 0; i < serial_sites.size(); ++i) {
+      if (!(serial_sites[i].V() == batched_sites[i].V())) {
+        ++mismatches;
+      }
+    }
+    BOOST_CHECK_EQUAL(mismatches, 0);
   }
 
   // PrepareNeighborCache alone leaves the targets untouched and makes the

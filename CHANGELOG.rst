@@ -30,6 +30,7 @@ Version 2026-dev
 -  add regularized self-energy for QSGW (#1259)
 -  documentation fix (#1260)
 -  AMD and MKL options updated (#1262)
+-  Second-order (TRAH) SCF for RKS and UKS (#1261)
    
 Version 2026 (released 09.03.26)
 ================================
