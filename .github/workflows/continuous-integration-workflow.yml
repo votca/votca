@@ -81,6 +81,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Runner info
+        # GitHub runners differ between runs (CPU model, vendor); this makes
+        # timings comparable and shows whether MKL runs on an AMD CPU.
+        run: |
+          echo "nproc: $(nproc)"
+          grep -m1 "model name" /proc/cpuinfo || true
+          grep -c ^processor /proc/cpuinfo || true
+          if command -v lscpu >/dev/null; then lscpu | grep -E "^CPU\(s\)|Thread\(s\) per core|Core\(s\) per socket|L3" || true; fi
       - name: Run Votca Setup
         id: setup #use this id below to use outputs
         uses: ./.github/actions/setup
