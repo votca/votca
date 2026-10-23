@@ -81,6 +81,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Runner info
+        # GitHub runners differ between runs (CPU model, vendor); this makes
+        # timings comparable and shows whether MKL runs on an AMD CPU.
+        run: |
+          echo "nproc: $(nproc)"
+          grep -m1 "model name" /proc/cpuinfo || true
+          grep -c ^processor /proc/cpuinfo || true
+          if command -v lscpu >/dev/null; then lscpu | grep -E "^CPU\(s\)|Thread\(s\) per core|Core\(s\) per socket|L3" || true; fi
       - name: Run Votca Setup
         id: setup #use this id below to use outputs
         uses: ./.github/actions/setup
@@ -104,8 +112,22 @@ jobs:
           ccache -z
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -v -s
-      - name: Tests
-        run: ctest --test-dir builddir --parallel ${{ steps.setup.outputs.jobs }} --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+      - name: Tests (light, one thread each)
+        # One test per core, each with one OpenMP thread: without the limit every
+        # test would also start one thread per core and oversubscribe the runner.
+        # Passive waiting stops idle OpenMP threads from spinning.
+        env:
+          OMP_NUM_THREADS: 1
+          OMP_WAIT_POLICY: passive
+        run: ctest --test-dir builddir -LE heavy --parallel $(nproc) --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+      - name: Tests (heavy, one after another with all cores)
+        # also run when a light test failed, so one CI run reports both batches
+        if: ${{ !cancelled() }}
+        # Tests labelled "heavy" in CMake (xtp/src/tests/CMakeLists.txt); running
+        # them threaded also tests the OpenMP code paths in Debug builds.
+        env:
+          OMP_WAIT_POLICY: passive
+        run: OMP_NUM_THREADS=$(nproc) ctest --test-dir builddir -L heavy --parallel 1 --output-on-failure ${{ steps.setup.outputs.ctest_args }}
       - name: Upload Report to codecov.io
         if: ${{ matrix.coverage }}
         uses: codecov/codecov-action@v5

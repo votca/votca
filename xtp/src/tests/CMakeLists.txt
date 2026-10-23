@@ -182,6 +182,7 @@ foreach(PROG ${test_cases} )
   add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
   set_tests_properties(unit_${PROG} PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
 endforeach(PROG)
+
 # includes libint2.hpp: same job pool as the libint2 sources of the library
 # (defined in src/libxtp/CMakeLists.txt)
 if(TARGET unit_test_aoderivatives)
@@ -856,3 +857,41 @@ if (PYpytest_FOUND)
   add_test(NAME integration_xtp_tightbinding COMMAND ${Python_EXECUTABLE} -m pytest ${RUNPATH}/test_xtp_tightbinding.py -v WORKING_DIRECTORY ${RUNPATH} )
   set_property(TEST integration_xtp_tightbinding PROPERTY ENVIRONMENT "PYTHONPATH=${XTP_PYPATH}:$ENV{PYTHONPATH};VOTCASHARE==${VOTCASHARE_DIR}")
 endif()
+
+# Label "heavy": tests that take more than ~200 s single-threaded in the CI
+# Debug build, plus the short tests that read their output (DEPENDS only
+# orders tests, so those must run in the same ctest call). CI runs all other
+# tests in parallel with one OpenMP thread each (ctest -LE heavy), then the
+# heavy ones one after another with all cores (ctest -L heavy), so the threaded
+# code is also tested in Debug. Locally nothing changes unless -L/-LE is used.
+set(XTP_HEAVY_TESTS
+  unit_test_podcoupling
+  unit_test_dftengine_private
+  unit_test_staticresponse
+  unit_test_chargeresponsefit
+  unit_test_environmentscreening
+  unit_test_dftengine
+  unit_test_ewaldsolvers
+  unit_test_ewaldrealspacesum
+  unit_test_diabatization
+  unit_test_vxc_potential
+  integration_Run_xtp_parallel_qmmm_screened
+  integration_Compare_xtp_parallel_qmmm_screened_output
+  integration_Run_xtp_parallel_eqm_run
+  integration_Compare_xtp_parallel_eqm_run_output
+  integration_Compare_xtp_parallel_eqm_run_output2
+  integration_Compare_xtp_parallel_eqm_run_output3
+  integration_Run_xtp_parallel_iqm_run
+  integration_Compare_xtp_parallel_iqm_run_output
+  integration_Run_xtp_tools_crfit
+  integration_Compare_xtp_tools_crfit_crm
+  integration_Compare_xtp_tools_crfit_mps
+  integration_Run_xtp_tools_molpol_xtp_dft
+  integration_Run_xtp_tools_molpol_xtp
+  integration_Compare_xtp_tools_molpol_xtp
+)
+foreach(_t ${XTP_HEAVY_TESTS})
+  if(TEST ${_t})
+    set_property(TEST ${_t} APPEND PROPERTY LABELS heavy)
+  endif()
+endforeach()

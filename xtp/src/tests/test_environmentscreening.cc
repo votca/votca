@@ -609,10 +609,11 @@ BOOST_AUTO_TEST_CASE(dressed_rpa_gives_environment_screened_w) {
   const Eigen::MatrixXd W_ref = ((I + R).inverse() + eps - I).inverse();
   BOOST_CHECK_SMALL((W - W_ref).cwiseAbs().maxCoeff(), 1e-10);
 
-  // Undressing gives back the bare integrals.
+  // Undressing gives back the bare integrals (to rounding: S, then S^-1;
+  // with threaded BLAS the rounding depends on the thread count).
   dressed.UndressAuxIndex();
   for (Index m = 0; m < bare.msize(); ++m) {
-    BOOST_CHECK_SMALL((dressed[m] - bare[m]).cwiseAbs().maxCoeff(), 1e-12);
+    BOOST_CHECK_SMALL((dressed[m] - bare[m]).cwiseAbs().maxCoeff(), 1e-10);
   }
   libint2::finalize();
 }
@@ -710,7 +711,13 @@ BOOST_AUTO_TEST_CASE(check_sees_the_reaction_field_gwbse_uses) {
   tc.Fill(aux, dft, MOs);
 
   const Eigen::MatrixXd T = EnvironmentScreening::Metric(aux);
-  BOOST_CHECK_EQUAL((T - tc.InvSqrt()).cwiseAbs().maxCoeff(), 0.0);
+  // Same code path (AOCoulomb::Fill, Pseudo_InvSqrt_GWBSE), but threaded
+  // BLAS/LAPACK (e.g. MKL) is not bitwise reproducible between calls, and the
+  // inverse square root of the nearly singular aux metric amplifies the
+  // rounding (1.6e-8 seen with MKL on 4 threads). A different metric or
+  // eigenvalue cutoff would differ by far more than this relative tolerance.
+  BOOST_CHECK_SMALL((T - tc.InvSqrt()).cwiseAbs().maxCoeff(),
+                    1e-6 * T.cwiseAbs().maxCoeff());
 
   ScreeningEnvironment env;
   env.exp_damp = 0.39;
