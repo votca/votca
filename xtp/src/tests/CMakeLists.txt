@@ -182,6 +182,13 @@ foreach(PROG ${test_cases} )
   add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
   set_tests_properties(unit_${PROG} PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
 endforeach(PROG)
+
+# These tests set their OpenMP thread count in the code (omp_set_num_threads /
+# OPENMP::setMaxThreads) to compare serial and threaded results, independent
+# of OMP_NUM_THREADS. PROCESSORS tells ctest --parallel how many cores they use.
+set_tests_properties(unit_test_parallelism PROPERTIES PROCESSORS 2)
+set_tests_properties(unit_test_ewaldrealspacesum unit_test_ewaldsolvers PROPERTIES PROCESSORS 4)
+
 # includes libint2.hpp: same job pool as the libint2 sources of the library
 # (defined in src/libxtp/CMakeLists.txt)
 if(TARGET unit_test_aoderivatives)

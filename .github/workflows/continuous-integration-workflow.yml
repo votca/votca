@@ -105,6 +105,14 @@ jobs:
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -v -s
       - name: Tests
+        # ctest runs one test per core; without a limit every test would also
+        # start one OpenMP/MKL thread per core and the runner is oversubscribed.
+        # Tests that check threaded code set their thread count themselves
+        # (PROCESSORS in xtp/src/tests/CMakeLists.txt). Passive waiting stops
+        # idle OpenMP threads from spinning on cores other tests need.
+        env:
+          OMP_NUM_THREADS: 1
+          OMP_WAIT_POLICY: passive
         run: ctest --test-dir builddir --parallel ${{ steps.setup.outputs.jobs }} --output-on-failure ${{ steps.setup.outputs.ctest_args }}
       - name: Upload Report to codecov.io
         if: ${{ matrix.coverage }}
