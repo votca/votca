@@ -32,6 +32,7 @@ Version 2026-dev
 -  AMD and MKL options updated (#1262)
 -  Second-order (TRAH) SCF for RKS and UKS (#1261)
 -  improved threading in CI (#1263)
+-  single-threaded coverage build (#1264)
    
 Version 2026 (released 09.03.26)
 ================================

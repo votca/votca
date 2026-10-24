@@ -127,7 +127,13 @@ jobs:
         # them threaded also tests the OpenMP code paths in Debug builds.
         env:
           OMP_WAIT_POLICY: passive
-        run: OMP_NUM_THREADS=$(nproc) ctest --test-dir builddir -L heavy --parallel 1 --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+        # Coverage builds: all threads update the same coverage counters, so
+        # threads slow the tests down instead of speeding them up (fedora gnu
+        # coverage job hit the 6 h limit). There the heavy tests run like the
+        # light ones, single-threaded and side by side.
+        run: |
+          if [ "${{ matrix.coverage }}" = "true" ]; then t=1; p=$(nproc); else t=$(nproc); p=1; fi
+          OMP_NUM_THREADS=$t ctest --test-dir builddir -L heavy --parallel $p --output-on-failure ${{ steps.setup.outputs.ctest_args }}
       - name: Upload Report to codecov.io
         if: ${{ matrix.coverage }}
         uses: codecov/codecov-action@v5
