@@ -120,7 +120,7 @@ bool VAverage::Evaluate(Topology& top) {
       std::vector<Eigen::Vector3d>(occ.size(), Eigen::Vector3d::Zero());
   for (const QMPair* pair : top.NBList()) {
     Index id1 = pair->Seg1()->getId();
-    Index id2 = pair->Seg1()->getId();
+    Index id2 = pair->Seg2()->getId();
     Index pairid = pair->getId();
     double p1 = occ[id1];
     double p2 = occ[id2];

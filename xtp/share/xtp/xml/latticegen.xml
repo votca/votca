@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<options>
+  <latticegen help="Writes a state file with a surrogate simple cubic lattice hopping model (sites at (i+1/2)a, periodic box, pairs with Marcus parameters), e.g. to test time-of-flight methods. Setup as in Chen, van der Hoorn, Baumeier, arXiv:2405.15836.">
+    <job_name help="Input file name without extension, also used for the default state file name" default="system"/>
+    <statefile help="State file to create, if not given job_name.hdf5" default="OPTIONAL"/>
+    <energyfile help="Optional ASCII file with positions and site energies" default="OPTIONAL"/>
+    <dims help="Number of sites along x, y and z" default="8 8 8"/>
+    <spacing help="Lattice constant a" unit="nm" default="1.0" choices="float+"/>
+    <cutoff help="Pairs are created for distances smaller than this (1.5 a: 6 nearest and 12 next-nearest neighbours)" unit="nm" default="1.5" choices="float+"/>
+    <J2 help="Squared coupling |J|^2 at distance a; |J|^2(r) = J2 exp(-(r-a)/decaylength)" unit="eV^2" default="1.79e-4" choices="float+"/>
+    <decaylength help="Decay length of |J|^2" unit="nm" default="1.0" choices="float+"/>
+    <reorganization help="Reorganization energy of every pair" unit="eV" default="0.23" choices="float+"/>
+    <states help="Carrier types for which the parameters are written" default="e h"/>
+    <segmentname help="Segment type name of the sites" default="site"/>
+    <energy help="Site energies">
+      <disorder help="none: all equal to mean; uncorrelated: Gaussian iid; correlated: moving average of three Gaussian fields over the l_b and l_c nearest sites" default="uncorrelated" choices="none,uncorrelated,correlated"/>
+      <mean help="Mean site energy" unit="eV" default="-0.76" choices="float"/>
+      <sigma help="Standard deviation of the site energies" unit="eV" default="0.19" choices="float+"/>
+      <eta_a help="Correlated disorder: weight of the uncorrelated part" default="0.2" choices="float+"/>
+      <eta_b help="Correlated disorder: weight of the short-range average (the long-range part has 1-eta_a-eta_b)" default="0.4" choices="float+"/>
+      <l_b help="Correlated disorder: number of neighbours in the short-range average" default="9" choices="int+"/>
+      <l_c help="Correlated disorder: number of neighbours in the long-range average" default="280" choices="int+"/>
+      <includeself help="Correlated disorder: the l_b and l_c sites of the averages include the site itself (Baumeier et al., Phys. Rev. B 86, 184202 (2012)); false: the l_b and l_c nearest other sites (eq. 2.5 of Chen et al., arXiv:2405.15836)" default="true" choices="bool"/>
+      <seed help="Seed of the random numbers (the same lattice on every platform)" default="1" choices="int+"/>
+    </energy>
+  </latticegen>
+</options>

@@ -127,6 +127,9 @@ class Topology {
 
   csg::BoundaryCondition::eBoxtype AutoDetectBoxType(
       const Eigen::Matrix3d &box);
+  /// neighbour list of top for the segments of this topology, with all pair
+  /// data
+  void CopyPairs(const Topology &top);
 
   static constexpr int topology_version() { return 1; }
 };

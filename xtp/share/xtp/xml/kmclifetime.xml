@@ -1,23 +1,29 @@
 <?xml version="1.0"?>
 <options>
-  <kmclifetime help="Perform Kinetic Monte Carlo simulations of singlets with decay" label="calc:kmclifetime" section="sec:kmc">
-    <lifetimefile help="File from which lifetimes are read in." default="lifetimes.xml"/>
-    <ratefile help="File containing the rates" default="rates.dat"/>
-    <trajectoryfile help="Name of the trajectory file" default="trajectory.csv"/>
-    <numberofinsertions help="number of decays to simulate" default="4000" choices="int+"/>
+  <kmclifetime help="Kinetic Monte Carlo of excitons (or other carriers) with site-dependent lifetimes and site exclusion in periodic boundary conditions: lifetime, diffusion length, decay sites, occupations; for one exciton also the exact values" label="calc:kmclifetime" section="sec:kmc">
+    <lifetimefile help="XML file with the lifetime of every site: &lt;lifetimes&gt;&lt;site id=&quot;0&quot;&gt;1e-9&lt;/site&gt;...&lt;/lifetimes&gt; (seconds; ignored segment types may be left out)" default="lifetimes.xml"/>
+    <carriertype help="State of the hopping carriers" default="singlet" choices="electron,hole,singlet,triplet"/>
+    <ratefile help="File to write the rates" default="rates.dat"/>
+    <trajectoryfile help="File with one line per decay: time, lifetime, hops, decay segment, displacement (empty: none)" default="trajectory.csv"/>
+    <numberofinsertions help="Number of decays to simulate in total (0: exact values only)" default="4000" choices="int+"/>
+    <runs help="Number of independent runs, in parallel with OpenMP; the decays are distributed over them" default="1" choices="int+"/>
     <seed help="Integer to initialise the random number generator" default="23" choices="int+"/>
-    <numberofcarriers help="Number of electrons/holes in the simulation box" default="1" choices="int+"/>
-    <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site." default="*"/>
-    <injectionmethod help="random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" default="random" choices="random"/>
-    <temperature help="Temperature in Kelvin." unit="kelvin" default="300" choices="int+"/>
-    <occfile help="File with the occupations" default="occupation.dat"/>
-    <maxrealtime help="Maximum clocktime allow to the calculation" unit="second" default="1E10" choices="float+"/>
-    <ignoresegments help="Segment types to be ignored in KMC" default=""/>
-    <carrierenergy help="Run a single carrier at the same time and records its energy">
+    <numberofcarriers help="Number of carriers present at a time; a decayed carrier is replaced at once" default="1" choices="int+"/>
+    <injectionpattern help="Name pattern that specifies on which sites carriers are created. Use the wildcard '*' to create them on any site." default="*"/>
+    <injectionmethod help="random: creation sites are selected randomly among the free ones" default="random" choices="random"/>
+    <temperature help="Temperature in Kelvin." unit="kelvin" default="300" choices="float+"/>
+    <occfile help="File with the occupation probabilities (summed over carriers)" default="occupation.dat"/>
+    <decayprobfile help="Optional file with per-site decay probabilities: local ratios k/(k+out), k/(k+in), the KMC decay fractions and the exact ones for one carrier" default=""/>
+    <resultfile help="Main results as 'key value unit' lines in SI units (empty: none)" default="kmclifetime_results.dat"/>
+    <exact help="Also compute the exact lifetime, diffusion length and decay probabilities of one carrier (sparse linear systems)" default="true" choices="bool"/>
+    <waitingtime help="Waiting-time method: exponential (static rates) or thinning (time-dependent rates with upper bounds)" default="exponential" choices="exponential,thinning"/>
+    <maxrealtime help="Maximum wall-clock time of each run" unit="second" default="1E10" choices="float+"/>
+    <ignoresegments help="Segment types (wildcards, separated by commas or spaces) without hops to or from them" default=""/>
+    <carrierenergy help="Record the mean site energy of the carriers in run 0">
       <run help="Switch on/off" default="false" choices="bool"/>
       <outputfile help="File to write energies to" default="energies.csv"/>
-      <alpha help="Smoothing energy profile" default="0.05" choices="float+"/>
-      <outputsteps help="Write to file every x steps" default="10" choices="int+"/>
+      <alpha help="Weight of the newest value in the exponential average" default="0.05" choices="float+"/>
+      <outputsteps help="Write after every x hops" default="10" choices="int+"/>
     </carrierenergy>
   </kmclifetime>
 </options>

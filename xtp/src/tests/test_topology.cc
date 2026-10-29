@@ -33,6 +33,7 @@
 using namespace votca::tools;
 
 using namespace votca::xtp;
+using votca::Index;
 
 BOOST_AUTO_TEST_SUITE(topology_test)
 
@@ -58,6 +59,53 @@ BOOST_AUTO_TEST_CASE(simple_test) {
   BOOST_CHECK_EQUAL(top.getStep(), 1);
   top.setTime(1.21);
   BOOST_CHECK_CLOSE(top.getTime(), 1.21, 0.0001);
+}
+
+BOOST_AUTO_TEST_CASE(copy_keeps_pair_data) {
+  Topology top;
+  top.setBox(Eigen::Matrix3d::Identity() * 10.0);
+  for (Index i = 0; i < 3; ++i) {
+    Segment& seg = top.AddSegment("s");
+    seg.push_back(Atom(0, "C", Eigen::Vector3d(double(i), 0.0, 0.0)));
+  }
+  QMPair& a = top.NBList().Add(top.Segments()[0], top.Segments()[1],
+                               Eigen::Vector3d(1.0, 0.0, 0.0));
+  a.setJeff2(1e-4, QMStateType::Hole);
+  a.setJeff2(2e-4, QMStateType::Electron);
+  a.setJeff(3e-3, QMStateType::Singlet);
+  a.setLambdaO(0.05, QMStateType::Hole);
+  QMPair& b = top.NBList().Add(top.Segments()[1], top.Segments()[2],
+                               Eigen::Vector3d(1.0, 0.0, 0.0));
+  b.setType(QMPair::Excitoncl);
+  b.setJeff2(5e-5, QMStateType::Triplet);
+
+  auto check = [&top](const Topology& copy) {
+    BOOST_REQUIRE_EQUAL(copy.NBList().size(), top.NBList().size());
+    for (Index p = 0; p < top.NBList().size(); ++p) {
+      const QMPair& orig = *top.NBList()[p];
+      const QMPair& c = *copy.NBList()[p];
+      BOOST_CHECK_EQUAL(c.getId(), orig.getId());
+      BOOST_CHECK_EQUAL(c.getType(), orig.getType());
+      BOOST_CHECK(c.R() == orig.R());
+      // the copy points to its own segments
+      BOOST_CHECK(c.Seg1() == &copy.Segments()[orig.Seg1()->getId()]);
+      BOOST_CHECK(c.Seg2() == &copy.Segments()[orig.Seg2()->getId()]);
+      for (QMStateType s :
+           {QMStateType(QMStateType::Electron), QMStateType(QMStateType::Hole),
+            QMStateType(QMStateType::Singlet),
+            QMStateType(QMStateType::Triplet)}) {
+        BOOST_CHECK_EQUAL(c.getJeff2(s), orig.getJeff2(s));
+        BOOST_CHECK_EQUAL(c.getJeff(s), orig.getJeff(s));
+        BOOST_CHECK_EQUAL(c.getLambdaO(s), orig.getLambdaO(s));
+      }
+    }
+  };
+  Topology copied(top);
+  check(copied);
+  Topology assigned;
+  assigned.AddSegment("x");
+  assigned = top;
+  check(assigned);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

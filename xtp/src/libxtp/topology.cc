@@ -44,10 +44,20 @@ Topology::Topology(const Topology &top) {
   time_ = top.time_;
   step_ = top.step_;
   this->setBox(top.getBox());
+  CopyPairs(top);
+}
+
+void Topology::CopyPairs(const Topology &top) {
+  // the pairs point to the segments of their topology: re-create them for
+  // the copied segments and copy their data (couplings, outer-sphere
+  // reorganization energies, pair type) through the checkpoint record
   for (const QMPair *pair : top.NBList()) {
     const Segment &seg1 = segments_[pair->Seg1()->getId()];
     const Segment &seg2 = segments_[pair->Seg2()->getId()];
-    nblist_.Add(seg1, seg2, pair->R());
+    QMPair &copy = nblist_.Add(seg1, seg2, pair->R());
+    QMPair::data d;
+    pair->WriteData(d);  // allocates d.pair_type, ReadData frees it
+    copy.ReadData(d, segments_);
   }
 }
 
@@ -58,11 +68,7 @@ Topology &Topology::operator=(const Topology &top) {
     step_ = top.step_;
     this->setBox(top.getBox());
     nblist_.Cleanup();
-    for (const QMPair *pair : top.NBList()) {
-      const Segment &seg1 = segments_[pair->Seg1()->getId()];
-      const Segment &seg2 = segments_[pair->Seg2()->getId()];
-      nblist_.Add(seg1, seg2, pair->R());
-    }
+    CopyPairs(top);
   }
   return *this;
 }

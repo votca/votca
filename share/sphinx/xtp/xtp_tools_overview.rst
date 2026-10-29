@@ -16,8 +16,11 @@ The following calculators are available:
    diabatization
    excitoncoupling
    gencube
+   latticegen
    log2mps
    molpol
+   networkfit
+   networkgen
    partialcharges
    spectrum
    orb2fchk

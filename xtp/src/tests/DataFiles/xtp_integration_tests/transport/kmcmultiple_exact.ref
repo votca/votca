@@ -1,0 +1,13 @@
+# kmcmultiple: bulk kinetic Monte Carlo
+# key value unit
+exact_available 1 -
+exact_velocity_x 14.1538448568 m/s
+exact_velocity_y 1.56990893372 m/s
+exact_velocity_z 2.28495384244 m/s
+exact_mobility 0.0141538448568 cm^2/Vs
+exact_D_xx 4.64348193979e-08 m^2/s
+exact_D_xy 4.80081239201e-09 m^2/s
+exact_D_xz 6.59308955088e-09 m^2/s
+exact_D_yy 5.50214730974e-08 m^2/s
+exact_D_yz -8.4539721489e-09 m^2/s
+exact_D_zz 3.34898143465e-08 m^2/s

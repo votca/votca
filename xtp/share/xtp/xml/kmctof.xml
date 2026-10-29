@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<options>
+  <kmctof help="Time-of-flight kinetic Monte Carlo with site exclusion: carriers are injected in the source region (pulses), hop with Marcus rates and leave at the sink. Every carrier has its own clock; a hop into an occupied site is a null event (exact). Records first arrival and mean transit time per carrier (as grw), the transient current and the collected fraction">
+    <carriertype help="Carrier type" default="electron" choices="electron,hole,singlet,triplet"/>
+    <temperature help="Temperature" unit="Kelvin" default="300" choices="float+"/>
+    <field help="External electric field" unit="V/m" default="0.0 0.0 0.0"/>
+    <tof link="tof.xml"/>
+    <seed help="Seed; run r uses its own random streams derived from (seed, r), independent of threads" default="1" choices="int+"/>
+    <runs help="Number of independent runs" default="1000" choices="int+"/>
+    <injection help="Carrier injection: pulses of carriers placed on free source sites (uniform)">
+      <carriers help="Carriers per pulse" default="1" choices="int+"/>
+      <pulses help="Number of pulses" default="1" choices="int+"/>
+      <period help="Time between pulse starts" unit="s" default="0" choices="float+"/>
+      <shape help="delta: all carriers at the pulse start; gaussian: times drawn from a Gaussian of standard deviation width (t >= 0); rectangular: uniform over width" default="delta" choices="delta,gaussian,rectangular"/>
+      <width help="Pulse width" unit="s" default="0" choices="float+"/>
+    </injection>
+    <waitingtime help="How waiting times are drawn (KMC engine strategy): exponential (time-homogeneous KMC) or thinning (bound rates and rejection; with the static rates used here a cross-check of exponential). Strategies for time-dependent rates plug in through WaitingTimeStrategy" default="exponential" choices="exponential,thinning"/>
+    <maxtime help="Simulated time limit per run (runs stopped by it are reported as censored)" unit="s" default="1e10" choices="float+"/>
+    <maxevents help="Limit of proposed hops per run" default="1000000000" choices="int+"/>
+    <resultfile help="Output: main results as 'key value unit' lines (empty: none)" default="kmctof_results.dat"/>
+    <runfile help="Output: one line per run (empty: none)" default="kmctof_runs.dat"/>
+    <current help="Transient current and collected fraction on a logarithmic time axis">
+      <file help="Output file (empty: none)" default="kmctof_current.dat"/>
+      <tmin help="Start of the time axis" unit="s" default="1e-15" choices="float+"/>
+      <tmax help="End of the time axis" unit="s" default="1" choices="float+"/>
+      <binsperdecade help="Bins per decade" default="10" choices="int+"/>
+    </current>
+  </kmctof>
+</options>

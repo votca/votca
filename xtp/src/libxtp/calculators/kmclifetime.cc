@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2026 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,12 +18,10 @@
  */
 
 // Standard includes
-#include <exception>
+#include <chrono>
+#include <cmath>
 #include <fstream>
-
-// Third party includes
-#include <boost/format.hpp>
-#include <boost/timer/progress_display.hpp>
+#include <iomanip>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -29,8 +29,10 @@
 
 // Local VOTCA includes
 #include "votca/xtp/eigen.h"
-#include "votca/xtp/gnode.h"
-#include "votca/xtp/qmstate.h"
+#include "votca/xtp/kmcrates.h"
+#include "votca/xtp/kmcwaitingtime.h"
+#include "votca/xtp/rate_engine.h"
+#include "votca/xtp/resultfile.h"
 #include "votca/xtp/topology.h"
 
 // Local private VOTCA includes
@@ -39,363 +41,301 @@
 namespace votca {
 namespace xtp {
 
-void KMCLifetime::ParseSpecificOptions(const tools::Property& options) {
-
-  insertions_ = options.get(".numberofinsertions").as<unsigned long>();
+void KMCLifetime::ParseOptions(const tools::Property& options) {
+  carriertype_ = QMStateType(options.get(".carriertype").as<std::string>());
+  if (!carriertype_.isKMCState()) {
+    throw std::runtime_error("kmclifetime cannot be run for state: " +
+                             carriertype_.ToLongString());
+  }
+  temperature_ = options.get(".temperature").as<double>() * tools::conv::kB *
+                 tools::conv::ev2hrt;
+  injection_pattern_ = options.get(".injectionpattern").as<std::string>();
+  ignore_types_ = options.get(".ignoresegments").as<std::string>();
+  if (options.get(".injectionmethod").as<std::string>() != "random") {
+    throw std::runtime_error("kmclifetime: injectionmethod must be random");
+  }
   lifetimefile_ = options.get(".lifetimefile").as<std::string>();
+  insertions_ = options.get(".numberofinsertions").as<Index>();
+  settings_.seed = options.get(".seed").as<std::uint64_t>();
+  settings_.carriers = options.get(".numberofcarriers").as<Index>();
+  settings_.runs = options.get(".runs").as<Index>();
+  settings_.decays = insertions_;
+  settings_.max_wall_time = options.get(".maxrealtime").as<double>();
+  exact_ = options.get(".exact").as<bool>();
+  waitingtime_ = options.get(".waitingtime").as<std::string>();
+  trajectoryfile_ = options.get(".trajectoryfile").as<std::string>();
+  settings_.keep_records = !trajectoryfile_.empty();
+  ratefile_ = options.get(".ratefile").as<std::string>();
+  occfile_ = options.get(".occfile").as<std::string>();
+  probfile_ = options.get(".decayprobfile").as<std::string>();
+  resultfile_ = options.get(".resultfile").as<std::string>();
 
-  probfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".decayprobfile", "");
-
-  const tools::Property& carrier_options = options.get(".carrierenergy");
-  do_carrierenergy_ = carrier_options.get(".run").as<bool>();
-  energy_outputfile_ = carrier_options.get(".outputfile").as<std::string>();
-  alpha_ = carrier_options.get(".alpha").as<double>();
-  outputsteps_ = carrier_options.get(".outputsteps").as<unsigned long>();
-
+  const tools::Property& energy = options.get(".carrierenergy");
+  carrierenergy_ = energy.get("run").as<bool>();
+  energyfile_ = energy.get("outputfile").as<std::string>();
+  alpha_ = energy.get("alpha").as<double>();
+  if (carrierenergy_) {
+    settings_.energy_hops = energy.get("outputsteps").as<Index>();
+  }
   log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
   log_.setCommonPreface("\n ...");
-
-  carriertype_ = QMStateType(QMStateType::Singlet);
-  XTP_LOG(Log::error, log_)
-      << "carrier type:" << carriertype_.ToLongString() << std::flush;
-  field_ = Eigen::Vector3d::Zero();
 }
 
-void KMCLifetime::WriteDecayProbability(std::string filename) {
-
-  Eigen::VectorXd outrates = Eigen::VectorXd::Zero(nodes_.size());
-  Eigen::VectorXd inrates = Eigen::VectorXd::Zero(nodes_.size());
-  Eigen::VectorXd decayrates = Eigen::VectorXd::Ones(nodes_.size());
-
-  for (unsigned i = 0; i < nodes_.size(); i++) {
-    GNode& node = nodes_[i];
-    if (node.canDecay()) {
-      for (const GLink& event : node.Events()) {
-        if (event.isDecayEvent()) {
-          decayrates[i] = event.getRate();
-        } else {
-          inrates[event.getDestination()->getId()] += event.getRate();
-          outrates[i] += event.getRate();
-        }
-      }
-    }
-  }
-  outrates = decayrates.cwiseQuotient(outrates + decayrates);
-  inrates = decayrates.cwiseQuotient(inrates + decayrates);
-
-  std::fstream probs;
-  probs.open(filename, std::fstream::out);
-  if (!probs.is_open()) {
-    std::string error_msg = "Unable to write to file " + filename;
-    throw std::runtime_error(error_msg);
-  }
-  probs << "#SiteID, Relative Prob outgoing, Relative Prob ingoing\n";
-  for (unsigned i = 0; i < nodes_.size(); i++) {
-    probs << nodes_[i].getId() << " " << outrates[i] << " " << inrates[i]
-          << std::endl;
-  }
-  probs.close();
-  return;
-}
-
-void KMCLifetime::ReadLifetimeFile(std::string filename) {
+std::vector<double> KMCLifetime::ReadDecayRates(const ToFGraph& graph) const {
   tools::Property xml;
-  xml.LoadFromXML(filename);
-  std::vector<tools::Property*> jobProps = xml.Select("lifetimes.site");
-  if (jobProps.size() != nodes_.size()) {
-    throw std::runtime_error(
-        (boost::format("The number of sites in the topology: %i does not match "
-                       "the number in the lifetimefile: %i") %
-         nodes_.size() % jobProps.size())
-            .str());
+  xml.LoadFromXML(lifetimefile_);
+  std::vector<tools::Property*> sites = xml.Select("lifetimes.site");
+  const Index n = graph.NumberOfSites();
+  std::vector<double> rates(n, -1.0);
+  for (tools::Property* prop : sites) {
+    Index id = prop->getAttribute<Index>("id");
+    if (id < 0 || id >= n) {
+      throw std::runtime_error("kmclifetime: site " + std::to_string(id) +
+                               " in " + lifetimefile_ +
+                               " is not in the state file");
+    }
+    if (rates[id] >= 0.0) {
+      throw std::runtime_error("kmclifetime: site " + std::to_string(id) +
+                               " appears twice in " + lifetimefile_);
+    }
+    double lifetime = prop->as<double>();
+    if (!(lifetime > 0.0) || !std::isfinite(lifetime)) {
+      throw std::runtime_error("kmclifetime: the lifetime of site " +
+                               std::to_string(id) + " must be positive");
+    }
+    rates[id] = 1.0 / lifetime;
   }
-
-  for (tools::Property* prop : jobProps) {
-    Index site_id = prop->getAttribute<Index>("id");
-    double lifetime = boost::lexical_cast<double>(prop->value());
-    bool check = false;
-    for (auto& node : nodes_) {
-      if (node.getId() == site_id && !(node.canDecay())) {
-        node.AddDecayEvent(1.0 / lifetime);
-        check = true;
-        break;
-      } else if (node.getId() == site_id && node.canDecay()) {
-        throw std::runtime_error(
-            (boost::format("Node %i appears twice in your list") % site_id)
-                .str());
+  for (Index i = 0; i < n; ++i) {
+    if (rates[i] < 0.0) {
+      if (!graph.getSite(i).ignored) {
+        throw std::runtime_error("kmclifetime: no lifetime for site " +
+                                 std::to_string(i) + " in " + lifetimefile_);
       }
-    }
-    if (!check) {
-      throw std::runtime_error(
-          (boost::format("Site from file with id: %i not found in state file") %
-           site_id)
-              .str());
+      rates[i] = 0.0;
     }
   }
-  for (auto& node : nodes_) {
-    node.InitEscapeRate();
-    node.MakeHuffTree();
-  }
-  return;
-}
-
-void KMCLifetime::WriteToTraj(std::fstream& traj, unsigned long insertioncount,
-                              double simtime,
-                              const Chargecarrier& affectedcarrier) const {
-  const Eigen::Vector3d& dr_travelled = affectedcarrier.get_dRtravelled();
-  traj << simtime << "\t" << insertioncount << "\t" << affectedcarrier.getId()
-       << "\t" << affectedcarrier.getLifetime() << "\t"
-       << affectedcarrier.getSteps() << "\t"
-       << affectedcarrier.getCurrentNodeId() + 1 << "\t"
-       << dr_travelled.x() * tools::conv::bohr2nm << "\t"
-       << dr_travelled.y() * tools::conv::bohr2nm << "\t"
-       << dr_travelled.z() * tools::conv::bohr2nm << std::endl;
-}
-
-void KMCLifetime::RunVSSM() {
-
-  std::chrono::time_point<std::chrono::system_clock> realtime_start =
-      std::chrono::system_clock::now();
-  XTP_LOG(Log::error, log_)
-      << "\nAlgorithm: VSSM for Multiple Charges with finite Lifetime\n"
-         "number of charges: "
-      << numberofcarriers_ << "\nnumber of nodes: " << nodes_.size()
-      << std::flush;
-
-  if (numberofcarriers_ > Index(nodes_.size())) {
-    throw std::runtime_error(
-        "ERROR in kmclifetime: specified number of charges is greater than the "
-        "number of nodes. This conflicts with single occupation.");
-  }
-
-  std::fstream traj;
-  std::fstream energyfile;
-
-  XTP_LOG(Log::error, log_)
-      << "Writing trajectory to " << trajectoryfile_ << "." << std::flush;
-
-  traj.open(trajectoryfile_, std::fstream::out);
-  if (!traj.is_open()) {
-    std::string error_msg = "Unable to write to file " + trajectoryfile_;
-    throw std::runtime_error(error_msg);
-  }
-
-  traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last "
-          "Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]\n";
-
-  if (do_carrierenergy_) {
-
-    XTP_LOG(Log::error, log_)
-        << "Tracking the energy of one charge carrier and exponential average "
-           "with alpha="
-        << alpha_ << " to " << energy_outputfile_ << std::flush;
-    energyfile.open(energy_outputfile_, std::fstream::out);
-    if (!energyfile.is_open()) {
-      std::string error_msg = "Unable to write to file " + energy_outputfile_;
-      throw std::runtime_error(error_msg);
-    }
-
-    energyfile << "Simtime [s]\tSteps\tCarrier ID\tEnergy_a=" << alpha_
-               << "[eV]\n";
-  }
-
-  // Injection
-  XTP_LOG(Log::error, log_)
-      << "\ninjection method: " << injectionmethod_ << std::flush;
-
-  RandomlyCreateCharges();
-
-  unsigned long insertioncount = 0;
-  unsigned long step = 0;
-  double simtime = 0.0;
-
-  std::vector<GNode*> forbiddennodes;
-  std::vector<GNode*> forbiddendests;
-
-  time_t now = time(nullptr);
-  tm* localtm = localtime(&now);
-  XTP_LOG(Log::error, log_)
-      << "Run started at " << asctime(localtm) << std::flush;
-
-  double avlifetime = 0.0;
-  double meanfreepath = 0.0;
-  Eigen::Vector3d difflength_squared = Eigen::Vector3d::Zero();
-
-  double avgenergy = carriers_[0].getCurrentEnergy();
-  Index carrieridold = carriers_[0].getId();
-
-  while (insertioncount < insertions_) {
-    std::chrono::duration<double> elapsed_time =
-        std::chrono::system_clock::now() - realtime_start;
-    if (elapsed_time.count() > (maxrealtime_ * 60. * 60.)) {
-      XTP_LOG(Log::error, log_)
-          << "\nReal time limit of " << maxrealtime_ << " hours ("
-          << Index(maxrealtime_ * 60 * 60 + 0.5)
-          << " seconds) has been reached. Stopping here.\n"
-          << std::flush;
-      break;
-    }
-
-    double cumulated_rate = 0;
-
-    for (const auto& carrier : carriers_) {
-      cumulated_rate += carrier.getCurrentEscapeRate();
-    }
-    if (cumulated_rate == 0) {  // this should not happen: no possible jumps
-                                // defined for a node
-      throw std::runtime_error(
-          "ERROR in kmclifetime: Incorrect rates in the database file. All the "
-          "escape rates for the current setting are 0.");
-    }
-    // go forward in time
-    double dt = Promotetime(cumulated_rate);
-
-    if (do_carrierenergy_) {
-      bool print = false;
-      if (carriers_[0].getId() > carrieridold) {
-        avgenergy = carriers_[0].getCurrentEnergy();
-        print = true;
-        carrieridold = carriers_[0].getId();
-      } else if (step % outputsteps_ == 0) {
-        avgenergy =
-            alpha_ * carriers_[0].getCurrentEnergy() + (1 - alpha_) * avgenergy;
-        print = true;
-      }
-      if (print) {
-        energyfile << simtime << "\t" << step << "\t" << carriers_[0].getId()
-                   << "\t" << avgenergy * tools::conv::hrt2ev << std::endl;
-      }
-    }
-
-    simtime += dt;
-    step++;
-    for (auto& carrier : carriers_) {
-      carrier.updateLifetime(dt);
-      carrier.updateSteps(1);
-      carrier.updateOccupationtime(dt);
-    }
-
-    ResetForbiddenlist(forbiddennodes);
-    bool secondlevel = true;
-    while (secondlevel) {
-
-      // determine which carrier will escape
-      GNode* newnode = nullptr;
-      Chargecarrier* affectedcarrier = ChooseAffectedCarrier(cumulated_rate);
-
-      if (CheckForbidden(affectedcarrier->getCurrentNode(), forbiddennodes)) {
-        continue;
-      }
-
-      // determine where it will jump to
-      ResetForbiddenlist(forbiddendests);
-      boost::timer::progress_display progress(insertions_);
-
-      while (true) {
-        // LEVEL 2
-
-        newnode = nullptr;
-        const GLink& event =
-            ChooseHoppingDest(affectedcarrier->getCurrentNode());
-
-        if (event.isDecayEvent()) {
-          const Eigen::Vector3d& dr_travelled =
-              affectedcarrier->get_dRtravelled();
-          avlifetime += affectedcarrier->getLifetime();
-          meanfreepath += dr_travelled.norm();
-          difflength_squared += dr_travelled.cwiseAbs2();
-          WriteToTraj(traj, insertioncount, simtime, *affectedcarrier);
-          ++progress;
-          RandomlyAssignCarriertoSite(*affectedcarrier);
-          affectedcarrier->resetCarrier();
-          insertioncount++;
-          affectedcarrier->setId(numberofcarriers_ - 1 + insertioncount);
-          secondlevel = false;
-          break;
-        } else {
-          newnode = event.getDestination();
-        }
-
-        // check after the event if this was allowed
-        if (CheckForbidden(*newnode, forbiddendests)) {
-          continue;
-        }
-
-        // if the new segment is unoccupied: jump; if not: add to forbidden list
-        // and choose new hopping destination
-        if (newnode->isOccupied()) {
-          if (CheckSurrounded(affectedcarrier->getCurrentNode(),
-                              forbiddendests)) {
-            AddtoForbiddenlist(affectedcarrier->getCurrentNode(),
-                               forbiddennodes);
-            break;  // select new escape node (ends level 2 but without setting
-                    // level1step to 1)
-          }
-          AddtoForbiddenlist(*newnode, forbiddendests);
-          continue;  // select new destination
-        } else {
-          affectedcarrier->jumpAccordingEvent(event);
-          secondlevel = false;
-
-          break;  // this ends LEVEL 2 , so that the time is updated and the
-                  // next MC step started
-        }
-
-        // END LEVEL 2
-      }
-      // END LEVEL 1
-    }
-  }
-
-  XTP_LOG(Log::error, log_)
-      << "\nTotal runtime:\t\t\t\t\t" << simtime
-      << " s\n"
-         "Total KMC steps:\t\t\t\t"
-      << step << "\nAverage lifetime:\t\t\t\t"
-      << avlifetime / double(insertioncount) << " s\n"
-      << "Mean freepath\t l=<|r_x-r_o|> :\t\t"
-      << (meanfreepath * tools::conv::bohr2nm / double(insertioncount))
-      << " nm\n"
-      << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"
-      << std::sqrt(difflength_squared.norm() / double(insertioncount)) *
-             tools::conv::bohr2nm
-      << " nm\n"
-      << std::flush;
-
-  WriteOccupationtoFile(simtime, occfile_);
-  traj.close();
-  if (do_carrierenergy_) {
-    energyfile.close();
-  }
-  return;
+  return rates;
 }
 
 bool KMCLifetime::Evaluate(Topology& top) {
   XTP_LOG(Log::error, log_) << "\n-----------------------------------"
-                               "\n      KMCLIFETIME started"
-                               "\n-----------------------------------\n"
+                               "\n      KMC WITH FINITE LIFETIMES"
+                               "\n-----------------------------------"
                             << std::flush;
-
-  XTP_LOG(Log::info, log_) << "\nInitialising random number generator"
-                           << std::flush;
-
-  RandomVariable_.init(seed_);
-  LoadGraph(top);
-  ReadLifetimeFile(lifetimefile_);
-
-  if (!probfile_.empty()) {
-    WriteDecayProbability(probfile_);
+  ToFGraph graph(top, ToFGraph::BulkOptions(injection_pattern_, ignore_types_),
+                 carriertype_, temperature_, Eigen::Vector3d::Zero());
+  XTP_LOG(Log::error, log_) << graph.Summary() << std::flush;
+  std::vector<double> decay = ReadDecayRates(graph);
+  if (!ratefile_.empty()) {
+    WriteRates(top);
   }
-  RunVSSM();
+  double nm = tools::conv::bohr2nm;
 
-  time_t now = time(nullptr);
-  tm* localtm = localtime(&now);
+  std::unique_ptr<LifetimeSimulation::ExactResult> exact;
+  if (exact_) {
+    exact = std::make_unique<LifetimeSimulation::ExactResult>(
+        LifetimeSimulation::Exact(graph, decay));
+    XTP_LOG(Log::error, log_) << "Exact for one " << carriertype_.ToLongString()
+                              << " (" << exact->solver << ", backward error "
+                              << exact->backward_error << "):" << std::flush;
+    XTP_LOG(Log::error, log_)
+        << std::scientific << "  lifetime " << exact->lifetime
+        << " s, diffusion length sqrt(<R^2>) "
+        << std::sqrt(exact->squared_displacement) * nm
+        << " nm, per direction sqrt(<R_a^2>) "
+        << (exact->squared_components.cwiseSqrt() * nm).transpose() << " nm"
+        << std::flush;
+    if (!exact->converged) {
+      XTP_LOG(Log::error, log_)
+          << "Warning: the iterative solver did not converge" << std::flush;
+    }
+    if (settings_.carriers > 1) {
+      XTP_LOG(Log::error, log_)
+          << "  (with " << settings_.carriers
+          << " carriers the KMC includes site exclusion, the exact values "
+             "do not)"
+          << std::flush;
+    }
+  }
 
-  XTP_LOG(Log::info, log_) << " KMCLIFETIME finished at:" << asctime(localtm)
-                           << std::flush;
+  std::unique_ptr<LifetimeSimulation::Result> result;
+  if (insertions_ > 0) {
+    StaticRates rates(graph);
+    std::unique_ptr<WaitingTimeStrategy> strategy =
+        MakeWaitingTimeStrategy(waitingtime_);
+    LifetimeSimulation simulation(graph, decay, settings_, rates, *strategy);
+    XTP_LOG(Log::error, log_)
+        << settings_.carriers << " " << carriertype_.ToLongString()
+        << "(s) at a time, " << insertions_ << " decays in " << settings_.runs
+        << " run(s), " << OPENMP::getMaxThreads() << " thread(s), waiting "
+        << "times: " << strategy->Name() << std::flush;
+    auto start = std::chrono::steady_clock::now();
+    result =
+        std::make_unique<LifetimeSimulation::Result>(simulation.Simulate());
+    double seconds =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - start)
+            .count();
+    const LifetimeSimulation::Result& r = *result;
+    XTP_LOG(Log::error, log_)
+        << std::setprecision(6) << r.decays << " decays, " << r.hop_events
+        << " hops, " << r.null_events << " attempts into occupied sites, "
+        << r.simulated_time << " s simulated, " << seconds << " s"
+        << std::flush;
+    if (r.wall_time_stops > 0) {
+      XTP_LOG(Log::error, log_)
+          << "Warning: " << r.wall_time_stops
+          << " run(s) stopped by maxrealtime" << std::flush;
+    }
+    double LD = std::sqrt(r.squared_displacement);
+    XTP_LOG(Log::error, log_)
+        << std::scientific << "Average lifetime: " << r.lifetime << " +- "
+        << r.lifetime_error << " s (standard error)\n"
+        << "  hops per " << carriertype_.ToLongString() << ": " << r.hops
+        << "\n  mean distance <|R|>: " << r.mean_distance * nm << " +- "
+        << r.mean_distance_error * nm << " nm"
+        << "\n  diffusion length sqrt(<R^2>): " << LD * nm << " +- "
+        << r.squared_displacement_error / (2.0 * LD) * nm << " nm"
+        << "\n  per direction sqrt(<R_a^2>): "
+        << (r.squared_components.cwiseSqrt() * nm).transpose() << " nm"
+        << "\n  D = <R^2>/(6 <lifetime>): "
+        << r.squared_displacement / (6.0 * r.lifetime) * nm * nm << " nm^2/s"
+        << std::flush;
+    if (exact && settings_.carriers == 1) {
+      XTP_LOG(Log::error, log_)
+          << "  KMC - exact: lifetime "
+          << (r.lifetime - exact->lifetime) / r.lifetime_error
+          << " standard errors, <R^2> "
+          << (r.squared_displacement - exact->squared_displacement) /
+                 r.squared_displacement_error
+          << " standard errors" << std::flush;
+    }
+
+    if (!trajectoryfile_.empty()) {
+      std::ofstream out(trajectoryfile_);
+      out << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t "
+             "Decay segment\t x_travelled[nm]\t y_travelled[nm]\t "
+             "z_travelled[nm]\t run\n";
+      out << std::setprecision(10);
+      for (Index i = 0; i < Index(r.records.size()); ++i) {
+        const LifetimeSimulation::Record& d = r.records[i];
+        out << d.time << "\t" << i << "\t" << d.carrier << "\t" << d.lifetime
+            << "\t" << d.hops << "\t" << d.site << "\t"
+            << d.displacement.x() * nm << "\t" << d.displacement.y() * nm
+            << "\t" << d.displacement.z() * nm << "\t" << d.run << "\n";
+      }
+      XTP_LOG(Log::error, log_)
+          << "Decays written to " << trajectoryfile_ << std::flush;
+    }
+    if (carrierenergy_) {
+      std::ofstream out(energyfile_);
+      out << "#Simtime [s]\tHops\tEnergy[eV]\tEnergy_a=" << alpha_
+          << "[eV] (run 0, mean over the carriers present)\n";
+      double avg = r.energy.empty() ? 0.0 : r.energy.front().energy;
+      for (const LifetimeSimulation::EnergySample& e : r.energy) {
+        avg = alpha_ * e.energy + (1.0 - alpha_) * avg;
+        out << e.time << "\t" << e.hops << "\t"
+            << e.energy * tools::conv::hrt2ev << "\t"
+            << avg * tools::conv::hrt2ev << "\n";
+      }
+    }
+    if (!occfile_.empty()) {
+      std::ofstream out(occfile_);
+      out << "#SiteID, Occupation prob at "
+          << temperature_ * tools::conv::hrt2ev / tools::conv::kB
+          << "K for carrier:" << carriertype_.ToString() << "\n";
+      for (Index i = 0; i < graph.NumberOfSites(); ++i) {
+        out << i << "\t" << r.occupation[i] << "\n";
+      }
+    }
+  }
+  if (!probfile_.empty()) {
+    WriteDecayProbabilities(graph, decay, result.get(), exact.get());
+  }
+  if (!resultfile_.empty()) {
+    ResultFile out("kmclifetime: kinetic Monte Carlo with finite lifetimes");
+    const double to_m = nm * 1e-9;
+    const char* axes = "xyz";
+    out.Add("carriers", settings_.carriers);
+    if (result) {
+      const LifetimeSimulation::Result& r = *result;
+      out.Add("decays", r.decays);
+      out.Add("hop_events", r.hop_events);
+      out.Add("null_events", r.null_events);
+      out.Add("lifetime", r.lifetime, "s");
+      out.Add("lifetime_error", r.lifetime_error, "s");
+      out.Add("hops_per_carrier", r.hops, "-");
+      out.Add("mean_distance", r.mean_distance * to_m, "m");
+      out.Add("mean_distance_error", r.mean_distance_error * to_m, "m");
+      out.Add("msd", r.squared_displacement * to_m * to_m, "m^2");
+      out.Add("msd_error", r.squared_displacement_error * to_m * to_m, "m^2");
+      for (Index a = 0; a < 3; ++a) {
+        out.Add(std::string("msd_") + axes[a],
+                r.squared_components[a] * to_m * to_m, "m^2");
+      }
+      out.Add("diffusion_length", std::sqrt(r.squared_displacement) * to_m,
+              "m");
+      out.Add("diffusion_coefficient",
+              r.squared_displacement / (6.0 * r.lifetime) * to_m * to_m,
+              "m^2/s");
+    }
+    out.Add("exact_available", Index(exact != nullptr));
+    if (exact) {
+      out.Add("exact_lifetime", exact->lifetime, "s");
+      out.Add("exact_msd", exact->squared_displacement * to_m * to_m, "m^2");
+      for (Index a = 0; a < 3; ++a) {
+        out.Add(std::string("exact_msd_") + axes[a],
+                exact->squared_components[a] * to_m * to_m, "m^2");
+      }
+      out.Add("exact_diffusion_length",
+              std::sqrt(exact->squared_displacement) * to_m, "m");
+      out.Add("exact_backward_error", exact->backward_error, "-");
+    }
+    out.Write(resultfile_);
+  }
   std::cout << log_;
   return true;
+}
+
+void KMCLifetime::WriteRates(const Topology& top) {
+  std::ofstream out(ratefile_);
+  out << "#PairID,SiteID1,SiteID2, ,rate12[1/s],rate21[1/s] at "
+      << temperature_ * tools::conv::hrt2ev / tools::conv::kB
+      << "K for carrier:" << carriertype_.ToString() << "\n";
+  Rate_Engine engine(temperature_, Eigen::Vector3d::Zero());
+  for (const QMPair* pair : top.NBList()) {
+    Rate_Engine::PairRates rates = engine.Rate(*pair, carriertype_);
+    out << pair->getId() << " " << pair->Seg1()->getId() << " "
+        << pair->Seg2()->getId() << " " << rates.rate12 << " " << rates.rate21
+        << "\n";
+  }
+  XTP_LOG(Log::error, log_) << "Rates written to " << ratefile_ << std::flush;
+}
+
+void KMCLifetime::WriteDecayProbabilities(
+    const ToFGraph& graph, const std::vector<double>& decay,
+    const LifetimeSimulation::Result* kmc,
+    const LifetimeSimulation::ExactResult* exact) {
+  const Index n = graph.NumberOfSites();
+  Eigen::VectorXd in = Eigen::VectorXd::Zero(n);
+  for (Index i = 0; i < n; ++i) {
+    for (const ToFGraph::Edge& e : graph.OutEdges(i)) {
+      in[e.to] += e.rate;
+    }
+  }
+  std::ofstream out(probfile_);
+  out << "#SiteID, k/(k+outgoing rates), k/(k+incoming rates), fraction of "
+         "the KMC decays, exact decay probability (one carrier)\n";
+  for (Index i = 0; i < n; ++i) {
+    double k = decay[i];
+    double pout = (k > 0.0) ? k / (k + graph.EscapeRate(i)) : 0.0;
+    double pin = (k > 0.0) ? k / (k + in[i]) : 0.0;
+    out << i << " " << pout << " " << pin << " "
+        << (kmc != nullptr ? kmc->decay_fraction[i] : 0.0) << " "
+        << (exact != nullptr ? exact->decay_probability[i] : 0.0) << "\n";
+  }
+  XTP_LOG(Log::error, log_)
+      << "Decay probabilities written to " << probfile_ << std::flush;
 }
 
 }  // namespace xtp

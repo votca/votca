@@ -1,0 +1,12 @@
+<tof help="Time-of-flight geometry: the periodicity is cut across one box vector, carriers are injected in the source region and absorbed in the sink region at the opposite face">
+  <axis help="Box vector across which the periodicity is cut; transport runs along the normal of the face spanned by the other two box vectors, from fractional coordinate 0 (source side) to 1 (sink side)" default="a" choices="a,b,c"/>
+  <source help="Source (injection) region; if thickness and pattern are both given, a segment must satisfy both">
+    <thickness help="Thickness of the source slab at the face with fractional coordinate 0, measured along the normal (0: no slab criterion)" unit="nm" default="1.0" choices="float+"/>
+    <pattern help="Segment type wildcard, e.g. 'Alq3*' (empty: no pattern criterion)" default=""/>
+  </source>
+  <sink help="Sink (absorbing) region; if thickness and pattern are both given, a segment must satisfy both">
+    <thickness help="Thickness of the sink slab at the face with fractional coordinate 1, measured along the normal (0: no slab criterion)" unit="nm" default="1.0" choices="float+"/>
+    <pattern help="Segment type wildcard (empty: no pattern criterion)" default=""/>
+  </sink>
+  <ignoretypes help="Segment types (wildcards, separated by commas or spaces) that take no part in transport: no hops to or from them" default=""/>
+</tof>

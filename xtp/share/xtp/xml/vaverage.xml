@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <options>
-  <vaverage help="Writes a file containing the positions of molecules and the average carrier velocity on this molecule">
+  <vaverage help="Writes the positions of the segments and the average carrier velocity on each: the net flux p_i w_ij - p_j w_ji of every pair times its vector, split equally between the two segments, from the rates and occupation probabilities written by kmcmultiple. The sum over all segments is the total drift velocity (number of carriers x velocity per carrier). Exact for one carrier; with several carriers the occupation of the destination is not taken into account (site exclusion).">
     <ratefile help="file with kmc rates from kmcmultiple" default="rates.dat"/>
     <occfile help="file with site occupations from kmcmultiple" default="occupation.dat"/>
     <output help="outputfile name " default="velocities.dat"/>

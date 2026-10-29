@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<options>
+  <networkgen help="Writes a state file with a stochastic network model of any size (Baumeier et al., Phys. Rev. B 86, 184202 (2012)) from a parameter file written by networkfit: sites from a dominance-competition point process, correlated Gaussian site energies, distance dependent connection probability and couplings">
+    <job_name help="Input file name without extension, also used for the default state file name" default="system"/>
+    <statefile help="State file to create, if not given job_name.hdf5" default="OPTIONAL"/>
+    <energyfile help="Optional ASCII file with positions and site energies" default="OPTIONAL"/>
+    <parameters help="Parameter file of the model (root element stochasticnetwork, written by networkfit)" default="REQUIRED"/>
+    <sites help="Number of sites; 0: as in the parameter file" default="0" choices="int+"/>
+    <box help="Box lengths along x, y and z; if not given, the box of the parameter file scaled to keep its density and shape" unit="nm" default="OPTIONAL"/>
+    <seed help="Seed of the random numbers (the same network on every platform); 0: the seed of the parameter file" default="0" choices="int+"/>
+    <trapfactor help="Multiplies the densities of the trap templates of the parameter file (0: no traps; the density of one trap in the fitted system is uncertain, so scan it)" default="1" choices="float+"/>
+    <temperature help="Temperature for the finite-size check of the density of states (only printed)" unit="K" default="300" choices="float+"/>
+  </networkgen>
+</options>

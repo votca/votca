@@ -24,9 +24,11 @@
 #include "calculators/eanalyze.h"
 #include "calculators/einternal.h"
 #include "calculators/ewaldbackground.h"
+#include "calculators/grw.h"
 #include "calculators/ianalyze.h"
 #include "calculators/kmclifetime.h"
 #include "calculators/kmcmultiple.h"
+#include "calculators/kmctof.h"
 #include "calculators/mapchecker.h"
 #include "calculators/neighborlist.h"
 #include "calculators/vaverage.h"
@@ -42,7 +44,9 @@ void Calculatorfactory::RegisterAll() {
   this->Register<EInternal>("einternal");
   this->Register<KMCLifetime>("kmclifetime");
   this->Register<KMCMultiple>("kmcmultiple");
+  this->Register<KMCToF>("kmctof");
   this->Register<VAverage>("vaverage");
+  this->Register<GRW>("grw");
   this->Register<EwaldBackground>("ewaldbackground");
 }
 }  // namespace xtp

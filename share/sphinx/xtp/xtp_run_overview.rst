@@ -11,9 +11,11 @@ The following calculators are available:
 .. toctree::
    eanalyze
    einternal
+   grw
    ianalyze
    kmclifetime
    kmcmultiple
+   kmctof
    mapchecker
    neighborlist
    vaverage
