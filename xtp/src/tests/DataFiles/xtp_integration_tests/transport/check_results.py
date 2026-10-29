@@ -14,9 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""
-Check the result files of the transport integration tests.
+"""Check the result files of the transport integration tests."""
 
+import argparse
+import sys
+
+USAGE = """\
 The files are 'key value unit' lines written by grw, kmctof, kmcmultiple
 and kmclifetime.
 
@@ -33,8 +36,6 @@ and kmclifetime.
       error is at most M times the exact value (so that the test means
       something)
 """
-import argparse
-import sys
 
 
 def read(name):
@@ -107,7 +108,7 @@ def velocity(args):
     return diff < args.rtol * norm
 
 
-parser = argparse.ArgumentParser(description=__doc__,
+parser = argparse.ArgumentParser(description=__doc__ + "\n\n" + USAGE,
                                  formatter_class=argparse.RawTextHelpFormatter)
 sub = parser.add_subparsers(dest='command', required=True)
 p = sub.add_parser('reference')
