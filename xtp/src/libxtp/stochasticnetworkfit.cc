@@ -505,9 +505,9 @@ StochasticNetworkFit::PointFit StochasticNetworkFit::FitPoints() const {
 #pragma omp parallel for schedule(dynamic, 1)
     for (Index k = 0; k < nr; ++k) {
       std::vector<Eigen::Vector3d> pos;
-      std::vector<double> radii;
       ModelRandom random(settings_.seed, 100 + std::uint64_t(k));
       try {
+        std::vector<double> radii;
         StochasticNetwork::SamplePoints(pp, box, n, random, pos, radii);
       } catch (const std::runtime_error&) {
         saturated[k] = 1;  // radii too large

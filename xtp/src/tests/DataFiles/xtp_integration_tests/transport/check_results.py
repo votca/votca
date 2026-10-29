@@ -14,8 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Checks for the 'key value unit' result files of grw, kmctof, kmcmultiple
-and kmclifetime (integration tests).
+"""
+Check the result files of the transport integration tests.
+
+The files are 'key value unit' lines written by grw, kmctof, kmcmultiple
+and kmclifetime.
 
   check_results.py reference RESULT REFERENCE [--rtol R]
       every key of REFERENCE must be in RESULT with the same value
@@ -35,6 +38,7 @@ import sys
 
 
 def read(name):
+    """Read a result file into a dictionary {key: value}."""
     values = {}
     with open(name) as f:
         for line in f:
@@ -49,6 +53,7 @@ def read(name):
 
 
 def reference(args):
+    """Compare a result file with a reference file."""
     result = read(args.result)
     ok = True
     for key, ref in read(args.reference).items():
@@ -68,6 +73,7 @@ def reference(args):
 
 
 def agree(args):
+    """Check a KMC result against the exact value within its error."""
     result = read(args.result)
     exact = read(args.exactfile)[args.exactkey]
     value = result[args.key]
@@ -83,6 +89,7 @@ def agree(args):
 
 
 def velocity(args):
+    """Check the vaverage velocities against the exact drift."""
     total = [0.0, 0.0, 0.0]
     with open(args.velocities) as f:
         for line in f:

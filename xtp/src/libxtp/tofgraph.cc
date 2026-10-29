@@ -186,21 +186,17 @@ void ToFGraph::SetupSites(const Topology& top) {
       continue;  // role Bulk, no edges
     }
 
-    bool source = true;
-    bool sink = true;
-    if (opt_.source_thickness > 0.0) {
-      source = source && site.x < opt_.source_thickness;
-    }
-    if (!opt_.source_pattern.empty()) {
-      source = source && MatchesPattern(opt_.source_pattern, seg.getType());
-    }
-    if (opt_.sink_thickness > 0.0) {
-      sink = sink && site.x >= thickness_ - opt_.sink_thickness;
-    }
-    if (!opt_.sink_pattern.empty()) {
-      sink = sink && MatchesPattern(opt_.sink_pattern, seg.getType());
-    }
-    sink = sink && !opt_.bulk;
+    // a criterion that is not given does not restrict
+    const bool source_slab =
+        !(opt_.source_thickness > 0.0) || site.x < opt_.source_thickness;
+    const bool source_type = opt_.source_pattern.empty() ||
+                             MatchesPattern(opt_.source_pattern, seg.getType());
+    const bool sink_slab = !(opt_.sink_thickness > 0.0) ||
+                           site.x >= thickness_ - opt_.sink_thickness;
+    const bool sink_type = opt_.sink_pattern.empty() ||
+                           MatchesPattern(opt_.sink_pattern, seg.getType());
+    const bool source = source_slab && source_type;
+    const bool sink = sink_slab && sink_type && !opt_.bulk;
     if (source && sink) {
       throw std::runtime_error("ToFGraph: segment " + std::to_string(i) +
                                " is selected as source and as sink");
