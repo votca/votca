@@ -48,7 +48,8 @@ namespace xtp {
  *   distribution H(r) and (weight 1/4) the pair correlation function g(r),
  *   averaged over a few realizations with fixed random numbers.
  * - Site energies (per carrier): mean, standard deviation and the spatial
- *   correlation kappa(r) = <z_i z_j>(r). The moving average gives
+ *   correlation kappa(r) = mean of z_i z_j over pairs at distance r. The
+ *   moving average gives
  *   kappa(r) = w_b O_{l_b}(r) + w_c O_{l_c}(r), with O_l(r) the mean
  *   overlap |N_l(i) cap N_l(j)| / l of the neighbour sets of two sites at
  *   distance r, evaluated on the microscopic sites. For every (l_b, l_c) of
