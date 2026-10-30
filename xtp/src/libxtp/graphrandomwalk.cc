@@ -32,6 +32,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/graphrandomwalk.h"
+#include "votca/xtp/scaledsolve.h"
 
 namespace votca {
 namespace xtp {
@@ -205,7 +206,11 @@ class GeneratorSolver {
       bicg_adjoint_.compute(Qtc_);
       auto make = [this](BiCG& b) {
         return [this, &b](const Eigen::VectorXd& rhs) {
-          Eigen::VectorXd x = b.solve(rhs);
+          bool solved = false;
+          Eigen::VectorXd x = ScaledSolve(b, rhs, &solved);
+          if (!solved) {
+            return x;  // zero right-hand side
+          }
           iterations += b.iterations();
           // only the iteration limit counts here: Eigen versions differ in
           // reporting a residual floor just above the tolerance or a restart

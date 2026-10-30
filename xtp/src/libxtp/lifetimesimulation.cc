@@ -28,6 +28,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/lifetimesimulation.h"
+#include "votca/xtp/scaledsolve.h"
 
 namespace votca {
 namespace xtp {
@@ -355,11 +356,10 @@ LifetimeSimulation::ExactResult LifetimeSimulation::Exact(
       bicg.setMaxIterations(100000);
       bicg.compute(M);  // M outlives bicg
       for (Index c = 0; c < rhs.cols(); ++c) {
-        x.col(c) = bicg.solve(rhs.col(c));
-        // Eigen returns a zero right-hand side at once but leaves
-        // iterations() at the maximum, so check only nonzero ones
-        if (rhs.col(c).squaredNorm() > 0.0 &&
-            bicg.iterations() >= bicg.maxIterations()) {
+        // scaled right-hand side (see ScaledSolve); a zero one gives zero
+        bool solved = false;
+        x.col(c) = ScaledSolve(bicg, Eigen::VectorXd(rhs.col(c)), &solved);
+        if (solved && bicg.iterations() >= bicg.maxIterations()) {
           result.converged = false;
         }
       }
