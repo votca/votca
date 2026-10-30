@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<options>
+  <grw help="Time of flight and mobility from the graph random walk: mean hitting times of the sink region from a sparse linear solve (no sampling), Chen, van der Hoorn, Baumeier, arXiv:2405.15836">
+    <carriertype help="Carrier type" default="electron" choices="electron,hole,singlet,triplet"/>
+    <temperature help="Temperature" unit="Kelvin" default="300" choices="float+"/>
+    <field help="External electric field; for detailed balance (symmetric solver) it must be along the transport normal" unit="V/m" default="0.0 0.0 0.0"/>
+    <tof link="tof.xml"/>
+    <numberofcarriers help="Number of carriers with site exclusion; the state space has n^N/N! states, so 1 or 2" default="1" choices="1,2"/>
+    <observable help="Two carriers: first = time until the first carrier reaches the sink (as in arXiv:2405.15836); transit = mean transit time per carrier, carriers removed at the sink (ToF transient). Identical for one carrier" default="first" choices="first,transit"/>
+    <maxstates help="Two carriers: largest number of pair states (memory guard)" default="50000000" choices="int+"/>
+    <solver help="Linear solver. auto: with detailed balance Cholesky (up to directlimit unknowns) or conjugate gradients on the symmetrized generator, otherwise LU or BiCGSTAB" default="auto" choices="auto,cholesky,lu,cg,bicgstab"/>
+    <directlimit help="auto: largest number of unknowns for the direct solvers" default="5000" choices="int+"/>
+    <tolerance help="Relative residual of the iterative solvers; must be tight because trap modes dominate the hitting times" default="1e-14" choices="float+"/>
+    <maxiterations help="Iteration limit of the iterative solvers" default="100000" choices="int+"/>
+    <sourcefile help="Output: mean hitting time and its standard deviation per source segment (empty: none)" default="grw_sources.dat"/>
+    <resultfile help="Output: main results as 'key value unit' lines (empty: none)" default="grw_results.dat"/>
+    <occupationfile help="Output: expected time spent on each segment (where the time of flight is spent; empty: none)" default="grw_occupation.dat"/>
+  </grw>
+</options>

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<options>
+  <networkfit help="Fits a stochastic network model (Baumeier et al., Phys. Rev. B 86, 184202 (2012)) to the sites, site energies and couplings of a state file and writes the parameter file for networkgen">
+    <job_name help="Input file name without extension, also used for the default file names" default="system"/>
+    <statefile help="State file with site energies and couplings, if not given job_name.hdf5" default="OPTIONAL"/>
+    <frame help="Frame of the state file; -1: the first" default="-1" choices="int"/>
+    <carriers help="Carrier types to fit (at most two are correlated with each other)" default="e h"/>
+    <parameterfile help="Parameter file to write, if not given job_name_network.xml" default="OPTIONAL"/>
+    <energyfile help="Optional ASCII file with positions and site energies of the microscopic system, and for each carrier whether the site belongs to one of its traps" default="OPTIONAL"/>
+    <statsfile help="Optional ASCII file with the fitted functions (microscopic, model) for plots" default="OPTIONAL"/>
+    <bin help="Width of the distance bins of all distance dependent functions" unit="nm" default="0.05" choices="float+"/>
+    <correlationcutoff help="Largest distance for the energy correlation fit; 0: half the box" unit="nm" default="0" choices="float+"/>
+    <l_b help="Grid of the short-range moving average: first, last, step" default="2 20 1"/>
+    <l_c help="Grid of the long-range moving average: first, last, step (values above the number of sites are skipped)" default="20 500 20"/>
+    <quantiles help="Number of quantiles of the standardized coupling residuals; 0: Gaussian" default="100" choices="int+"/>
+    <points help="Point process">
+      <fit help="Fit the point process; false: use the values below" default="true" choices="bool"/>
+      <realizations help="Realizations averaged per evaluation of the fit" default="4" choices="int+"/>
+      <evaluations help="Largest number of evaluations of the fit" default="150" choices="int+"/>
+      <candidates help="Candidate points per iteration, in units of the number of sites" default="3" choices="float+"/>
+      <maxiterations help="Largest number of iterations of the point process" default="200" choices="int+"/>
+      <hardcore help="Hard-core radius if not fitted" unit="nm" default="0.35" choices="float+"/>
+      <radiusmean help="Mean of the random part of the radii if not fitted" unit="nm" default="0.15" choices="float+"/>
+      <radiusvariance help="Variance of the random part of the radii if not fitted" unit="nm^2" default="0.004" choices="float+"/>
+    </points>
+    <traps help="Traps (single sites or clusters) from the slow modes of the master equation at temperature and zero field (spectral method of Chen, van der Hoorn and Baumeier): left out of the bulk energy statistics and stored as templates that networkgen inserts">
+      <find help="Identify traps; false: all sites are bulk" default="true" choices="bool"/>
+      <threshold help="Sites whose normalized density-mode entry exceeds this belong to a trap (the parameter a of the paper)" default="0.9" choices="float+"/>
+      <gap help="A trap releases a carrier at least this many times slower than the first fast mode of the network relaxes" default="10" choices="float+"/>
+      <mass help="A trap carries at least this fraction of the weight of its side of the slow density mode" default="0.5" choices="float+"/>
+      <maxsize help="Largest number of sites of a trap" default="20" choices="int+"/>
+      <maxsites help="Largest number of sites for the dense eigenvalue problem" default="5000" choices="int+"/>
+    </traps>
+    <seed help="Seed of the random numbers of the fit and of the parameter file" default="1" choices="int+"/>
+    <validate help="Number of model networks of the same size whose statistics are compared with the microscopic system (mean and standard deviation over the networks); 0: none" default="4" choices="int+"/>
+    <temperature help="Temperature of the rates for the trap identification and of the finite-size check of the density of states" unit="K" default="300" choices="float+"/>
+  </networkfit>
+</options>

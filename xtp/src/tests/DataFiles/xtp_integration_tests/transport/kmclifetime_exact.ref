@@ -1,0 +1,9 @@
+# kmclifetime: kinetic Monte Carlo with finite lifetimes
+# key value unit
+exact_available 1 -
+exact_lifetime 8.44836368658e-11 s
+exact_msd 2.98443004606e-17 m^2
+exact_msd_x 9.03209147185e-18 m^2
+exact_msd_y 1.17747013902e-17 m^2
+exact_msd_z 9.03750759855e-18 m^2
+exact_diffusion_length 5.46299372694e-09 m

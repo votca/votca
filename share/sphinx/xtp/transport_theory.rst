@@ -1,3 +1,5 @@
+.. _sec_transport_theory:
+
 Charge and Energy Transport Model
 #################################
 
@@ -320,18 +322,110 @@ As we assume that the excitation hops from site to site and that hopping is a ra
 
     \frac{d}{d t} p_A(t)=\sum_B p_B(t)\omega_{B\rightarrow A}-p_A(t)\omega_{A\rightarrow B}
  
-This continuity equation simply states that change in occupation of site :math:`A` is equal to the probability current flowing in minus the current flowing out and so conserves the total probability. It is also referred to as the Master Equation. In this formulation it only describes the motion of a single excitation, as it does not account for interaction between excitations. Although there are ways to incorporate interaction between excitations into :eq:`equ:theory:master_equ`, we will first deal with its solution. The master equation is simply a system of linear differential equations and can be solved using standard numerical methods. Although this has approach has its merits, we instead choose a very different option using the *kinetic Monte Carlo* or KMC method, because it allows us to easily add excitation interaction, excitation decay and conversion from one species to another. Furthermore, KMC is better suited for very large systems, in which explicitly setting up a large rate matrix is prohibitively expensive, and for systems with widely varying rates, as solvers otherwise run into numerical difficulties.
+This continuity equation states that the change of the occupation of site :math:`A` is the probability current flowing in minus the current flowing out; it conserves the total probability. In this form it describes a single excitation. Written for the vector of occupations :math:`\mathbf{p}`, it reads :math:`\dot{\mathbf{p}} = \mathbf{p} L` with the *generator* :math:`L_{AB}=\omega_{A\rightarrow B}` for :math:`A\neq B` and :math:`L_{AA}=-\sum_{B}\omega_{A\rightarrow B}`; the sum :math:`W_A=\sum_B\omega_{A\rightarrow B}` is the *escape rate* of site :math:`A`.
 
-In KMC, we explicitly simulate the hopping of individual excitations. Using a variable step size method, we promote time and at each time step we randomly choose an excitation and its next hopping destination. The probability of choosing a hopping destination is weighted by the rate assigned to that transition. As these rates can vary by orders of magnitude we do not increment time by a fixed amount but instead use the variable step size method (VSSM).
+An external field :math:`\mathbf{F}` enters the Marcus rates :eq:`equ:theory:marcus` through the free energy released in a hop, :math:`\Delta G_{AB}=E_A-E_B+q\mathbf{F}\cdot\mathbf{R}_{AB}`, with the site energies :math:`E`, the carrier charge :math:`q` (+1 for holes, -1 for electrons) and the hop vector :math:`\mathbf{R}_{AB}`. Without a field, and with the same reorganization energy in both directions, the rates satisfy detailed balance, :math:`\pi_A\omega_{A\rightarrow B}=\pi_B\omega_{B\rightarrow A}` with :math:`\pi_A\propto e^{-E_A/k_BT}`: the stationary state is thermal equilibrium. In a slab with the field normal to its faces this still holds with the potential :math:`U_A=E_A-q\mathbf{F}\cdot\mathbf{r}_A`; in a periodic box a field drives a stationary current instead.
 
-From the resulting ensemble of trajectories (see :numref:`fig_theory_kmctraj`) the diffusion coefficient :math:`D_{\alpha\beta}` can be calculated via:
+Several transport problems follow from the same graph. They differ in the boundary conditions and in what is measured:
+
+* **Bulk transport** (calculator ``kmcmultiple``): a periodic box with a constant number of carriers; drift velocity, mobility and diffusion tensor in the stationary state.
+* **Time of flight** (``kmctof``, ``grw``): a slab between a source and a sink region; the time the carriers need to cross it.
+* **Excitons with finite lifetimes** (``kmclifetime``): carriers that decay; lifetime, distance travelled and diffusion length.
+
+Each can be solved by sampling trajectories with kinetic Monte Carlo (KMC), which also handles interacting carriers, or, for one carrier (and two in the time-of-flight case), exactly from sparse linear systems. VOTCA-XTP offers both and reports the exact single-carrier values next to the KMC results where possible, which is a useful check of a simulation.
+
+
+Kinetic Monte Carlo
+*******************
+
+In KMC the hops of individual carriers are simulated. A carrier on site :math:`A` waits an exponentially distributed time with mean :math:`1/W_A` and then hops to :math:`B` with probability :math:`\omega_{A\rightarrow B}/W_A` [Bortz:1975]_ [Gillespie:1977]_. Averages over many trajectories converge to the solution of the master equation; for one carrier with static rates the method is exact up to statistical errors.
+
+**Several carriers** interact through site exclusion: a site holds at most one carrier. VOTCA-XTP gives every carrier its own clock. The earliest pending event is processed; if the chosen destination is occupied, the attempt is a *null event*: time has advanced, nothing moves, and the carrier draws a new waiting time. This is exact, because the carrier then leaves a site at the total rate of its hops to *free* neighbours. Choosing another destination without advancing time instead (as earlier versions of ``kmcmultiple`` and ``kmclifetime`` did) makes time run too fast whenever carriers block each other; on a small test lattice this overestimated mobilities by 5 % with two carriers and 22 % with three, and by a factor of 2.9 at 10 % occupancy on a thiophene morphology. With many blocked attempts the simulation spends most events on null events; the fraction is reported.
+
+**Time-dependent rates**, e.g. in an oscillating field, are handled by exchangeable waiting-time strategies. Besides the exponential waiting times for static rates, *thinning* [Lewis:1979]_ draws candidate events from an upper bound of the rates and accepts them with the ratio of the actual to the bounding rate; it is exact for any bounded rates.
+
+**Decay**: a carrier on site :math:`A` decays with the rate :math:`k_A=1/\tau_A` (e.g. the radiative and non-radiative lifetime of an exciton on that molecule). Decay is a second clock competing with the hops; because it is memoryless, it is redrawn after every event of the carrier. In ``kmclifetime`` a decayed carrier is replaced at once by a new one on a random free site, so the number of carriers stays constant.
+
+Runs with different random numbers are independent and are done in parallel; the random numbers of a run depend only on the seed and the run number, so results do not depend on the number of threads.
+
+
+Bulk transport in a periodic box
+********************************
+
+In a periodic box the carriers move through the periodic images; their unwrapped displacements :math:`\Delta\mathbf{r}(t)` grow without bound. In the stationary state the drift velocity is :math:`\mathbf{v}=\langle\Delta\mathbf{r}\rangle/t` and the mobility along the field
+
+.. math::
+    :label: equ:theory:mobility
+
+    \mu = \frac{q\,\mathbf{v}\cdot\mathbf{F}}{|\mathbf{F}|^2},
+
+which is positive when the carriers drift along the force. The diffusion tensor follows from the spread of the displacements around the drift,
 
 .. math::
     :label: equ:theory:kmcdiff
 
-    6 D_{\alpha\beta}t=\langle \Delta r_\alpha \Delta r_\beta \rangle.
+    2 D_{\alpha\beta}\,t = \langle (\Delta r_\alpha - v_\alpha t)(\Delta r_\beta - v_\beta t) \rangle \quad (t\rightarrow\infty),
 
-Here :math:`t` is the temporal length of the trajectories, :math:`\Delta \mathbf{r}` denotes the distance vector between initial and last site and :math:`\langle \dots \rangle` denotes an average over the ensemble of trajectories.
+so that :math:`\langle|\Delta\mathbf{r}-\mathbf{v}t|^2\rangle = 2\,\mathrm{tr}(D)\,t`, i.e. :math:`6Dt` for isotropic diffusion. ``kmcmultiple`` divides the observation window into blocks of length :math:`\tau` and uses the increments of all carriers over the blocks, :math:`D=\mathrm{Cov}(\Delta\mathbf{r}_\tau)/(2\tau)`. This is the long-time diffusion tensor only if :math:`\tau` is longer than the memory of the motion, for example the time a carrier spends in deep traps; comparing results for different numbers of blocks shows whether this holds. Without a field and for non-degenerate carriers, the Einstein relation :math:`\mu=D/k_BT` gives a mobility from the diffusion tensor.
+
+Carriers start on random sites and need time to relax into the low-energy tail of the density of states; an equilibration time left out of the averages removes this transient.
+
+**Exact single-carrier values.** For one carrier the stationary distribution :math:`\boldsymbol{\pi}` solves :math:`\boldsymbol{\pi}L=0`, and the drift velocity is
+
+.. math::
+    :label: equ:theory:exactdrift
+
+    \mathbf{v}=\sum_A \pi_A \mathbf{b}_A, \qquad \mathbf{b}_A=\sum_B\omega_{A\rightarrow B}\mathbf{R}_{AB}.
+
+The diffusion tensor follows from the *corrector* :math:`\boldsymbol{\chi}`, the solution of :math:`(L\boldsymbol{\chi})_A=\mathbf{v}-\mathbf{b}_A` (one vector per site); :math:`\Delta\mathbf{r}(t)+\boldsymbol{\chi}_{A(t)}-\mathbf{v}t` is then a martingale and
+
+.. math::
+    :label: equ:theory:exactdiffusion
+
+    D=\frac{1}{2}\sum_A\pi_A\sum_B\omega_{A\rightarrow B}\,\mathbf{g}_{AB}\mathbf{g}_{AB}^T,\qquad \mathbf{g}_{AB}=\mathbf{R}_{AB}+\boldsymbol{\chi}_B-\boldsymbol{\chi}_A .
+
+Both need a unique stationary distribution, i.e. one closed class of sites. These values describe an isolated carrier; with several carriers the KMC includes their exclusion and the two differ at higher densities.
+
+
+Time of flight
+**************
+
+In a time-of-flight (ToF) setup carriers are injected at one face of a slab and collected at the other. VOTCA-XTP builds the slab from a periodic morphology by cutting the periodicity across one box vector (the transport axis): pairs that connect through the periodic image along that vector are dropped, while the two directions normal to it stay periodic. Source sites are selected by a slab at the face with fractional coordinate 0 and/or a segment-type pattern, sink sites likewise at the opposite face; a carrier that hops onto a sink site is absorbed. Only source sites from which a sink can be reached are used. The transport length :math:`L` is measured along the normal of the cut face from the mean position of the sources to the first sink sites, and the mobility follows from the mean transit time :math:`\langle t\rangle` as
+
+.. math::
+    :label: equ:theory:tofmobility
+
+    \mu=\frac{L}{\langle t\rangle F}.
+
+With several carriers two observables differ: the time until the *first* carrier arrives, and the mean *transit* time per carrier (absorption minus injection time). ``kmctof`` records both per run, together with the transient current. Following Ramo and Shockley [Ramo:1939]_ [Shockley:1938]_, every hop contributes its displacement along the normal, :math:`I(t)\propto\sum \Delta x/L`, collected on a logarithmic time axis; its integral is the mean displacement per injected carrier in units of :math:`L`. Pulses of carriers can be injected at once, with a Gaussian or rectangular time profile, or as a train.
+
+Transit times in disordered materials are broadly distributed; a few runs in which a carrier is caught in a deep trap can dominate the mean. ``kmctof`` reports the share of the slowest 1 % of the runs in the sum; a large share means that the mean is not converged even when its standard error looks small.
+
+**Graph random walk.** For one carrier the mean ToF follows without sampling [Chen:2024]_. The expected hitting time :math:`\tau_A` of the sink region from site :math:`A` satisfies
+
+.. math::
+    :label: equ:theory:grw
+
+    W_A\tau_A-\sum_{B\notin\mathrm{sink}}\omega_{A\rightarrow B}\tau_B = 1,
+
+one equation for each site that is not a sink, i.e. :math:`-Q\boldsymbol{\tau}=\mathbf{1}` with the generator :math:`Q` restricted to these sites. The second moment follows from :math:`-Q\mathbf{m}_2=2\boldsymbol{\tau}`, and the transposed system :math:`-Q^T\mathbf{g}=\mathbf{p}_0` gives the expected time spent on each site before absorption for an injection distribution :math:`\mathbf{p}_0`: a map of where the time of flight is spent, e.g. in traps. With detailed balance the system is symmetrized and solved with a Cholesky factorization or conjugate gradients; otherwise with LU or BiCGSTAB. The tolerance of iterative solvers must be tight (1e-14 by default), because slow trap modes hide behind small residuals.
+
+Two carriers with exclusion are treated on the pair states :math:`\{A,B\}`; the system has about :math:`n^2/2` unknowns for :math:`n` sites, so this is limited to moderate system sizes, and larger numbers of carriers need KMC. For the first-arrival time a pair is absorbed when either carrier reaches the sink; for the transit time the remaining carrier continues alone. The hitting times from ``grw`` and the averages from ``kmctof`` describe the same quantity and agree within the statistical errors of the KMC.
+
+
+Excitons with finite lifetimes
+******************************
+
+For carriers that decay with site-dependent rates :math:`k_A`, the relevant quantities are the lifetime and the distance travelled before the decay. ``kmclifetime`` reports the mean lifetime, the mean distance :math:`\langle|\mathbf{R}|\rangle`, the diffusion length :math:`L_D=\sqrt{\langle|\mathbf{R}|^2\rangle}` and its components, where :math:`\mathbf{R}` is the displacement between creation and decay, and the fraction of the decays on each site. For uniform decay :math:`k` and diffusion constant :math:`D`, :math:`\langle|\mathbf{R}|^2\rangle=6D/k`.
+
+For one carrier these averages are exact solutions of linear systems with :math:`A=K-L`, where :math:`K` is the diagonal matrix of the decay rates:
+
+.. math::
+    :label: equ:theory:lifetime
+
+    A\boldsymbol{\tau}=\mathbf{1},\qquad A\mathbf{m}=\mathbf{b},\qquad (A\mathbf{s})_A=\sum_B\omega_{A\rightarrow B}\left(|\mathbf{R}_{AB}|^2+2\mathbf{R}_{AB}\cdot\mathbf{m}_B\right),
+
+for the lifetime :math:`\tau_A`, the mean displacement :math:`\mathbf{m}_A` and the mean squared displacement :math:`s_A` starting on site :math:`A`, averaged over the creation sites. The transposed system :math:`A^T\mathbf{g}=\mathbf{p}_0` gives the expected time on each site and the decay probabilities :math:`k_Ag_A`.
 
 
 .. _fig_theory_kmctraj:
@@ -339,9 +433,101 @@ Here :math:`t` is the temporal length of the trajectories, :math:`\Delta \mathbf
     :width: 400
     :align: center
 
-    KMC trajectory of an exciton. :math:`\Delta \mathbf{r}` denotes the end-end distance of the trajectory. The small box indicates the initial simulation box. Diffusion coefficients can be calculated from averaging over trajectories.
+    KMC trajectory of an exciton. :math:`\Delta \mathbf{r}` denotes the end-end distance of the trajectory. The small box indicates the initial simulation box. Diffusion coefficients and diffusion lengths follow from averages over trajectories.
 
-With the calculation of the diffusion constant conceptually the bridge between *ab-initio* input and macroscopic transport properties has been build. So using the molecular dynamics approach we are able to simulate morphologies of organic semiconductors and then reintroduce electronic dynamics via rate models. 
+.. _sec_stochastic_network_theory:
+
+Finite systems and the stochastic network model
+***********************************************
+
+Finite-size effects in disordered systems
+=========================================
+
+A morphology from molecular dynamics contains a few thousand molecules. For transport in a Gaussian density of states (DOS) of width :math:`\sigma` this can be far too small. With :math:`s=\sigma/k_BT` and site energies :math:`E_A\sim\mathcal{N}(0,\sigma^2)`, a single carrier in equilibrium occupies site :math:`A` with :math:`\pi_A=e^{-E_A/k_BT}/Z`, :math:`Z=\sum_A e^{-E_A/k_BT}`, and its mean energy in an infinite system is :math:`-\sigma^2/k_BT=-s\sigma`. A sum of :math:`N` such lognormal terms has
+
+.. math::
+    :label: equ:theory:zfluct
+
+    \frac{\langle Z\rangle}{N}=e^{s^2/2},\qquad \frac{\mathrm{Var}(Z)}{\langle Z\rangle^2}=\frac{e^{s^2}-1}{N}.
+
+The fraction of sites near the equilibrium energy, :math:`\Phi(-s)\approx e^{-s^2/2}/(s\sqrt{2\pi})`, must be sampled at all, :math:`N\gtrsim s\,e^{s^2/2}`, before :math:`Z` approaches its mean, and :math:`Z/N` stops fluctuating from box to box only for :math:`N\gg e^{s^2}`. [Baumeier:2012]_ give the practical criterion
+
+.. math::
+    :label: equ:theory:finitesize
+
+    s^2\le -5.7+1.05\ln N,
+
+which is stricter than both estimates (it is an empirical criterion for converged mobilities). For :math:`s=3.7` it asks for about :math:`10^8` sites, for :math:`s=7.5` for more than :math:`10^{25}`. Below this size :math:`Z` is dominated by its largest term, :math:`Z\approx e^{-E_{\min}/k_BT}` with the deepest site :math:`E_{\min}\approx-\sigma\sqrt{2\ln N}`, whose position fluctuates by about :math:`\sigma/\sqrt{2\ln N}` between boxes; :math:`\ln Z`, and with it the logarithm of the mobility, then varies by several units from one box to the next. Spatial correlations of the energies (see below) reduce the number of independent sites and make the problem worse.
+
+The stochastic network model
+============================
+
+The stochastic network model [Baumeier:2012]_ generates hopping networks of any size with the statistics of a microscopic system, so that the size of a simulation is no longer set by molecular dynamics. It consists of:
+
+* **Sites** from an iterative dominance-competition point process. Candidate points are drawn uniformly (on average a fixed multiple of the number of sites per iteration) and get radii :math:`R=r_h+X` with :math:`X` Gamma distributed (mean and variance are parameters). A candidate is removed if it lies inside the sphere of a candidate with a larger radius (removed candidates still count) or inside the sphere of an accepted point, or if an accepted point lies inside its sphere. Later iterations fill the space left until the number of sites is reached. :math:`r_h` acts as a hard core; the random part shapes the nearest-neighbor distance distribution and the first peak of the pair correlation function.
+* **Site energies** as a moving average of three independent standard normal fields :math:`a, b, c`:
+
+  .. math::
+      :label: equ:theory:movingaverage
+
+      E_A=\bar E+\sigma\Big(\sqrt{w_a}\,a_A+\sqrt{\tfrac{w_b}{l_b}}\sum_{B\in N_{l_b}(A)}b_B+\sqrt{\tfrac{w_c}{l_c}}\sum_{B\in N_{l_c}(A)}c_B\Big),\qquad w_a+w_b+w_c=1,
+
+  where :math:`N_l(A)` are the :math:`l` sites nearest to :math:`A`, including :math:`A` itself. The energies are Gaussian with variance :math:`\sigma^2`, and the correlation of two sites is
+
+  .. math::
+      :label: equ:theory:kappa
+
+      \kappa_{AB}=\frac{\langle(E_A-\bar E)(E_B-\bar E)\rangle}{\sigma^2}=w_a\delta_{AB}+w_b\,\frac{|N_{l_b}(A)\cap N_{l_b}(B)|}{l_b}+w_c\,\frac{|N_{l_c}(A)\cap N_{l_c}(B)|}{l_c}.
+
+  Averaged over pairs at distance :math:`r` this is :math:`\kappa(r)=w_bO_{l_b}(r)+w_cO_{l_c}(r)` for :math:`r>0`, with the *overlap curves* :math:`O_l(r)` of the neighbor sets, which depend only on the positions. A short-range (:math:`l_b`) and a long-range (:math:`l_c`) part describe, e.g., correlations from local packing and from electrostatics. A second carrier (electrons and holes) uses :math:`z_2=\rho z_1+\sqrt{1-\rho^2}\,z'` with its own moving average :math:`z'` and the site correlation :math:`\rho`; its correlation function is :math:`\rho^2\kappa_1+(1-\rho^2)\kappa'`.
+* **Connections**: two sites at distance :math:`r` (between their centers of mass) are a pair with probability :math:`f(r)`, tabulated.
+* **Couplings**: :math:`y=\log_{10}(|J|^2/\mathrm{eV}^2)=m(r)+s(r)\,Q(\Phi(g))`, with mean :math:`m(r)` and variance :math:`s^2(r)` linear in :math:`r`, the quantile function :math:`Q` of the standardized residuals of the microscopic system (they are usually skewed) and a standard normal :math:`g`. For two carriers the :math:`g` are correlated (Gaussian copula).
+* **Reorganization energies** are constants per carrier.
+* **Traps** (optional, see below): templates of single sites or small clusters copied from the microscopic system and inserted with a density per site.
+
+The random numbers come from separate streams for positions, energies, traps and pairs, with self-written transforms of a standardized generator, so that a network is the same on every platform and changing one ingredient does not change the others.
+
+Parameters from a morphology
+============================
+
+``networkfit`` determines the parameters from a state file:
+
+* **Point process**: :math:`r_h` and the mean and variance of :math:`X` minimize :math:`\overline{\Delta D^2}+\overline{\Delta H^2}+\tfrac14\overline{\Delta g^2}`, the mean squared differences of the nearest-neighbor distance distribution :math:`D(r)`, the spherical contact distribution :math:`H(r)` (distance of random points to the nearest site) and the pair correlation function :math:`g(r)` between the microscopic system and model boxes of the same size. The model curves are averages over a few realizations with fixed random numbers (common random numbers), and the radii are drawn by inverting the Gamma distribution, so the objective changes smoothly with the parameters; a coarse grid is followed by a Nelder-Mead search.
+* **Energy correlation**: the overlap curves are evaluated on the *microscopic* sites, so the fit of :math:`\kappa(r)` is linear in the weights. For each pair :math:`(l_b,l_c)` of two grids the weights :math:`w_b,w_c\ge0`, :math:`w_b+w_c\le1` minimize the pair-weighted squared deviation, and the best pair is kept. A finite system biases the measured correlation: it is computed with the mean and the variance of the sample, which subtracts the mean correlation over all pairs, :math:`\bar c=(w_a+w_bl_b+w_cl_c)/N` for the moving average, so that the expected estimate is :math:`(\kappa(r)-\bar c)/(1-\bar c)` and the sample variance :math:`\sigma^2(1-\bar c)`. The model is compared in this form (with a fixed-point iteration for :math:`\bar c`), and :math:`\sigma` is corrected to :math:`s/\sqrt{1-\bar c}`, so that large networks have the unbiased correlation and width. Correlations over a range comparable to the box are not determined by the microscopic system; ``networkfit`` reports the quality of the fit for every :math:`l_c`.
+* :math:`f(r)` is the number of pairs divided by the number of site pairs in distance bins; the coupling model follows from linear least squares for the mean and the squared residuals.
+
+Traps
+=====
+
+A Gaussian model cannot produce defect-like sites far below the rest of the DOS, which can dominate transport in a finite system. ``networkfit`` identifies them from the slow modes of the master equation at zero field, after [Chen:2025]_. The generator :math:`-L` has the eigenvalues :math:`0=\lambda_0<\lambda_1\le\lambda_2\le\dots`, the relaxation rates of the network. A trap is a small set :math:`C` of sites that exchanges probability with the rest only slowly; in a two-state picture its mode has the rate :math:`\lambda=k_\mathrm{release}+k_\mathrm{capture}` and the trap holds the equilibrium weight :math:`\pi(C)=k_\mathrm{capture}/\lambda`, so
+
+.. math::
+    :label: equ:theory:traprates
+
+    k_\mathrm{release}=\lambda\,(1-\pi(C)),\qquad k_\mathrm{capture}=\lambda\,\pi(C).
+
+The number of slow modes :math:`m` is taken where :math:`\lambda_{i+1}/\lambda_i` is largest. The *density modes* (left eigenvectors) of the slow modes sum to zero: they move weight between the trap and the rest. The trap is on the side with fewer sites; its sites are those whose normalized entry exceeds a threshold, connected in the network, at most a few sites carrying most of the weight of that side. A candidate is a trap if it releases a carrier much more slowly than the network otherwise relaxes, :math:`k_\mathrm{release}\,\gamma\le\lambda_{m+1}` (:math:`\gamma=10` by default). The eigenvalue ratio alone does not separate traps from Gaussian disorder in small networks: when a trap holds nearly all of the equilibrium weight, its slow mode is the capture, which is fast in a small box. Unlike [Chen:2025]_, who use the eigenvectors of the jump chain, :math:`I-\mathrm{diag}(W)^{-1}\Omega` with :math:`\Omega_{AB}=\omega_{A\rightarrow B}`, and a K-means step, the density modes of the continuous-time generator are used: they are localized on a trap also when it holds most of the weight.
+
+The trap sites are left out of the bulk statistics and become templates (the energies of all carriers relative to the bulk mean). ``networkgen`` inserts each template :math:`\lfloor\rho N\rfloor` or :math:`\lceil\rho N\rceil` times at random free sites and their nearest free sites. One trap in :math:`N` sites determines the density :math:`\rho=1/N` only to within :math:`0.025/N` to :math:`5.6/N` (95 % Poisson interval), so the dependence on :math:`\rho` should be scanned.
+
+Ensembles of small systems
+==========================
+
+For a large system cut into sub-boxes :math:`k`, the exact drift velocity :eq:`equ:theory:exactdrift` splits as
+
+.. math::
+    :label: equ:theory:subboxes
+
+    \mathbf{v}=\sum_k P_k\,\mathbf{v}_k,\qquad P_k=\sum_{A\in k}\pi_A,\qquad \mathbf{v}_k=\sum_{A\in k}\frac{\pi_A}{P_k}\,\mathbf{b}_A .
+
+At weak field :math:`P_k\approx Z_k/\sum_lZ_l` with :math:`Z_k=\sum_{A\in k}e^{-E_A/k_BT}`. If, in addition, the conditional distribution and the corrector :math:`\boldsymbol{\chi}` in each sub-box are those of the same sub-box as an isolated periodic system, the mobility of the large system is the *Boltzmann-weighted* mean of the mobilities of independent small systems,
+
+.. math::
+    :label: equ:theory:boltzmannmean
+
+    \mu\approx\frac{\sum_kZ_k\,\mu_k}{\sum_kZ_k}.
+
+The plain means are special cases: the arithmetic mean for equal :math:`Z_k`, which holds only once :math:`Z` self-averages (:eq:`equ:theory:zfluct`); the harmonic mean for purely trap-limited transport, :math:`\mu_k\propto1/Z_k`. The geometric mean describes a typical box but has no such derivation. The second assumption fails when :math:`\boldsymbol{\pi}` or :math:`\boldsymbol{\chi}` vary on the scale of a sub-box, e.g. for long-range energy correlations, and the scatter of the estimate is larger than that of real large systems, whose sub-boxes exchange carriers across their boundaries. Many realizations of small systems therefore do not converge to the mobility of a large system: they are, at best, a large system in pieces. Converged values need networks large enough for :eq:`equ:theory:finitesize`, or an extrapolation in system size or temperature [Kordt:2014]_.
 
 
-
+With the calculation of mobilities, diffusion tensors and diffusion lengths the bridge between *ab-initio* input and macroscopic transport properties is built: molecular dynamics provides the morphology, and the rate models reintroduce the electronic dynamics. The practical use of the calculators is described in :ref:`sec_transport_simulations`.

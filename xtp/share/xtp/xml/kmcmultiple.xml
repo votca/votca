@@ -1,19 +1,26 @@
 <?xml version="1.0"?>
 <options>
-  <kmcmultiple help="Kinetic Monte Carlo simulations of multiple holes or electrons in periodic boundary conditions" label="calc:kmcmultiple" section="sec:kmc">
-    <runtime help="Simulated time in seconds (if a number smaller than 100 is given) or number of KMC steps (if a number larger than 100 is given)" unit="seconds or integer" default="1e-4" choices="float+"/>
-    <outputtime help="Time difference between outputs into the trajectory file. Set to 0 if you wish to have no trajectory written out." unit="seconds" default="1E-8" choices="float+"/>
-    <trajectoryfile help="Name of the trajectory file" default="trajectory.csv"/>
+  <kmcmultiple help="Kinetic Monte Carlo simulations of multiple holes or electrons with site exclusion in periodic boundary conditions: drift velocity, mobility, diffusion tensor and site occupations" label="calc:kmcmultiple" section="sec:kmc">
+    <runtime help="Simulated time in seconds (if a number of at most 100 is given) or number of KMC events (if a number larger than 100 is given; events are hops and attempts into occupied sites)" unit="seconds or integer" default="1e-4" choices="float+"/>
+    <outputtime help="Interval between outputs into the trajectory and time files, in the unit of runtime (seconds or accepted hops). Set to 0 for no trajectory." unit="seconds or integer" default="1E-8" choices="float+"/>
+    <trajectoryfile help="Name of the trajectory file (run 0): unwrapped carrier positions in nm" default="trajectory.csv"/>
+    <timefile help="Optional file with mean energy per carrier, mobility and distance travelled versus time (run 0)" default=""/>
     <ratefile help="File to write rates" default="rates.dat"/>
-    <occfile help="File to write occupation" default="occupation.dat"/>
+    <occfile help="File to write occupation probabilities (summed over carriers, averaged over runs)" default="occupation.dat"/>
+    <resultfile help="Main results as 'key value unit' lines in SI units (empty: none)" default="kmcmultiple_results.dat"/>
+    <exact help="Also compute drift velocity, mobility and diffusion tensor of one carrier without sampling (master equation; sparse linear systems)" default="true" choices="bool"/>
     <seed help="Integer to initialise the random number generator" default="123" choices="int+"/>
-    <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site." unit="" default="*"/>
-    <injectionmethod help="random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" default="random" choices="random"/>
+    <runs help="Number of independent runs (in parallel with OpenMP); with more than one, the errors are standard errors over the runs" default="1" choices="int+"/>
+    <equilibration help="Simulated time at the start of each run that is left out of velocity, diffusion and occupations" unit="seconds" default="0" choices="float+"/>
+    <blocks help="Minimum number of time blocks for the diffusion tensor (between blocks and 2 blocks are used); the blocks must be longer than the memory of the motion" default="50" choices="int+"/>
+    <injectionpattern help="Name pattern that specifies on which sites carriers are placed at the start. Use the wildcard '*' to place them on any site." unit="" default="*"/>
+    <injectionmethod help="random: start sites are selected randomly" default="random" choices="random"/>
     <numberofcarriers help="Number of electrons/holes in the simulation box" default="1" choices="int+"/>
     <field help="external electric field" unit="V/m" default="0.0 0.0 0.0"/>
     <carriertype help="Specifies the carrier type of the transport under consideration." default="electron" choices="electron,hole,singlet,triplet"/>
     <temperature help="Temperature in Kelvin." unit="Kelvin" default="300" choices="float+"/>
-    <maxrealtime help="Maximum clocktime allow to the calculation(Seconds)" default="1E10" unit="second" choices="float+"/>
-    <ignoresegments help="Segment types to be ignored in KMC" default=""/>
+    <waitingtime help="Waiting-time method: exponential (static rates) or thinning (time-dependent rates with upper bounds)" default="exponential" choices="exponential,thinning"/>
+    <maxrealtime help="Maximum wall-clock time of each run" default="1E10" unit="seconds" choices="float+"/>
+    <ignoresegments help="Segment types (wildcards, separated by commas or spaces) without hops to or from them" default=""/>
   </kmcmultiple>
 </options>

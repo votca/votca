@@ -46,7 +46,7 @@ Rate_Engine::PairRates Rate_Engine::Rate(const QMPair& pair,
   }
 
   double reorg12 = pair.getReorg12(carriertype) + pair.getLambdaO(carriertype);
-  double reorg21 = pair.getReorg21(carriertype) - pair.getLambdaO(carriertype);
+  double reorg21 = pair.getReorg21(carriertype) + pair.getLambdaO(carriertype);
   if (std::abs(reorg12) < 1e-12 || std::abs(reorg21) < 1e-12) {
     throw std::runtime_error(
         "Reorganisation energy for a pair is extremely close to zero,\n"

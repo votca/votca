@@ -33,6 +33,7 @@ Version 2026-dev
 -  Second-order (TRAH) SCF for RKS and UKS (#1261)
 -  improved threading in CI (#1263)
 -  single-threaded coverage build (#1264)
+-  exact and KMC time-of-flight (grw, kmctof), new KMC engine for kmcmultiple and kmclifetime with exact single-carrier values, stochastic network model (networkfit, networkgen) with trap identification, transport docs and tutorials (#1265)
    
 Version 2026 (released 09.03.26)
 ================================

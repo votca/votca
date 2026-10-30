@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2026 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,47 +22,68 @@
 #define VOTCA_XTP_KMCMULTIPLE_H
 
 // Standard includes
-#include <fstream>
+#include <cstdint>
+#include <string>
 
 // Local VOTCA includes
-#include "votca/xtp/kmccalculator.h"
+#include "votca/xtp/bulksimulation.h"
+#include "votca/xtp/kmcengine.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/tofgraph.h"
 
 namespace votca {
 namespace xtp {
 
-class KMCMultiple final : public KMCCalculator {
+/**
+ * \brief Kinetic Monte Carlo of several electrons or holes with site
+ * exclusion in a periodic box: drift velocity, mobility, diffusion tensor
+ * and site occupations (BulkSimulation on a bulk ToFGraph with
+ * KMCEngine).
+ *
+ * The run length (runtime) is a simulated time in seconds if it is at most
+ * 100, otherwise a number of KMC events; outputtime is read in the same
+ * unit.
+ */
+class KMCMultiple final : public QMCalculator {
  public:
   KMCMultiple() = default;
-  ~KMCMultiple() = default;
-  bool WriteToStateFile() const { return false; }
-  std::string Identify() const { return "kmcmultiple"; }
+  ~KMCMultiple() override = default;
+
+  std::string Identify() const override { return "kmcmultiple"; }
+  bool WriteToStateFile() const override { return false; }
 
  protected:
-  void ParseSpecificOptions(const tools::Property& user_options);
-  bool Evaluate(Topology& top);
+  void ParseOptions(const tools::Property& options) override;
+  bool Evaluate(Topology& top) override;
 
  private:
-  void RunVSSM();
-  void PrintChargeVelocity(double simtime);
+  Logger log_;
+  QMStateType carriertype_;
+  double temperature_ = 0.0;                         // kT in Hartree
+  Eigen::Vector3d field_ = Eigen::Vector3d::Zero();  // Hartree/bohr
+  Eigen::Vector3d field_Vm_ = Eigen::Vector3d::Zero();
+  std::string injection_pattern_ = "*";
+  std::string ignore_types_;
+  BulkSimulation::Settings settings_;
+  bool steps_ = false;  // runtime given as number of events
+  double runtime_ = 0.0;
+  double outputtime_ = 0.0;
+  std::string waitingtime_ = "exponential";
+  std::string trajectoryfile_;
+  std::string timefile_;
+  std::string ratefile_;
+  std::string occfile_;
+  std::string resultfile_;
+  bool exact_ = true;
 
-  void PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
-                       double simtime, unsigned long step);
-
-  void WriteToEnergyFile(std::fstream& tfile, double simtime,
-                         unsigned long step) const;
-
-  void WriteToTrajectory(std::fstream& traj,
-                         std::vector<Eigen::Vector3d>& startposition,
-                         double simtime, unsigned long step) const;
-
-  void PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor, double simtime,
-                      unsigned long step);
-
-  double runtime_;
-  double outputtime_;
-  std::string timefile_ = "";
-  Index intermediateoutput_frequency_ = 10000;
-  unsigned long diffusionresolution_ = 1000;
+  void WriteRates(const Topology& top);
+  void WriteOccupation(const ToFGraph& graph,
+                       const BulkSimulation::Result& result);
+  void WriteTrajectory(const BulkSimulation::Result& result);
+  void WriteTimeFile(const BulkSimulation::Result& result);
+  /// sign of the carrier charge (0 for neutral excitations)
+  double Charge() const;
 };
 
 }  // namespace xtp

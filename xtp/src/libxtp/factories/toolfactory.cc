@@ -29,8 +29,11 @@
 #include "tools/diabatization.h"
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
+#include "tools/latticegen.h"
 #include "tools/log2mps.h"
 #include "tools/mol2orb.h"
+#include "tools/networkfit.h"
+#include "tools/networkgen.h"
 #include "tools/molpol.h"
 #include "tools/orb2fchk.h"
 #include "tools/orb2mol.h"
@@ -59,6 +62,9 @@ void QMToolFactory::RegisterAll() {
   this->Register<Diabatization>("diabatization");
   this->Register<PodCouplingTool>("podcoupling");
   this->Register<Orb2Fchk>("orb2fchk");
+  this->Register<LatticeGen>("latticegen");
+  this->Register<NetworkGen>("networkgen");
+  this->Register<NetworkFit>("networkfit");
 }
 
 }  // namespace xtp

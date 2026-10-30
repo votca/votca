@@ -1,7 +1,0 @@
-state.sql
-state.hdf5
-OPTIONFILES/*
-*.pdb
-*.jobs
-*.tab
-*.log

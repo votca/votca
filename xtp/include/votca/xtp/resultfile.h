@@ -1,0 +1,74 @@
+/*
+ *            Copyright 2009-2026 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#pragma once
+#ifndef VOTCA_XTP_RESULTFILE_H
+#define VOTCA_XTP_RESULTFILE_H
+
+// Standard includes
+#include <fstream>
+#include <iomanip>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
+// VOTCA includes
+#include <votca/tools/types.h>
+
+namespace votca {
+namespace xtp {
+
+/**
+ * \brief Small machine-readable result file of a calculator: one
+ * "key value unit" line per quantity (unit "-" if dimensionless), after a
+ * "#" header. Meant for scripts, tutorials and regression tests.
+ */
+class ResultFile {
+ public:
+  explicit ResultFile(const std::string& title) {
+    text_ << "# " << title << "\n# key value unit\n";
+    text_ << std::setprecision(12);
+  }
+
+  void Add(const std::string& key, double value, const std::string& unit) {
+    text_ << key << " " << value << " " << unit << "\n";
+  }
+  void Add(const std::string& key, Index value) {
+    text_ << key << " " << value << " -\n";
+  }
+  void Add(const std::string& key, const std::string& value) {
+    text_ << key << " " << value << " -\n";
+  }
+
+  void Write(const std::string& filename) const {
+    std::ofstream out(filename);
+    if (!out) {
+      throw std::runtime_error("Cannot write " + filename);
+    }
+    out << text_.str();
+  }
+
+ private:
+  std::stringstream text_;
+};
+
+}  // namespace xtp
+}  // namespace votca
+
+#endif  // VOTCA_XTP_RESULTFILE_H

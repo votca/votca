@@ -1,0 +1,12 @@
+# grw: mean hitting times of the sink (graph random walk)
+# key value unit
+carriers 1 -
+observable first -
+unknowns 180 -
+sources 36 -
+tau_mean 8.69092766984e-11 s
+tau_harmonic 8.51051679561e-11 s
+tau_std 1.00991746272e-10 s
+length 4.99999964025e-09 m
+mobility_mean 0.0575312536267 cm^2/Vs
+mobility_harmonic 0.0587508345302 cm^2/Vs

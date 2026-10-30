@@ -9,7 +9,15 @@ Bibliography
 
 .. [Baumeier:2010] Baumeier, Kirkpatrick, and Andrienko, Phys. Chem. Chem. Phys. 12, 11103 (2010)
 
+.. [Baumeier:2012] Baumeier, Stenzel, Poelking, Andrienko, and Schmidt, Phys. Rev. B 86, 184202 (2012)
+
+.. [Bortz:1975] Bortz, Kalos, and Lebowitz, J. Comput. Phys. 17, 10 (1975)
+
 .. [Brent:1973] Brent, Algorithms for Minimization without Derivatives, Prentice-Hall (1973)
+
+.. [Chen:2024] Chen, van der Hoorn, and Baumeier, arXiv:2405.15836 (2024)
+
+.. [Chen:2025] Chen, van der Hoorn, and Baumeier, Automatic identification of traps in molecular charge transport networks of organic semiconductors (2025)
 
 .. [Chirlian:1987] Chirlian, Francl, J. Comput. Chem. 8, 894 (1987)
 
@@ -20,6 +28,8 @@ Bibliography
 .. [Duchemin:2018] Duchemin, Guido, Jacquemin, and Blase, Chem. Sci. 9, 4430 (2018)
 
 .. [Ghan:2020] Ghan, Kunkel, Reuter, and Oberhofer, J. Chem. Theory Comput. 16, 7431 (2020)
+
+.. [Gillespie:1977] Gillespie, J. Phys. Chem. 81, 2340 (1977)
 
 .. [Godby:1989] Godby and Needs, Phys. Rev. Lett. 62, 1169 (1989)
 
@@ -32,6 +42,10 @@ Bibliography
 .. [Hu:2010] Hu and Yang, J. Chem. Phys. 132, 054109 (2010)
 
 .. [Hybertsen:1986] Hybertsen and Louie, Phys. Rev. B 34, 5390 (1986)
+
+.. [Kordt:2014] Kordt, Stenzel, Baumeier, Schmidt, and Andrienko, J. Chem. Theory Comput. 10, 2508 (2014)
+
+.. [Lewis:1979] Lewis and Shedler, Nav. Res. Logist. Q. 26, 403 (1979)
 
 .. [Li:2016] Li, D'Avino, Duchemin, Beljonne, and Blase, J. Phys. Chem. Lett. 7, 2814 (2016)
 
@@ -53,9 +67,13 @@ Bibliography
 
 .. [Pulay:1980] Pulay, Chem. Phys. Lett. 73, 393 (1980)
 
+.. [Ramo:1939] Ramo, Proc. IRE 27, 584 (1939)
+
 .. [Reed:1985] Reed, Weinstock, and Weinhold, J. Chem. Phys. 83, 735 (1985)
 
 .. [Rohlfing:2000] Rohlfing and Louie, Phys. Rev. B 62, 4927 (2000)
+
+.. [Shockley:1938] Shockley, J. Appl. Phys. 9, 635 (1938)
 
 .. [Stone:2005] Stone, J. Chem. Theory Comput. 1, 1128 (2005)
 
