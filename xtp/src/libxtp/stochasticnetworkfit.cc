@@ -333,7 +333,7 @@ double StochasticNetworkFit::FitWeights(const Curve& kappa, const Curve& Ob,
                                         const Curve& Oc, double& w_b,
                                         double& w_c) {
   // normal equations of the weighted problem
-  double bb = 0.0, bc = 0.0, cc = 0.0, bk = 0.0, ck = 0.0, kk = 0.0, n = 0.0;
+  double bb = 0.0, bc = 0.0, cc = 0.0, bk = 0.0, ck = 0.0, n = 0.0;
   for (std::size_t q = 0; q < kappa.r.size(); ++q) {
     double w = kappa.count.empty() ? 1.0 : kappa.count[q];
     if (w <= 0.0) {
@@ -347,16 +347,25 @@ double StochasticNetworkFit::FitWeights(const Curve& kappa, const Curve& Ob,
     cc += w * c * c;
     bk += w * b * k;
     ck += w * c * k;
-    kk += w * k * k;
     n += w;
   }
   if (n <= 0.0) {
     throw std::runtime_error("networkfit: no pairs for the correlation fit");
   }
+  // the weighted mean square, summed directly (the expansion in the normal
+  // equation sums cancels to rounding errors of order 1e-17 near a perfect
+  // fit)
   auto cost = [&](double x, double y) {
-    return (x * x * bb + 2.0 * x * y * bc + y * y * cc - 2.0 * x * bk -
-            2.0 * y * ck + kk) /
-           n;
+    double sum = 0.0;
+    for (std::size_t q = 0; q < kappa.r.size(); ++q) {
+      double w = kappa.count.empty() ? 1.0 : kappa.count[q];
+      if (w <= 0.0) {
+        continue;
+      }
+      double d = x * Ob.value[q] + y * Oc.value[q] - kappa.value[q];
+      sum += w * d * d;
+    }
+    return sum / n;
   };
   auto clamp01 = [](double x) { return std::min(1.0, std::max(0.0, x)); };
   std::vector<std::array<double, 2>> cand;

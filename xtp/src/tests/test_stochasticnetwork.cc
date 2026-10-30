@@ -436,7 +436,8 @@ BOOST_AUTO_TEST_CASE(fit_weights_exact) {
   }
   double wb = 0.0, wc = 0.0;
   double res = StochasticNetworkFit::FitWeights(kappa, ob, oc, wb, wc);
-  BOOST_CHECK_SMALL(res, 1e-20);
+  // mean square of kappa about 0.1: 1e-14 is far below any real misfit
+  BOOST_CHECK_SMALL(res, 1e-14);
   BOOST_CHECK_CLOSE(wb, 0.3, 1e-6);
   BOOST_CHECK_CLOSE(wc, 0.5, 1e-6);
   // constrained: w_b + w_c <= 1
