@@ -48,6 +48,7 @@
 #include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
+#include "votca/xtp/citations.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/eeinteractor.h"
@@ -60,6 +61,8 @@ namespace votca {
 namespace xtp {
 
 bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
+  citations::Cite("Manby:2012");
+  citations::Cite("Sundaram:2024");
 
   // reading in the orbitals of the full DFT calculation
   tools::EigenSystem embeddingMOs = orb.MOs();

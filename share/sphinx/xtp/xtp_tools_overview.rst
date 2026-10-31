@@ -6,11 +6,12 @@ help
 
 .. include:: xtp_tools.rst
 
-The following calculators are available:
+The following tools are available:
 
 .. toctree::
    apdft
    coupling
+   crfit
    densityanalysis
    dftgwbse
    diabatization
@@ -18,11 +19,12 @@ The following calculators are available:
    gencube
    latticegen
    log2mps
+   mol2orb
    molpol
    networkfit
    networkgen
-   partialcharges
-   spectrum
    orb2fchk
    orb2mol
-   mol2orb
+   partialcharges
+   podcoupling
+   spectrum

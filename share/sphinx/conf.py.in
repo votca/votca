@@ -1,5 +1,5 @@
 project = 'VOTCA'
-copyright = '2024, VOTCA Development Team'
+copyright = '2009-2026, VOTCA Development Team'
 author = 'VOTCA Development Team'
 release = '@PROJECT_VERSION@'
 

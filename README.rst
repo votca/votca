@@ -30,6 +30,18 @@ Using this code via docker
     docker pull votca/votca
     docker run -it votca/votca /bin/bash
 
+Citation
+########
+
+If you use VOTCA, please cite
+
+  B. Baumeier et al., VOTCA: multiscale frameworks for quantum and
+  classical simulations in soft matter, J. Open Source Softw. 9, 6864
+  (2024), https://doi.org/10.21105/joss.06864
+
+The XTP programs print the papers of the methods used at the end of each
+run; ``--cite <name>`` lists them for a calculator or tool without running it.
+
 More detailed information:
 ##########################
 
@@ -39,7 +51,7 @@ More detailed information:
 4. `VOTCA\_LANGUAGE\_GUIDE <share/sphinx/VOTCA_LANGUAGE_GUIDE.rst>`__
 5. `Code of Conduct <share/sphinx/CODE_OF_CONDUCT.rst>`__
 
-You find the VOTCA-CTP repository
+You find the legacy VOTCA-CTP repository
 `here <https://gitlab.mpcdf.mpg.de/votca/votca>`__
 
 .. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/b5567bfcf2c8411a8057c47fa7126781
@@ -58,7 +70,7 @@ You find the VOTCA-CTP repository
 License:
 ########
 
-Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
+Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
 
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may

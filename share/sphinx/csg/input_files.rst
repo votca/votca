@@ -40,7 +40,7 @@ coarse-grained model, two bead types (A,B) and three beads (A1, B1, A2) are
 defined, as shown in :ref:`the figure above<input_files_fig_mapping>`. We will
 use the centers of mass of the beads as coarse-grained coordinates.
 
-Extracts from the ``propane.xml`` file of the tutorial are shown below.
+Extracts from the ``propane.xml`` file are shown below.
 
 .. _propane_mapping_file:
 
@@ -150,7 +150,7 @@ be a problem for simulations with several molecules with multiple types.
 During coarse-graining, the molecule type is identified by a name tag as
 names must be clearly identified. To do this, it is possible to read a
 topology and then modify parts of it. The new XML topology can be used
-with the ``--tpr`` option, as any other topology file.
+with the ``--top`` option, as any other topology file.
 
 For example, if information about a molecule is not present at all, a
 XML topology file can be created from a ``.pdb`` file as follows
@@ -261,13 +261,14 @@ Trajectories
 
 A trajectory is a set of frames containing coordinates (velocities and
 forces) for the beads defined in the topology. VOTCA currently supports
-``.trr``, ``.xtc``, ``.pdb``, ``.gro`` and H5MD ``.h5`` trajectory
-formats.
+GROMACS ``.trr``, ``.xtc`` and ``.gro``, ``.pdb``, ``.xyz``, H5MD ``.h5``,
+LAMMPS ``.dump`` and ``.data`` and DL_POLY ``.dlph`` and ``.dlpc``
+trajectory formats.
 
 Once the mapping file is created, it is easy to convert an atomistic to
 a coarse-grained trajectory using ``csg_map``.
 
-.. code:: xml
+.. code:: bash
 
   csg_map --top topol.tpr --trj traj.trr --cg propane.xml --out cg.gro
 
@@ -300,12 +301,13 @@ Setting files
       <max>1.36</max>
       <step>0.01</step>
 
-      ... specific section for inverse boltzmann, force matching etc.
+      ... specific sections, e.g. for force matching (fmatch) or relative entropy (re)
     </non-bonded>
   </cg>
   
-Abstract of a ``settings.xml`` file. See secs. :ref:`methods_fm_program_input`, 
-:ref:`methods_fm_threebody` or :ref:`methods_preparing_the_run` for full versions.
+Abstract of a ``settings.xml`` file. See secs. :ref:`methods_fm_program_input`
+and :ref:`methods_fm_threebody` for full versions and
+:ref:`reference_settings_file` for all options.
 
 A setting file is written in the format ``.xml``. It consists of a
 general section displayed above, and a specific section depending on the
@@ -316,7 +318,7 @@ matching (``csg_fmatch``) or statistical analysis (``csg_stat``).
 Generally, ``csg_stat`` is an analysis tool which can be used for computing radial
 distribution functions and analysing them. As an example, the command
 
-.. code:: xml
+.. code:: bash
 
   csg_stat --top topol.tpr --trj traj.xtc --options settings.xml
 
@@ -338,7 +340,7 @@ three beads of type A which are all within a cutoff distance of 0.37 (nm) might 
       <threebody>true</threebody> <!-- is a three-body interaction -->
       <type1>A</type1> <!-- types involved in this interaction -->
       <type2>A</type2>
-      <type2>A</type2>
+      <type3>A</type3>
       <!-- dimension + grid spacing of tables-->
       <min>0</min> <!--minimum angle in radians -->
       <max>3.14</max> <!-- maximum angle in radians -->

@@ -24,6 +24,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/chargeresponsesolver.h"
+#include "votca/xtp/citations.h"
 #include "votca/xtp/dipoledipoleinteraction.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/ewaldregion.h"
@@ -264,6 +265,7 @@ Eigen::VectorXd PolarRegion::CalcInducedDipolesViaPCG(
 }
 
 void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
+  citations::Cite("Thole:1981");
 
   std::vector<double> energies = ApplyInfluenceOfOtherRegions(regions);
   Energy_terms e_contrib;

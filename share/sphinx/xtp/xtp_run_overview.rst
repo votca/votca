@@ -11,6 +11,7 @@ The following calculators are available:
 .. toctree::
    eanalyze
    einternal
+   ewaldbackground
    grw
    ianalyze
    kmclifetime

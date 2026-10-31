@@ -100,6 +100,8 @@ Boltzmann inversion
 Boltzmann inversion is mostly used for *bonded* potentials, such as
 bonds, angles, and torsions [Tschoep:1998]_. Boltzmann
 inversion is structure-based and only requires positions of atoms.
+The distributions can be computed with ``csg_stat``; the inversion itself
+is not done by a VOTCA tool.
 
 The idea of Boltzmann inversion stems from the fact that in a canonical
 ensemble *independent* degrees of freedom :math:`q` obey the Boltzmann
@@ -110,9 +112,8 @@ distribution, i. e.
 .. math::
 
    P(q) = Z^{-1} \exp\left[ - \beta U(q) \right]~,
-   \label{eq:boltzmann}
 
-where is a partition function, . Once :math:`P(q)` is known, one can
+where :math:`Z=\int \exp\left[-\beta U(q)\right]\,dq` is a partition function and :math:`\beta=1/k_\text{B}T`. Once :math:`P(q)` is known, one can
 obtain the coarse-grained potential, which in this case is a potential
 of mean force, by inverting the probability distribution :math:`P(q)` of
 a variable :math:`q`, which is either a bond length, bond angle, or
@@ -121,7 +122,6 @@ torsion angle
 .. math::
 
    U(q) = - k_\text{B} T \ln  P(q) ~.
-   \label{eq:inv_boltzmann}
 
 The normalization factor :math:`Z` is not important since it would only
 enter the coarse-grained potential :math:`U(q)` as an irrelevant
@@ -192,8 +192,9 @@ special system where non-bonded interactions are artificially removed,
 so that the non-bonded interactions in the reference system do not
 contribute to the bonded interactions of the coarse-grained model.
 
-This can be done by employing exclusion lists using with the option
-``--excl``. This is described in detail in :ref:`methods_exclusions`.
+This can be done by employing exclusion lists in the atomistic topology
+(e.g. energy-group exclusions in GROMACS); ``csg_dump --excl`` displays the
+exclusions of a topology.
 
 .. figure:: fig/excl.png
    :align: center
@@ -205,7 +206,7 @@ Force Matching
 --------------
 
 Force matching (FM) is another approach to evaluate corse-grained
-potentials [Ercolessi:1994,Izvekov:2005,Noid:2007]_. In
+potentials [Izvekov:2005]_, [Noid:2008.1]_. In
 contrast to the structure-based approaches, its aim is not to reproduce
 various distribution functions, but instead to match the multibody
 potential of mean force as close as possible with a given set of
@@ -223,13 +224,12 @@ atoms
 
 .. math::
 
-   {{{{\mathbf F}}}}_I^\text{ref} = \sum_{j \in {\cal S_I}} \frac{d_{Ii}}{c_{Ii}} {{{{\mathbf f}}}}_j({{{{\mathbf r}}}^n}),
-     \label{eq:force_mapping}
+   {{{{\mathbf F}}}}_I^\text{ref} = \sum_{j \in {\cal S_I}} \frac{d_{Ij}}{c_{Ij}} {{{{\mathbf f}}}}_j({{{{\mathbf r}}}^n}),
 
 where the sum is over all atoms of the CG site *I* (see
 :ref:`theory_mapping`). The :math:`d_{Ij}` coefficients can, in
 principle, be chosen arbitrarily, provided that the condition
-:math:` \sum_{i=1}^{n}d_{Ii}=1` is
+:math:`\sum_{j \in {\cal S_I}} d_{Ij}=1` is
 satisfied [Noid:2008.1]_. If mapping coefficients for
 the forces are not provided, it is assumed that :math:`d_{Ij} = c_{Ij}`
 (see also :ref:`input_files`).
@@ -241,21 +241,21 @@ down :math:`N \times L` equations
 
 .. math::
 
-   {{{{\mathbf F}}}}_{Il}^\text{cg}(g_1, \dots ,g_M)={{{\mathbf F}}}_{il}^\text{ref},\;
+   {{{{\mathbf F}}}}_{Il}^\text{cg}(g_1, \dots ,g_M)={{{\mathbf F}}}_{Il}^\text{ref},\;
      I=1,\dots,N,\; l=1,\dots,L~.
 
 Here :math:`{{{{\mathbf F}}}}_{Il}^\text{ref}` is the force on
-the bead :math:`I` and :math:`{{{{\mathbf F}}}}_{Il}^\text{cg} `
+the bead :math:`I` and :math:`{{{{\mathbf F}}}}_{Il}^\text{cg}`
 is the coarse-grained representation of this force. The index :math:`l`
 enumerates snapshots picked for coarse-graining. By running the
 simulations long enough one can always ensure that
 :math:`M < N \times L`. In this case the set of equations
 is overdetermined and can be solved in a least-squares manner.
 
-:math:`{\mathbf F}_{il}^\text{cg}` is, in principle, a non-linear function
+:math:`{\mathbf F}_{Il}^\text{cg}` is, in principle, a non-linear function
 of its parameters :math:`\{g_i\}`. Therefore, it is useful to represent
 the coarse-grained force-field in such a way that
-:ref:`equations <theory_eq_fmatch1>` become linear functions of :math:`{g_i}`.
+:ref:`equations <theory_eq_fmatch1>` become linear functions of :math:`\{g_i\}`.
 This can be done using splines to describe the functional form of the
 forces [Izvekov:2005]_. Implementation details are
 discussed in ref. [Ruehle:2009.a]_.

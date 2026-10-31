@@ -28,6 +28,7 @@
 #include "votca/xtp/IndexParser.h"
 #include "votca/xtp/anderson_mixing.h"
 #include "votca/xtp/checkpoint.h"
+#include "votca/xtp/citations.h"
 #include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/gw.h"
 #include "votca/xtp/memorybudget.h"
@@ -1259,6 +1260,7 @@ void GW::CalculateQSGW() {
         "sigma_integration=exact instead.");
   }
   if (opt_.qsgw_regularization == "srg") {
+    citations::Cite("Marie:2023");
     XTP_LOG(Log::error, log_)
         << TimeStamp()
         << "  QSGW static self-energy: SRG regularization (Marie and Loos), "

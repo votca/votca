@@ -1,90 +1,34 @@
 <options>
-        <ewaldbackground help="Converges the self-consistent polarized background of a periodic system, using the new (non-legacy) Ewald machinery" section="sec:ewaldbackground">
-                <multipoles>system.xml</multipoles>
-                <output>
-                        <checkpoint>ewaldbackground.hdf5</checkpoint>
-                </output>
-                <coulombmethod>
-                        <!-- alpha and k_max are optional: both are
-                             derived at runtime from the box size (alpha,
-                             nm^-1) and from alpha itself (k_max, nm^-1)
-                             unless explicitly set. default="OPTIONAL" is
-                             VOTCA's own mechanism for this, not simply
-                             omitting the tag: OptionsHandler::
-                             CheckUserInput requires every key a user
-                             might override to already exist in this
-                             default file's own schema (an unrecognized
-                             key throws "Votca has no option: ...", a
-                             real, confirmed failure mode this comment
-                             replaces, not a hypothetical one), so the
-                             keys must be present here. default="OPTIONAL"
-                             marks them present for that check while
-                             still letting OptionsHandler::RemoveOptional
-                             strip them from the final options tree
-                             entirely when the user doesn't set them.
-                             This is what makes ParseOptions's own
-                             opt.exists(...) check correctly distinguish
-                             "user set this" from "using the derived
-                             default" in the first place. Do not revert
-                             this to a plain omitted tag or a hardcoded
-                             value; either breaks one of these two
-                             things. -->
-                        <alpha default="OPTIONAL"/>
-                        <k_max default="OPTIONAL"/>
-                        <shape>cube</shape>
-                </coulombmethod>
-                <realspace>
-                        <r_min>1.0</r_min>  <!-- nm (user-facing); converted
-                                                 to bohr in ParseOptions -->
-                        <field_tol>1e-8</field_tol>
-                        <!-- Dimensionless, and the single accuracy knob
-                             for BOTH halves of the Ewald split.
-
-                             It sets the real-space cutoff to
-                             screening_factor/alpha, so a pair farther
-                             apart than that contributes at most about
-                             erfc(screening_factor) of the local field:
-                             the default 6.0 truncates at ~2e-17 per
-                             pair. The reciprocal cutoff is then derived
-                             to leave the SAME tail (eps = erfc(s_r),
-                             then k_max = 2*sqrt(-ln eps)*alpha, which
-                             is 12.39*alpha at the default), and alpha
-                             itself is derived to balance the cost of
-                             the two halves. See the long comment at the
-                             alpha derivation in ewaldbackground.h.
-
-                             So lowering this loosens both sums together
-                             and moves alpha with them; it is no longer a
-                             real-space-only cost control. Lower it only
-                             deliberately, and check the result against a
-                             reference. -->
-                        <screening_factor>6.0</screening_factor>
-                </realspace>
-                <polarmethod>
-                        <thole_a>0.39</thole_a>
-                        <induce>true</induce>
-                        <max_iter>200</max_iter>
-                        <tolerance>1e-8</tolerance>
-                        <!-- Induction solver. Jacobi over-relaxation
-                             (use_jor=true, with jor_omega) reproduces
-                             legacy's own SOR scheme and is kept for
-                             direct comparison against it; preconditioned
-                             conjugate gradient (the default) converges
-                             the same system in far fewer iterations. -->
-                        <use_jor>false</use_jor>
-                        <jor_omega>0.35</jor_omega>
-                        <!-- Block-Jacobi preconditioner for the PCG
-                             solve: each segment's own local block
-                             (P^-1 minus its intramolecular coupling),
-                             factorized once, applied every iteration.
-                             Ignored when use_jor is true. -->
-                        <use_block_jacobi_preconditioner>false</use_block_jacobi_preconditioner>
-                        <!-- Debug/experimental: see
-                             match_legacy_first_step_'s own declaration.
-                             Replicates legacy's own two-phase
-                             unrelaxed-then-relaxed first step, for
-                             iteration-by-iteration comparison. -->
-                        <debug_match_legacy_first_step>false</debug_match_legacy_first_step>
-                </polarmethod>
-        </ewaldbackground>
+  <ewaldbackground help="Converges the self-consistent polarized background of a periodic system with Ewald summation" section="sec:ewaldbackground">
+    <multipoles help="MPS mapping file (xml) of the system" default="system.xml"/>
+    <output help="Output files">
+      <checkpoint help="HDF5 file for the converged background (used by qmmm Ewald regions)" default="ewaldbackground.hdf5"/>
+    </output>
+    <coulombmethod help="Ewald summation">
+      <!-- alpha and k_max must exist in this schema so that users can set
+           them; default="OPTIONAL" removes them from the options when not
+           set, and the code then derives them (see ewaldbackground.h). -->
+      <alpha help="Ewald splitting parameter; derived from the box and screening_factor if not set" unit="nm^-1" default="OPTIONAL" choices="float+"/>
+      <k_max help="Reciprocal-space cutoff; derived from alpha and screening_factor if not set" unit="nm^-1" default="OPTIONAL" choices="float+"/>
+      <shape help="Shape of the macroscopic sample (surface term): cube or sphere (same term), or slab" default="cube" choices="cube,sphere,slab"/>
+    </coulombmethod>
+    <realspace help="Real-space part">
+      <r_min help="Real-space sum over periodic images: minimal shell radius before convergence may be declared" unit="nm" default="1.0" choices="float+"/>
+      <field_tol help="Real-space sum: convergence threshold on the field contribution of one shell (atomic units)" default="1e-8" choices="float+"/>
+      <!-- One accuracy knob for both halves of the Ewald split: real-space
+           cutoff screening_factor/alpha, reciprocal cutoff with the same
+           tail (k_max = 12.39 alpha at 6.0), alpha balancing the cost. -->
+      <screening_factor help="Accuracy of the Ewald sums (dimensionless): sets the real-space cutoff screening_factor/alpha and a reciprocal cutoff with the same error (erfc(screening_factor)); lower it only deliberately" default="6.0" choices="float+"/>
+    </realspace>
+    <polarmethod help="Induction">
+      <thole_a help="Thole damping parameter" default="0.39" choices="float+"/>
+      <induce help="Compute induced dipoles (false: static multipoles only)" default="true" choices="bool"/>
+      <max_iter help="Maximal number of iterations of the induction solver" default="200" choices="int+"/>
+      <tolerance help="Convergence tolerance of the induction solver" default="1e-8" choices="float+"/>
+      <use_jor help="Use Jacobi over-relaxation (as the legacy code) instead of preconditioned conjugate gradients" default="false" choices="bool"/>
+      <jor_omega help="Relaxation parameter for use_jor" default="0.35" choices="float+"/>
+      <use_block_jacobi_preconditioner help="Block-Jacobi (per segment) preconditioner for the conjugate gradient solver" default="false" choices="bool"/>
+      <debug_match_legacy_first_step help="Debugging: replicate the two-phase first step of the legacy code" default="false" choices="bool"/>
+    </polarmethod>
+  </ewaldbackground>
 </options>

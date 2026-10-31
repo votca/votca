@@ -20,6 +20,7 @@
 #include "votca/xtp/podcoupling.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/citations.h"
 #include <Eigen/Eigenvalues>
 #include <algorithm>
 #include <sstream>
@@ -170,6 +171,7 @@ PODCoupling::PODCoupling(Orbitals& orbitals, Logger* log,
 
 void PODCoupling::CalculateCouplings(Index numberofstatesA,
                                      Index numberofstatesB) {
+  citations::Cite("Ghan:2020");
   const QMMolecule& mol = orbitals_.QMAtoms();
 
   AOBasis full_dftbasis;

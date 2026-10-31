@@ -11,13 +11,19 @@ Bibliography
 
 .. [Baumeier:2012] Baumeier, Stenzel, Poelking, Andrienko, and Schmidt, Phys. Rev. B 86, 184202 (2012)
 
+.. [Baumeier:2014] Baumeier, Rohlfing, and Andrienko, J. Chem. Theory Comput. 10, 3104 (2014)
+
+.. [Baumeier:2024] Baumeier, Wehner, Renaud, Zapata Ruiz, Halver, Madhikar, Gerritsen, Tirimbo, Sijen, Rosenberger, Brown, Sundaram, Krajniak, Bernhardt, and Junghans, J. Open Source Softw. 9, 6864 (2024)
+
 .. [Bortz:1975] Bortz, Kalos, and Lebowitz, J. Comput. Phys. 17, 10 (1975)
+
+.. [Breneman:1990] Breneman and Wiberg, J. Comput. Chem. 11, 361 (1990)
 
 .. [Brent:1973] Brent, Algorithms for Minimization without Derivatives, Prentice-Hall (1973)
 
-.. [Chen:2024] Chen, van der Hoorn, and Baumeier, arXiv:2405.15836 (2024)
+.. [Chen:2025a] Chen, van der Hoorn, and Baumeier, Multiscale Model. Simul. 23, 1439 (2025)
 
-.. [Chen:2025] Chen, van der Hoorn, and Baumeier, Automatic identification of traps in molecular charge transport networks of organic semiconductors (2025)
+.. [Chen:2025b] Chen, van der Hoorn, and Baumeier, Phys. Rev. B 111, 224209 (2025)
 
 .. [Chirlian:1987] Chirlian, Francl, J. Comput. Chem. 8, 894 (1987)
 
@@ -51,19 +57,23 @@ Bibliography
 
 .. [Li:2018] Li, D'Avino, Duchemin, Beljonne, and Blase, Phys. Rev. B 97, 035108 (2018)
 
-.. [Marie:2023] Marie and Loos, J. Chem. Theory Comput. 19, 3943 (2023)
-
 .. [Manby:2012] Manby, Stella, Goodpaster, and Miller, J. Chem. Theory Comput. 8, 2564 (2012)
 
 .. [Marcus:1993] Marcus, Rev. Mod. Phys. 65, 599 (1993)
+
+.. [Marie:2023] Marie and Loos, J. Chem. Theory Comput. 19, 3943 (2023)
 
 .. [Morita:1997] Morita and Kato, J. Am. Chem. Soc. 119, 4021 (1997)
 
 .. [Mulliken:1955] Mulliken, J. Chem. Phys. 23, 1833 (1955)
 
-.. [Neese:2012] Neese, WIREs Comp. Mol. Sci. 1, 73 (2012)
+.. [Neese:2012] Neese, WIREs Comput. Mol. Sci. 2, 73 (2012)
 
 .. [Oberhofer:2009] Oberhofer and Blumberger, J. Chem. Phys. 131, 064101 (2009)
+
+.. [Poelking:2015] Poelking, Tietze, Elschner, Olthof, Hertel, Baumeier, Würthner, Meerholz, Leo, and Andrienko, Nat. Mater. 14, 434 (2015)
+
+.. [Poelking:2016] Poelking and Andrienko, J. Chem. Theory Comput. 12, 4516 (2016)
 
 .. [Pulay:1980] Pulay, Chem. Phys. Lett. 73, 393 (1980)
 
@@ -73,11 +83,25 @@ Bibliography
 
 .. [Rohlfing:2000] Rohlfing and Louie, Phys. Rev. B 62, 4927 (2000)
 
+.. [Ruehle:2011] Rühle, Lukyanov, May, Schrader, Vehoff, Kirkpatrick, Baumeier, and Andrienko, J. Chem. Theory Comput. 7, 3335 (2011)
+
 .. [Shockley:1938] Shockley, J. Appl. Phys. 9, 635 (1938)
+
+.. [Stenzel:2014] Stenzel et al., Multiscale Model. Simul. 12, 1108 (2014)
 
 .. [Stone:2005] Stone, J. Chem. Theory Comput. 1, 1128 (2005)
 
+.. [Sundaram:2024] Sundaram and Baumeier, J. Chem. Theory Comput. 20, 5451 (2024)
+
 .. [Thole:1981] Thole, Chem. Phys. 59, 341 (1981)
+
+.. [Tirimbo:2020a] Tirimbò, Sundaram, Çaylak, Scharpach, Sijen, Junghans, Brown, Zapata Ruiz, Renaud, Wehner, and Baumeier, J. Chem. Phys. 152, 114103 (2020)
+
+.. [Tirimbo:2020b] Tirimbò, de Vries, Weijtens, Bobbert, Neumann, Coehoorn, and Baumeier, Phys. Rev. B 101, 035402 (2020)
+
+.. [Tirimbo:2024a] Tirimbò, Sundaram, and Baumeier, WIREs Comput. Mol. Sci. 14, e1734 (2024)
+
+.. [Tirimbo:2024b] Tirimbò and Baumeier, J. Chem. Theory Comput. 20, 4605 (2024)
 
 .. [Trefethen:2013] Trefethen, Approximation Theory and Approximation Practice, SIAM (2013)
 
@@ -88,5 +112,11 @@ Bibliography
 .. [vanSetten:2015] van Setten, Caruso, Sharifzadeh, Ren, Scheffler, Liu, Lischner, Lin, Deslippe, Louie, Yang, Weigend, Neaton, Evers, and Rinke, J. Chem. Theory Comput. 11, 5665 (2015)
 
 .. [Veril:2018] Véril, Romaniello, Berger, and Loos, J. Chem. Theory Comput. 14, 5220 (2018)
+
+.. [Wehner:2017] Wehner and Baumeier, J. Chem. Theory Comput. 13, 1584 (2017)
+
+.. [Wehner:2018] Wehner, Brombacher, Brown, Junghans, Çaylak, Khalak, Madhikar, Tirimbò, and Baumeier, J. Chem. Theory Comput. 14, 6253 (2018)
+
+.. [Wehner:2020] Wehner and Baumeier, New J. Phys. 22, 033033 (2020)
 
 .. [Wu:2005] Wu and Van Voorhis, Phys. Rev. A 72, 024502 (2005)

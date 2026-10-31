@@ -20,6 +20,7 @@
 #include <algorithm>
 
 // Local VOTCA includes
+#include "votca/xtp/citations.h"
 #include "votca/xtp/convergenceacc.h"
 #include "votca/xtp/screening_kernels.h"
 
@@ -355,6 +356,7 @@ Eigen::MatrixXd ConvergenceAcc::SecondOrderStep(const Eigen::MatrixXd& dmat,
                                                 const Eigen::MatrixXd& H,
                                                 tools::EigenSystem& MOs,
                                                 double totE) {
+  citations::Cite("Helmich-Paris:2021");
   const Eigen::MatrixXd dmat_mos = DensityMatrix(MOs);
   const double mismatch = (dmat_mos - dmat).cwiseAbs().maxCoeff();
   if (mismatch > kDensityMismatchTolerance) {

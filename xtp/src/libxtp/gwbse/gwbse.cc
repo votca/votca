@@ -32,6 +32,7 @@
 #include "votca/xtp/accelerate_lapack.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/bse.h"
+#include "votca/xtp/citations.h"
 #include "votca/xtp/ecpbasisset.h"
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/logger.h"
@@ -1001,6 +1002,11 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd> GWBSE::CalculateVXCSpinResolved(
 }
 
 bool GWBSE::Evaluate() {
+  citations::Cite("Wehner:2018");
+  citations::Cite("Tirimbo:2020a");
+  if (gwopt_.do_qsgw) {
+    citations::Cite("vanSchilfgaarde:2006");
+  }
 
   // set the parallelization
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Using "

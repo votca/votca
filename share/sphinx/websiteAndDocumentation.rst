@@ -33,10 +33,10 @@ install <packagename>``.
 
 A short list of packages you probably need to install manually:
 
-- cma
 - recommonmark
 - nbsphinx
-- sphinx_rtd_theme 
+- sphinx_rtd_theme
+- jupyter (nbconvert and a Python kernel, used to execute the tutorial notebooks)
 
 Once the errors are gone, the documentation is build and a static html website is
 generated in the ``sphinx.html`` folder within the build folder. You can view
@@ -68,13 +68,13 @@ Writing a new page
 ------------------
 
 To add a new page to the website, you will first need to decide where it belongs,
-in the xtp, csg or votca repo. Once you have decided that, navigate to the corresponding folder in
+in the xtp or csg manual or on the general pages. Once you have decided that, navigate to the corresponding folder in
 ``share/sphinx``. There will be either an ``index.rst``
-file or something like ``XTP-MANUAL.rst``. This file is the main page of that repo on the website. If you look at the ``index.rst`` file in the ``votca`` repo you will
+file or something like ``XTP-MANUAL.rst``. This file is the main page of that part of the website. If you look at the ``share/sphinx/index.rst`` file you will
 find all the subpages listed here, you need to make sure that your new page
 can be found starting from this file. 
 
-As an example, suppose we want to add a test page, called ``text.rst`` to the
+As an example, suppose we want to add a test page, called ``test.rst`` to the
 developers section of the website. In ``votca/share/sphinx``, we would create the
 new file. Next, we would update the file ``votca/share/sphinx/index.rst``, we need
 to add our file to the table of contents of the site. Look for the table of
@@ -90,8 +90,10 @@ something like this
 
    DEVELOPERS_GUIDE.rst
    VOTCA_LANGUAGE_GUIDE.rst
+   Architecture.rst
+   xtp/Architecture.rst
    CODE_OF_CONDUCT.rst
-   WEBSITE_AND_DOCUMENTATION.rst
+   websiteAndDocumentation.rst
    test.rst
 
 After you have added content to the ``test.rst`` file, rebuild VOTCA and run
@@ -101,9 +103,9 @@ After you have added content to the ``test.rst`` file, rebuild VOTCA and run
 Changing the theme
 ------------------
 
-To change the theme, navigate to ``votca/share/sphinx/_themes``, there you will
-find the ``theme.css`` file which you can modify to change the look and feel of
-the website.
+The theme is in ``votca/share/sphinx/_themes/sphinx_rtd_theme``. Changes to the
+look and feel of the website go into ``static/css/custom.css`` there, which is
+loaded after the theme's ``theme.css``.
 
 
 Publishing your changes

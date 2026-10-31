@@ -7,7 +7,7 @@ implementing code consistent with the VOTCA and cpp style and standard.
 -  `Reporting Bugs <#reporting-bugs>`__
 -  `Making a release <#making-a-release>`__
 -  `CPP Resources <#cpp-resources>`__
--  `CPP Coding Rules <#CPP-Coding-Rules>`__
+-  `CPP Coding Rules <#cpp-coding-rules>`__
 -  `Testing <#testing>`__
 -  `CPP Coding Style Guide <#cpp-coding-style-guide>`__
 -  `CPP Comment Guide <#cpp-comment-guide>`__
@@ -31,8 +31,9 @@ Formatting code
 ---------------
 
 VOTCA uses ``clang-format`` to format the code, code that is not
-properly formatted is automatically rejected. The style files can be
-found in each repo. CMake provides a format target which you can run to format your code.
+properly formatted is automatically rejected. The style file ``.clang-format`` is in the
+root of the repository. CMake provides a ``format`` target (it currently covers only
+``*.c`` and ``*.h`` files).
 The easiest way to format your code is just a ``@votca-bot format`` comment in the PR, which then will automatically format your code.
 
 Doxygen documentation
@@ -53,8 +54,9 @@ VOTCA Continuous Integration (GitHub Actions)
 Each pull request to master in the votca repository 
 is built on a machine in the cloud using `GitHub actions <https://docs.github.com/en/actions>`__ 
 
-VOTCA can be built on various linux distributions, which are not all natively supported by GitHub actions. For non natively supported distributions, 
-instead of using the default virtual machines, VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of VOTCA (see :code:`buildenv` below)
+VOTCA is built on various linux distributions, which are not all natively supported by GitHub actions. The builds therefore run inside
+prebuilt `docker containers <https://www.docker.com/resources/what-container>`__ (``ghcr.io/votca/buildenv/<distribution>``), which contain all
+dependencies of VOTCA (see :code:`buildenv` below).
 
 The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. The **votca/buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires; VOTCA code itself is not included. The **votca/buildenv** can be found on `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__. 
 The actual containers used for running the test builds are built on top of the **votca/buildenv** containers, the resulting **votca/votca** container can be found on `Docker Hub <https://hub.docker.com/u/votca>`__ as well as `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__.
@@ -67,7 +69,7 @@ Making a Release
 Similar to the VOTCA containers, releases are also handled by GitHub actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
 To trigger it go `this GitHub Action <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`master` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
-:code:`master` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag.
+:code:`master` branch, pick a new release tag in the :code:`release tag` box and type :code:`yesyesyes` into the deploy box. :code:`CHANGELOG.rst` must contain a section for the current development version (e.g. ``Version 2026-dev``) with at least one item; the release script renames it to the new version with the release date. A new release will trigger the creation of the release tag.
 
 Release names
 ~~~~~~~~~~~~~
@@ -91,7 +93,7 @@ code has not always consistently followed the cpp standard we now make
 an effort to really enforce it and follow best practices.
 
 -  `Best
-   Practices1 <https://www.gitbook.com/book/lefticus/cpp-best-practices/details>`__
+   Practices1 <https://github.com/cpp-best-practices/cppbestpractices>`__
 -  `Best
    Practices2 <https://google.github.io/styleguide/cppguide.html>`__
 
@@ -155,7 +157,7 @@ Classes
    -  then ``private``/``protected`` all member variables
    -  then ``private``/``protected`` member functions
 -  There is no rule as to where to define a ``public typedef`` in the class.
--  All member variables are ``private``/``public``.
+-  All member variables are ``private``/``protected``.
 -  The body of class methods should be placed in a source file or inlined at the end of the header if it exceeds a single line.
 
 Naming in Classes
@@ -174,7 +176,7 @@ get/set Functions
 -  ``get`` must return a constant reference and keep the ``class const``:
    ``const int &getId() const;``
 -  ``set`` only sets the member, e.g.
-   ``void setId(const int &id) { _id = id; }``
+   ``void setId(const int &id) { id_ = id; }``
 
 Functions
 ~~~~~~~~~
@@ -186,7 +188,7 @@ Functions
 Pointers
 ~~~~~~~~
 
--  In general, use pointers sparringly. Most objects are small and a
+-  In general, use pointers sparingly. Most objects are small and a
    copy does not change performance. Use references if you want to avoid copies.
 -  If your pointer owns an object (i.e. it has to delete it later) use a
    ``unique_ptr`` to it, so you do not have to call ``delete`` on it
@@ -219,7 +221,7 @@ General
 VOTCA specifics (indexing, ids, units)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This can all be found here `VOTCA\_LANGUAGE\_GUIDE <VOTCA_LANGUAGE_GUIDE.rst>`__
+This can all be found in the :doc:`VOTCA_LANGUAGE_GUIDE`.
 
 Testing
 -------
@@ -227,71 +229,51 @@ Testing
 Unit Testing
 ~~~~~~~~~~~~
 
-Each module contains a src folder. Within the src folder exists a
-library folder: libtools, libcsg etc... and a tools folder. A tests
-folder should also exist in the src folder. If it does not you should
-create one.
+Each module (tools, csg, xtp) contains a ``src/tests`` folder with the unit
+tests of its library.
 
 For every new object and algorithm created there should exist a test. We
-use the Boost libraries testing framework. Good documentation can be
-found here:
+use the Boost libraries testing framework, see the
+`Boost.Test documentation <https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html>`__.
 
--  `Boost
-   link <https://www.ibm.com/developerworks/aix/library/au-ctools1_boost/>`__
+As an example, take the histogram class ``votca::tools::Histogram``
+(``tools/include/votca/tools/histogram.h``):
 
-We will outline the general workflow here using the vec object in
-votca::tools. This object only has a header file it is in:
-tools/include/votca/tools/vec.h.
+1. Create a test file ``test_histogram.cc`` in
+   `tools/src/tests/ <https://github.com/votca/votca/tree/master/tools/src/tests>`__
+   and add its name (without ``.cc``) to the alphabetical list of tests in
+   the ``foreach`` of ``tools/src/tests/CMakeLists.txt``. The file has the
+   following structure:
 
-Determine if a tests folder has already been created or not in /src. If
-it has not, take a look at what was done in the votca-tools repo.
-
-1. Create a test file in
-   `tools/src/tests/ <https://github.com/votca/votca/tree/master/tools/src/tests>`__\ test\_vec.cc
-   must have the same name as what appears in the foreach in the
-   CMakeLists.txt file. And place the following contents:
-
-   .. code-block:: c
+   .. code-block:: cpp
 
        #define BOOST_TEST_MAIN
 
-       #define BOOST_TEST_MODULE vec_test
+       #define BOOST_TEST_MODULE histogram_test
        #include <boost/test/unit_test.hpp>
-       #include <exception>
 
-       #include <votca/tools/vec.h>
+       #include "votca/tools/histogram.h"
 
-       using namespace std;
        using namespace votca::tools;
 
-       BOOST_AUTO_TEST_SUITE(vec_test)
+       BOOST_AUTO_TEST_SUITE(histogram_test)
 
+       BOOST_AUTO_TEST_CASE(test1) {
+         Histogram hist;
+         BOOST_CHECK_EQUAL(...);
+       }
 
-       BOOST_AUTO_TEST_CASE(test1){
-         vecv;
-         BOOST_CHECK_EQUAL(...);
-         BOOST_CHECK_EQUAL(...);
-         :
-       }
-       BOOST_AUTO_TEST_CASE(test2){
-         vecv;
-         BOOST_CHECK_EQUAL(...);
-         BOOST_CHECK_EQUAL(...);
-         :
-       }
-       :
        BOOST_AUTO_TEST_SUITE_END()
 
-Replace the '...' and ':' with the appropriate syntax. For more info on
-which boost test macros to use refer to the boost documentation
+   Replace the '...' with the appropriate checks. For more info on which
+   boost test macros to use refer to the boost documentation.
 
-2. To run the test involve following command:
+2. Build and run the tests:
 
    .. code-block:: bash
 
-       make test
-
-Ensure you have an up to date version of cmake or use cmake3.
+       cmake --build builddir
+       ctest --test-dir builddir -R histogram
 
 CPP Coding Style Guide
 -----------------------
@@ -302,7 +284,7 @@ VOTCA uses a few auto formatting tools to help enforce the rules.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Automatically ensures consistent formatting for .cc and .h files. The
-style follows the google style fomatting rules. Have a look at the
+style follows the google style formatting rules. Have a look at the
 ``.clang-format file`` in the `main votca
 repository <https://github.com/votca/votca/blob/master/.clang-format>`__
 for details.
@@ -321,10 +303,10 @@ default style guide.
 By default tabs should not be used to indent, avoid inserting '\\t', it
 is preferable that spaces be used instead.
 
-`autopep8 <https://pypi.org/project/autopep8/0.8/>`__
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`autopep8 <https://pypi.org/project/autopep8/>`__
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Automatically formats python .py files. We are useing the default format
+Automatically formats python .py files. We are using the default format
 rules of autopep8. To run on file.py and update the file run:
 
 .. code-block:: bash
@@ -390,43 +372,33 @@ different requirements from the package managers. Some of the
 architectures that the package managers support can be quite varied. In
 the case that a failure occurs on an architecture, that is not available
 to you, there are different approaches for debugging the problem. As an
-example, fedora dnf has extended support to the **pcc64le** architecture.
-Assuming you have access to fedora you can run the following commands to
-simulate the build process on the **pcc64le** architecture:
+example, Fedora supports the **ppc64le** architecture. Assuming you have
+access to Fedora you can simulate the build process on **ppc64le** with
+``mock`` and the Fedora package sources
+(`src.fedoraproject.org/rpms/votca <https://src.fedoraproject.org/rpms/votca>`__):
 
 .. code-block:: bash
 
-    dnf update
-    dnf install qemu-user-static dnf-utils
+    dnf install qemu-user-static mock fedpkg
     usermod -a -G mock <username>
-    mock -r epel-7-ppc64le --forcearch ppc64le --dnf --init
-    wget https://raw.githubusercontent.com/votca/fedora-copr/master/votca.spec
-    spectool -g votca.spec
-    rpmbuild -D"_sourcedir ${PWD}" -D"_srcrpmdir ${PWD}" -bs votca.spec
-    mock -r epel-7-ppc64le --forcearch ppc64le --dnf --no-clean votca-1.5-1.*.src.rpm
+    fedpkg clone -a votca && cd votca
+    fedpkg srpm
+    mock -r fedora-rawhide-ppc64le --forcearch ppc64le votca-*.src.rpm
 
-Here, votca-1.5-1 should be replaced with the correct version. The above
-commands would setup and run the dnf installation process on the
-**pcc64le** enviroment. If a bug was found and the build crashes one can
-interactively intervene by issuing the following command:
+If the build crashes one can interactively intervene with
 
 .. code-block:: bash
 
-    mock -r epel-7-ppc64le --forcearch ppc64le --shell
+    mock -r fedora-rawhide-ppc64le --forcearch ppc64le --shell
 
 You will also need to install a text editor if you want to change the
 source files before running the interactive instance.
 
 .. code-block:: bash
 
-    mock -r epel-7-ppc64le --forcearch ppc64le --install vim
+    mock -r fedora-rawhide-ppc64le --forcearch ppc64le --install vim
 
-Note: we have used this process with the **ppc64le** architecture as an
-example, but the same procedure can be extended with different
-architectures and diferent operating systems. For example, you could use
-the **aarch64** or **armv7hl** architecture in place of **pcc64le**. You
-could also replace the **epel-7-ppc64le** os-architecure to
-**fedora-28-ppc64le**, **fedora-27-aarch64** or some other combination.
-A final point, if you simply want to build natively, for instance if you
-are running fedora on an **x86\_64** machine, the ``frocearch pcc64le``
-in the above case could just be dropped.
+The same procedure works for other architectures (e.g. **aarch64**) and
+other releases (e.g. ``fedora-<version>-<arch>`` or
+``epel-<version>-<arch>``; ``mock --list-chroots`` shows them). If you
+simply want to build natively, drop ``--forcearch``.

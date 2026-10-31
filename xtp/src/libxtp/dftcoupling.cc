@@ -25,6 +25,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/citations.h"
 #include "votca/xtp/dftcoupling.h"
 
 namespace votca {
@@ -273,7 +274,7 @@ double DFTcoupling::getCouplingElement(Index levelA, Index levelB,
 void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                      const Orbitals& orbitalsB,
                                      const Orbitals& orbitalsAB) {
-
+  citations::Cite("Baumeier:2010");
   XTP_LOG(Log::error, *pLog_) << "Calculating electronic couplings" << flush;
 
   CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
