@@ -22,6 +22,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/citations.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/espfit.h"
 #include "votca/xtp/grid.h"
@@ -34,7 +35,7 @@ using std::flush;
 
 StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
                                   const QMState& state, std::string gridsize) {
-
+  citations::Cite("Breneman:1990");
   const Eigen::MatrixXd dmat = orbitals.DensityMatrixFull(state);
   // setting up grid
   Grid grid;

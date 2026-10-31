@@ -4,7 +4,7 @@ Electronic Structure Theories
 Density-Functional Theory 
 *************************
 
-Excited state calculations require a reference ground state calculation within density-functional theory. VOTCA-XTP provides both an automated interface to the ORCA package [Neese:2012]_ and a lightweight internal DFT engine based on atom-centered Gaussian-type orbitals for method developing and testing. It solves the Kohn-Sham Equations for the molecular orbitals :math:`\phi_n^\textrm{KS}(\mathbf{r})` with orbital energies :math:`\varepsilon_n^\textrm{KS}`
+Excited state calculations require a reference ground state calculation within density-functional theory. VOTCA-XTP provides its own DFT engine based on atom-centered Gaussian-type orbitals, which is the default (``dftpackage.name=xtp``) and the only one supporting charge-response embedding, constrained DFT and second-order SCF, and an automated interface to the ORCA package [Neese:2012]_. It solves the Kohn-Sham Equations for the molecular orbitals :math:`\phi_n^\textrm{KS}(\mathbf{r})` with orbital energies :math:`\varepsilon_n^\textrm{KS}`
 
 .. math::
     :label: equ:KS

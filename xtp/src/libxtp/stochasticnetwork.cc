@@ -34,6 +34,7 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
+#include "votca/xtp/citations.h"
 #include "votca/xtp/stochasticnetwork.h"
 
 namespace votca {
@@ -269,6 +270,11 @@ std::vector<Index> PeriodicCells::NearestTo(const Eigen::Vector3d& p,
 
 StochasticNetwork::StochasticNetwork(const Options& opt) : opt_(opt) {
   Check();
+  citations::Cite("Baumeier:2012");
+  citations::Cite("Kordt:2014");
+  if (!opt_.traps.empty() && opt_.trap_factor > 0.0) {
+    citations::Cite("Chen:2025b");
+  }
   ModelRandom points(opt_.seed, 0);
   iterations_ = SamplePoints(opt_.points, opt_.box, opt_.sites, points,
                              positions_, radii_);

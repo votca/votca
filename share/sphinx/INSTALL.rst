@@ -19,6 +19,18 @@ To install the full package:
     cmake --build builddir --target install
 
 
+Requirements
+~~~~~~~~~~~~
+
+-  CMake 3.16 or newer (``ctest --test-dir`` as used above needs CMake 3.20; with
+   older versions run ``ctest`` inside the build directory)
+-  A C++17 compiler (GCC, Clang, Apple Clang or Intel ``icpx``) with OpenMP
+-  Eigen 3.4 or newer, Boost 1.71 or newer, Python 3.5 or newer
+-  GROMACS 2021 or newer (optional; needed for reading GROMACS files)
+-  HDF5 (optional for CSG, where it enables h5md trajectories; required for XTP)
+-  For XTP (``-DBUILD_XTP=ON``) additionally: libint 2.6 or newer, libecpint,
+   libxc, HDF5 with C++ bindings and Open Babel 3
+
 Dependency Installation
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -26,10 +38,9 @@ Dependency Installation
 
 `Fedora <https://github.com/votca/buildenv/blob/master/fedora#L10-L15>`_
 
-If you have an older version of a distribution, cmake can be run with the ``-DBUILD_OWN_LIBINT=ON`` flag to automatically install the correct libint version.
+If your distribution's libint is too old, cmake can be run with the ``-DBUILD_OWN_LIBINT=ON`` flag to build a suitable libint version.
 
-On Ubuntu 20.10 and older you will not get version 1.0.5 of the libecpint package. So in this case run `this <https://github.com/votca/buildenv/blob/55c88641046dbb6152cf7d9e536e17f29205479f/ubuntu#L30-L33>`_ or
-download the package from `here <http://ftp.us.debian.org/debian/pool/main/libe/libecpint/>`_.
+If your distribution has no libecpint package, build it from `source <https://github.com/robashaw/libecpint>`_.
 
 macOS (Homebrew)
 ^^^^^^^^^^^^^^^^
@@ -92,7 +103,7 @@ GROMACS:
 
 ::
 
-    cmake -DCMAKE_INSTALL_PREFIX=${prefix} -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so -S ..
+    cmake -B builddir -S votca -DCMAKE_INSTALL_PREFIX=${prefix} -DCMAKE_PREFIX_PATH=$HOME/gromacs
 
 Please also ensure GROMACS was build with ``-DGMX_INSTALL_LEGACY_API=ON``.
 
@@ -123,21 +134,27 @@ related tweaks when setting ``ENABLE_RPATH_INJECT`` to ``ON``.
 Common CMake Flags
 ~~~~~~~~~~~~~~~~~~
 
--  ``INSTALL_CSGAPPS`` - Install the extra csg applications repo (ON/OFF,
-   Default OFF)
--  ``BUILD_XTP`` - Build the xtp repo (ON/OFF, Default OFF)
--  ``CMAKE_INSTALL_PREFIX`` - where to install the votca executables
-   (Default is /usr/local/bin)
+-  ``INSTALL_CSGAPPS`` - Install the extra csg applications in ``csg/src/csgapps``
+   (ON/OFF, Default OFF)
+-  ``BUILD_XTP`` - Build xtp (ON/OFF, Default OFF)
+-  ``CMAKE_INSTALL_PREFIX`` - where to install VOTCA (Default is /usr/local)
 -  ``BUILD_TESTING`` - compile tests (ON/OFF, Default ON)
+-  ``INJECT_MARCH_NATIVE`` - add ``-march=native`` to the compiler flags if
+   supported (ON/OFF, Default ON)
 
 Other CMake Flags
 ~~~~~~~~~~~~~~~~~
 
 -  ``CMAKE_DISABLE_FIND_PACKAGE_<name>`` - Disable using an optional
    package called ``<name>`` (ON/OFF)
--  ``CMAKE_DISABLE_FIND_PACKAGE_HDF5`` - Disable using the optional
-   package ``HDF5`` (ON/OFF, Default OFF; relevant only for the
-   ``master`` branch)
+-  ``CMAKE_DISABLE_FIND_PACKAGE_HDF5`` - Disable using ``HDF5`` in CSG
+   (h5md support; ON/OFF, Default OFF; not possible with ``BUILD_XTP=ON``)
+-  ``BUILD_OWN_LIBINT`` - build an internal libint (ON/OFF, Default OFF)
+-  ``REQUIRE_MKL`` - fail if Intel's MKL is not found (ON/OFF, Default OFF)
+-  ``MKL_THREADING`` - MKL threading layer (``sequential``, ``intel_thread``,
+   ``gnu_thread`` or ``tbb_thread``; Default ``gnu_thread`` with ``g++``)
+-  ``ENABLE_RPATH_INJECT`` - inject the link and install library directories
+   into the executables (ON/OFF, Default OFF)
 
 
 Performance advice
@@ -154,9 +171,9 @@ when used with the MKL. No special flags have to be supplied to ``CMake``.
 
 If ``g++`` or ``clang`` are used, the compiler option ``-march=native`` is automatically injected
 into the build. If you compile VOTCA on a heterogeneous cluster with different instruction sets,
-this may cause the executables to not run. Override this by specifying 
-``-DCMAKE_CXX_FLAGS=-mtune=native`` (at probably lower performance), or perform node-type 
-specific builds.
+this may cause the executables to not run. Switch it off with ``-DINJECT_MARCH_NATIVE=OFF``
+(optionally adding ``-DCMAKE_CXX_FLAGS=-mtune=native``, at probably lower performance), or perform
+node-type specific builds.
 
 As a rough estimate, runtimes with vectorization and  ``gcc/clang`` are 30% shorter than without
 vectorization. Use of ``MKL`` reduces them by another 50%. 
@@ -253,21 +270,6 @@ Or in older versions of Fedora:
 
     dnf install votca-csg votca-xtp
 
-CentOS
-~~~~~~
-
-::
-
-    yum install epel-release
-    yum update
-    yum install votca
-
-Or in older versions of CentOS:
-
-::
-
-    yum install votca-csg
-
 openSUSE
 ~~~~~~~~
 
@@ -281,20 +283,12 @@ Or in older versions of openSUSE:
 
     zypper install votca-csg votca-xtp
 
-SLES
-~~~~
-
-::
-
-    SUSEConnect -p PackageHub/12.2/x86_64
-    zypper install votca-csg
-
 Debian / Ubuntu
 ~~~~~~~~~~~~~~~
 
 ::
 
-    apt-get install votca-csg
+    apt-get install votca
 
 Gentoo
 ~~~~~~
@@ -364,7 +358,7 @@ Docker can also install the latest released version, e.g.:
 
 ::
 
-    docker run -it votca/votca:v2021.2 /bin/bash
+    docker run -it votca/votca:v2026 /bin/bash
 
 FreeBSD
 ~~~~~~~

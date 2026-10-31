@@ -7,8 +7,8 @@
     <dims help="Number of sites along x, y and z" default="8 8 8"/>
     <spacing help="Lattice constant a" unit="nm" default="1.0" choices="float+"/>
     <cutoff help="Pairs are created for distances smaller than this (1.5 a: 6 nearest and 12 next-nearest neighbours)" unit="nm" default="1.5" choices="float+"/>
-    <J2 help="Squared coupling |J|^2 at distance a; |J|^2(r) = J2 exp(-(r-a)/decaylength)" unit="eV^2" default="1.79e-4" choices="float+"/>
-    <decaylength help="Decay length of |J|^2" unit="nm" default="1.0" choices="float+"/>
+    <J2 help="Squared coupling J^2 at distance a; J^2(r) = J2 exp(-(r-a)/decaylength)" unit="eV^2" default="1.79e-4" choices="float+"/>
+    <decaylength help="Decay length of J^2" unit="nm" default="1.0" choices="float+"/>
     <reorganization help="Reorganization energy of every pair" unit="eV" default="0.23" choices="float+"/>
     <states help="Carrier types for which the parameters are written" default="e h"/>
     <segmentname help="Segment type name of the sites" default="site"/>

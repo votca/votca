@@ -132,7 +132,7 @@ Times are in s, lengths in nm in the text files (m in the result files), energie
    * - ``tau_mean``
      - Mean hitting time :math:`\langle T\rangle = \frac{1}{N_s}\sum_s \tau_s` for uniform injection on the :math:`N_s` source sites (two carriers: source pairs). For ``observable=transit`` the mean transit time per carrier.
    * - ``tau_harmonic``
-     - Harmonic mean :math:`N_s/\sum_s \tau_s^{-1}` over the injection states, as used in [Chen:2024]_. It weights fast sources more; the difference to ``tau_mean`` shows how much single sources matter.
+     - Harmonic mean :math:`N_s/\sum_s \tau_s^{-1}` over the injection states, as used in [Chen:2025a]_. It weights fast sources more; the difference to ``tau_mean`` shows how much single sources matter.
    * - ``tau_std``
      - Standard deviation of the hitting time :math:`T` itself (not of its mean) for uniform injection, :math:`\sqrt{\langle T^2\rangle-\langle T\rangle^2}`, from the second moments. Not available for ``observable=transit``.
    * - ``mobility_mean``, ``mobility_harmonic``

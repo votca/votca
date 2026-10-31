@@ -31,6 +31,7 @@
 // Local VOTCA includes
 #include "votca/tools/property.h"
 #include "votca/tools/tokenizer.h"
+#include "votca/xtp/citations.h"
 #include "votca/xtp/memorybudget.h"
 #include "votca/xtp/version.h"
 #include "votca/xtp/xtpapplication.h"
@@ -72,6 +73,12 @@ void XtpApplication::Initialize(void) {
       std::string("Short description of a " + CalculatorType() + "s").c_str());
 
   AddProgramOptions()(
+      "cite", propt::value<std::string>(),
+      std::string("References to cite for a " + CalculatorType() +
+                  " (the end of each run lists those actually used)")
+          .c_str());
+
+  AddProgramOptions()(
       "cmdoptions,c", propt::value<std::vector<std::string>>()->multitoken(),
       "Modify options via command line by e.g. '-c xmltag.subtag=value'. "
       "Use whitespace to separate multiple options");
@@ -104,6 +111,16 @@ bool XtpApplication::EvaluateOptions() {
       std::cout << CalculatorType() << " " << calcname << " does not exist\n";
     }
 
+    StopExecution();
+    return true;
+  }
+  if (OptionsMap().count("cite")) {
+    std::string calcname = OptionsMap()["cite"].as<std::string>();
+    if (CalcExists(calcname)) {
+      std::cout << citations::CalculatorReport(calcname);
+    } else {
+      std::cout << CalculatorType() << " " << calcname << " does not exist\n";
+    }
     StopExecution();
     return true;
   }
@@ -188,7 +205,18 @@ void XtpApplication::Run() {
   }
   xtp::HelpTextHeader(name);
 
+  citations::Reset();
+  citations::Cite("Baumeier:2024");
+  if (OptionsMap().count("execute")) {
+    const std::string calcname = OptionsMap()["execute"].as<std::string>();
+    for (const std::string &key : citations::ForCalculator(calcname).keys) {
+      citations::Cite(key);
+    }
+  }
+
   execute();
+
+  std::cout << "\n" << citations::Report() << std::flush;
 }
 
 void XtpApplication::ShowHelpText(std::ostream &out) {

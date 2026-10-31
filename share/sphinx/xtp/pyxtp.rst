@@ -1,108 +1,109 @@
 XTP ASE Interface
 #####################
 
+The Python package ``pyxtp`` provides an `ASE <https://wiki.fysik.dtu.dk/ase/>`__
+calculator ``xtp`` that runs DFT and GW-BSE calculations (the ``dftgwbse``
+tool) on an ``ase.Atoms`` object.
+
 Installation
 **************
 
+The interface is built with VOTCA-XTP if ``pybind11`` and the Python
+development files are found by CMake. ``make install`` installs the compiled
+bindings and, if the Python modules ``ase``, ``xmltodict``, ``h5py``,
+``lxml`` and ``rdkit`` are available, the ``pyxtp`` package into the Python
+user site-packages directory (set ``CMAKE_INSTALL_PYTHON_LIBDIR`` to choose
+another directory). The plotting functions of ``Visualization`` also need
+``matplotlib``.
 
 Environment variables
 =====================
 
-The environment variable :envvar:`VOTCASHARE` must be defined in order for the 
+The environment variable :envvar:`VOTCASHARE` must be defined in order for the
 interface to find the default xml files and create the options data structure.
-You can set this environment variable in your shell configuration file:
+You can set this environment variable in your shell configuration file
+(``VOTCARC.bash`` sets it, too):
 
 .. highlight:: bash
 
 ::
 
-  $ export VOTCASHARE=/share/votca/
+  $ export VOTCASHARE=<installation prefix>/share/votca
 
 .. highlight:: python
 
 Or within python itself:
 
-  >>> os.environ['VOTCASHARE'] = '/share/votca/'
+  >>> os.environ['VOTCASHARE'] = '<installation prefix>/share/votca'
 
-Option parser
+Options
 *****************
 
-The `XTPOptions` class is the preferred handler for setting all the options of the xtp calculator.
+All options of the ``dftgwbse`` tool are available in the ``options``
+attribute of the calculator (an instance of ``pyxtp.options.Options``),
+which mirrors the XML option files, e.g. ``calc.options.dftpackage.basisset``
+or ``calc.options.gwbse.gw.mode``. Options that are not changed keep their
+default values (see :doc:`dftgwbse`). XC functionals are given by their
+libxc names, e.g. ``XC_HYB_GGA_XC_PBEH`` (the default) or
+``XC_GGA_X_PBE XC_GGA_C_PBE``.
 
-XTP calculator 
+XTP calculator
 *****************
 
-Frequently used options can be specified using
-the calculator's `set` routine.
+``xtp(label=None, nthreads=1, options=None, directory='./', **kwargs)``
 
-==================== ========= ============= =====================================
-keyword              type      default value description
-==================== ========= ============= =====================================
-``label``            ``str``   None          Name of input and output files
-``xc``               ``str``   None          XC functional to be used
-``basisset``         ``str``   None          Basis set to be used
-``charge``             int     0             Charge of the molecule
-==================== ========= ============= =====================================
+-  ``nthreads``: number of threads of the calculation
+-  ``options``: an ``Options`` object to start from (default: the defaults
+   of ``dftgwbse``)
+-  further keyword arguments are passed to ``set``
 
-Single Point Caclulation
-***************************
+Frequently used options can be specified with the calculator's ``set``
+routine (or as keyword arguments of the constructor):
 
-Here is an example of setting up a calculation on a water molecule: ::
+==================== ========= ============================= =================================
+keyword              type      default value                 option
+==================== ========= ============================= =================================
+``xc``               ``str``   ``XC_HYB_GGA_XC_PBEH``        ``dftpackage.functional``
+``basis``            ``str``   ``def2-tzvp``                 ``dftpackage.basisset``
+``charge``           ``int``   0                             ``dftpackage.charge``
+==================== ========= ============================= =================================
 
-    # Set up a water molecule
-    from ase.build import molecule
-    wat = molecule('H2O')
+Other options can be set with ``set`` by their path, e.g.
+``calc.set(**{'dftpackage/auxbasisset': 'aux-def2-svp'})``.
 
-    # Set up a XTP calculator
-    from pyxtp import xtp
-   
-    
-    # change options for the calculations
-    calc = xtp(label='water')
-    calc.options.dftpackage.functional = 'PBE'
-    calc.options.dftpackage.basisset = 'def2-svp'
-    calc.options.dftpackage.auxbasisset = 'aux-def2-svp'
+Results
+*******
 
-    # attach the calculator
-    wat.calc = calc
+Besides ``get_potential_energy()`` and ``get_forces()`` (ASE), the calculator
+provides e.g. ``get_dft_energy()``, ``get_qp_corrections()`` and
+``get_oscillator_strengths(dynamic=False)``. ``pyxtp.Visualization(atoms)``
+plots quasiparticle corrections, densities of states and absorption spectra.
 
-    # compute the energy terms
-    wat.get_potential_energy()
+Forces
+******
 
-.. highlight:: python
+``select_force(energy='energy', level=0, dynamic=False)`` chooses the energy
+whose forces ``get_forces`` (and therefore an ASE optimizer) uses:
 
+==================== ===============================================================
+``energy``           energy
+==================== ===============================================================
+``'energy'``         DFT total energy (analytic forces if the DFT engine provides
+                     them, otherwise finite differences)
+``'ks'``             total energy with Kohn-Sham level ``level`` excited
+``'qp'``             total energy with quasiparticle level ``level`` excited
+``'singlets'``       BSE singlet ``level`` (``dynamic=True``: with dynamical
+                     screening)
+``'triplets'``       BSE triplet ``level`` (``dynamic`` as for singlets)
+==================== ===============================================================
 
-Geometry Optimization
-***************************
+All energies except ``'energy'`` use finite differences of the total energy
+(displacement ``eps=0.001`` Å in ``get_forces``), i.e. one full DFT and
+GW-BSE calculation per displaced coordinate.
 
-Here is an example of setting up a geometry of a carbon monoxide 
-molecule using forces calculated on the first singlet state: ::
+Examples
+********
 
-    # Set up a water molecule
-    from ase.build import molecule
-    co = molecule('CO')
-    co.rattle()
-
-    # Set up a XTP calculator
-    from pyxtp import xtp
-   
-    # change options for the calculations
-    calc = xtp()
-    calc.options.dftpackage.functional = 'PBE'
-    calc.options.dftpackage.basisset = 'def2-svp'
-    calc.options.dftpackage.auxbasisset = 'aux-def2-svp'
-
-    # specify the wich forces we want to use
-    calc.select_force(energy='singlets', level=0, dynamic=False)
-
-    # attach the calculator
-    co.calc = calc
-
-    # compute the energy terms
-    from ase.optimize import QuasiNewton
-    from ase.io import write
-    dyn = QuasiNewton(co, trajectory='test.traj')
-    dyn.run(fmax=0.01)
-    write('final.xyz', atoms)
-
-.. highlight:: python
+See the tutorials :doc:`../xtp-tutorials/single_point` (energy and absorption
+spectrum of CO) and :doc:`../xtp-tutorials/geometry_optimization` (excited-state
+forces and geometry optimization of CO).

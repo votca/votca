@@ -1,5 +1,5 @@
 Versatile Object-oriented Toolkit for Coarse-graining Applications
-Copyright 2009-2021 The VOTCA Development Team
+Copyright 2009-2026 The VOTCA Development Team
 
 This product includes software developed at The VOTCA Development Team
 (http://www.votca.org).

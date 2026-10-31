@@ -28,6 +28,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/checkpoint.h"
+#include "votca/xtp/citations.h"
 #include "votca/xtp/ewaldrealspaceinteractor.h"
 #include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/polarregion.h"
@@ -69,6 +70,7 @@ void EwaldRegion::Initialize(const tools::Property& prop) {
 }
 
 void EwaldRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
+  citations::Cite("Poelking:2016");
   // Nothing polarizes this region, so all this does is record that the
   // other regions had no effect on it -- the energies are all zero by
   // construction (see the Interactwith* overrides). It is kept rather

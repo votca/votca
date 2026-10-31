@@ -34,6 +34,7 @@ Version 2026-dev
 -  improved threading in CI (#1263)
 -  single-threaded coverage build (#1264)
 -  exact and KMC time-of-flight (grw, kmctof), new KMC engine for kmcmultiple and kmclifetime with exact single-carrier values, stochastic network model (networkfit, networkgen) with trap identification, transport docs and tutorials (#1265)
+-  references of the methods used printed at the end of each run, ``--cite <calculator>``, XTP citation section and bibliography updated
    
 Version 2026 (released 09.03.26)
 ================================

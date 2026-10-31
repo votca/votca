@@ -3,6 +3,6 @@
   <tolerance_dipole help="convergence for interior iterations to converge polarisation response, solving linear syste," unit="bohr" default="5e-5" choices="float+" />
   <max_iter help="Maximum number of iterations for interior iteration" default="500"/>
   <exp_damp help="Thole sharpness parameter" default="0.39"/>
-  <cr_width help="Charge-response segments (chargeresponse_ files in the map file): width s of their Gaussian induced charges and dipoles, density ~ exp(-r^2/s^2), for the couplings between molecules and with the QM region. Not used by Thole segments" unit="Angstrom" default="0.7" choices="float+"/>
+  <cr_width help="Charge-response segments (files with the prefix chargeresponse in the map file): width s of their Gaussian induced charges and dipoles, density ~ exp(-r^2/s^2), for the couplings between molecules and with the QM region. Not used by Thole segments" unit="Angstrom" default="0.7" choices="float+"/>
   <cr_dipole_damping help="Charge-response segments: dipole-dipole coupling between molecules when one site is a charge-response site; gaussian: Gaussian dipoles of width cr_width; thole: Thole damping with exp_damp" default="gaussian" choices="gaussian,thole"/>
 </polar>
