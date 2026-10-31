@@ -10,7 +10,7 @@ where :math:`A^*` denotes a molecule :math:`A` in its excited state. The excitat
 Adiabatic vs Diabatic States
 ****************************
 
-The adiabatic potential energy surface is plotted :numref:`fig_theory_reorg`. For a given molecular arrangement, denoted :math:`\xi_A`, the excitation localizes on molecule :math:`A` and for :math:`\xi_B` on molecule :math:`B`. Expanded in the adiabatic states, the full Hamiltonian of the dimer complex can be expressed as:
+The adiabatic potential energy surface is plotted in :numref:`fig_theory_reorg`. For a given molecular arrangement, denoted :math:`\xi_A`, the excitation localizes on molecule :math:`A` and for :math:`\xi_B` on molecule :math:`B`. Expanded in the adiabatic states, the full Hamiltonian of the dimer complex can be expressed as:
 
 .. math::
 
@@ -30,7 +30,7 @@ Transitions between these states are mediated by the matrix elements :math:`\hat
     :width: 400
     :align: center
 
-    Diabatic (black) and adiabatic (red dashed) potential energy surfaces along the reaction coordinate :math:`\xi`. Whereas the adiabatic surfaces do not cross, but change character, the diabatic states retain their chemical character but cross. The electronic coupling :math:`J_{AB}` can be read of as half the energetic separation between :math:`\ket{0}` and :math:`\ket{1}` at :math:`\xi^*`.
+    Diabatic (black) and adiabatic (red dashed) potential energy surfaces along the reaction coordinate :math:`\xi`. Whereas the adiabatic surfaces do not cross, but change character, the diabatic states retain their chemical character but cross. The electronic coupling :math:`J_{AB}` can be read off as half the energetic separation between :math:`\ket{0}` and :math:`\ket{1}` at :math:`\xi^*`.
 
 In the case of a delocalized system, the electronic excitation is well described by :math:`\ket{0}` and the nuclear motion will be governed by :math:`\hat{H}^0` from :eq:`equ:theory:ham_adiab`. This situation corresponds to a large split of the adiabatic energy surfaces (:math:`J_{AB}` in :numref:`fig_theory_reorg`).
 
@@ -107,14 +107,14 @@ If the diabatic PESs :math:`U_A(\xi)` and :math:`U_B(\xi)` are known the rate eq
 
 .. math::
 
-    U(\mathbf{R})=U^0+\sum_{ij} h_{ij} (R_i-R_i^0)(R_j-R_j^0)=U^0+\sum_{a} \omega_a (Q_a-Q_a^0)^2=U(\mathbf{Q}),
+    U(\mathbf{R})=U^0+\frac{1}{2}\sum_{ij} h_{ij} (R_i-R_i^0)(R_j-R_j^0)=U^0+\frac{1}{2}\sum_{a} \omega_a^2 (Q_a-Q_a^0)^2=U(\mathbf{Q}),
 
 
 where :math:`Q_a` are mass weighted normal mode coordinates with eigenfrequencies :math:`\omega_a`, obtained by diagonalizing the Hessian matrix :math:`h_{ij}`. The excitation transfer reaction is typically triggered by a subset of these eigenmodes. Often the nuclear motion can be described as a linear combination of these eigenmodes, yielding the reaction coordinate, :math:`\xi`, with its eigenfrequency :math:`\omega_\xi` and conjugate momentum operator :math:`\hat{P}_\xi`. The corresponding nuclear Hamiltonian then reads:
 
 .. math::
 
-    \hat{H}_\text{nuc}=\frac{1}{2} \hat{P}_\xi^2+U^0+\frac{1}{2} \omega_\xi (\xi-\xi^0)^2.
+    \hat{H}_\text{nuc}=\frac{1}{2} \hat{P}_\xi^2+U^0+\frac{1}{2} \omega_\xi^2 (\xi-\xi^0)^2.
 
 
 Treating the oscillations along :math:`\xi`, i.e. the promoting mode, classically we arrive at the Marcus rate equation [Marcus:1993]_:
@@ -128,14 +128,14 @@ Here :math:`\lambda` denotes the classical reorganization energy, which describe
 
 .. math::
 
-    \lambda=\frac{1}{2}\omega_\xi(\xi_A-\xi_B)^2.
+    \lambda=\frac{1}{2}\omega_\xi^2(\xi_A-\xi_B)^2.
 
 
 If the dimer complex is surrounded by other molecules environmental reorganization effects may also contribute. These can be described by an additional harmonic mode :math:`\tilde{\xi}`, yielding the outer sphere reorganization energy:
 
 .. math::
 
-    \lambda^\text{out}=\frac{1}{2}\omega_{\tilde{\xi}}(\tilde{\xi}_A-\tilde{\xi}_B)^2.
+    \lambda^\text{out}=\frac{1}{2}\omega_{\tilde{\xi}}^2(\tilde{\xi}_A-\tilde{\xi}_B)^2.
 
 
 :math:`U_{AB}` in :eq:`equ:theory:marcus` is the energy difference:
@@ -145,7 +145,7 @@ If the dimer complex is surrounded by other molecules environmental reorganizati
     U_{AB}=U_A(\xi_A)-U_B(\xi_B)
 
 
-The Marcus rate has been used to great success to describe charge transfer in solution and solids. The classical treatment of the promoting modes :math:`\xi,\tilde{\xi}` is only justified if :math:`k_BT\gg\omega_\xi,\omega_{\tilde{\xi}}`. This is rarely the case, as intramolecular vibrations have zero-point energies of around 0.1eV, which is roughly four times the thermal energy at room temperature. Yet, the Marcus theory has been shown to give good results even at the limits of its validity. Other rate expression like, Marcus-Levich-Jortner rates, which treat the promoting mode quantum mechanically or Weiss-Dorsey rates, which treat the whole system quantum mechanically, extend the formal applicability of transfer rate theories. Unfortunately, these rates require additional input parameters to describe the PES, which can only be obtained at substantial computational cost.
+The Marcus rate has been used to great success to describe charge transfer in solution and solids. The classical treatment of the promoting modes :math:`\xi,\tilde{\xi}` is only justified if :math:`k_BT\gg\hbar\omega_\xi,\hbar\omega_{\tilde{\xi}}`. This is rarely the case, as intramolecular vibrations have zero-point energies of around 0.1eV, which is roughly four times the thermal energy at room temperature. Yet, the Marcus theory has been shown to give good results even at the limits of its validity. Other rate expression like, Marcus-Levich-Jortner rates, which treat the promoting mode quantum mechanically or Weiss-Dorsey rates, which treat the whole system quantum mechanically, extend the formal applicability of transfer rate theories. Unfortunately, these rates require additional input parameters to describe the PES, which can only be obtained at substantial computational cost.
 
 Monomer States as Approximations to Diabatic States
 ***************************************************
@@ -163,7 +163,7 @@ The diabatic state is approximately the product of the adiabatic excited state o
     :label: equ:coarsesiteE
 
     \begin{align}
-    U_{AB}&=U_A(\xi_A)-U_B(\xi_B)\approx U_a^1(\xi_a^1)+U_b^0(\xi_b^0)-(U_a^0(\xi_a^0)+U_b^1(\xi_b^0)\nonumber\\
+    U_{AB}&=U_A(\xi_A)-U_B(\xi_B)\approx U_a^1(\xi_a^1)+U_b^0(\xi_b^0)-(U_a^0(\xi_a^0)+U_b^1(\xi_b^1))\nonumber\\
     &=\underbrace{(U_a^1(\xi_a^1)-U_a^0(\xi_a^0))}_{\Delta E_a}-\underbrace{(U_b^1(\xi_b^1)-U_b^0(\xi_b^0))}_{\Delta E_b}=\Delta E_{ab},
     \end{align}
 

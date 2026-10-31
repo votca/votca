@@ -326,7 +326,7 @@ carries energy, and from regions further in in ``V_noE()``, which does not.
    * - polar induced × background
      - ``E_polar_ext``, as :math:`\sum \boldsymbol{\mu}\cdot\mathbf{V}`
    * - polar induction self-energy
-     - ``E_polar_internal``
+     - ``E_internal``
    * - background internal
      - **not computed** — see below
 

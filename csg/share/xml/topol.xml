@@ -1,5 +1,8 @@
 <topology>
-    <DESC>The XML topology root element, the base for the topology can be defined by the "name" attribute</DESC>
+    <DESC>The XML topology root element, the base for the topology (another topology file which is read first) can be defined by the "base" attribute</DESC>
+    <box>
+        <DESC>Rectangular simulation box, attributes xx, yy and zz (box lengths in nm)</DESC>
+    </box>
     <h5md_particle_group>
         <DESC>Attribute name holds the name of particles group in H5MD file</DESC>
     </h5md_particle_group>

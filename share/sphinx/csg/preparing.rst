@@ -48,43 +48,19 @@ be added manually.
 Post-processing of the potential
 --------------------------------
 
-The post-processing roughly consists of the following steps (see further
-explanations below):
+VOTCA no longer provides tools for post-processing potentials (the former
+``csg_resample`` and ``csg_call`` table scripts were removed); these steps
+have to be done with other tools. They roughly consist of
 
--  (manually) clipping poorly sampled (border) regions
+-  clipping poorly sampled (border) regions, e.g. by deleting them from the
+   table or by setting their flag to ``o`` (out of range),
 
--  resampling the potential in order to change the grid to the proper
-   format ()
+-  resampling the potential to the grid required by the MD package,
 
--  extrapolation of the potential at the borders ( table extrapolate)
+-  extrapolating the potential into the clipped regions,
 
--  exporting the table to xvg ( convert\_potential gromacs)
+-  exporting the table in the format of the MD package.
 
-Clipping of poorly sampled regions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Regions with an irregular distribution of samples should be deleted
-first. This is simply done by editing the ``.pot`` file and by deleting
-those values.
-
-Alternatively, manually check the range where the potential still looks
-good and is not to noisy and set the flags in the potential file of the
-bad parts by hand to ``o`` (for ``out of range``). Those values will
-later be extrapolated and overwritten.
-
-Extrapolation
-~~~~~~~~~~~~~
-
-After resampling, all values in the potential file that should be used
-as a basis for extrapolation are marked with an ``i``, while all values
-that need extrapolation are marked by ``o``. The command above now
-extrapolates all ``o`` values from the ``i`` values in the file.
-Available options include averaging over a certain number of points
-(``avgpoints``), changing the functional form (``function``, default is
-quadratic), extrapolating just the left or right region of the file
-(``region``) and setting the curvature (``curvature``).
-
-The output ``table_extrapolate.pot`` of the extrapolation step can now
-be used for the coarse-grained run. If GROMACS is used as a molecule
-dynamics package, the potential has to be converted and exported to a
-suitable GROMACS format as described in the final step.
+Tables written by ``csg_stat`` and ``csg_fmatch`` have the columns
+``x y [error] flag``, where the flag ``i`` marks values inside the sampled
+range and ``o`` values outside of it.

@@ -22,6 +22,7 @@
 #include "votca/xtp/aogaussiansites.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/citations.h"
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/dftengine.h"
@@ -164,6 +165,9 @@ void QMRegion::Initialize(const tools::Property& prop) {
 }
 
 void QMRegion::PrepareOrbitalsForGWBSE() {
+  citations::Cite("Baumeier:2014");
+  citations::Cite("Tirimbo:2020b");
+  citations::Cite("Tirimbo:2024a");
   if (orb_.isOpenShell()) {
     throw std::runtime_error("GWBSE not implemented for open-shell systems");
   }

@@ -28,6 +28,7 @@
 #include "votca/xtp/bse.h"
 #include "votca/xtp/bse_operator.h"
 #include "votca/xtp/bsecoupling.h"
+#include "votca/xtp/citations.h"
 
 namespace votca {
 namespace xtp {
@@ -355,6 +356,7 @@ int GetSign(double value) {
 void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                      const Orbitals& orbitalsB,
                                      const Orbitals& orbitalsAB) {
+  citations::Cite("Wehner:2017");
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << "  Calculating exciton couplings" << flush;
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Using "

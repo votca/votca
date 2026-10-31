@@ -38,6 +38,7 @@
 #include "votca/xtp/aogaussiansites.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
+#include "votca/xtp/citations.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/dftgradient.h"
@@ -984,6 +985,9 @@ tools::EigenSystem DFTEngine::ModelPotentialGuess(
 
 bool DFTEngine::Evaluate(Orbitals& orb) {
   timings_.Reset();
+  if (cdft_enabled_) {
+    citations::Cite("Wu:2005");
+  }
   // a tensor carried over from a guess would describe another state
   orb.clearPolarizability();
   bool success = EvaluateAndTime(orb);

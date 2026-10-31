@@ -6,7 +6,7 @@ code consistent between repositories. In the past, there has been
 difficulty in translating functionality between repositories and within
 the same repositories because different properties have been used to
 describe the same object attribute. For general programming guidelines 
-look at the `Developers Guide <DEVELOPERS_GUIDE.rst>`__
+look at the :doc:`DEVELOPERS_GUIDE`.
 
 Types and Ids
 -------------
@@ -56,6 +56,6 @@ All indices in VOTCA start at ``0``. This is useful, because C++ arrays
 start at index 0.
 
 Apart from special cases all indices and integers in VOTCA should be
-``votca::Index`` which is a typedef for ``long int``. ``.size()``
-methods of std::containers return an ``unsigned long int`` and should be
+``votca::Index``, which is ``Eigen::Index`` (a signed ``std::ptrdiff_t``). ``.size()``
+methods of std::containers return an unsigned ``std::size_t`` and should be
 cast to ``votca::Index``. i.e: ``votca::Index(vector.size())``

@@ -66,11 +66,9 @@ class CsgStatApp : public CsgApplication {
 void CsgStatApp::HelpText(ostream &out) {
   out << "Calculate all distributions (bonded and non-bonded) specified in "
          "options file.\n"
-         "Optionally calculates update Eigen::Matrix3d for invere Monte Carlo. "
-         "This "
-         "program\n"
-         "is called inside the inverse scripts. Big systems\n"
-         "can be treated as well as non-bonded interactions can be evaluated.";
+         "Optionally (--do-imc) writes the matrices for an inverse Monte "
+         "Carlo\n"
+         "update, which csg_imc_solve solves.";
 }
 
 void CsgStatApp::Initialize() {

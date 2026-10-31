@@ -31,6 +31,7 @@
 #include <Eigen/SparseLU>
 
 // Local VOTCA includes
+#include "votca/xtp/citations.h"
 #include "votca/xtp/graphrandomwalk.h"
 #include "votca/xtp/scaledsolve.h"
 
@@ -439,6 +440,7 @@ GraphRandomWalk::Transient GraphRandomWalk::FindTransient() const {
 }
 
 GraphRandomWalk::Result GraphRandomWalk::SingleCarrier(Solver solver) const {
+  citations::Cite("Chen:2025a");
   const Index n = graph_.NumberOfSites();
   const std::vector<ToFGraph::Site>& sites = graph_.Sites();
   Transient tr = FindTransient();
@@ -503,6 +505,7 @@ GraphRandomWalk::Result GraphRandomWalk::SingleCarrier(Solver solver) const {
 
 GraphRandomWalk::Result GraphRandomWalk::TwoCarriers(Observable observable,
                                                      Solver solver) const {
+  citations::Cite("Chen:2025a");
   const Index n = graph_.NumberOfSites();
   const std::vector<ToFGraph::Site>& sites = graph_.Sites();
   Transient tr = FindTransient();

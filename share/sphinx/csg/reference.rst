@@ -57,16 +57,29 @@ following keywords:
 Topology file
 -------------
 
-The XMLtopology file
+The XML topology file has the following options:
 
 .. include:: topol.rst
 
 .. _reference_settings_file:
 
+Settings file
+-------------
+
+The settings file (``--options``) of ``csg_stat``, ``csg_fmatch`` and
+``csg_reupdate`` has the following options:
+
+.. include:: csg_defaults.rst
+
 csgapps
 -------
 
-Extra user-contibuted applications based on the csg application class, that aren't needed for the normal workflows. Installable with ``-DINSTALL_CSGAPPS=ON``.
+Extra user-contributed applications based on the csg application class, that aren't needed for the normal workflows. Installable with ``-DINSTALL_CSGAPPS=ON``.
+
+csg_density
+^^^^^^^^^^^
+
+.. include:: csg_density.rst
 
 csg_fluctuations
 ^^^^^^^^^^^^^^^^
@@ -102,7 +115,3 @@ csg_traj_force
 ^^^^^^^^^^^^^^
 
 .. include:: csg_traj_force.rst
-
-csg_density
-^^^^^^^^^^^
-.. include:: csg_density.rst

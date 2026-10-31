@@ -28,6 +28,7 @@
 #include <Eigen/Eigenvalues>
 
 // Local VOTCA includes
+#include "votca/xtp/citations.h"
 #include "votca/xtp/trapfinder.h"
 
 namespace votca {
@@ -46,6 +47,7 @@ Eigen::VectorXd Normalized(const Eigen::VectorXcd& v) {
 
 TrapFinder::Result TrapFinder::Find(const ToFGraph& graph,
                                     const Settings& settings) {
+  citations::Cite("Chen:2025b");
   if (!(settings.threshold > 0.0 && settings.threshold < 1.0) ||
       !(settings.gap >= 1.0) || settings.modes < 3 ||
       !(settings.mass > 0.0 && settings.mass <= 1.0) || settings.max_size < 1) {

@@ -15,27 +15,29 @@
   <nbsearch>grid
     <DESC>Grid search algorithm, simple (N square search) or grid</DESC>
   </nbsearch>
+  <inverse>
+    <DESC>Options for the update step of csg_reupdate (relative entropy)</DESC>
+    <kBT>
+      <DESC>Temperature times Boltzmann constant in the energy units of the potentials (e.g. kJ/mol for GROMACS)</DESC>
+    </kBT>
+    <scale>
+      <DESC>Scaling (relaxation) factor of the parameter update</DESC>
+    </scale>
+  </inverse>
   <bonded>
     <DESC>Interaction specific option for bonded interactions, see the cg.non-bonded section for all options</DESC>
-    <dlpoly>
-      <header>
-        <DESC>Header of the interaction in dlpoly TABBND or TABANG file. The header should be a unique set of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
-      </header>
-    </dlpoly>
     <name>
       <DESC>Name of the bonded interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
     </name>
-    <periodic>0
-      <DESC>set to 1 when calculating bond dihedral potentials with csg_fmatch -> enforces periodicity of potential. (default is 0) </DESC>
-    </periodic>
+    <fmatch>
+      <DESC>Force matching options (as for non-bonded interactions)</DESC>
+      <periodic>0
+        <DESC>set to 1 when calculating dihedral potentials with csg_fmatch: enforces periodicity of the potential (default is 0)</DESC>
+      </periodic>
+    </fmatch>
   </bonded>
   <non-bonded>
     <DESC>Interaction specific option for non-bonded interactions</DESC>
-    <dlpoly>
-      <header>
-        <DESC>Header of the interaction in dlpoly TABLE file. The header should be a unique pair of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
-      </header>
-    </dlpoly>
     <name>
       <DESC>Name of the interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
     </name>
@@ -45,6 +47,21 @@
     <type2>
       <DESC>**Bead** type 2 of non-bonded interaction.</DESC>
     </type2>
+    <type3>
+      <DESC>**Bead** type 3 of a three-body interaction (threebody=1).</DESC>
+    </type3>
+    <threebody>0
+      <DESC>1: three-body interaction of the bead types type1-type2-type3 (csg_stat: angular distribution, csg_fmatch: Stillinger-Weber-type three-body force); default 0</DESC>
+    </threebody>
+    <cut>0.37
+      <DESC>csg_stat, three-body interactions: cut-off of the triple neighbour list (nm, default 0.37)</DESC>
+    </cut>
+    <force>0
+      <DESC>csg_stat: 1 also computes the mean force projected on the pair distance (written to name.force.new); default 0</DESC>
+    </force>
+    <max_intra>
+      <DESC>csg_stat --include-intra: upper bound of the interval used instead of max for non-bonded interactions</DESC>
+    </max_intra>
     <bondtype>
       <DESC>Internal alias for "non-bonded" or "bonded", set automatically</DESC>
     </bondtype>
@@ -68,10 +85,27 @@
       <step>
         <DESC>grid spacing for the spline, which represents the interaction. This parameter should not be too big, otherwise you might lose some features of the interaction potential, and not too small either, otherwise you will have unsampled bins which result in an ill-defined equation system and NaNs in the output.</DESC>
       </step>
+      <a>0.37
+        <DESC>Three-body interactions: cut-off a (nm) of the Stillinger-Weber-type form (default 0.37)</DESC>
+      </a>
+      <sigma>1
+        <DESC>Three-body interactions: sigma (dimensionless) of the Stillinger-Weber-type form (default 1)</DESC>
+      </sigma>
+      <gamma>0.12
+        <DESC>Three-body interactions: gamma (nm) of the Stillinger-Weber-type form (default 0.12)</DESC>
+      </gamma>
       <out_step>
         <DESC>Grid spacing for the output grid. Normally, one wants to have this parameter smaller than fmatch.step, to have a smooth curve, without additional spline interpolation. As a rule of thumb we normally use fmatch.out_step which is approximately 5 times smaller than fmatch.step.</DESC>
       </out_step>
     </fmatch>
+    <inverse>
+      <DESC>Options for csg_stat --do-imc</DESC>
+      <imc>
+        <group>
+          <DESC>Group of interactions whose inverse Monte Carlo matrices are computed together ("none": not part of IMC)</DESC>
+        </group>
+      </imc>
+    </inverse>
     <re>
       <DESC>Relative entropy options</DESC>
       <function>
