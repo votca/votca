@@ -1,17 +1,21 @@
 |Codacy Badge| |CI| |Docker| |FreeBSD| |DOI| |JOSS|
 
-This is VOTCA, which provides the two following subpackages:
+VOTCA (Versatile Object-oriented Toolkit for Coarse-graining Applications)
+is a C++ package for multiscale simulations of soft matter:
 
--  VOTCA-CSG, a library which provides tools to develop coarse-grained
-   potentials from atomistic simulation data
--  VOTCA-XTP, a library providing the DFT+GW-BSE method to calculate
-   electronically excited states in single molecules, in molecular materials
-   with quantum-classical embedding, as well as electron, hole, and exciton
-   dynamics in atomistic MD-trajectories.
+-  **VOTCA-XTP**: excited states of molecules and molecular materials with
+   DFT and many-body Green's functions (GW-BSE), also in quantum-classical
+   (QM/MM) embedding with polarizable environments; electronic couplings,
+   and charge and exciton transport (kinetic Monte Carlo, time of flight,
+   graph random walks) in morphologies from molecular dynamics.
+-  **VOTCA-CSG**: coarse-graining from atomistic simulations (force matching,
+   relative entropy, inverse Monte Carlo) and analysis of MD trajectories
+   from GROMACS, LAMMPS and other packages.
 
-Basic installation
-##################
-(see performance advice in `Install Guide <share/sphinx/INSTALL.rst>`__)
+Documentation, manuals and tutorials: https://www.votca.org
+
+Installation
+############
 
 ::
 
@@ -20,15 +24,24 @@ Basic installation
     git clone -b ${version} https://github.com/votca/votca.git
     cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>
-    ctest --test-dir builddir # to test build
+    ctest --test-dir builddir # to test the build
     cmake --build builddir --target install
+    source ${prefix}/bin/VOTCARC.bash
 
-Using this code via docker
-##########################
-::
+Requirements, distribution packages and performance advice (MKL, Apple
+Accelerate) are in the `installation guide <share/sphinx/INSTALL.rst>`__.
+VOTCA is also available as a Docker image::
 
-    docker pull votca/votca
     docker run -it votca/votca /bin/bash
+
+Getting started
+###############
+
+The programs ``xtp_tools``, ``xtp_map``, ``xtp_run`` and ``xtp_parallel``
+(XTP) and ``csg_*`` (CSG) print their options with ``--help``; for the XTP
+calculators use ``-l`` (list) and ``-d <name>`` (options). The XTP tutorials
+(Jupyter notebooks in ``xtp-tutorials``) cover single-molecule GW-BSE, QM/MM
+workflows for GROMACS and LAMMPS morphologies, and charge transport.
 
 Citation
 ########
@@ -42,17 +55,15 @@ If you use VOTCA, please cite
 The XTP programs print the papers of the methods used at the end of each
 run; ``--cite <name>`` lists them for a calculator or tool without running it.
 
-More detailed information:
-##########################
+Contributing
+############
 
-1. `Installation <share/sphinx/INSTALL.rst>`__
-2. `Further Information <http://www.votca.org>`__
-3. `Developers Guide <share/sphinx/DEVELOPERS_GUIDE.rst>`__
-4. `VOTCA\_LANGUAGE\_GUIDE <share/sphinx/VOTCA_LANGUAGE_GUIDE.rst>`__
-5. `Code of Conduct <share/sphinx/CODE_OF_CONDUCT.rst>`__
-
-You find the legacy VOTCA-CTP repository
-`here <https://gitlab.mpcdf.mpg.de/votca/votca>`__
+Bugs and questions: `GitHub issues <https://github.com/votca/votca/issues>`__
+and the `VOTCA forum <https://groups.google.com/g/votca>`__. See the
+`developers guide <share/sphinx/DEVELOPERS_GUIDE.rst>`__, the
+`language guide <share/sphinx/VOTCA_LANGUAGE_GUIDE.rst>`__ and the
+`code of conduct <share/sphinx/CODE_OF_CONDUCT.rst>`__. The legacy
+VOTCA-CTP code is `here <https://gitlab.mpcdf.mpg.de/votca/votca>`__.
 
 .. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/b5567bfcf2c8411a8057c47fa7126781
    :target: https://www.codacy.com/gh/votca/votca?utm_source=github.com&utm_medium=referral&utm_content=votca/votca&utm_campaign=Badge_Grade
@@ -67,8 +78,8 @@ You find the legacy VOTCA-CTP repository
 .. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.06864/status.svg
    :target: https://doi.org/10.21105/joss.06864
 
-License:
-########
+License
+#######
 
 Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
 
