@@ -17,104 +17,21 @@
  *
  */
 
-// ===========================================================================
-// STATUS UPDATE (later, via a real pyxtp run, not a unit test): a second,
-// independent, more serious bug was found AFTER everything below was
-// believed validated. Every buffer-mapping test in this file (and every
-// finite-difference test built on top of it, throughout the whole
-// plain-DFT-forces branch) used H2 with a minimal, all-s-shell basis
-// (3-21G). libint2 returns each shell-pair derivative buffer in
-// ROW-MAJOR order, but every buffer mapping below used plain
-// Eigen::Map<const Eigen::MatrixXd> (Eigen's default COLUMN-MAJOR) --
-// identical to row-major for a 1x1 (pure s-shell) block, silently wrong
-// for any block with more than one function per shell (p/d/f angular
-// momentum). Invisible for H2/3-21G; a large (~2-4%), real rotational-
-// covariance violation for a genuine CO/def2-tzvp calculation (both
-// atoms have p and d shells) -- found by comparing the same molecule in
-// two orientations term-by-term, not by any test in this codebase.
-// Fixed by switching to MatrixLibInt (Eigen::RowMajor), matching the
-// already-correct, already-validated convention libint2_calls.cc uses
-// for the energy-level (deriv_order=0) integrals this file's functions
-// are the derivatives of. See the MatrixLibInt definition below for the
-// full explanation. NOT yet re-confirmed by a real rerun as of this
-// comment -- the fix is reasoned from a clear, specific mechanism (not
-// a guess), but treat the "strongly validated" claims elsewhere in this
-// file's history below with real skepticism: they were true only for
-// all-s-shell systems, which is a much narrower claim than it reads.
-// ===========================================================================
+// Nuclear-coordinate derivatives of AO integrals (overlap, kinetic, nuclear
+// attraction, two-centre Coulomb metric, three-centre RI) via libint2 engines
+// with deriv_order = 1, for the analytic DFT gradient. Derivatives are with
+// respect to atomic positions in Bohr.
 //
-// STATUS (ORIGINAL, PRE-DATING THE BUG ABOVE): derivative-integral code
-// below is now strongly validated -- FOR H2/3-21G SPECIFICALLY, not in
-// general; see the update above.
-//
-// Full history: build-level root cause (libint2 built without derivative
-// support -- eventually traced to Homebrew resolving formulae from its
-// hosted API rather than the locally-edited tap file, requiring
-// HOMEBREW_NO_INSTALL_FROM_API=1 to actually take effect) is fixed.
-// libint2::Engine confirmed (via Psi4's own integral-programming docs) to
-// provide all centers' derivatives explicitly, not via translational
-// invariance -- code reads all 6 buffers directly, matching the ORIGINAL
-// (v1) assumption; the diagnostic print confirms this directly at runtime
-// (buf.size()=6, all six non-null).
-//
-// The finite-difference test then showed a discrepancy that turned out to
-// be a bug in the TEST, not this file: BuildH2() displaces atoms in
-// Angstrom, but XTP represents geometry internally in Bohr, so the
-// finite-difference reference was dS/dR per-Angstrom while the analytic
-// result here is dS/dR per-Bohr. Every nonzero entry of the two matrices
-// differed by the exact same factor (~1.8897 = 1/0.529177, the
-// Bohr-to-Angstrom conversion) -- a uniform multiplicative discrepancy
-// across all entries is the signature of a unit mismatch, not a
-// structural bug (wrong buffer/index/sign would not produce one uniform
-// ratio). After converting the finite-difference reference to per-Bohr
-// units in test_aoderivatives.cc, the two agree to ~1 part in 40000,
-// consistent with expected O(h^2) truncation error at h=1e-4.
-//
-// Also independently consistent throughout: the translational-invariance
-// symmetry check (deriv[0][2] == -deriv[1][2]) passed even before the
-// units bug was found, since that check never involves finite differences
-// -- it is a real, unit-independent confirmation that the analytic code
-// satisfies the exact mathematical constraint it must. NOTE: this check
-// is ALSO blind to the row-major/column-major bug above for an all-s-shell
-// system -- d[0][2]==-d[1][2] holds regardless of storage order for 1x1
-// blocks, so it could not have caught this either.
-// ===========================================================================
-//
-// Build/run history on this file:
-//   - Originally drafted with no local libint2 install available, so it
-//     could not be compiled or run at all when first written.
-//   - First real build attempt failed at link time (duplicate symbols for
-//     libint2's internal static tables) -- fixed by removing a duplicate
-//     inclusion of <libint2/statics_definition.h>, which must appear in
-//     exactly one translation unit per library.
-//   - First real run attempt crashed (null pointer, address 0x0) at test
-//     entry, single-threaded. Multi-threaded, the same underlying issue
-//     showed up as a repeating C++ exception across worker threads rather
-//     than a clean crash, which is a separate, real defect in its own
-//     right: the parallel loop below never wrapped its body in a
-//     try/catch, so an exception escaping an OpenMP worker thread is
-//     undefined behavior. That is not yet fixed either -- still worth
-//     adding once the buffer-count question is settled, so a real error
-//     in production use terminates cleanly instead of hanging.
-//
-// CURRENT HYPOTHESIS (revised from the original 6-buffer assumption):
-//   For a two-center one-electron integral, libint2 most likely returns
-//   only 3 derivative buffers (d/dx,dy,dz with respect to shell1's atom),
-//   not 6, exploiting the translational-invariance sum rule
-//   d(integral)/dR_atom1 + d(integral)/dR_atom2 = 0 (valid because this
-//   integral depends only on the relative position of the two atoms) to
-//   avoid computing shell2's derivative explicitly. The original
-//   assert(buf.size() == 6) did not catch this, most likely because
-//   target_ptr_vec's size() reports a fixed nominal capacity rather than
-//   the number of meaningfully-populated buffers -- so an out-of-bounds
-//   read at buf[3+xyz] returned a null pointer rather than tripping a
-//   bounds check. The code below has been revised to derive shell2's
-//   derivative as the negative of shell1's, per shell pair, rather than
-//   reading buf[3+xyz] at all. A diagnostic print has been left in to
-//   directly confirm the real buf.size() and which entries are non-null
-//   on the next run -- please check that output before trusting this fix,
-//   and remove the diagnostic once confirmed either way.
-// ===========================================================================
+// Conventions:
+// - libint2::Engine returns the derivatives with respect to every centre
+//   explicitly (buffers ordered by centre, then x, y, z); none is omitted via
+//   translational invariance.
+// - Shell-pair buffers are row-major and are mapped with MatrixLibInt, as in
+//   libint2_calls.cc. A column-major map is indistinguishable for s shells
+//   only.
+// - Each derivative category needs its own libint2 configure option (see the
+//   compile guards below); missing support makes the functions throw.
+// - Exceptions inside OpenMP regions are captured and rethrown afterwards.
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
@@ -139,14 +56,8 @@
 #pragma GCC diagnostic ignored "-Wcpp"
 #endif
 #include <libint2.hpp>
-// NOTE: deliberately NOT including <libint2/statics_definition.h> here.
-// That header *defines* storage for libint2's internal static tables
-// (e.g. FmEval_Chebyshev7<double>::cheb_table) and must appear in exactly
-// one translation unit per library -- libint2_calls.cc already provides
-// it for the whole votca_xtp library. Including it here too caused a
-// duplicate-symbol link error (caught when actually building against a
-// real libint2 install, which wasn't possible in the environment this
-// file was originally drafted in -- see file status note above).
+// <libint2/statics_definition.h> defines libint2's static tables and must be
+// included in exactly one translation unit; libint2_calls.cc does that.
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #elif defined(__GNUC__)
@@ -169,135 +80,49 @@ std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
 // elsewhere in this file (dense Eigen::MatrixXd, size AOBasisSize^2).
 using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
 
-// BUG FOUND (real pyxtp run on CO, def2-tzvp -- see conversation history
-// for the full diagnostic trail): libint2 returns each shell-pair
-// derivative buffer in ROW-MAJOR order (n1 rows x n2 columns, matching
-// libint2_calls.cc's own already-validated MatrixLibInt convention used
-// throughout the energy-level, deriv_order=0 integral code). Every
-// function below originally mapped these buffers with plain
-// Eigen::Map<const Eigen::MatrixXd>, which defaults to Eigen's
-// COLUMN-MAJOR storage order -- silently transposing each block within
-// a shell pair whenever either shell has more than one function (any
-// p/d/f angular momentum, not pure s-type). This was invisible in
-// EVERY finite-difference test in this branch, all of which used H2
-// with a minimal, all-s-shell basis (3-21G) -- row-major and
-// column-major are identical for a 1x1 block. It showed up as a
-// genuine, large (~2-4%) rotational-covariance violation for a real
-// CO/def2-tzvp calculation (both O and C have p and d shells).
+// libint2 returns each shell-pair (derivative) buffer in row-major order,
+// n1 rows x n2 columns, as in libint2_calls.cc. Mapping it as column-major
+// transposes every block with p or higher shells; for s shells (1x1 blocks)
+// both agree, so tests on all-s bases cannot detect it.
 using MatrixLibInt =
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 namespace {
-// Shared by every derivative-computing function's own compile-guard
-// stub below (see each guard's own comment for why it exists and which
-// specific libint2 configure flag is relevant to it -- overlap/
-// kinetic/nuclear attraction, the Coulomb metric, and three-center RI
-// each have their OWN, independent flag, confirmed via libint2's own
-// engine.impl.h, which validates braket_ against LIBINT_INCLUDE_ONEBODY/
-// _ERI2/_ERI3 completely independently of one another). Deliberately
-// defined here, unconditionally (not inside any #if guard), since it
-// does not itself depend on any of those macros -- only the stubs that
-// call it do.
-// [[maybe_unused]]: on a build where all three categories (ONEBODY,
-// ERI2, ERI3) are actually supported, none of the #else stub blocks
-// below that call this are ever compiled -- making this function
-// itself genuinely unused. Confirmed as a real -Werror -Wunused-function
-// build failure on a CI runner with full derivative support (clang,
-// this exact function flagged). Defined unconditionally (not inside
-// any #if guard) specifically so it can be shared across every stub
-// block regardless of which category(ies) are missing; that same
-// choice is what makes it possible for none of them to be active at
-// once.
+// Thrown by the stubs compiled when a derivative category (ONEBODY, ERI2,
+// ERI3; independent libint2 configure options) is unavailable.
+// [[maybe_unused]] because no stub is compiled if all three are supported
+// (-Werror -Wunused-function).
 [[noreturn, maybe_unused]] void ThrowNoDerivativeSupport(
     const char* function_name, const char* configure_flag) {
   throw std::runtime_error(
       std::string(function_name) +
       ": this libint2 build was compiled without derivative integral "
-      "support for this specific operator category -- analytic nuclear "
-      "forces using this function are unavailable. Rebuild libint2 "
-      "with this configured (" +
+      "support for this operator category, so analytic nuclear forces "
+      "are unavailable. Rebuild libint2 with " +
       configure_flag +
-      " at libint2 configure time) to use this feature. Many "
-      "pre-packaged libint2 builds (Homebrew, Ubuntu apt, etc.) do not "
-      "enable this by default; note in particular that different "
-      "operator categories (one-body, the two-center Coulomb metric, "
-      "three-center RI) each have their own, independent flag -- "
-      "enabling one does not enable the others.");
+      " to use this feature. Many packaged libint2 builds (Homebrew, "
+      "Ubuntu apt, etc.) do not enable it; one-body, two-center Coulomb "
+      "metric and three-center RI integrals each have their own "
+      "configure option.");
 }
 }  // namespace
 
-// Computes nuclear-coordinate derivatives of a two-center one-electron
-// integral matrix (overlap, kinetic) via libint2's deriv_order=1 engine.
-// obtype must be a two-center operator (libint2::Operator::overlap or
-// libint2::Operator::kinetic); this function has not been checked against
-// operators with a params argument (e.g. emultipole) or against operators
-// with more than two centers (e.g. coulomb/three-center RI integrals) --
-// those need separate handling for the additional center(s)' derivatives
-// and are deliberately out of scope for this first pass.
+// Nuclear-coordinate derivatives of a two-centre one-electron integral
+// matrix for obtype = libint2::Operator::overlap or kinetic (operators with
+// parameters or more centres are not handled).
 //
-// COMPILE GUARD: many pre-packaged libint2 builds (Homebrew, Ubuntu
-// apt, etc.) are NOT built with derivative support at all -- this
-// branch's own build hit exactly this issue early on (traced to
-// Homebrew resolving formulae from its hosted API rather than a
-// locally-edited tap file; see the file-level history comment above).
-// libint2 exposes its own build-time maximum derivative order as the
-// LIBINT2_MAX_DERIV_ORDER macro (confirmed directly: libint2's own
-// Engine::initialize asserts deriv_order_ <= LIBINT2_MAX_DERIV_ORDER).
+// Compile guard: LIBINT2_MAX_DERIV_ORDER is the maximum over all operator
+// categories, so it is not sufficient; a category built without derivatives
+// fails inside engine.compute() (null buffers or an uncatchable crash). The
+// per-category macros LIBINT_INCLUDE_ONEBODY/_ERI2/_ERI3 hold the configured
+// derivative order (LIBINT2_ENABLE_ONEBODY/_ERI2/_ERI3, -1 = off), so their
+// value must be checked, not just whether they are defined: ONEBODY defaults
+// to 0 (energies only), e.g. in the Homebrew formula, which only enables
+// ERI/ERI2/ERI3, while Psi4's default enables ONEBODY but not ERI2/ERI3.
 //
-// THIS ALONE WAS NOT ENOUGH: real CI runs showed LIBINT2_MAX_DERIV_ORDER
-// can report >=1 (library-wide -- the maximum ANY operator supports)
-// while individual, independently-configured operator categories are
-// disabled or broken -- either silently returning zero-filled buffers,
-// or segfaulting outright inside engine.compute() itself (a crash that
-// cannot be caught by any try/catch, since it happens before control
-// ever returns to this file's own code, no matter how carefully the
-// returned buffers are checked afterward).
-//
-// An earlier version of this guard tried to catch this by actually
-// compiling and running a small test program at CMake configure time
-// (a try_run check). That approach was abandoned -- fragile in
-// practice (needed multiple rounds of fixes for the check program's
-// own bugs, including once for a missing Eigen include path) and,
-// more importantly, unnecessary: libint2's OWN engine.impl.h already
-// validates braket_ against per-category macros internally
-// (LIBINT_INCLUDE_ONEBODY, LIBINT_INCLUDE_ERI2, LIBINT_INCLUDE_ERI3),
-// each set independently at libint2's OWN configure time
-// (LIBINT2_ENABLE_ONEBODY / _ERI2 / _ERI3, each with its own N or -1
-// for "off" -- confirmed via libint2's own INSTALL.md and
-// engine.impl.h).
-//
-// CRITICAL, confirmed via a real crash: these macros are NOT bare
-// on/off flags -- they are defined WITH THE ACTUAL CONFIGURED
-// DERIVATIVE ORDER as their value (confirmed directly: libint2's own
-// test suite uses "#if INCLUDE_ERI2 >= 1" and
-// "if (deriv_order > INCLUDE_ERI2) return true;", checking the VALUE,
-// not just definedness). LIBINT2_ENABLE_ONEBODY defaults to 0 (not
-// -1/off) if never explicitly set -- meaning one-body integrals ARE
-// built, but only at deriv_order=0 (energies only, no first
-// derivatives) -- exactly the situation the standard Homebrew libint
-// formula leaves onebody in, since it only ever sets
-// -DLIBINT2_ENABLE_ERI2=1/_ERI3=1/_ERI=1, never _ONEBODY. In that
-// configuration LIBINT_INCLUDE_ONEBODY is defined AS 0, so
-// "defined(LIBINT_INCLUDE_ONEBODY)" alone is TRUE (wrongly implying
-// support) while the correct check, "LIBINT_INCLUDE_ONEBODY >= 1", is
-// FALSE. The former passed this exact guard once, wrongly, on a real
-// CI run -- letting the real, deriv_order=1 implementation compile in
-// and then hit a null function-pointer assertion deep inside
-// libint2's own dispatch table at runtime (a hard SIGABRT, not a C++
-// exception -- uncatchable, exactly like the null-buffer segfault
-// this guard was originally added to prevent). Checking the value,
-// not just definedness, is what actually distinguishes "not
-// configured at all" from "configured, but only for energies."
-//
-// computeOneBodyIntegralDerivatives (and ComputeNuclearAttractionDerivatives
-// further below, which uses the same two-center compute() API) needs
-// LIBINT_INCLUDE_ONEBODY; ComputeCoulombMetricDerivatives needs
-// LIBINT_INCLUDE_ERI2; ComputeThreeCenterDerivatives needs
-// LIBINT_INCLUDE_ERI3 -- three genuinely independent flags, any one of
-// which can be enabled while the others are not (e.g. Psi4's own
-// default configuration leaves ERI2/ERI3 off while ONEBODY is on; the
-// standard Homebrew libint formula is the mirror image -- ERI2/ERI3/ERI
-// on, ONEBODY at its default-0/energies-only state).
+// ONEBODY: computeOneBodyIntegralDerivatives,
+// ComputeNuclearAttractionDerivatives; ERI2: ComputeCoulombMetricDerivatives;
+// ERI3: the three-centre functions.
 #if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && \
     (LIBINT_INCLUDE_ONEBODY >= 1)
 template <libint2::Operator obtype>
@@ -307,25 +132,20 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
   static_assert(
       libint2::operator_traits<obtype>::nopers == 1,
       "computeOneBodyIntegralDerivatives only supports single-operator "
-      "types (overlap, kinetic) in this first pass; multipole-type "
-      "operators with multiple result matrices are not yet handled here.");
+      "types (overlap, kinetic); multipole-type operators with multiple "
+      "result matrices are not handled.");
 
-  // AOBasis has no direct getNumofAtoms(); getFuncPerAtom() is sized by
-  // number of atoms and IS a confirmed real accessor (checked directly
-  // against aobasis.h), so its size is used here instead.
+  // AOBasis has no getNumofAtoms(); getFuncPerAtom() has one entry per atom.
   Index natoms = static_cast<Index>(aobasis.getFuncPerAtom().size());
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
   std::vector<std::vector<Index>> shellpair_list = aobasis.ComputeShellPairs();
   std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
 
-  // shell -> atom index, needed to know which atom's derivative each
-  // returned buffer belongs to.
+  // shell -> atom index, to assign each derivative buffer to its atom
   std::vector<Index> shell2atom;
   shell2atom.reserve(shells.size());
   for (Index s = 0; s < aobasis.getNumofShells(); ++s) {
-    // AOShell::getAtomIndex() and AOBasis::getShell() both confirmed
-    // directly against the real headers (aoshell.h, aobasis.h).
     shell2atom.push_back(aobasis.getShell(s).getAtomIndex());
   }
 
@@ -338,8 +158,7 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
   }
 
   std::vector<libint2::Engine> engines(nthreads);
-  // deriv_order = 1 instead of 0 is the one substantive change relative to
-  // computeOneBodyIntegrals(); everything else follows the same pattern.
+  // Same as computeOneBodyIntegrals(), but with deriv_order = 1.
   engines[0] = libint2::Engine(obtype, aobasis.getMaxNprim(),
                                static_cast<int>(aobasis.getMaxL()), 1);
   for (Index i = 1; i < nthreads; ++i) {
@@ -362,44 +181,19 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
       for (Index s2 : shellpair_list[s1]) {
 
         engine.compute(shells[s1], shells[s2]);
-        // CRITICAL FIX: buf[0]==nullptr alone is not a sufficient guard.
-        // A real, hard crash (SIGSEGV, "no mapping at fault address 0x0")
-        // was observed on a different CI architecture than the one that
-        // showed the "silently all zero" failure mode -- consistent with
-        // buf[0] coming back non-null (passing this check) while
-        // buf[3+xyz] (dereferenced below, unconditionally, for shell2's/
-        // atom2's derivative) is still null. This exact possibility was
-        // flagged in this file's own history from early in this branch
-        // ("buf[3..5] being unpopulated even though buf.size() reports
-        // 6") but the check was never actually added until now. A
-        // segfault is a hardware signal, not a C++ exception -- no
-        // try/catch anywhere can catch it, so this must be prevented
-        // before the dereference, not handled after.
+        // buf[0..2]: derivatives w.r.t. the centre of s1, buf[3..5]: w.r.t.
+        // the centre of s2. Both must be checked before dereferencing, since
+        // buf.size() reports 6 even if buf[3..5] are unpopulated.
         if (buf[0] == nullptr || buf[3] == nullptr) {
-          continue;  // integrals screened out, or this operator's
-                     // derivative support is genuinely absent (caught
-                     // below by any_nonnull_buffer/the zero-result check
-                     // once every shell pair has been skipped this way).
+          continue;  // screened out, or no derivative support (checked
+                     // via any_nonnull_buffer after the loop)
         }
         any_nonnull_buffer.store(true, std::memory_order_relaxed);
 
-        // See HIGHEST-RISK ASSUMPTION note at the top of this file -- the
-        // original assert(buf.size()==6) here did not catch a real problem:
-        // a null-pointer crash (address 0x0) was observed at runtime,
-        // consistent with buf[3..5] being unpopulated even though buf.size()
-        // reports 6 (likely a fixed nominal capacity rather than the number
-        // of meaningfully-populated buffers). Diagnostic left in place below
-        // to confirm this directly on the next run rather than guess again.
         Index bf2 = shell2bf[s2];
         Index n2 = shells[s2].size();
         Index atom2 = shell2atom[s2];
 
-        // CORRECTED (see file header): libint2::Engine provides all centers'
-        // derivatives explicitly -- confirmed against Psi4's own
-        // integral-programming documentation, which contrasts this directly
-        // against an older, legacy one-electron implementation that DID rely
-        // on translational invariance to omit one center. Reading buf[3+xyz]
-        // directly (not deriving it via negation) is the corrected approach.
         for (Index xyz = 0; xyz < 3; ++xyz) {
           Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
           result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat1;
@@ -415,13 +209,8 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
         }
       }
     } catch (...) {
-      // An exception escaping an OpenMP worker thread uncaught is
-      // undefined behavior -- observed in this exact function's own
-      // early history (see file header) to manifest as a hang/repeating
-      // exception across worker threads rather than a clean crash, not
-      // just theoretically risky. Capture it here, inside the thread,
-      // and rethrow once, safely, in the sequential context after the
-      // parallel region ends.
+      // An exception escaping an OpenMP thread is undefined behaviour;
+      // keep the first one and rethrow after the parallel region.
 #pragma omp critical
       {
         if (!eptr) {
@@ -434,29 +223,20 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
     std::rethrow_exception(eptr);
   }
   if (!any_nonnull_buffer.load() && aobasis.getNumofShells() > 0) {
-    // See the detailed explanation on ComputeNuclearAttractionDerivatives'
-    // own version of this check -- distinct from the compile-time
-    // LIBINT2_MAX_DERIV_ORDER guard, since individual operators can each
-    // have their own build configuration; this specific operator
-    // (obtype -- overlap or kinetic, depending on which public entry
-    // point called this template) never produced a single non-null
-    // buffer across the entire computation.
+    // Runtime counterpart of the compile guard: obtype never produced a
+    // non-null buffer.
     throw std::runtime_error(
         "computeOneBodyIntegralDerivatives: engine.results() returned a "
-        "null buffer for EVERY shell pair -- this libint2 build does not "
-        "actually support this operator's derivative integrals at "
-        "runtime, even though it may report LIBINT2_MAX_DERIV_ORDER >= 1 "
-        "for other operators. Rebuild libint2 with this operator's "
-        "derivative support enabled (--enable-1body=1) to use this "
+        "null buffer for every shell pair; this libint2 build does not "
+        "support this operator's derivative integrals at runtime, even "
+        "though it may report LIBINT2_MAX_DERIV_ORDER >= 1 for other "
+        "operators. Rebuild libint2 with --enable-1body=1 to use this "
         "feature.");
   }
   return result;
 }
 
-// Public entry points, mirroring AOOverlap::Fill / AOKinetic::Fill naming.
-// Deliberately free functions rather than new methods on AOOverlap/AOKinetic
-// for this first pass, to avoid touching those classes' existing (working,
-// deriv_order=0) code paths at all.
+// Free-function counterparts of AOOverlap::Fill / AOKinetic::Fill.
 std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
     const AOBasis& aobasis) {
   return computeOneBodyIntegralDerivatives<libint2::Operator::overlap>(aobasis);
@@ -467,13 +247,8 @@ std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
   return computeOneBodyIntegralDerivatives<libint2::Operator::kinetic>(aobasis);
 }
 #else   // !(LIBINT_INCLUDE_ONEBODY)
-// See the detailed compile-guard explanation above
-// computeOneBodyIntegralDerivatives. This stub covers ONLY overlap and
-// kinetic here -- ComputeCoulombMetricDerivatives (ERI2) and
-// ComputeThreeCenterDerivatives (ERI3) are each guarded separately
-// below, against their OWN, independent libint2 configure-time flags,
-// since these are genuinely separate capabilities that can be enabled
-// or disabled independently of each other and of LIBINT_INCLUDE_ONEBODY.
+// Stubs for overlap and kinetic without ONEBODY derivative support; ERI2 and
+// ERI3 are guarded separately below.
 std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(const AOBasis&) {
   ThrowNoDerivativeSupport("ComputeOverlapDerivatives", "--enable-1body=1");
 }
@@ -483,56 +258,15 @@ std::vector<AOMatrixDerivative> ComputeKineticDerivatives(const AOBasis&) {
 #endif  // LIBINT_INCLUDE_ONEBODY
 
 // ===========================================================================
-// Two-center Coulomb metric (P|Q) derivatives, needed for the RI-J/RI-K
-// gradient assembly: d(V_PQ)/dR, contracted per the formula derived
-// separately (dE_J/dR = sum_P c_P d(d_P)/dR - 1/2 sum_PQ c_P c_Q d(V_PQ)/dR).
+// Two-centre Coulomb metric derivatives d(P|Q)/dR for the RI-J/RI-K
+// gradient, dE_J/dR = sum_P c_P d(d_P)/dR - 1/2 sum_PQ c_P c_Q d(V_PQ)/dR.
 //
-// STATUS: written following the same validated pattern as the one-body
-// case above (computeOneBodyIntegralDerivatives), but NOT yet run or
-// tested. Two things specifically are hypotheses, not confirmed facts,
-// unlike the one-body case where both are now confirmed:
+// As in AOCoulomb::computeCoulombIntegrals, (P|Q) is computed as (P 1|Q 1)
+// with unit shells (BraKet::xs_xs), which have no centre; libint2 returns 6
+// buffers, the derivatives w.r.t. the centres of P and Q.
 //
-// 1. Buffer count/content: this integral is represented internally as a
-//    degenerate 4-center integral via two dummy "unit" shells (s-type,
-//    no physical center) -- see AOCoulomb::computeCoulombIntegrals for
-//    the deriv_order=0 version this mirrors. The hypothesis here is that
-//    at deriv_order=1, libint2 still returns derivatives for only the TWO
-//    REAL centers (shells[s1]'s atom, shells[s2]'s atom), i.e. 6 buffers,
-//    the same count as the one-body case, since the dummy unit shells
-//    have no nuclear position to differentiate with respect to. This is
-//    a reasonable extrapolation from the one-body case (confirmed: all
-//    real centers' derivatives are returned explicitly, not omitted via
-//    translational invariance) but has NOT been checked against this
-//    specific operator/braket combination. If this is wrong, expect
-//    either a wrong buffer count (should show up immediately as an
-//    assertion or crash, same as the one-body case's build-configuration
-//    issue did) or, more subtly, a right count with wrong center
-//    ordering (would show up as a numerical discrepancy in a
-//    finite-difference test, same as the units bug did for one-body).
-//
-// 2. libint2 build configuration: needs ENABLE_ERI2=2 (per Psi4's
-//    documented pattern: "In order for gradient and Hessian tests to not
-//    segfault, need ENABLE_ERI and ENABLE_ERI3 and ENABLE_ERI2 =2"),
-//    which is a DIFFERENT flag from the ENABLE_ONEBODY=2 already
-//    confirmed necessary and sufficient for the one-body case. This has
-//    NOT been separately verified working -- if this crashes with the
-//    same "null build function ptr" assertion the one-body case hit
-//    before its build was fixed, check this flag/value first, not the
-//    buffer-indexing code below.
-//
-// COMPILE GUARD: this is EXACTLY the flag/value distinction the comment
-// above already called out, now actually wired up -- libint2's own
-// engine.impl.h validates braket_ against LIBINT_INCLUDE_ERI2
-// specifically for this braket type (xs_xs), a macro entirely
-// independent of LIBINT_INCLUDE_ONEBODY (which guards overlap/kinetic/
-// nuclear attraction above) and of LIBINT_INCLUDE_ERI3 (which guards
-// the three-center case below). A libint2 build can have ONEBODY
-// enabled while ERI2 is disabled (Psi4's own default configuration,
-// LIBINT2_ENABLE_ERI2=-1, "OFF", is a real, common example) -- exactly
-// the situation that caused this specific operator's real, observed
-// runtime failures (null buffers / segfault) despite
-// LIBINT2_MAX_DERIV_ORDER alone reporting derivative support was
-// available somewhere in the library.
+// Requires LIBINT_INCLUDE_ERI2 >= 1 (libint2 --enable-eri2), independent of
+// ONEBODY and ERI3.
 #if (LIBINT_INCLUDE_ERI2 >= 1)
 std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
     const AOBasis& aobasis) {
@@ -584,10 +318,7 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
             shells[s1], libint2::Shell::unit(), shells[s2],
             libint2::Shell::unit());
 
-        // See the detailed explanation on the analogous check in
-        // computeOneBodyIntegralDerivatives above -- buf[0]==nullptr
-        // alone is not sufficient; buf[3+xyz] is dereferenced
-        // unconditionally below too.
+        // see computeOneBodyIntegralDerivatives
         if (buf[0] == nullptr || buf[3] == nullptr) {
           continue;
         }
@@ -624,15 +355,12 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
     std::rethrow_exception(eptr_coulmetric);
   }
   if (!any_nonnull_buffer_coulmetric.load() && aobasis.getNumofShells() > 0) {
-    // See the detailed explanation on ComputeNuclearAttractionDerivatives'
-    // own version of this check.
     throw std::runtime_error(
         "ComputeCoulombMetricDerivatives: engine.results() returned a "
-        "null buffer for EVERY shell pair -- this libint2 build does not "
-        "actually support this operator's derivative integrals at "
-        "runtime, even though it may report LIBINT2_MAX_DERIV_ORDER >= 1 "
-        "for other operators. Rebuild libint2 with this operator's "
-        "derivative support enabled (--enable-eri2=1) to use this "
+        "null buffer for every shell pair; this libint2 build does not "
+        "support this operator's derivative integrals at runtime, even "
+        "though it may report LIBINT2_MAX_DERIV_ORDER >= 1 for other "
+        "operators. Rebuild libint2 with --enable-eri2=1 to use this "
         "feature.");
   }
   return result;
@@ -646,54 +374,17 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
 #endif  // LIBINT_INCLUDE_ERI2
 
 // ===========================================================================
-// Three-center RI integral derivatives, d(mu,nu|P)/dR, the remaining piece
-// needed (alongside the two-center metric above) for the RI-J/RI-K
-// gradient assembly.
+// Three-centre RI integral derivatives d(mu,nu|P)/dR. Same shell order as
+// ComputeAO3cBlock (auxshell, unit, shell_col, shell_row, BraKet::xs_xx);
+// libint2 returns 9 buffers, the derivatives w.r.t. the centres of the aux,
+// col and row shells, each x, y, z.
 //
-// STATUS: written but NOT yet run or tested. This case is genuinely new
-// relative to everything validated so far (one-body: 2 real centers, 6
-// buffers, confirmed; two-center metric: 2 real centers via dummy unit
-// shells, 6 buffers, confirmed): THIS integral has THREE real centers
-// (the aux shell's atom, and both dft shells' atoms -- see
-// ComputeAO3cBlock above, which this mirrors at deriv_order=1 instead of
-// 0, using the same auxshell/unit()/shell_col/shell_row shell ordering).
-// The hypothesis, extrapolating from the confirmed "libint2 returns every
-// real center's derivative explicitly, never omits one via translational
-// invariance" pattern, is that this returns 9 buffers (3 real centers x
-// 3 Cartesian), NOT yet checked. If the buffer count is actually
-// different, expect either an immediate crash/assertion (same failure
-// mode as the wrong libint2 build-configuration flag earlier) or a
-// right-count-wrong-ordering bug that would only show up as a numerical
-// discrepancy in a finite-difference test (same as the units bug did for
-// the one-body case) -- do not trust this without running the
-// corresponding test first.
+// ComputeThreeCenterDerivatives stores the full tensor,
+// O(natoms * 3 * Naux * Nao^2) memory, and is only meant for tests; the
+// gradients use the contracted variants below.
 //
-// Also NOT yet verified: which libint2 build flag(s) this needs. Given
-// Psi4's documented pattern ("need ENABLE_ERI and ENABLE_ERI3 and
-// ENABLE_ERI2 =2" for gradients), ENABLE_ERI3=2 is the most likely
-// requirement, separate from both ENABLE_ONEBODY=2 (confirmed necessary
-// for the one-body case) and whatever ENABLE_ERI2 level the two-center
-// metric case above turned out to need.
-//
-// Memory/design note, not a correctness concern for this validation-scale
-// function but worth flagging before this gets used in a real gradient
-// assembly on a real molecule: this materializes the FULL derivative
-// tensor (all aux functions x all dft functions x all dft functions x
-// all atoms x 3) at once, which scales as O(Naux * Ndft^2 * Natoms * 3) --
-// fine for a small test system, but a real RI-J gradient assembly should
-// almost certainly contract with the density matrix and fitting
-// coefficients on the fly, per shell, rather than ever materializing this
-// full tensor. Not addressed here; this function exists to validate the
-// underlying integral derivative in isolation first, same as the
-// one-body and two-center cases above.
-//
-// COMPILE GUARD: confirmed via libint2's own engine.impl.h, which
-// validates braket_ against LIBINT_INCLUDE_ERI3 specifically for this
-// braket type (xs_xx / xx_xs) -- independent of both
-// LIBINT_INCLUDE_ONEBODY (overlap/kinetic/nuclear attraction) and
-// LIBINT_INCLUDE_ERI2 (the two-center metric just above). Exactly the
-// already-documented-but-until-now-not-actually-checked distinction
-// from the STATUS comment above this function.
+// Requires LIBINT_INCLUDE_ERI3 >= 1 (libint2 --enable-eri3), independent of
+// ONEBODY and ERI2.
 // ===========================================================================
 
 // One entry per Cartesian direction (x,y,z); each holds one matrix per
@@ -705,10 +396,7 @@ using ThreeCenterDerivative = std::array<std::vector<Eigen::MatrixXd>, 3>;
 std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     const AOBasis& auxbasis, const AOBasis& dftbasis) {
   Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
-  // NOTE: assumes auxbasis and dftbasis are defined on the SAME molecule
-  // (same atoms, same count) -- true for every real use case (RI fitting
-  // basis and DFT basis both live on the same molecular geometry), not
-  // separately checked here.
+  // assumes auxbasis and dftbasis are defined on the same molecule
 
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
@@ -765,16 +453,8 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
         Index row_start = shell2bf[row];
         Index atom_row = dftshell2atom[row];
 
-        // NOTE: unlike ComputeAO3cBlock (deriv_order=0), NOT restricting to
-        // col <= row here even though (mu,nu|P) is symmetric in mu,nu --
-        // keeping the full loop for this validation-scale function to
-        // avoid also having to get a derivative-specific symmetrization
-        // step right on the first pass. Revisit once this is confirmed
-        // correct; the deriv_order=0 code's triangular-then-mirror
-        // approach should still apply to the derivative case in principle
-        // (differentiating a symmetric quantity preserves the symmetry),
-        // but that itself is an assumption worth checking separately
-        // rather than combining with the buffer-count question here.
+        // Full col loop: the mu,nu symmetry of (mu,nu|P) is not exploited
+        // here, unlike in ComputeAO3cBlock.
         for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
           const libint2::Shell& shell_col = dftshells[col];
           Index col_start = shell2bf[col];
@@ -784,22 +464,14 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
               .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
                   auxshell, libint2::Shell::unit(), shell_col, shell_row);
 
-          // See the detailed explanation on the analogous check in
-          // computeOneBodyIntegralDerivatives above -- this operator
-          // dereferences buf[3+xyz] AND buf[6+xyz] unconditionally below
-          // too (3 real centers, not 2), so both need checking here.
+          // see computeOneBodyIntegralDerivatives; three centres here
           if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
             continue;
           }
           any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
 
-          // See HIGHEST-RISK note above: 9 buffers assumed (3 real centers
-          // x 3 Cartesian), ordered [aux center xyz][col-shell's atom
-          // xyz][row-shell's atom xyz] -- matching the shell ARGUMENT order
-          // passed to compute2 above (auxshell, unit, shell_col,
-          // shell_row), by direct analogy with the two-center case where
-          // buffer order matched argument order. NOT independently
-          // confirmed for this 3-real-center case.
+          // buffers: [aux centre xyz][col centre xyz][row centre xyz], in
+          // the shell argument order of compute2
           for (Index xyz = 0; xyz < 3; ++xyz) {
             Eigen::TensorMap<
                 Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
@@ -846,15 +518,12 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
   }
   if (!any_nonnull_buffer_3c.load() && auxbasis.getNumofShells() > 0 &&
       dftbasis.getNumofShells() > 0) {
-    // See the detailed explanation on ComputeNuclearAttractionDerivatives'
-    // own version of this check.
     throw std::runtime_error(
         "ComputeThreeCenterDerivatives: engine.results() returned a null "
-        "buffer for EVERY shell triple -- this libint2 build does not "
-        "actually support this operator's derivative integrals at "
-        "runtime, even though it may report LIBINT2_MAX_DERIV_ORDER >= 1 "
-        "for other operators. Rebuild libint2 with this operator's "
-        "derivative support enabled (--enable-eri3=1) to use this "
+        "buffer for every shell triple; this libint2 build does not "
+        "support this operator's derivative integrals at runtime, even "
+        "though it may report LIBINT2_MAX_DERIV_ORDER >= 1 for other "
+        "operators. Rebuild libint2 with --enable-eri3=1 to use this "
         "feature.");
   }
   return result;
@@ -867,44 +536,13 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
 #endif  // LIBINT_INCLUDE_ERI3
 
 #if (LIBINT_INCLUDE_ERI3 >= 1)
-// Memory-efficient alternative to ComputeThreeCenterDerivatives above,
-// for exactly the use case DFTGradient::RIJGradient needs: the caller
-// only ever wants sum_{mu,nu} density(mu,nu) * d(mu,nu|P)/dR_a[xyz],
-// summed over mu,nu for a FIXED, already-known density -- it never
-// actually needs the full, per-(mu,nu) derivative tensor itself.
-//
-// The full-tensor version stores natoms * 3 * n_aux_bf separate,
-// complete nao x nao matrices SIMULTANEOUSLY (every atom, every
-// Cartesian direction, every auxiliary function, all at once) --
-// confirmed, via a real, reported failure, to exhaust hundreds of GB
-// of memory on a real, moderately-sized molecule (53 atoms, 943 AO
-// basis functions, 2320 auxiliary functions: natoms*3*naux = 368,880
-// separate 943x943 matrices, ~7.1 MB each, totaling roughly 2.6
-// PETABYTES if ever actually held at once -- the process was killed
-// long before completing this single allocation). This function
-// instead contracts each shell-triple's own contribution against
-// density IMMEDIATELY, as it is computed, rather than storing it and
-// contracting later -- reducing the total storage from
-// O(natoms * 3 * n_aux_bf * nao^2) down to O(natoms * 3 * n_aux_bf)
-// plain scalars (a few MB even for the system above), since density
-// itself is already fully known at the time this function runs and
-// does not need to wait for the full tensor to be assembled first.
-//
-// Deliberately a SEPARATE function, not a modification of
-// ComputeThreeCenterDerivatives itself: that function is still relied
-// upon, unchanged, by its own existing, already-validated
-// finite-difference test (test_aoderivatives.cc) and by
-// DFTGradient::RIKGradient (which needs a genuinely different
-// contraction -- against nocc^2 separate occupied-MO-pair products,
-// not one fixed density -- and needs its own, separate fix, not yet
-// done as of this function's own addition).
-//
-// Mirrors ComputeThreeCenterDerivatives's own shell-loop structure
-// exactly (same engine setup, same parallelization over aux shells,
-// same buffer-ordering assumptions -- see that function's own,
-// extensive comments for the caveats that still apply identically
-// here), differing only in what happens to each shell-triple's own
-// computed value once available.
+// Density-contracted three-centre derivatives for DFTGradient::RIJGradient:
+//   result[a](xyz, P) = sum_{mu,nu} D_{mu nu} d(mu,nu|P)/dR_a,xyz.
+// Each shell triple is contracted as soon as it is computed, so memory is
+// O(natoms * 3 * Naux) instead of the O(natoms * 3 * Naux * Nao^2) of
+// ComputeThreeCenterDerivatives (e.g. 53 atoms, 943 AOs, 2320 aux functions
+// would need ~2.6 PB). Loop structure and buffer layout as in
+// ComputeThreeCenterDerivatives.
 std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
     const AOBasis& auxbasis, const AOBasis& dftbasis,
     const Eigen::MatrixXd& density) {
@@ -929,10 +567,7 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
 
   Index n_aux_bf = auxbasis.AOBasisSize();
 
-  // result[a] is a (3, n_aux_bf) matrix: rows are xyz, columns are the
-  // auxiliary function index p -- the already-contracted
-  // sum_{mu,nu} density(mu,nu) * d(mu,nu|p)/dR_a[xyz], not a per-(mu,nu)
-  // tensor at all.
+  // result[a]: (3, n_aux_bf), rows xyz, columns aux function p
   std::vector<Eigen::MatrixXd> result(natoms,
                                       Eigen::MatrixXd::Zero(3, n_aux_bf));
 
@@ -946,15 +581,9 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
     engines[i] = engines[0];
   }
 
-  // Direct writes into the shared result vector, matching
-  // ComputeThreeCenterDerivatives's own, already-validated pattern
-  // exactly -- safe without any extra synchronization: global_aux is
-  // always unique per aux shell (and therefore per thread, since aux
-  // shells are what the outer loop parallelizes over), so even though
-  // atom_col/atom_row are not themselves partitioned by thread,
-  // concurrent writes from different threads always land in different
-  // COLUMNS of the same result[atom] matrix -- never the same memory
-  // location, which is what a genuine data race would require.
+  // No synchronization needed: the loop is parallel over aux shells, so
+  // different threads write to different columns (global_aux) of
+  // result[atom].
   std::exception_ptr eptr_3c = nullptr;
   std::atomic<bool> any_nonnull_buffer_3c{false};
 #pragma omp parallel for schedule(dynamic)
@@ -1009,12 +638,7 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
                   double val_row = result_row(aux_c, col_c, row_c);
                   Index r = row_start + static_cast<Index>(row_c);
                   Index c = col_start + static_cast<Index>(col_c);
-                  // Immediate contraction against density, at exactly
-                  // the (r, c) element just computed -- this is the
-                  // ONLY structural difference from
-                  // ComputeThreeCenterDerivatives's own inner loop,
-                  // which instead scatters val_aux/val_col/val_row into
-                  // a full, retained nao x nao matrix here.
+                  // contract with the density immediately
                   double d_rc = density(r, c);
                   result[atom_aux](xyz, global_aux) += d_rc * val_aux;
                   result[atom_col](xyz, global_aux) += d_rc * val_col;
@@ -1041,12 +665,11 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
       dftbasis.getNumofShells() > 0) {
     throw std::runtime_error(
         "ComputeThreeCenterDerivativeContraction: engine.results() "
-        "returned a null buffer for EVERY shell triple -- this libint2 "
-        "build does not actually support this operator's derivative "
-        "integrals at runtime, even though it may report "
-        "LIBINT2_MAX_DERIV_ORDER >= 1 for other operators. Rebuild "
-        "libint2 with this operator's derivative support enabled "
-        "(--enable-eri3=1) to use this feature.");
+        "returned a null buffer for every shell triple; this libint2 "
+        "build does not support this operator's derivative integrals at "
+        "runtime, even though it may report LIBINT2_MAX_DERIV_ORDER >= 1 "
+        "for other operators. Rebuild libint2 with --enable-eri3=1 to "
+        "use this feature.");
   }
   return result;
 }
@@ -1059,41 +682,11 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
 #endif  // LIBINT_INCLUDE_ERI3
 
 #if (LIBINT_INCLUDE_ERI3 >= 1)
-// Per-atom alternative to ComputeThreeCenterDerivatives, for
-// DFTGradient::RIKGradient's own needs specifically: unlike
-// RIJGradient's single, fixed density, RIKGradient needs the same
-// derivative tensor contracted against nocc^2 separate occupied-MO-pair
-// products (see that function's own comments) -- immediate contraction
-// (ComputeThreeCenterDerivativeContraction's own approach) would still
-// need a (natoms, 3, n_aux_bf, nocc, nocc) result, which remains far
-// too large for a real, moderately-sized system (roughly 252 GB for
-// the 53-atom, 943 AO / 2320 auxiliary / 93 occupied-orbital system
-// that originally motivated this whole fix).
-//
-// Instead: compute and return only ONE atom's own (3, n_aux_bf) set of
-// FULL nao x nao derivative matrices at a time -- the caller (RIKGradient)
-// loops over atoms itself, calling this once per atom and discarding
-// each atom's own result before requesting the next. Peak memory drops
-// from natoms times a single atom's own footprint down to just that
-// single atom's own footprint (roughly 49.5 GB for the same real
-// system above, comfortably within a 256 GB machine, versus the
-// original ~2.6 PETABYTES for holding every atom's own tensor
-// simultaneously).
-//
-// The real cost of this choice, stated plainly rather than glossed
-// over: since a single shell-triple integral can contribute to up to
-// THREE different atoms at once (via the aux, col, and row shells'
-// own, potentially different atom centers -- see
-// ComputeThreeCenterDerivatives's own comments on this same point),
-// there is no way to compute "just atom A's own contribution" without
-// still evaluating every shell triple -- this function's own,
-// expensive shell-loop is NOT actually cheaper per call than the
-// original, full function's own single pass. Calling it once per atom
-// (as RIKGradient below does) therefore costs roughly natoms times the
-// integral evaluation work of a single, full pass -- a genuine,
-// deliberate trade of speed for memory, chosen here because the
-// alternative (holding everything at once) does not fit in memory at
-// all for real systems, not because this is free.
+// Full (Nao x Nao) three-centre derivative matrices for one atom only,
+// (3, n_aux_bf) of them. Shell triples with no shell on target_atom are
+// skipped, but a loop over all atoms still evaluates each triple up to
+// three times. Superseded for RIKGradient by
+// ComputeThreeCenterDerivativesMOTransformed, which needs a single pass.
 ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
     const AOBasis& auxbasis, const AOBasis& dftbasis, Index target_atom) {
   std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
@@ -1116,9 +709,7 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
   Index n_aux_bf = auxbasis.AOBasisSize();
   Index nthreads = OPENMP::getMaxThreads();
 
-  // Only THIS atom's own (3, n_aux_bf) set of full nao x nao matrices --
-  // never all natoms atoms' own matrices at once, unlike
-  // ComputeThreeCenterDerivatives above.
+  // (3, n_aux_bf) matrices of size nao x nao for target_atom only
   ThreeCenterDerivative result;
   for (Index xyz = 0; xyz < 3; ++xyz) {
     result[xyz] = std::vector<Eigen::MatrixXd>(
@@ -1157,11 +748,7 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
           Index col_start = shell2bf[col];
           Index atom_col = dftshell2atom[col];
 
-          // Skip entirely if none of the three shells in this triple are
-          // even centered on the target atom -- this triple contributes
-          // nothing to this atom's own result at all, so there is no
-          // need to run the (still genuinely expensive) integral
-          // evaluation itself.
+          // no shell on target_atom: no contribution
           if (atom_aux != target_atom && atom_col != target_atom &&
               atom_row != target_atom) {
             continue;
@@ -1196,12 +783,7 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
                 for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
                   Index r = row_start + static_cast<Index>(row_c);
                   Index c = col_start + static_cast<Index>(col_c);
-                  // Only accumulate the term(s) whose own atom center
-                  // actually matches target_atom -- e.g. if atom_aux ==
-                  // target_atom but atom_col/atom_row do not, only
-                  // val_aux contributes to this atom's own result; the
-                  // other two terms belong to OTHER atoms' own results,
-                  // which this call does not compute or return at all.
+                  // only the centres located on target_atom contribute
                   if (atom_aux == target_atom) {
                     result[xyz][global_aux](r, c) +=
                         result_aux(aux_c, col_c, row_c);
@@ -1236,12 +818,11 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
       dftbasis.getNumofShells() > 0) {
     throw std::runtime_error(
         "ComputeThreeCenterDerivativesForAtom: engine.results() returned "
-        "a null buffer for EVERY shell triple touching this atom -- this "
-        "libint2 build does not actually support this operator's "
-        "derivative integrals at runtime, even though it may report "
+        "a null buffer for every shell triple touching this atom; this "
+        "libint2 build does not support this operator's derivative "
+        "integrals at runtime, even though it may report "
         "LIBINT2_MAX_DERIV_ORDER >= 1 for other operators. Rebuild "
-        "libint2 with this operator's derivative support enabled "
-        "(--enable-eri3=1) to use this feature.");
+        "libint2 with --enable-eri3=1 to use this feature.");
   }
   return result;
 }
@@ -1255,40 +836,14 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(const AOBasis&,
 #endif  // LIBINT_INCLUDE_ERI3
 
 #if (LIBINT_INCLUDE_ERI3 >= 1)
-// CORRECTED, single-pass alternative for DFTGradient::RIKGradient,
-// replacing the earlier ComputeThreeCenterDerivativesForAtom-based,
-// per-atom approach (natoms separate passes over the full shell loop,
-// each with a real, measured runtime of over an hour for a real, 53-
-// atom hybrid-functional system).
-//
-// The per-atom approach was chosen after a genuine ARITHMETIC ERROR:
-// the "contract immediately against all nocc^2 occupied-orbital-pair
-// products at once, in a single pass" alternative was originally
-// (incorrectly) estimated at ~252 GB for the real system that
-// motivated this whole fix and rejected as too large. Recomputed
-// directly and carefully after the per-atom approach's own, real,
-// measured cost turned out to be prohibitive: natoms * 3 * n_aux_bf *
-// nocc^2 * 8 bytes = 53*3*2320*93*93*8 = ~23.8 GB for that same real
-// system -- comfortably smaller than even the per-atom approach's own
-// ~46 GB per-atom peak, not larger, and needing only ONE pass over the
-// shell loop rather than natoms of them. This function implements
-// that corrected, actually-small approach.
-//
-// result[a][xyz][p] is now an (nocc, nocc) matrix, NOT a (nao, nao)
-// one -- reusing the same ThreeCenterDerivative type alias (a plain
-// std::array<std::vector<Eigen::MatrixXd>, 3>, size-agnostic) for
-// convenience, not because these are the same shape as
-// ComputeThreeCenterDerivatives's own (nao, nao) result.
-//
-// Each shell-triple's own contribution is folded in via a rank-1
-// (outer-product) update of the relevant (nocc, nocc) matrix --
-// occ_mo_coeffs.row(r).transpose() * occ_mo_coeffs.row(c), scaled by
-// the AO-basis value just computed -- rather than a naive, scalar
-// double loop over (i,j): Eigen's own vectorized rank-1-update
-// machinery (used here via noalias() +=) handles this efficiently,
-// unlike an explicit i,j loop which would need the same O(nocc^2)
-// work per element without the benefit of Eigen's own optimized
-// kernels.
+// Three-centre derivatives transformed to occupied MOs, for
+// DFTGradient::RIKGradient, in a single pass over the shell triples:
+//   result[a][xyz][P](i, j) = sum_{mu,nu} C_mu,i C_nu,j d(mu,nu|P)/dR_a,xyz
+// with C = occ_mo_coeffs, i.e. (nocc x nocc) matrices (ThreeCenterDerivative
+// is shape-agnostic). Memory natoms * 3 * Naux * nocc^2 doubles (~24 GB for
+// 53 atoms, 2320 aux functions, 93 occupied orbitals). Each shell pair and
+// aux function contributes C_row^T B C_col with the (nrow x ncol) integral
+// block B.
 std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
     const AOBasis& auxbasis, const AOBasis& dftbasis,
     const Eigen::MatrixXd& occ_mo_coeffs) {
@@ -1314,10 +869,7 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
 
   Index n_aux_bf = auxbasis.AOBasisSize();
 
-  // result[a][xyz][p] is an (nocc, nocc) matrix -- natoms * 3 * n_aux_bf
-  // of them, ~23.8 GB total for the real system that motivated this
-  // fix, not the natoms*3*n_aux_bf FULL (nao,nao) matrices (~2.6 PB)
-  // ComputeThreeCenterDerivatives itself would hold.
+  // result[a][xyz][p]: (nocc, nocc)
   std::vector<ThreeCenterDerivative> result(natoms);
   for (Index a = 0; a < natoms; ++a) {
     for (Index xyz = 0; xyz < 3; ++xyz) {
@@ -1336,12 +888,8 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
     engines[i] = engines[0];
   }
 
-  // Direct writes into the shared result vector -- safe for the exact
-  // same reason as ComputeThreeCenterDerivativeContraction's own
-  // comment on this point: global_aux is always unique per aux shell
-  // (and therefore per thread), so concurrent writes from different
-  // threads always land in different result[atom][xyz] VECTOR SLOTS
-  // (indexed by global_aux) -- never the same memory location.
+  // No synchronization needed: threads write to different global_aux
+  // entries of result[atom][xyz].
   std::exception_ptr eptr_3c = nullptr;
   std::atomic<bool> any_nonnull_buffer_3c{false};
 #pragma omp parallel for schedule(dynamic)
@@ -1373,9 +921,7 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
           }
           any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
 
-          // The relevant row-slices of occ_mo_coeffs for this shell pair
-          // -- sliced once per shell pair, reused for every auxiliary
-          // function and Cartesian direction within it.
+          // MO coefficient rows of this shell pair
           Index nrow = static_cast<Index>(shell_row.size());
           Index ncol = static_cast<Index>(shell_col.size());
           Eigen::MatrixXd mo_row_block =
@@ -1400,20 +946,9 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
             for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
               Index global_aux = aux_start + static_cast<Index>(aux_c);
 
-              // CORRECTED (see this function's own header comment):
-              // extract this auxiliary function's own (nrow, ncol) raw
-              // block for each of the three terms, then contract against
-              // occ_mo_coeffs via TWO SMALL MATRIX MULTIPLICATIONS --
-              // giving the full (nocc, nocc) contribution for this shell
-              // pair and auxiliary function in one shot, rather than
-              // nrow*ncol separate, full (nocc,nocc) rank-1 outer-product
-              // updates (the ORIGINAL version of this loop, confirmed
-              // directly, via a real run, to cost on the order of
-              // nao^2 * n_aux_bf * nocc^2 operations -- tens of trillions
-              // for the real system that motivated this whole fix, and
-              // the actual, real cause of a >50 minute runtime even
-              // though the OUTER shell-triple loop itself is already a
-              // single pass, not a per-atom one).
+              // Copy the (nrow, ncol) block of this aux function and
+              // transform it with two small matrix products; one rank-1
+              // update per AO element would cost nao^2 * Naux * nocc^2.
               Eigen::MatrixXd block_aux(nrow, ncol);
               Eigen::MatrixXd block_col(nrow, ncol);
               Eigen::MatrixXd block_row(nrow, ncol);
@@ -1456,12 +991,11 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
       dftbasis.getNumofShells() > 0) {
     throw std::runtime_error(
         "ComputeThreeCenterDerivativesMOTransformed: engine.results() "
-        "returned a null buffer for EVERY shell triple -- this libint2 "
-        "build does not actually support this operator's derivative "
-        "integrals at runtime, even though it may report "
-        "LIBINT2_MAX_DERIV_ORDER >= 1 for other operators. Rebuild "
-        "libint2 with this operator's derivative support enabled "
-        "(--enable-eri3=1) to use this feature.");
+        "returned a null buffer for every shell triple; this libint2 "
+        "build does not support this operator's derivative integrals at "
+        "runtime, even though it may report LIBINT2_MAX_DERIV_ORDER >= 1 "
+        "for other operators. Rebuild libint2 with --enable-eri3=1 to "
+        "use this feature.");
   }
   return result;
 }
@@ -1473,18 +1007,10 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
 }
 #endif  // LIBINT_INCLUDE_ERI3
 
-// Energy-level (deriv_order=0) three-center integral (mu,nu|P), kept here
-// (rather than in dftgradient.cc) so all direct libint2 API usage stays
-// confined to this file and libint2_calls.cc -- dftgradient.cc, which
-// needs this for the RI-J gradient assembly, consumes only the returned
-// matrices, never touching libint2 types directly. Structurally the same
-// shell-loop as ComputeThreeCenterDerivatives above, minus the
-// atom/Cartesian bookkeeping that only applies at deriv_order=1, and
-// reusing the already-existing ComputeAO3cBlock helper from
-// libint2_calls.cc (declared there, not in any header -- forward
-// declared here) rather than re-deriving the same shell-iteration logic
-// a third time. UNGUARDED (unlike the functions above): deriv_order=0
-// integrals are always supported, by any libint2 build.
+// Three-centre integrals (mu,nu|P) (deriv_order = 0) for the RI gradients,
+// one Nao x Nao matrix per aux function, built with ComputeAO3cBlock. Kept
+// here so that libint2 is only used in this file and libint2_calls.cc. No
+// compile guard needed.
 std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
     const AOBasis& auxbasis, const AOBasis& dftbasis) {
   std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
@@ -1512,50 +1038,17 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
 }
 
 // ===========================================================================
-// Nuclear attraction (electron-nucleus Coulomb) integral derivative --
-// d(V_ne)/dR, the piece discovered MISSING from the total gradient
-// assembly by the first genuine end-to-end SCF+forces test
-// (test_dftengine_forces.cc). Every earlier gradient test in this branch
-// validated individual terms against FIXED density matrices, never the
-// complete picture against a real total SCF energy -- which is exactly
-// why this gap went undetected until now: kinetic derivatives were
-// validated at the very start of this session and then never actually
-// used in any gradient assembly, and this nuclear attraction piece was
-// never implemented at all.
+// Nuclear attraction integral derivatives d(V_ne)/dR,
+//   V_ne,munu = -sum_A Z_A int chi_mu(r) 1/|r - R_A| chi_nu(r) dr.
+// For each point charge A this is a three-centre derivative (both basis
+// function centres and R_A); as in libint2's
+// compute_1body_ints_deriv<Operator::nuclear> (lcao/1body.h), each atom is
+// set as a single point charge, giving 9 buffers ordered
+// [shell1 centre][shell2 centre][R_A], each x, y, z.
 //
-// V_ne_munu = -sum_A Z_A * integral[ chi_mu(r) (1/|r-R_A|) chi_nu(r) dr ]
-//
-// Genuinely a 3-real-center integral per point charge: the two basis
-// function centers, PLUS the point charge's own position -- structurally
-// identical to the already-validated 3-center RI derivative case (2
-// basis centers + 1 external center = 3 total), just with a different
-// operator (libint2::Operator::nuclear instead of coulomb/xs_xx) and
-// looping over EACH atom as a single point charge at a time (via
-// engine.set_params(make_point_charges(...)) per atom, matching the
-// pattern in libint2's own reference example --
-// compute_1body_ints_deriv<Operator::nuclear> in
-// libint2/include/libint2/lcao/1body.h, used directly to build real HF
-// forces there) rather than all atoms simultaneously.
-//
-// SIGN: this codebase's own existing, already-validated energy-level
-// code confirms V_ne (AOMultipole::FillPotential's output) is negative
-// (attractive) -- AOMultipole computes a POSITIVE-charge Fill(aobasis)
-// per atom then does `aopotential_ -= Fill(aobasis)`, and
-// DFTEngine::SetupH0 does `H0 = kinetic + dftAOESP` (a plain addition,
-// no extra negation by the caller). Initially reasoned (incorrectly)
-// that libint2::Operator::nuclear must therefore need an explicit
-// negation to match -- a finite-difference test (exact magnitude match,
-// opposite sign in every single element) confirmed the OPPOSITE:
-// libint2::Operator::nuclear already returns the attractive (negative)
-// convention directly, no negation needed. Fixed by using += throughout
-// rather than -=. Worth remembering as a concrete example of why this
-// branch insists on actually running things rather than trusting
-// plausible-sounding sign reasoning alone.
-//
-// STATUS: buffer count/ordering (9 buffers per shell-pair-per-point-
-// charge, [shell1 atom][shell2 atom][point-charge atom]) CONFIRMED
-// correct by the same finite-difference test -- only the sign was
-// wrong, now fixed. Re-run pending to confirm the fix.
+// libint2::Operator::nuclear already includes the minus sign (attractive),
+// consistent with AOMultipole::FillPotential/SetupH0, so the buffers are
+// added without negation.
 // ===========================================================================
 #if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && \
     (LIBINT_INCLUDE_ONEBODY >= 1)
@@ -1590,12 +1083,8 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
                         static_cast<int>(aobasis.getMaxL()), 1);
   }
 
-  // Parallelized over the OUTER atom (point-charge) loop, not the inner
-  // shell-pair loop as in every other function in this file -- each
-  // atom needs its own engine.set_params() call (mutating shared engine
-  // state), so a per-thread engine set up fresh per atom is the natural
-  // parallelization axis here, not shell pairs within one fixed engine
-  // configuration.
+  // Parallel over point charges (each needs engine.set_params()), with
+  // per-thread result matrices summed afterwards.
   std::exception_ptr eptr_nucattr = nullptr;
   std::atomic<bool> any_nonnull_buffer_nucattr{false};
 #pragma omp parallel for schedule(dynamic)
@@ -1621,18 +1110,9 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
         for (Index s2 = 0; s2 <= s1; ++s2) {
           engine.compute(shells[s1], shells[s2]);
 
-          // See the detailed explanation on the analogous check in
-          // computeOneBodyIntegralDerivatives above -- this operator
-          // dereferences buf[3+xyz] AND buf[6+xyz] unconditionally below
-          // too (3 real centers: shell1's atom, shell2's atom, the point
-          // charge), so both need checking here. This exact gap is what
-          // produced BOTH observed failure modes on different CI
-          // architectures for this specific function: a hard segfault
-          // (buf[3] or buf[6] actually null) on one, and a silently
-          // all-zero result (buf[3]/buf[6] non-null but zero-filled,
-          // caught instead by the separate norm check further below) on
-          // another -- same underlying root cause, different libint2
-          // build behavior for an unsupported operator.
+          // see computeOneBodyIntegralDerivatives; three centres here.
+          // Zero-filled (non-null) buffers are caught by the norm check
+          // after the loop.
           if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
             continue;
           }
@@ -1643,14 +1123,7 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
           Index atom2 = shell2atom[s2];
 
           for (Index xyz = 0; xyz < 3; ++xyz) {
-            // SIGN FIX: confirmed via finite-difference test (exact
-            // magnitude match, opposite sign everywhere) that
-            // libint2::Operator::nuclear already returns the attractive
-            // (negative) V_ne convention directly -- the explicit
-            // negation originally here (reasoned from AOMultipole's own
-            // "positive charge in, subtract" pattern) was backwards,
-            // double-negating an already-correctly-signed quantity. Using
-            // += throughout now, not -=.
+            // no negation, see above
             Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
             result_thread[thread_id][atom1][xyz].block(bf1, bf2, n1, n2) +=
                 buf_mat1;
@@ -1691,43 +1164,20 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
   }
   if (!any_nonnull_buffer_nucattr.load() && natoms > 0 &&
       aobasis.getNumofShells() > 0) {
-    // Distinct from the LIBINT2_MAX_DERIV_ORDER compile-time guard
-    // above: that macro is library-wide (the maximum derivative order
-    // ANY operator supports), but individual operators can each have
-    // their own, separate build configuration -- a libint2 build can
-    // report LIBINT2_MAX_DERIV_ORDER>=1 (enough for e.g. overlap/
-    // kinetic) while this specific operator (nuclear attraction with
-    // point-charge derivatives) was never actually generated, in which
-    // case engine.results() silently returns null buffers for EVERY
-    // shell pair rather than throwing -- exactly the failure mode a CI
-    // run against such a libint2 hit: this function ran to completion
-    // and returned an all-zero matrix, not an exception, which a
-    // finite-difference test then correctly reports as a large,
-    // confusing discrepancy rather than a clear "not supported"
-    // message. Catching it here, at the one place that already knows
-    // whether a single buffer was ever populated across the entire
-    // computation, turns that into an explicit, actionable error.
+    // A build without derivative support for this operator can return
+    // null buffers instead of throwing, which would silently give zero.
     throw std::runtime_error(
         "ComputeNuclearAttractionDerivatives: engine.results() returned "
-        "a null buffer for EVERY shell pair and point charge -- this "
-        "libint2 build does not actually support nuclear-attraction "
-        "derivative integrals at runtime, even though it may report "
+        "a null buffer for every shell pair and point charge; this "
+        "libint2 build does not support nuclear-attraction derivative "
+        "integrals at runtime, even though it may report "
         "LIBINT2_MAX_DERIV_ORDER >= 1 for other operators. Rebuild "
-        "libint2 with this operator's derivative support enabled "
-        "(--enable-1body=1, which nuclear attraction is part of) to "
-        "use this feature.");
+        "libint2 with --enable-1body=1 to use this feature.");
   }
 
-  // SECOND, COMPLEMENTARY CHECK: the check above only catches every
-  // buffer coming back NULL. A real CI run on a different architecture
-  // showed that check did NOT fire, yet the assembled result was still
-  // exactly, precisely all-zero -- some libint2 builds apparently
-  // return valid, non-null buffer POINTERS for this operator, but the
-  // underlying computation for it was never actually generated, so the
-  // pointed-to memory is zero-filled rather than containing a real
-  // result. A genuine nuclear attraction derivative for any real
-  // molecule with nonzero nuclear charges and a non-empty basis can
-  // never be exactly zero everywhere.
+  // Some builds instead return non-null but zero-filled buffers. The
+  // derivative cannot vanish identically for a molecule with nonzero
+  // nuclear charges.
   double total_norm_sq_nucattr = 0.0;
   for (Index a = 0; a < natoms; ++a) {
     for (Index xyz = 0; xyz < 3; ++xyz) {
@@ -1740,13 +1190,10 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
       aobasis.getNumofShells() > 0) {
     throw std::runtime_error(
         "ComputeNuclearAttractionDerivatives: the assembled result is "
-        "exactly zero everywhere, which is physically impossible for a "
-        "real molecule -- this libint2 build likely returns valid but "
-        "zero-filled buffers for this operator (rather than either "
-        "computing it correctly or returning null, which the separate, "
-        "earlier check in this function already handles). Rebuild "
-        "libint2 with this operator's derivative support enabled "
-        "(--enable-1body=1) to use this feature.");
+        "exactly zero everywhere, which is impossible for a real "
+        "molecule; this libint2 build likely returns zero-filled buffers "
+        "for this operator. Rebuild libint2 with --enable-1body=1 to use "
+        "this feature.");
   }
 
   std::vector<AOMatrixDerivative> result(natoms);
@@ -1768,24 +1215,11 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
 }
 #endif  // LIBINT_INCLUDE_ONEBODY
 
-// Small, deliberately libint2-header-free helper: lets other files (e.g.
-// dftengine.cc, which does not otherwise include any libint2 header at
-// all) check whether this build's linked libint2 supports derivative
-// integrals, WITHOUT needing to include <libint2.hpp> themselves just
-// for this one macro. Used by DFTEngine::ComputeAndStoreForces(UKS) to
-// skip cleanly (log and return) rather than ever calling the throwing
-// stubs above at all.
+// Lets code that does not include libint2 headers (e.g. dftengine.cc) check
+// for derivative support. The forces need all three categories: ONEBODY
+// (overlap, kinetic, nuclear attraction), ERI2 (Coulomb metric) and ERI3
+// (three-centre RI).
 bool HasLibint2DerivativeSupport() {
-  // Unlike the per-function compile guards above (each checking only
-  // its OWN specific category), this helper answers "can the full
-  // forces pipeline run at all" -- DFTEngine::ComputeAndStoreForces
-  // (UKS) unconditionally needs ComputeOverlapDerivatives/
-  // ComputeKineticDerivatives/ComputeNuclearAttractionDerivatives
-  // (ONEBODY), DFTGradient::RIJGradient/RIKGradient's own calls into
-  // ComputeCoulombMetricDerivatives (ERI2), AND their calls into
-  // ComputeThreeCenterDerivatives (ERI3, confirmed used at two call
-  // sites in dftgradient.cc) -- so all three, independent categories
-  // must be available, not just one.
 #if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && \
     (LIBINT_INCLUDE_ONEBODY >= 1) && (LIBINT_INCLUDE_ERI2 >= 1) &&      \
     (LIBINT_INCLUDE_ERI3 >= 1)

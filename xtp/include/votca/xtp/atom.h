@@ -34,13 +34,9 @@ namespace xtp {
 class CptTable;
 class Atom {
  public:
-  // Real, direct MD-level bonded-partner atom IDs, up to this many --
-  // covers virtually all ordinary organic chemistry (a typical carbon
-  // has at most 4 bonded neighbors). A genuine atom with more bonded
-  // partners than this (extremely rare) is a real, known limitation --
-  // only the first kMaxBondedPartners found are recorded; this is not
-  // guarded against/flagged with a hard error anywhere, deliberately,
-  // to avoid making an already-rare edge case fatal.
+  // Maximum number of stored bonded partners (sufficient for organic
+  // molecules). Further partners are silently dropped rather than treated
+  // as an error.
   static constexpr Index kMaxBondedPartners = 4;
 
   struct data {
@@ -81,35 +77,16 @@ class Atom {
   const Eigen::Vector3d& getPos() const { return pos_; }
   void setPos(const Eigen::Vector3d& r) { pos_ = r; }
 
-  // Direction (normalized, unitless) toward an atom this one was
-  // covalently bonded to at the MD level, but which fell outside the
-  // mapped segment/fragment -- i.e. a bond that was "cut" by the
-  // segment definition. Set directly by Md2QmEngine/SegmentMapper at
-  // mapping time, using the exact same rigid-body transform already
-  // applied to every other atom in the fragment (so this direction is
-  // consistent with the fragment's own, already-idealized geometry,
-  // not the raw, possibly out-of-plane/distorted MD-level direction).
-  // A given atom may have at most one such recorded direction; an atom
-  // with more than one external bond (rare) only retains the first one
-  // set. Never set for atoms with no external bond at all (the normal
-  // case for most atoms in most fragments) -- callers must check
-  // hasExternalBond() before using getExternalBondDirection() at all.
+  // Unit vector toward a covalently bonded MD atom that lies outside the
+  // segment, i.e. a bond cut by the segment definition. Md2QmEngine sets it
+  // from the MD geometry; SegmentMapper rotates it with the fragment's
+  // MD->template transform for the mapped QMAtom. Only the first external
+  // bond of an atom is stored; check hasExternalBond() before use.
   //
-  // partner_atom_id is the raw, MD-level atom ID this external bond
-  // points to (Atom::getId() of the partner) -- known and set here,
-  // at the exact same point the direction itself is computed
-  // (Md2QmEngine's own, real, MD-level bond connectivity). This is
-  // deliberately transient/NOT persisted to the checkpoint file at
-  // all (no CptTable column, unlike everything else on this class) --
-  // it exists only to let Md2QmEngine look up, in a later, second
-  // pass within the same map() call (once every segment's own ID is
-  // known, which it is not yet at the point this direction is first
-  // computed -- segments are still being built), which SEGMENT that
-  // partner atom actually belongs to, and record that instead, via
-  // setExternalBondPartnerSegmentId() below -- the actually useful,
-  // persisted value. getExternalBondPartnerAtomId() is genuinely only
-  // meant to be read within that same Md2QmEngine::map() call, never
-  // afterward.
+  // partner_atom_id is the MD atom ID of the partner. It is transient (not
+  // written to the checkpoint file) and only used within
+  // Md2QmEngine::map() to determine the partner's segment ID
+  // (setExternalBondPartnerSegmentId()) once all segments exist.
   bool hasExternalBond() const { return has_external_bond_; }
   const Eigen::Vector3d& getExternalBondDirection() const {
     return external_bond_direction_;
@@ -124,20 +101,10 @@ class Atom {
     external_bond_partner_atom_id_ = partner_atom_id;
   }
 
-  // The SEGMENT ID (Segment::getId()) that this atom's own external-
-  // bond partner (see above) belongs to -- -1 (this class's own
-  // "-1 means unset" convention) until explicitly set. Unlike the
-  // direction itself, a segment ID needs no rigid-body transform at
-  // all (it is not a geometric quantity) -- SegmentMapper's own
-  // TransferExternalBondDirection copies this straight across onto
-  // the mapped QMAtom, alongside the direction transform, rather than
-  // transforming it in any way. This IS persisted (a real CptTable
-  // column, unlike getExternalBondPartnerAtomId() above) -- this is
-  // the value later consumers (a planned linking-segment graph, and
-  // the decision of whether a given external bond is already
-  // satisfied within an assembled supermolecule) are actually meant
-  // to read, from the checkpoint file, independently of
-  // Md2QmEngine::map() itself having ever run in the same process.
+  // Segment::getId() of the segment the external-bond partner belongs to,
+  // -1 if unset. Copied unchanged to the mapped QMAtom by SegmentMapper.
+  // Persisted in the checkpoint file, e.g. for the segment bond graph used
+  // by Topology::FindLinkingSegments.
   Index getExternalBondPartnerSegmentId() const {
     return external_bond_partner_segment_id_;
   }
@@ -145,25 +112,11 @@ class Atom {
     external_bond_partner_segment_id_ = segment_id;
   }
 
-  // Real, direct MD-level bonded-partner atom IDs (topological
-  // connectivity, not geometry -- these are Atom::getId() values, MD
-  // atom IDs, not array indices), for EVERY atom, not just ones with
-  // an external bond -- unlike getExternalBondDirection() above, this
-  // is meant to cover a fragment's own, full, internal connectivity
-  // too (needed downstream for FragmentSaturator's own, planned
-  // OpenBabel-based relaxation step, which needs real, known bond
-  // connectivity for the whole fragment, not just the new bond, to
-  // set up its own force field correctly at all -- see
-  // FragmentSaturator's own header comment for why). Set directly by
-  // Md2QmEngine at mapping time, from the real, MD-level topology's
-  // own bond connectivity (the same source
-  // getExternalBondDirection()'s own raw input comes from) -- these
-  // IDs are NOT yet transformed/translated into QM-level IDs here;
-  // that translation happens later, in SegmentMapper, matching the
-  // same "raw here, transformed/translated later" split already used
-  // for the external-bond direction. Unused slots hold -1, matching
-  // this class's own, existing "-1 means unset" convention (id_'s own
-  // default).
+  // IDs (Atom::getId(), not indices) of all covalently bonded atoms, set by
+  // Md2QmEngine from the MD topology for every atom. The fragment relaxation
+  // in FragmentSaturator needs this full internal connectivity. The IDs are
+  // MD-level here and translated to QM-level IDs in SegmentMapper. Unused
+  // slots hold -1.
   const Index* getBondedPartnerIds() const { return bonded_partner_ids_; }
   void AddBondedPartner(Index partner_id) {
     for (Index& slot : bonded_partner_ids_) {
@@ -172,9 +125,7 @@ class Atom {
         return;
       }
     }
-    // All kMaxBondedPartners slots already full -- see this class's
-    // own, static kMaxBondedPartners comment above for why this is
-    // silently dropped rather than treated as a hard error.
+    // All slots full: partner is dropped (see kMaxBondedPartners).
   }
 
   std::string identify() const { return "atom"; }

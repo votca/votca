@@ -76,14 +76,9 @@ Index Md2QmEngine::DetermineAtomNumOffset(
   for (const csg::Bead* bead : mol->Beads()) {
     IDs.push_back(bead->getId());
   }
-  std::cout << "First loop done..." << std::endl;
   std::sort(IDs.begin(), IDs.end());
 
-  std::cout << IDs[0] << std::endl;
-  std::cout << atom_ids_map[0] << std::endl;
-
   Index offset = IDs[0] - atom_ids_map[0];
-  std::cout << offset << std::endl;
   for (Index i = 1; i < Index(IDs.size()); i++) {
     if (IDs[i] - atom_ids_map[i] != offset) {
       throw std::runtime_error(
@@ -91,7 +86,6 @@ Index Md2QmEngine::DetermineAtomNumOffset(
           "your mapping file have wrong Atom ids");
     }
   }
-  std::cout << offset << std::endl;
   return offset;
 }
 
@@ -204,20 +198,17 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     }
     std::sort(atomids.begin(), atomids.end());
     MolToAtomIds[molname] = atomids;
-    std::cout << "adding " << segnames[0] << std::endl;
+    if (votca::Log::verbose()) {
+      std::cout << "... molecule " << molname << " has " << segnames.size()
+                << " segment(s)" << std::endl;
+    }
     SegsinMol[molname] = segnames;
   }
 
-  // Build a direct, one-time "bead ID -> directly-bonded partner bead
-  // IDs" lookup, from the MD-level topology's own real, actual bond
-  // connectivity (csg::Topology::BondedInteractions(), confirmed
-  // directly, by reading csg's own interaction.h/topology.h, to
-  // already exist and be available exactly here -- this is a purely
-  // *geometric* bond list, from the original MD topology itself, NOT
-  // yet aware of segment/fragment membership at all). Only 2-bead
-  // ("B"/IBond-style) interactions are relevant here -- angles (3-bead)
-  // and dihedrals (4-bead) do not represent a direct bond between two
-  // atoms at all, so BeadCount() != 2 entries are skipped.
+  // Lookup bead ID -> IDs of directly bonded beads, built from the bonded
+  // interactions of the MD topology (purely geometric, independent of the
+  // segment/fragment mapping). Only 2-bead interactions (bonds) are used;
+  // angles and dihedrals are skipped.
   std::map<Index, std::vector<Index>> bead_bonded_partners;
   for (csg::Interaction* interaction : top.BondedInteractions()) {
     if (interaction->BeadCount() != 2) {
@@ -229,37 +220,19 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     bead_bonded_partners[id2].push_back(id1);
   }
 
-  // Real, direct, always-visible (not gated behind -v/verbose at all)
-  // warning, worked through directly with the user: if the underlying
-  // MD topology genuinely has no real bond connectivity at all (e.g.
-  // a topology reader that only ever provides atom positions, no real
-  // bond data at all -- this exact situation is exactly what this
-  // whole session's own real, direct debugging arc started from,
-  // csg::GMXTopologyReader itself never having read any real bonds at
-  // all, before that specific fix), external-bond detection itself
-  // (below) can never find anything at all, meaning
-  // IPodCoupling::EvalJob's own H-saturation at cut segment boundaries
-  // (see transport_theory.rst's own "H-Saturation of Cut Segment
-  // Boundaries" section) can never actually fire at all either --
-  // silently producing dangling valences at every cut segment
-  // boundary instead, with no other, direct signal of this at all
-  // until (if ever) a user separately, manually notices something is
-  // wrong much further downstream. Warning here instead, directly, at
-  // the earliest point this is actually knowable at all (right after
-  // bead_bonded_partners is built, genuinely reflecting the real,
-  // complete state of top.BondedInteractions() itself), gives a real,
-  // direct, upfront signal instead.
+  // Always printed (not only in verbose mode): without bonds no external
+  // bonds can be detected below, so the H-saturation of cut segment
+  // boundaries in IPodCoupling::EvalJob (see transport_theory.rst,
+  // "H-Saturation of Cut Segment Boundaries") silently leaves dangling
+  // valences. This happened e.g. with GMXTopologyReader before it read bonds.
   if (bead_bonded_partners.empty()) {
     std::cout
-        << "\nWARNING: the MD topology being mapped contains no real bond "
-           "connectivity at all (no bonded interactions were found within "
-           "it) -- this topology reader may only provide atom positions, "
-           "not real, actual bond data. Automatic H-saturation of cut "
-           "segment boundaries (used by e.g. the ipodcoupling calculator) "
-           "will not be able to detect any external bonds at all, and will "
-           "silently do nothing at all, rather than saturating anything -- "
-           "check that the real, actual topology file/reader used here "
-           "genuinely provides real bond data, not just atom positions."
+        << "\nWARNING: the MD topology contains no bonds (no 2-bead bonded "
+           "interactions found); the topology reader may only provide atom "
+           "positions. External bonds at cut segment boundaries cannot be "
+           "detected, so automatic H-saturation (e.g. in ipodcoupling) will "
+           "do nothing. Use a topology file/reader that provides bonds, or "
+           "xtp_map --guess-bonds."
         << std::endl;
   }
 
@@ -268,14 +241,8 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
 
     // lookup all segment *names* in this molecule
     const std::vector<std::string> segnames = SegsinMol[mol.getName()];
-    std::cout << segnames.size() << std::endl;
-    for (auto segment : segnames) {
-      std::cout << segment << std::endl;
-    }
 
     std::vector<Segment>& topology_segments = xtptop.Segments();
-    // std::cout << mol.getName() << " " << MolToAtomIds[mol.getName()] <<
-    // std::endl;
     Index IdOffset = DetermineAtomNumOffset(&mol, MolToAtomIds[mol.getName()]);
 
     if (votca::Log::verbose()) {
@@ -298,36 +265,18 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
           Atom atom(bead->getResnr(), bead->getName(), bead->getId(),
                     bead->getPos() * tools::conv::nm2bohr, bead->getType());
 
-          // Check each of this bead's own, real, direct bonded
-          // partners (from the lookup built above): if a partner's
-          // own segment assignment differs from this atom's own
-          // segname (or the partner has no segment assignment at
-          // all -- e.g. an unmapped, non-charge-transport-relevant
-          // spectator atom), the bond crosses the segment boundary --
-          // record the direction toward it directly on this atom, for
-          // later use (H-saturation) once this direction has also
-          // been carried through SegmentMapper's own, later,
-          // rigid-body MD->QM-template transform. Only the first such
-          // partner found is recorded (an atom with more than one
-          // external bond is rare, and not handled specially here).
+          // A bonded partner in a different segment (or in no segment,
+          // e.g. an unmapped atom) marks a bond crossing the segment
+          // boundary. Its direction is stored on the atom (in MD
+          // orientation; SegmentMapper rotates it with the QM template)
+          // for later H-saturation. Only the first such partner is stored.
           auto it = bead_bonded_partners.find(bead->getId());
           if (it != bead_bonded_partners.end()) {
             for (Index partner_id : it->second) {
               const csg::Bead* partner_bead = top.getBead(partner_id);
-              // MoleculeByIndex() is not const-qualified (confirmed
-              // directly, from a real compile error), and this
-              // function only ever sees top as const -- so the
-              // partner's own parent molecule is found directly here
-              // instead, by matching getMoleculeId() against each
-              // molecule's own getId() (the same, canonical way this
-              // function itself already identifies molecules, per its
-              // own, pre-existing this_segment.AddMoleculeId(mol.getId())
-              // call above), via the const-compatible Molecules()
-              // overload -- this also sidesteps a second, separate
-              // uncertainty MoleculeByIndex() would have carried:
-              // whether its own index parameter expects a molecule ID
-              // or an array position, which are not necessarily the
-              // same thing.
+              // MoleculeByIndex() is not const, so the partner's molecule
+              // is looked up by matching getMoleculeId() against
+              // Molecule::getId(), the same ID used for AddMoleculeId above.
               const csg::Molecule* partner_mol = nullptr;
               for (const csg::Molecule& candidate : top.Molecules()) {
                 if (candidate.getId() == partner_bead->getMoleculeId()) {
@@ -353,18 +302,10 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
             }
           }
 
-          // Records ALL of this bead's own, real, direct bonded
-          // partners (not just the ones crossing a segment boundary,
-          // unlike the external-bond-direction detection above, which
-          // deliberately stops at the first one found) -- needed for
-          // FragmentSaturator's own, planned OpenBabel-based
-          // relaxation step, which needs a fragment's own, full,
-          // internal connectivity to set up its own force field
-          // correctly at all (see Atom::getBondedPartnerIds's own
-          // header comment for why). These are RAW, MD-level partner
-          // IDs -- not yet translated into QM-level IDs here, matching
-          // the same "raw here, translated later, in SegmentMapper"
-          // split already used for the external-bond direction.
+          // Store all bonded partners (not only external ones); the
+          // fragment relaxation in FragmentSaturator needs the full internal
+          // connectivity (see Atom::getBondedPartnerIds). These are MD-level
+          // IDs, translated to QM-level IDs in SegmentMapper.
           if (it != bead_bonded_partners.end()) {
             for (Index partner_id : it->second) {
               atom.AddBondedPartner(partner_id);
@@ -379,26 +320,12 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     }
   }
 
-  // Second pass: resolves each atom's own external-bond partner
-  // (recorded above only as a raw MD-level ATOM id,
-  // getExternalBondPartnerAtomId() -- deliberately transient, see its
-  // own header comment) to the actual SEGMENT that partner atom
-  // belongs to. Cannot be done inline, in the loop above -- at the
-  // point a given atom's own external bond is first detected, later
-  // segments (in molecule/segname iteration order) do not exist yet
-  // at all, so there is no way yet to know which segment a partner
-  // atom that happens to belong to one of them will end up in.
-  //
-  // First builds a direct "MD-level atom id -> segment id" lookup,
-  // spanning every segment in the whole, now-complete xtptop, then
-  // uses it to resolve every atom's own, already-recorded
-  // getExternalBondPartnerAtomId() into the real, actual, persisted
-  // getExternalBondPartnerSegmentId() -- needed downstream (a planned
-  // linking-segment graph, and the decision of whether a given
-  // external bond is already satisfied within an assembled
-  // supermolecule, worked through directly with the user before this
-  // was implemented) to identify not just THAT a given bond crosses a
-  // segment boundary, but SPECIFICALLY WHICH segment it crosses into.
+  // Second pass: resolve the MD atom ID of each external-bond partner
+  // (getExternalBondPartnerAtomId(), transient) to the ID of the segment it
+  // belongs to (getExternalBondPartnerSegmentId(), persisted). This cannot
+  // be done in the loop above, since later segments do not exist yet there.
+  // The segment ID identifies which segment a bond crosses into, e.g. to
+  // decide whether the bond is satisfied within an assembled supermolecule.
   std::map<Index, Index> md_atom_id_to_segment_id;
   for (const Segment& seg : xtptop.Segments()) {
     for (const Atom& segatom : seg) {

@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 # Remove all the output from the jupyter notebooks
 
-files=("GROMACS/Methane/QMMM_GROMACS.ipynb" "LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb" "LAMMPS/Thiophene/QMMM_LAMMPS.ipynb" "tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb" "tools/transport_lattice/TRANSPORT.ipynb" "tools/dftgwbse_CO_geoopt/DFTGWBSE_OPTIMIZATION.ipynb")
+files=("GROMACS/Methane/QMMM_GROMACS.ipynb" "LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb" "tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb" "tools/transport_lattice/TRANSPORT.ipynb" "tools/dftgwbse_CO_geoopt/DFTGWBSE_OPTIMIZATION.ipynb")
 
 for x in ${files[@]}
 do

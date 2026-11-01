@@ -14,40 +14,20 @@
  *
  */
 
-// ===========================================================================
-// STATUS: overlap_derivative_finite_difference PASSES (confirmed against a
-// real build, after fixing a duplicate-symbol link error, a libint2
-// build-configuration issue -- needed ENABLE_ONEBODY=2 at libint2's own
-// build time, discovered via Psi4's integral-programming docs -- and a
-// Bohr/Angstrom unit mismatch in this test's own finite-difference
-// reference). See libint2_derivative_calls.cc for the full history.
-//
-// kinetic_derivative_finite_difference is newly added, following the same
-// pattern, and has NOT yet been run. Given how many non-obvious issues
-// turned up validating the overlap case (buffer conventions, build flags,
-// units), don't assume this one passes just because overlap did -- run it
-// and check before trusting ComputeKineticDerivatives.
-// ===========================================================================
+// Finite-difference tests of the nuclear derivatives of AO integrals in
+// libint2_derivative_calls.cc for H2 with 3-21G: overlap, kinetic, nuclear
+// attraction, two-centre Coulomb metric and three-centre RI integrals, each
+// also checked for translational invariance. Skipped if libint2 lacks
+// derivative integrals for the operator.
 
 #include "xtp_libint2.h"
 #include <stdexcept>
 
-// Full libint2 declarations (Engine, Shell, Operator, BraKet, etc.),
-// needed directly in this test file by
-// three_center_derivative_finite_difference (to build its deriv_order=0
-// finite-difference reference via ComputeAO3cBlock, which takes a
-// libint2::Engine&). Earlier tests in this file never needed this --
-// xtp_libint2.h only pulls in <libint2/initialize.h>, just enough for
-// libint2::initialize()/finalize(), not the full Engine/Shell/BraKet API.
-//
-// Deliberately NOT including <libint2/statics_definition.h> here, for
-// the same reason it was removed from libint2_derivative_calls.cc
-// earlier in this branch: that header DEFINES storage for libint2's
-// internal static tables and must appear in exactly one translation
-// unit per library. libint2_derivative_calls.cc (linked into
-// libvotca_xtp, which this test binary links against) already provides
-// it; including it a second time here would reproduce the exact
-// duplicate-symbol link error fixed earlier.
+// Full libint2 API (Engine, Shell, BraKet) for the deriv_order=0 reference
+// of three_center_derivative_finite_difference via ComputeAO3cBlock;
+// xtp_libint2.h only provides initialize()/finalize().
+// <libint2/statics_definition.h> must not be included: it defines libint2's
+// static tables, which libvotca_xtp (libint2_calls.cc) already provides.
 #define LIBINT2_CONSTEXPR_STATICS 0
 #if defined(__clang__)
 #pragma clang diagnostic push
@@ -83,10 +63,7 @@
 using namespace votca::xtp;
 using namespace votca;
 
-// Forward declarations of the new functions under test (declared in
-// libint2_derivative_calls.cc; not yet added to a public header, since this
-// is still a draft -- move to aomatrix.h or a new header once the API
-// stabilizes).
+// Defined in libint2_derivative_calls.cc (no public header).
 namespace votca {
 namespace xtp {
 using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
@@ -111,12 +88,8 @@ std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
 
 BOOST_AUTO_TEST_SUITE(aoderivatives_test)
 
-// Builds a small test molecule (H2, two atoms, minimal basis) directly
-// rather than loading from a data file, since no dedicated test geometry
-// exists yet for this new test -- two atoms is also the minimal case that
-// exercises both the "derivative w.r.t. shell1's atom" and "derivative
-// w.r.t. shell2's atom" branches in the new code, including the s1 != s2
-// transpose-block path.
+// H2 along z: two atoms exercise the derivatives w.r.t. both shell centres,
+// including the s1 != s2 transposed blocks.
 QMMolecule BuildH2(double bond_length_angstrom) {
   QMMolecule mol(" ", 0);
   std::string xyz_content =
@@ -124,10 +97,6 @@ QMMolecule BuildH2(double bond_length_angstrom) {
       "H 0.0 0.0 0.0\n"
       "H 0.0 0.0 " +
       std::to_string(bond_length_angstrom) + "\n";
-  // NOTE: QMMolecule::LoadFromFile reads from a file path in the existing
-  // test pattern (test_threecenter_dft.cc); writing a temp file here rather
-  // than assuming an in-memory constructor exists, since that API wasn't
-  // confirmed against qmmolecule.h in this pass.
   std::string tmp_path = "/tmp/xtp_test_h2_tmp.xyz";
   std::ofstream out(tmp_path);
   out << xyz_content;
@@ -139,10 +108,6 @@ QMMolecule BuildH2(double bond_length_angstrom) {
 BOOST_AUTO_TEST_CASE(overlap_derivative_finite_difference) {
   libint2::initialize();
 
-  // NOTE: basis set XML path assumed available from existing test data
-  // conventions (e.g. a minimal STO-3G-like set already used by other
-  // tests) -- point this at whatever small basis XML already exists under
-  // XTP_TEST_DATA_FOLDER once compiling; using a placeholder path here.
   std::string basis_path =
       std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
 
@@ -165,13 +130,8 @@ BOOST_AUTO_TEST_CASE(overlap_derivative_finite_difference) {
     libint2::finalize();
     return;
   }
-  // deriv[0] = derivative w.r.t. atom 0 (first H), deriv[1] = w.r.t. atom 1
-  // (second H); by symmetry for this diatomic along z, only the z-component
-  // (index 2) should be non-negligible, and deriv[0][2] should equal
-  // -deriv[1][2] since displacing atom 0 by +dz has the same effect on the
-  // bond-length-dependent overlap as displacing atom 1 by -dz. This
-  // symmetry is itself a cheap first sanity check, independent of the
-  // finite-difference comparison below.
+  // deriv[a][xyz]: derivative w.r.t. atom a. For H2 along z only z is
+  // nonzero, and translational invariance gives deriv[0][2] = -deriv[1][2].
   BOOST_CHECK_SMALL((deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
 
   // Central finite difference: displace atom 1 (index 1, the second H)
@@ -190,25 +150,11 @@ BOOST_AUTO_TEST_CASE(overlap_derivative_finite_difference) {
 
   Eigen::MatrixXd finite_diff_deriv =
       (overlap_plus.Matrix() - overlap_minus.Matrix()) / (2.0 * h);
-  // NOTE: the above is dS/dR in per-Angstrom units, since h was a
-  // displacement in Angstrom (BuildH2 writes plain .xyz files). XTP
-  // represents geometry internally in Bohr (atomic units, consistent with
-  // every other part of this codebase), so the analytic derivative from
-  // ComputeOverlapDerivatives is dS/dR in per-Bohr units. These don't
-  // match without converting -- confirmed directly: the two matrices
-  // agreed in sign and structure but differed by a uniform factor of
-  // ~1.8897 across every nonzero entry, which is exactly 1/0.529177
-  // (Bohr-to-Angstrom conversion), not a bug in the derivative-integral
-  // code itself. Converting to per-Bohr units here:
+  // h is in Angstrom, the analytic derivative per Bohr.
   constexpr double kBohrPerAngstrom = 0.52917721090380;
   finite_diff_deriv *= kBohrPerAngstrom;
 
-  // Tolerance loosened from an initial 1e-5 to 1e-4: after fixing the
-  // Bohr/Angstrom unit bug above, the observed residual between analytic
-  // and finite-difference was ~2.4e-5 relative (consistent with O(h^2)
-  // central-difference truncation error at h=1e-4) -- 1e-4 gives a safe
-  // margin above that without being so loose it would pass a genuinely
-  // wrong result.
+  // observed relative deviation ~2.4e-5, the O(h^2) error at h = 1e-4
   bool matches = finite_diff_deriv.isApprox(deriv[1][2], 1e-4);
   if (!matches) {
     std::cout << "Analytic dS/dz(atom1):\n" << deriv[1][2] << std::endl;
@@ -224,16 +170,8 @@ BOOST_AUTO_TEST_CASE(overlap_derivative_finite_difference) {
   libint2::finalize();
 }
 
-// Same pattern as overlap_derivative_finite_difference above, but for
-// AOKinetic instead of AOOverlap. Worth testing separately even though
-// both go through the same computeOneBodyIntegralDerivatives<obtype>
-// template in libint2_derivative_calls.cc (so the shell-pair loop, atom
-// bookkeeping, and Bohr-unit handling are already exercised by the
-// overlap test above): the kinetic-energy integral has a genuinely
-// different, more complex analytic form than overlap, so this checks
-// that libint2's kinetic-derivative engine specifically produces
-// correctly-shaped, correctly-valued buffers -- not just that the
-// shared loop logic around it is right.
+// As overlap_derivative_finite_difference, for the kinetic energy
+// integrals (same code path, different libint2 operator).
 BOOST_AUTO_TEST_CASE(kinetic_derivative_finite_difference) {
   libint2::initialize();
 
@@ -260,12 +198,8 @@ BOOST_AUTO_TEST_CASE(kinetic_derivative_finite_difference) {
     return;
   }
 
-  // Translational invariance holds here for the same reason it holds for
-  // overlap: the kinetic-energy integral <chi_A| -1/2 nabla^2 |chi_B> for
-  // two Gaussians depends only on their relative separation (A-B), not on
-  // absolute position -- unlike, e.g., the nuclear attraction integral,
-  // which depends on external nuclear positions as well and would NOT
-  // satisfy this same simple two-center sum rule.
+  // Translational invariance: the kinetic integral depends only on the
+  // separation of the two centres.
   BOOST_CHECK_SMALL((deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
 
   QMMolecule mol_plus = BuildH2(bond_length + h);
@@ -282,18 +216,11 @@ BOOST_AUTO_TEST_CASE(kinetic_derivative_finite_difference) {
 
   Eigen::MatrixXd finite_diff_deriv =
       (kinetic_plus.Matrix() - kinetic_minus.Matrix()) / (2.0 * h);
-  // Same Bohr/Angstrom conversion as the overlap test above, and for the
-  // identical reason -- see the detailed note there.
+  // per Bohr, see overlap test
   constexpr double kBohrPerAngstrom = 0.52917721090380;
   finite_diff_deriv *= kBohrPerAngstrom;
 
-  // Same tolerance rationale as the overlap test: expected O(h^2)
-  // central-difference truncation error at h=1e-4 is on the order of a
-  // few 1e-5 relative, so 1e-4 gives a safe margin. Kept identical to the
-  // overlap test's tolerance for consistency; if the kinetic integral's
-  // higher-derivative curvature turns out to need a looser bound in
-  // practice, that would itself be worth understanding rather than just
-  // loosening blindly.
+  // same tolerance as the overlap test
   bool matches = finite_diff_deriv.isApprox(deriv[1][2], 1e-4);
   if (!matches) {
     std::cout << "Analytic dT/dz(atom1):\n" << deriv[1][2] << std::endl;
@@ -305,22 +232,8 @@ BOOST_AUTO_TEST_CASE(kinetic_derivative_finite_difference) {
   libint2::finalize();
 }
 
-// Two-center Coulomb metric (P|Q) derivative, needed for the RI-J/RI-K
-// gradient assembly. Same H2/3-21G setup as the one-body tests above --
-// no aux basis needed here, since this integral type is generic to any
-// basis pair, not specific to an auxiliary RI basis (that distinction
-// only matters for the three-center case, tested separately).
-//
-// STATUS: NOT yet run. Two things are genuinely untested hypotheses here
-// (see the detailed comment in libint2_derivative_calls.cc):
-//   1. That this operator/braket combination (coulomb, xs_xs, with dummy
-//      unit shells) also returns exactly 6 buffers for the two real
-//      centers, the same convention confirmed for the one-body case.
-//   2. That ENABLE_ERI2=2 (a different libint2 build flag from
-//      ENABLE_ONEBODY=2) is what this specific build needs -- if this
-//      test crashes with the same "null build function ptr" assertion
-//      the one-body case hit before ITS build was fixed, check that flag
-//      first, not the code below.
+// Two-centre Coulomb metric derivative d(P|Q)/dR, using the 3-21G basis as
+// the "auxiliary" basis.
 BOOST_AUTO_TEST_CASE(coulomb_metric_derivative_finite_difference) {
   libint2::initialize();
 
@@ -347,8 +260,7 @@ BOOST_AUTO_TEST_CASE(coulomb_metric_derivative_finite_difference) {
     return;
   }
 
-  // Same translational-invariance argument as overlap/kinetic: (P|Q)
-  // depends only on the relative separation of the two centers.
+  // Translational invariance: (P|Q) depends only on the separation.
   BOOST_CHECK_SMALL((deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
 
   QMMolecule mol_plus = BuildH2(bond_length + h);
@@ -384,24 +296,9 @@ BOOST_AUTO_TEST_CASE(coulomb_metric_derivative_finite_difference) {
   libint2::finalize();
 }
 
-// Three-center RI integral derivative d(mu,nu|P)/dR. Uses H2/3-21G for
-// BOTH the "dft" and "aux" basis (same file loaded twice) -- deliberately
-// avoiding the question of whether the existing C2-specific aux basis
-// files (used in test_threecenter_dft.cc) cover hydrogen; this is purely
-// about validating the integral derivative in isolation, so any valid
-// basis pair works, it doesn't need to be a realistic RI fitting basis.
-//
-// STATUS: NOT yet run. This is the least-tested piece so far: THREE
-// genuinely untested hypotheses stack here (see the detailed comment in
-// libint2_derivative_calls.cc for each): the 9-buffer count for 3 real
-// centers, the buffer-to-center ordering (aux, col, row, following
-// argument order with the dummy skipped -- reasonably well-grounded by
-// direct analogy with the CONFIRMED 2-center metric case, but not
-// independently checked here), and which libint2 build flag
-// (ENABLE_ERI3, presumably =2) this needs. If this crashes with the
-// "null build function ptr" assertion, check the build flag first. If it
-// runs but gives a large numerical discrepancy, check buffer ordering
-// before anything else.
+// Three-centre RI integral derivative d(mu,nu|P)/dR, with H2/3-21G as both
+// DFT and auxiliary basis (only the integral derivative is tested). A large
+// discrepancy would point at the buffer-to-centre order (aux, col, row).
 BOOST_AUTO_TEST_CASE(three_center_derivative_finite_difference) {
   libint2::initialize();
 
@@ -430,24 +327,16 @@ BOOST_AUTO_TEST_CASE(three_center_derivative_finite_difference) {
     return;
   }
 
-  // Translational invariance now distributes across THREE atoms, not
-  // two -- but this molecule only has two atoms (both dftbasis and
-  // auxbasis are defined on the same H2), so the sum rule still reduces
-  // to the same two-term check: for every aux function k and every xyz,
-  // d(...)/dR_atom0 + d(...)/dR_atom1 = 0, since there is no third atom
-  // to distribute across in this specific test system. This is NOT a
-  // generic 3-center check (a real 3-atom system would need a genuine
-  // 3-term sum), but it's a valid check for this specific 2-atom case
-  // and costs nothing extra to include.
+  // Translational invariance: with only two atoms the three-centre sum rule
+  // reduces to d/dR_0 + d/dR_1 = 0 for every aux function and xyz.
   Index n_aux_bf = auxbasis0.AOBasisSize();
   for (Index k = 0; k < n_aux_bf; ++k) {
     BOOST_CHECK_SMALL((deriv[0][2][k] + deriv[1][2][k]).cwiseAbs().maxCoeff(),
                       1e-8);
   }
 
-  // Finite-difference reference: rebuild the full (mu,nu|P) tensor via
-  // the existing, validated (deriv_order=0) ComputeAO3cBlock helper, at
-  // displaced geometries.
+  // Finite-difference reference from (mu,nu|P) via ComputeAO3cBlock
+  // (deriv_order = 0) at the displaced geometries.
   auto build_3c_tensor = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
     std::vector<Eigen::MatrixXd> tensor(
         auxbasis.AOBasisSize(),
@@ -511,18 +400,8 @@ BOOST_AUTO_TEST_CASE(three_center_derivative_finite_difference) {
   libint2::finalize();
 }
 
-// Nuclear attraction (electron-nucleus Coulomb) integral derivative --
-// the piece discovered MISSING from the total gradient assembly by the
-// first genuine end-to-end SCF+forces test
-// (test_dftengine_forces.cc), after every earlier gradient test in this
-// branch validated individual terms against fixed density matrices
-// without ever exercising the complete picture against a real total SCF
-// energy. Uses the same H2/3-21G setup as the other one-electron tests
-// above. Genuinely a 3-real-center integral per point charge (2 basis
-// centers + 1 point-charge atom) -- structurally the least-tested case
-// so far in terms of buffer count/ordering, by direct analogy with the
-// already-confirmed 3-center RI case but not independently checked at
-// this exact operator/point-charge combination.
+// Nuclear attraction integral derivative d(V_ne)/dR, a three-centre
+// derivative per point charge (two basis centres and the nucleus).
 BOOST_AUTO_TEST_CASE(nuclear_attraction_derivative_finite_difference) {
   libint2::initialize();
 
@@ -539,16 +418,9 @@ BOOST_AUTO_TEST_CASE(nuclear_attraction_derivative_finite_difference) {
   AOBasis aobasis0;
   aobasis0.Fill(basisset, mol0);
 
-  // Distinct from a genuine formula/sign bug: some libint2 builds
-  // support derivative integrals for SOME operators (overlap, kinetic,
-  // the coulomb metric, three-center RI) but not nuclear attraction
-  // specifically, which needs the point-charge derivative variant --
-  // ComputeNuclearAttractionDerivatives detects this itself (every
-  // shell pair's buffer coming back null, rather than a genuine
-  // formula error) and throws a clear, specific error rather than
-  // silently returning an all-zero matrix. Skip this test gracefully
-  // in that case -- this is an environment limitation (this CI's
-  // libint2 build), not a code defect to fail the build over.
+  // Some libint2 builds lack derivatives for the nuclear attraction
+  // operator only; ComputeNuclearAttractionDerivatives then throws, and the
+  // test is skipped.
   std::vector<AOMatrixDerivative> deriv;
   try {
     deriv = ComputeNuclearAttractionDerivatives(aobasis0, mol0);
@@ -559,10 +431,8 @@ BOOST_AUTO_TEST_CASE(nuclear_attraction_derivative_finite_difference) {
     return;
   }
 
-  // Same translational-invariance argument as overlap/kinetic/coulomb
-  // metric: V_ne depends only on relative positions (basis centers and
-  // point-charge positions), so the sum over all atoms' derivatives
-  // must vanish.
+  // Translational invariance: V_ne depends only on relative positions of
+  // basis centres and nuclei.
   BOOST_CHECK_SMALL((deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
 
   QMMolecule mol_plus = BuildH2(bond_length + h);

@@ -186,11 +186,9 @@ void JobTopology::CreateRegions(
   // The union of every segment carved out of the periodic cell, collected
   // as each molecule is mapped and shifted. An EwaldRegion needs the whole
   // union to know which background copies to suppress, and no single
-  // client region knows it -- see EwaldRegion::RegisterForeground. Built
-  // from the region types generically rather than naming qm and polar,
-  // because every region here draws its segments from the same Topology
-  // the background was converged on, so anything it owns is genuinely
-  // carved out of the cell.
+  // client region knows it (see EwaldRegion::RegisterForeground). All
+  // region types contribute, not only qm and polar: every region takes its
+  // segments from the Topology the background was converged on.
   std::vector<std::pair<Index, Eigen::Vector3d>> foreground_union;
 
   for (const tools::Property& region_def : options.second) {
@@ -293,10 +291,9 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
       std::vector<bool>(top.Segments().size(), false);
   for (const tools::Property* region_def : sorted_regions) {
 
-    // An ewaldregion is the exception: it takes no segments from this
-    // topology at all. Its content is the periodic background written by
-    // the ewaldbackground calculator, which it loads from a checkpoint,
-    // so demanding segments or a cutoff for it would be meaningless.
+    // An ewaldregion takes no segments from this topology: it loads the
+    // periodic background written by the ewaldbackground calculator from a
+    // checkpoint, so it needs neither segments nor a cutoff.
     EwaldRegion Ewalddummy(0, log_);
     const bool is_ewald = region_def->name() == Ewalddummy.identify();
     if (!is_ewald && !region_def->exists("segments") &&

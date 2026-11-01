@@ -59,84 +59,41 @@ class XtpMap : public TOOLS::Application {
  protected:
 };
 
-// Real, direct, standard Bondi (1964) van der Waals radii, in
-// Angstrom -- confirmed directly, via web search, against Wikipedia's
-// own direct table (itself sourced from Bondi's own original
-// compilation), before use -- these are the same, real, standard
-// "consensus" values VMD's own real bond-detection heuristic is
-// itself based on (confirmed directly too: OVITO's own documentation,
-// citing VMD explicitly, states a bond is created when two atoms'
-// own separation is less than 60% of the sum of their own vdW radii
-// -- the same real fraction used directly below). Deliberately NOT
-// votca::tools::Elements::getVdWChelpG()/getVdWMK() -- both
-// confirmed directly, by reading their own real values, to be
-// specialized electrostatic-potential-fitting radii (ChelpG/
-// Merz-Kollman), a genuinely different purpose from, and not the
-// same real values as, standard Bondi vdW radii.
+// Bondi (1964) van der Waals radii in Angstrom. VMD's bond-detection
+// heuristic, used in GuessBonds, creates a bond when the separation of two
+// atoms is below 60% of the sum of their vdW radii. The ChelpG/MK radii in
+// votca::tools::Elements are fitting radii for electrostatic potentials and
+// are deliberately not used here.
 static const std::map<std::string, double> kBondiVdWRadiusAngstrom = {
     {"H", 1.20}, {"C", 1.70}, {"N", 1.55}, {"O", 1.52},
     {"F", 1.47}, {"P", 1.80}, {"S", 1.80}, {"Cl", 1.75},
 };
 
-// Real, direct, explicitly opt-in fallback -- worked through directly
-// with the user -- for guessing real bond connectivity from atom
-// positions alone, when the loaded topology genuinely has none of its
-// own at all (see Md2QmEngine::map's own, new, real warning,
-// md2qmengine.cc, for exactly why this matters at all: automatic
-// H-saturation of cut segment boundaries, IPodCoupling::EvalJob,
-// genuinely depends, entirely, on real bond connectivity actually
-// existing in the first place).
+// Opt-in (--guess-bonds) fallback that guesses bond connectivity from atom
+// positions for topologies without any bonds. Bond connectivity is required
+// for the H-saturation of cut segment boundaries (IPodCoupling::EvalJob, see
+// the warning in Md2QmEngine::map). This is never done automatically: a wrong
+// bond silently corrupts external-bond detection and RelaxNewAtoms, whereas a
+// missing bond only disables saturation, which is already warned about.
 //
-// A real, direct, deliberate design choice, worked through directly
-// with the user: NEVER an automatic fallback within ordinary xtp_map
-// usage at all -- always a real, explicit, conscious --guess-bonds
-// flag. A genuinely WRONG guessed bond is worse than no bond at all
-// (a missing bond simply means no saturation happens at all, already
-// directly, visibly flagged by the warnings above -- a wrong one
-// would silently corrupt external-bond detection, or RelaxNewAtoms's
-// own connectivity, in a way that is much harder to notice after the
-// fact at all).
-//
-// The real, actual search is restricted to atom pairs within the
-// SAME real MD molecule only -- worked through directly with the
-// user: this is not merely a safety improvement (it eliminates the
-// single most common real failure mode of this kind of heuristic --
-// a non-bonded atom from a genuinely different, neighboring molecule,
-// in a dense, periodic system, being mistaken for a real bond
-// partner), it is also a genuine, real, direct performance necessity
-// -- an unrestricted, whole-system search would be a real, direct
-// O(N^2) operation, prohibitively expensive for any real morphology
-// with many thousands of real atoms, while restricting to real,
-// individual molecules (each typically small) reduces this to a
-// real, direct O(N x k), k the real, typical molecule size.
-//
-// Real, direct, honest limitation, worth being explicit about (worked
-// through directly with the user too): this does NOT eliminate every
-// possible real failure mode of this heuristic at all -- two,
-// genuinely non-bonded atoms within the SAME real molecule (e.g. a
-// folded or coiled real chain, where two, real, distant backbone
-// atoms happen to come close together in real space) can still,
-// genuinely, be mistaken for a real bond. This is exactly why a real,
-// direct, inspectable report of every real guessed bond is always
-// written -- guessed_bonds_report.txt -- so a real user reviewing it
-// has a real, genuine chance of directly catching this specific case
-// too, rather than it being entirely invisible.
+// Only atom pairs within the same MD molecule are tested. This avoids false
+// bonds to neighbouring molecules in dense periodic systems and reduces the
+// cost from O(N^2) to O(N k), with k the molecule size. Close contacts within
+// one molecule (e.g. a folded chain) can still produce false bonds, so every
+// guessed bond is written to guessed_bonds_report.txt for inspection.
 void GuessBonds(CSG::Topology& top) {
   if (!top.BondedInteractions().empty()) {
     throw runtime_error(
-        "--guess-bonds was requested, but this topology already has real "
-        "bond connectivity of its own -- refusing to guess additional "
-        "bonds on top of real, existing ones, to avoid silently "
-        "double-counting or conflicting with them. This option is only "
-        "for topologies with genuinely NO real bond data at all.");
+        "--guess-bonds was requested, but the topology already contains "
+        "bonds. Guessing additional bonds could duplicate or conflict with "
+        "them; --guess-bonds is only allowed for topologies without bonds.");
   }
 
   std::ofstream report("guessed_bonds_report.txt");
   report << "# Bonds guessed from atom positions alone, via --guess-bonds\n"
-         << "# (a simple, van-der-Waals-radii-based heuristic, restricted "
-            "to atom pairs within the same real molecule) -- review this "
-            "report directly before trusting the guessed connectivity for "
-            "anything at all.\n"
+         << "# (van der Waals radii heuristic, restricted to atom pairs "
+            "within the same molecule). Review before using the guessed "
+            "connectivity.\n"
          << "# mol_id  atom1_id  atom1_name  atom2_id  atom2_name  "
             "distance[Ang]  cutoff[Ang]\n";
 
@@ -155,23 +112,16 @@ void GuessBonds(CSG::Topology& top) {
         if (it2 == kBondiVdWRadiusAngstrom.end()) {
           continue;
         }
-        // Real, direct, PBC-aware distance -- confirmed directly,
-        // earlier this same session, that BCShortestConnection(r_i,
-        // r_j) returns the real, direct, minimum-image vector FROM
-        // r_i TO r_j (r_j - r_i) -- only its own real norm is needed
-        // here, so the exact direction/order does not matter at all
-        // for this specific use.
+        // Minimum-image distance; BCShortestConnection(r_i, r_j) returns
+        // r_j - r_i, only its norm is used here.
         double distance_nm =
             top.BCShortestConnection(bead1->getPos(), bead2->getPos()).norm();
         double distance_ang = distance_nm * votca::tools::conv::nm2ang;
         double cutoff_ang = 0.6 * (it1->second + it2->second);
         if (distance_ang < cutoff_ang) {
-          // Real, direct bug fix -- the same one, and confirmed the
-          // same way, as gmxtopologyreader.cc's own: a freshly-
-          // constructed IBond's own group_ starts out empty by
-          // default, and Topology::AddBondedInteraction's own call to
-          // getGroup() (topology.cc) directly asserts this is
-          // non-empty -- so setGroup() must always be called first.
+          // A new IBond has an empty group, and
+          // Topology::AddBondedInteraction asserts a non-empty getGroup(),
+          // so the group must be set first (as in gmxtopologyreader.cc).
           CSG::Interaction* ic = new CSG::IBond(bead1->getId(), bead2->getId());
           ic->setGroup("BONDS");
           top.AddBondedInteraction(ic);
@@ -188,11 +138,9 @@ void GuessBonds(CSG::Topology& top) {
   report.close();
 
   cout << "\n--guess-bonds: guessed " << guessed_count
-       << " real bonds from atom positions alone (van-der-Waals-radii "
-          "heuristic, restricted to atom pairs within the same molecule) "
-          "-- see guessed_bonds_report.txt for the full, real, direct "
-          "list. Review this directly before trusting it for anything at "
-          "all."
+       << " bonds from atom positions (van der Waals radii heuristic, "
+          "restricted to atom pairs within the same molecule). Review "
+          "guessed_bonds_report.txt before using them."
        << endl;
 }
 
@@ -221,16 +169,12 @@ void XtpMap::Initialize() {
                       "  number of frames to process");
   AddProgramOptions()(
       "guess-bonds",
-      "  guess real bond connectivity from atom positions alone (a simple, "
-      "van-der-Waals-radii-based heuristic, matching the one VMD itself "
-      "uses for visualization -- restricted to atom pairs within the same "
-      "real MD molecule only) -- ONLY if the loaded topology genuinely "
-      "has no real bond connectivity of its own at all; never used if "
-      "real bonds are already present. Writes a real, direct, inspectable "
-      "report of every guessed bond to guessed_bonds_report.txt -- always "
-      "review this before trusting the guessed connectivity for anything "
-      "at all, since this heuristic can be genuinely wrong (see VMD's own "
-      "developers' documented caveats about it).");
+      "  guess bond connectivity from atom positions for topologies "
+      "without bonds, using VMD's van der Waals radii heuristic restricted "
+      "to atom pairs within the same MD molecule. Fails if the topology "
+      "already contains bonds. All guessed bonds are written to "
+      "guessed_bonds_report.txt; review them, the heuristic can produce "
+      "false bonds.");
 }
 
 bool XtpMap::EvaluateOptions() {

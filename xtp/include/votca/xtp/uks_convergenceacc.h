@@ -56,23 +56,13 @@ class UKSConvergenceAcc {
     Eigen::MatrixXd beta;
   };
 
-  /// Given BOTH new spin densities together, returns BOTH new AO Fock
-  /// matrices together (H0 + Coulomb + exchange + XC, for each
-  /// channel). Closer to VOTCA's own native Fock-build structure:
-  /// Vxc_Potential::IntegrateVXCSpin already computes vxc_alpha and
-  /// vxc_beta together from both densities in one call. Used by
-  /// CoupledAugmentedHessianStep/BuildCoupledSigmaVector to capture
-  /// the genuine alpha-beta coupling (through the shared Coulomb
-  /// potential and the XC kernel's cross-spin terms) that treating the
-  /// two channels independently would discard -- see the conversation
-  /// this grew out of: a direct, controlled comparison against ORCA on
-  /// an identical geometry showed ORCA's own, fully-coupled TRAH
-  /// converging where an earlier, decoupled implementation here did
-  /// not. Injected from DFTEngine (setCoupledFockBuilder below) since
-  /// the actual integral/XC machinery (CalcERIs/CalcERIs_EXX,
-  /// Vxc_Potential::IntegrateVXCSpin) lives there, not in this class --
-  /// matching the same pointer-injection pattern already used for
-  /// S_/log_.
+  /// Builds both AO Fock matrices (H0 + Coulomb + exchange + XC) from both
+  /// spin densities together. Used by
+  /// CoupledAugmentedHessianStep/BuildCoupledSigmaVector to include the
+  /// alpha-beta coupling (shared Coulomb potential, cross-spin XC kernel);
+  /// a decoupled treatment failed to converge in cases where ORCA's coupled
+  /// TRAH converges. Set by DFTEngine (setCoupledFockBuilder), which owns
+  /// the integral and XC machinery.
   using CoupledFockBuilder =
       std::function<SpinFock(const Eigen::MatrixXd& /*Dalpha_new*/,
                              const Eigen::MatrixXd& /*Dbeta_new*/)>;
@@ -110,21 +100,16 @@ class UKSConvergenceAcc {
   /// [v0; v_ov] (the scalar augmented component and the flattened
   /// occ-virt rotation-space vector), mapped back to a full nao x nao
   /// antisymmetric matrix (occ-virt/virt-occ blocks only, matching
-  /// DirectMinimizationRotation's own convention) -- needed to
-  /// actually apply a trial rotation direction when building the
-  /// finite-difference sigma vector. Public so it can be exercised
-  /// directly by unit tests (see test_uks_convergenceacc.cc), given how
-  /// cheaply this pure, self-contained math can be checked in isolation
-  /// compared to the SCF machinery that otherwise relies on it.
+  /// DirectMinimizationRotation's convention), used to apply a trial
+  /// rotation when building the finite-difference sigma vector. Public for
+  /// unit tests (test_uks_convergenceacc.cc).
   Eigen::MatrixXd UnflattenRotation(const Eigen::VectorXd& v_ov, Index nao,
                                     Index nocclevels) const;
 
-  /// Coupled analogue of UnflattenRotation: splits ONE combined vector
-  /// v (size n_ov_alpha + n_ov_beta -- alpha's own occ-virt block
-  /// first, beta's own immediately after) into TWO separate
-  /// antisymmetric rotation matrices, kappa_alpha (nao_alpha x
-  /// nao_alpha) and kappa_beta (nao_beta x nao_beta). Public for the
-  /// same reason as UnflattenRotation itself.
+  /// Coupled analogue of UnflattenRotation: splits v (size n_ov_alpha +
+  /// n_ov_beta, alpha block first) into the antisymmetric rotation
+  /// matrices kappa_alpha (nao_alpha x nao_alpha) and kappa_beta
+  /// (nao_beta x nao_beta). Public for unit tests.
   std::pair<Eigen::MatrixXd, Eigen::MatrixXd> UnflattenCoupledRotation(
       const Eigen::VectorXd& v, Index nao_alpha, Index nocclevels_alpha,
       Index nao_beta, Index nocclevels_beta) const;
@@ -231,32 +216,18 @@ class UKSConvergenceAcc {
   static constexpr double kRemovedShift = 1e3;
   bool usedmixing_ = true;
 
-  // Direct-minimization fallback bookkeeping. consecutive_adiis_failures_
-  // tracks how many (A)DIIS attempts in a row have failed -- switching
-  // to DirectMinimizationRotation/CoupledAugmentedHessianStep after
-  // kMaxConsecutiveADIISFailures deliberately mirrors ORCA's own
-  // auto-TRAH trigger (switching away from DIIS-family methods after
-  // they visibly struggle), rather than falling back to plain mixing
-  // indefinitely the way this class already did before this addition.
+  // Direct-minimization fallback: after kMaxConsecutiveADIISFailures
+  // failed (A)DIIS steps in a row, switch to
+  // DirectMinimizationRotation/CoupledAugmentedHessianStep (cf. ORCA's
+  // auto-TRAH) instead of mixing indefinitely.
   Index consecutive_adiis_failures_ = 0;
   static constexpr Index kMaxConsecutiveADIISFailures = 5;
 
-  // Trailing-average trigger for direct-minimization, ADDITIONAL to
-  // (not replacing) the consecutive-failures count above -- matches
-  // ORCA's own AutoTRAH design (confirmed directly from a real ORCA
-  // log's own resolved SCF settings: "Auto Start start iteration 50",
-  // "Auto Start num. interpolation iter. 10", "Auto Start mean grad.
-  // ratio tolernc. 1.125"). Rather than only reacting to N CONSECUTIVE
-  // ADIIS failures (which says nothing about whether progress is
-  // merely slow but real, or genuinely stalled), this tracks whether
-  // diiserror_ itself is failing to shrink fast enough ON AVERAGE over
-  // a trailing window, regardless of whether any individual ADIIS
-  // attempt in that window happened to "succeed" by its own tail-
-  // coefficient criterion. diiserror_history_ holds the trailing
-  // window (capped at kTrailingWindowSize entries, oldest dropped as
-  // new ones are added); the trigger itself only becomes eligible
-  // after kAutoStartIteration total iterations, matching ORCA's own
-  // deliberate delay before considering this criterion at all.
+  // Second trigger for direct minimization: diiserror_ does not decrease
+  // fast enough on average over the last kTrailingWindowSize iterations
+  // (kMeanRatioTolerance), checked only after kAutoStartIteration
+  // iterations. Parameters as in ORCA's AutoTRAH (start iteration 50,
+  // 10 interpolation iterations, mean gradient ratio tolerance 1.125).
   std::vector<double> diiserror_history_;
   Index total_iteration_count_ = 0;
   static constexpr Index kTrailingWindowSize = 10;

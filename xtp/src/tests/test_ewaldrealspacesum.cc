@@ -55,11 +55,9 @@ PolarSegment MakeChargeSegment(Index id, const Eigen::Vector3d& pos,
 
 // With a large box and a moderate alpha, erfc(alpha*r) underflows to
 // exactly 0 in double precision for any translation other than (0,0,0),
-// so the only translation that can contribute anything is the untranslated
-// one. This isolates AddFieldAt's wiring (registry lookup, intermolecular
-// scope, shell loop termination) from the periodic-image summation itself,
-// and cross-checks it against a single direct call to the already-
-// validated EwaldRealSpaceInteractor.
+// so only the untranslated image contributes. This tests AddFieldAt's
+// registry lookup, scope and shell termination against a single direct
+// EwaldRealSpaceInteractor call, independent of the image summation.
 BOOST_AUTO_TEST_CASE(single_relevant_image_matches_direct_interactor) {
   const double alpha = 0.3;
   Eigen::Matrix3d box = 1000.0 * Eigen::Matrix3d::Identity();
@@ -86,9 +84,9 @@ BOOST_AUTO_TEST_CASE(single_relevant_image_matches_direct_interactor) {
   BOOST_CHECK(target.V().norm() > 1e-8);  // sanity: not vacuously zero
 }
 
-// A target within its own registered segment must never feel that
-// segment's own field, at any translation -- this is the intermolecular-
-// only scope decision documented on the class itself.
+// A target must not feel the zero-translation copy of its own segment
+// (see the class documentation). In this large box the other images do
+// not contribute either.
 BOOST_AUTO_TEST_CASE(intramolecular_contribution_excluded) {
   const double alpha = 0.3;
   Eigen::Matrix3d box = 1000.0 * Eigen::Matrix3d::Identity();
@@ -123,12 +121,9 @@ BOOST_AUTO_TEST_CASE(intramolecular_contribution_excluded) {
   BOOST_CHECK(target.V().isApprox(Eigen::Vector3d::Zero(), 1e-14));
 }
 
-// A genuinely small box, so multiple periodic images fall within
-// convergence range. Cross-checks AddFieldAt's shell/convergence loop
-// against a manual sum over the same explicit translations, computed with
-// direct calls to EwaldRealSpaceInteractor -- this specifically exercises
-// the shell-grouping and multi-shell accumulation logic that the previous
-// test (single relevant image) does not.
+// A small box, so several periodic images contribute. Checks the shell
+// grouping and multi-shell accumulation of AddFieldAt against a manual
+// sum over explicit translations with EwaldRealSpaceInteractor.
 BOOST_AUTO_TEST_CASE(periodic_images_match_manual_sum) {
   const double alpha = 0.5;
   const double L = 4.0;
@@ -171,15 +166,11 @@ BOOST_AUTO_TEST_CASE(periodic_images_match_manual_sum) {
   }
 }
 
-// Declaring a foreground copy must remove EXACTLY that copy's
-// contribution from the periodic background -- the "carving out" an
-// MM/MM or QM/MM job performs before handling those segments explicitly.
-//
-// Asserted as an identity against a directly computed pair sum, not
-// against stored numbers: the removed amount is independently
-// recomputable, so a reference cannot agree with a mistake in the
-// exclusion logic. The entry count is checked too, because a correct
-// TOTAL could still hide removing one image while adding another.
+// Declaring a foreground copy must remove exactly that copy's
+// contribution from the periodic background (the MM/MM or QM/MM
+// carve-out). Checked against a directly computed pair sum; the entry
+// count is checked too, since a correct total could hide removing one
+// image while adding another.
 BOOST_AUTO_TEST_CASE(foreground_suppression_removes_exactly_one_copy) {
   const double alpha = 0.3;
   const double thole = 0.39;
@@ -262,14 +253,11 @@ BOOST_AUTO_TEST_CASE(foreground_suppression_removes_exactly_one_copy) {
 // The accumulated Q-Q energy must use exactly the neighbour set the
 // field used: same foreground suppression, same distance cull. Checked
 // by suppressing one copy and requiring the energy to drop by precisely
-// that copy's erfc-screened energy -- independently recomputed through
-// the interactor, so a reference cannot agree with a mistake in the
-// accumulation.
+// that copy's erfc-screened energy, recomputed through the interactor.
 //
-// Note the energy drops by the ERFC part only, not the bare part. That
-// is correct and worth stating: suppression removes the copy from the
-// real-space sum, while its reciprocal-space (erf) share is removed
-// separately by the erf energy correction, exactly as for the field.
+// The energy drops by the ERFC part only: suppression removes the copy
+// from the real-space sum, while its reciprocal-space (erf) share is
+// removed separately by the erf energy correction, as for the field.
 BOOST_AUTO_TEST_CASE(static_energy_uses_the_same_suppressed_neighbour_set) {
   const double alpha = 0.3;
   const double thole = 0.39;
@@ -367,33 +355,22 @@ BOOST_AUTO_TEST_CASE(static_energy_requires_an_existing_neighbour_list) {
 // point-polarizable site, so the induced-dipole source term must reach it
 // UNDAMPED.
 //
-// The probe nevertheless carries a polarizability, and cannot avoid one:
-// PolarSite's constructor looks the element up in tools::Elements and
-// calls setpolarization unconditionally. PotentialAtMany builds its probe
-// as PolarSite(0, "H", point), so before this was fixed the probe was
-// damped with hydrogen's 0.496 A^3 -- phi at a point in space depended on
-// a string literal, and would have changed had that "H" been a "C".
+// The probe nevertheless has a polarizability (the PolarSite constructor
+// always sets one from tools::Elements; PotentialAtMany uses
+// PolarSite(0, "H", point)), so without damp = false phi would be damped
+// with hydrogen's 0.496 A^3 (l3 = 0.9991, phi 0.15% low at the
+// separation below).
 //
-// Measured, at the separation below: l3 = 0.9991, phi low by 0.15%. Small,
-// and exponentially smaller further out (au3 goes as r^3), which is why
-// no job-level test could see it -- every foreground copy is suppressed,
-// so the nearest unsuppressed background site is far outside this range.
+// The point is consistency: the QM region receives induced dipoles via
+// AOMultipole and DFTEngine::ExternalRepulsion ->
+// eeInteractor::CalcStaticEnergy_site, neither of which applies Thole
+// damping, so damping here would mix two conventions for
+// [induced dipole] x [QM density].
 //
-// It matters for consistency, not size. A QM region receives the
-// classical regions' induced dipoles through AOMultipole (getDipole() is
-// permanent + induced) and through DFTEngine::ExternalRepulsion ->
-// eeInteractor::CalcStaticEnergy_site, and NEITHER applies Thole -- in
-// eeInteractor, Thole lives only in FillTholeInteraction, which the QM
-// path never calls. Damping here gave a three-region job two conventions
-// for [induced dipole] x [QM density] in one Hamiltonian, decided by
-// which route the dipole took.
-//
-// NOTE for anyone tempted to express "no polarizability" instead of
-// passing damp = false: don't. ComputeThole would form au3 = 0, read it
-// as COMPLETE overlap, and damp maximally at every distance -- l3 = l5 =
-// 0 and c3 = -B1_erf, which at the separation below is -0.65x the right
-// answer rather than 0.9991x. The BOOST_REQUIRE below rejects that
-// candidate explicitly so it cannot be introduced silently.
+// Zero polarizability is not an alternative to damp = false:
+// ComputeThole would form au3 = 0, i.e. complete overlap, and give
+// l3 = l5 = 0 and c3 = -B1_erf (-0.65x the correct answer here). The
+// BOOST_REQUIRE below rejects that candidate.
 //
 // The assertion needs no judgement about the short-range convention: out
 // here no damping model acts at all, and a dipole's screened potential is
@@ -441,8 +418,8 @@ BOOST_AUTO_TEST_CASE(probe_is_not_thole_damped_against_an_induced_dipole) {
   const double undamped = interactor.ComputeB(r).B1 * mu_dot_r;
   const double fully_damped = -interactor.ComputeErfB(r).B1 * mu_dot_r;
 
-  // Not a vacuous comparison: the two candidate answers are far apart,
-  // so passing this cannot be an accident of a small number.
+  // The two candidate answers are far apart, so the comparison is not
+  // vacuous.
   BOOST_REQUIRE_GT(std::abs(undamped - fully_damped), 0.1 * std::abs(undamped));
 
   BOOST_CHECK_CLOSE(phi(0), undamped, 1e-8);
@@ -453,12 +430,10 @@ BOOST_AUTO_TEST_CASE(probe_is_not_thole_damped_against_an_induced_dipole) {
 // energies) and the same statistics as the serial per-target loop, and
 // every target must have its list afterwards.
 //
-// The regression this guards: EwaldRegion::ApplyFieldTo used to run
-// AddFieldAt under omp parallel for on targets that had no list yet, so
-// every thread inserted into the same unordered_map at once. Entries
-// were lost, and the energy pass that follows threw "no neighbour list
-// for this target" on a 28-thread production QMMM job. Run here with
-// several threads and enough targets for the insertions to overlap.
+// Guards against concurrent insertion into the neighbour cache (running
+// AddFieldAt in an OpenMP loop on targets without lists loses entries;
+// seen as "no neighbour list for this target" in a 28-thread QMMM job).
+// Run with several threads and enough targets for insertions to overlap.
 BOOST_AUTO_TEST_CASE(add_field_at_many_matches_serial_add_field_at) {
   const double alpha = 0.35;
   const double thole = 0.39;
@@ -508,7 +483,7 @@ BOOST_AUTO_TEST_CASE(add_field_at_many_matches_serial_add_field_at) {
 
   // Targets are copies of the sites of every segment (135 of them, enough
   // for concurrent first-time insertions to collide), owned here, as a
-  // polar region owns its own. Two independent sets, one per sum object.
+  // polar region owns its sites. Two independent sets, one per sum object.
   auto make_targets = [&](std::vector<PolarSite>& storage) {
     storage.clear();
     storage.reserve(std::size_t(5 * n * n * n));

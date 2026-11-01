@@ -17,50 +17,21 @@
  *
  */
 
-// Real, direct, standalone check (not a votca_compare_xml-based
-// comparison test at all), worked through directly with the user.
+// Checks the coupling output of ipodcoupling (ipodcoupling.jobs) against
+// a reference.
 //
-// History, for the real, full context: the real, confirmed cross-
-// platform numerical noise this same session originally worked
-// through in ipodcoupling's own PODCoupling j (coupling) values
-// traced back to real OpenBabel version differences across platforms
-// (3.1.1 vs. 3.2.0) affecting RelaxNewAtoms's own H-saturation
-// geometry, which a real, downstream DFT calculation then amplified.
-// Rather than continue chasing bit-for-bit cross-platform determinism
-// through that real DFT step, this test's own run stage
-// (xtp/src/tests/CMakeLists.txt) was redesigned, worked through
-// directly with the user, to pre-seed a real, checked-in reference
-// orbFileAB (containing already-converged DFT orbitals) directly,
-// with tasks="podcoupling" only -- so PODCoupling itself now runs on
-// genuinely bit-identical input on every real platform, entirely
-// sidestepping the real DFT step (and its own real OpenBabel-version
-// dependency) for this specific comparison. A real, direct, separate,
-// much cheaper test (check_ipodcoupling_input_geometry.cc) checks the
-// H-saturation geometry itself, with a real, direct, small tolerance,
-// instead.
+// The H-saturation geometry depends on the OpenBabel version
+// (RelaxNewAtoms; 3.1.1 vs. 3.2.0), and the DFT step amplifies these
+// differences in the couplings. The run stage
+// (xtp/src/tests/CMakeLists.txt) therefore starts from a stored orbFileAB
+// with converged orbitals and runs only tasks="podcoupling", so the input
+// is identical on all platforms. The geometry is checked separately in
+// check_ipodcoupling_input_geometry.cc.
 //
-// Given that redesign, this check now does three, real, separate
-// things: (1) directly, genuinely REQUIRES that every real coupling
-// element in the actual, real ipodcoupling.jobs output genuinely has
-// its own real j attribute at all (a real, direct, fatal check -- via
-// BOOST_REQUIRE -- since a genuinely missing j value would mean
-// PODCoupling itself never actually ran, or genuinely crashed); (2)
-// allows for the real, well-known sign ambiguity in coupling matrix
-// elements (an arbitrary real MO phase choice -- a real feature of
-// electronic-structure theory, not a real bug, confirmed directly,
-// this same session, from a real, direct CI failure showing an
-// actual value equal in magnitude but opposite in sign to the
-// reference), the same way the earlier, now-replaced
-// votca_compare_xml-based version of this same test already handled
-// it directly (--signflip-attr j); and (3) genuinely REQUIRES
-// (BOOST_CHECK, fatal, not merely a warning) that a real j value's
-// own real magnitude agrees with the real, checked-in reference
-// within a real, direct, tight tolerance -- tight enough to catch a
-// real, genuine regression, but still loose enough to tolerate
-// ordinary floating-point rounding differences across real
-// compilers/BLAS implementations/threading, since even bit-identical
-// input can still produce very slightly different real floating-point
-// results across those.
+// Every coupling element must have a j attribute; j must agree with the
+// reference up to an arbitrary sign (MO phase, cf. --signflip-attr j of
+// votca_compare_xml) within a tolerance that only allows for rounding
+// differences (compiler, BLAS, threading).
 
 #define BOOST_TEST_MAIN
 
@@ -82,25 +53,14 @@ BOOST_AUTO_TEST_SUITE(check_ipodcoupling_coupling_output_test)
 
 BOOST_AUTO_TEST_CASE(check_j_values_present_and_agree_with_reference) {
 
-  // Real, direct paths -- both known at real CMake configure time
-  // already (REFPATH/RUNPATH, xtp/src/tests/CMakeLists.txt's own real
-  // ipodcoupling run stage), so compiled in directly here rather than
-  // parsed from real command-line arguments at all -- real, direct
-  // command-line arguments here would otherwise conflict with
-  // Boost::unit_test_framework's own real argument parsing
-  // (--run_test=/--log_level=/etc.).
+  // Paths are set at configure time (xtp/src/tests/CMakeLists.txt), since
+  // command-line arguments would conflict with Boost.Test's argument
+  // parsing (--run_test, --log_level, ...).
   std::string actual_file = IPODCOUPLING_RUN_JOBS_FILE;
   std::string reference_file = IPODCOUPLING_RUN_JOBS_REFERENCE_FILE;
 
-  // Real, direct, tight tolerance, worked through directly with the
-  // user: now that PODCoupling itself runs on genuinely bit-identical
-  // input on every real platform (the real DFT step, and its own real
-  // OpenBabel-version dependency, is sidestepped entirely by this
-  // test's own pre-seeded reference orbFileAB), this only needs to
-  // tolerate ordinary real floating-point rounding differences
-  // (compiler/BLAS/threading), not real, genuine geometry
-  // differences -- so kept far tighter than this file's own earlier,
-  // now-stale 0.5 eV warn-only threshold.
+  // Input is identical on all platforms, so only rounding differences
+  // need to be tolerated.
   double tolerance_eV = 1e-4;
 
   tools::Property actual_xml;
@@ -113,19 +73,13 @@ BOOST_AUTO_TEST_CASE(check_j_values_present_and_agree_with_reference) {
   std::vector<tools::Property *> reference_couplings =
       reference_xml.Select("jobs.job.output.ipodcoupling.coupling");
 
-  // Real, direct, honest sanity check on the reference file itself --
-  // fatal (BOOST_REQUIRE), since a genuinely empty/malformed reference
-  // file would make every other real check below meaningless.
+  // An empty reference would make all checks below meaningless.
   BOOST_REQUIRE_MESSAGE(!reference_couplings.empty(),
                         "Reference file '"
                             << reference_file
-                            << "' contains no coupling elements at "
-                               "all -- cannot check against it.");
+                            << "' contains no coupling elements.");
 
-  // Real, direct lookup, keyed by (levelA, levelB) -- more robust
-  // than a real, direct positional index alone, since this still
-  // correctly matches even if the real, actual ordering of coupling
-  // elements ever genuinely differs.
+  // Keyed by (levelA, levelB), independent of the element order.
   std::map<std::pair<Index, Index>, double> reference_by_level;
   for (tools::Property *ref_coupling : reference_couplings) {
     Index levelA = ref_coupling->getAttribute<Index>("levelA");
@@ -134,46 +88,33 @@ BOOST_AUTO_TEST_CASE(check_j_values_present_and_agree_with_reference) {
     reference_by_level[{levelA, levelB}] = j_ref;
   }
 
-  BOOST_REQUIRE_MESSAGE(
-      !actual_couplings.empty(),
-      "Real, actual output file '"
-          << actual_file
-          << "' contains no coupling elements at all -- PODCoupling "
-             "itself never actually produced any real output, or "
-             "genuinely crashed.");
+  BOOST_REQUIRE_MESSAGE(!actual_couplings.empty(),
+                        "Output file '"
+                            << actual_file
+                            << "' contains no coupling elements; PODCoupling "
+                               "produced no output.");
 
   for (tools::Property *actual_coupling : actual_couplings) {
     Index levelA = actual_coupling->getAttribute<Index>("levelA");
     Index levelB = actual_coupling->getAttribute<Index>("levelB");
 
-    // Real, direct, fatal check: every real coupling element must
-    // genuinely have its own real j attribute at all.
+    // A missing j means PODCoupling did not run or failed.
     BOOST_REQUIRE_MESSAGE(
         actual_coupling->hasAttribute("j"),
         "coupling element (levelA=" << levelA << ", levelB=" << levelB
-                                    << ") is genuinely missing its own "
-                                       "real j attribute entirely.");
+                                    << ") has no j attribute.");
 
     double j_actual = actual_coupling->getAttribute<double>("j");
 
     auto it = reference_by_level.find({levelA, levelB});
     BOOST_REQUIRE_MESSAGE(
         it != reference_by_level.end(),
-        "coupling element (levelA="
-            << levelA << ", levelB=" << levelB
-            << ") has no matching reference entry at all to compare "
-               "against.");
+        "coupling element (levelA=" << levelA << ", levelB=" << levelB
+                                    << ") has no matching reference entry.");
 
     double j_reference = it->second;
-    // Real, direct, fatal correction of a real, genuine bug the user
-    // themselves caught: coupling matrix elements genuinely have an
-    // arbitrary sign, determined by an arbitrary real MO phase choice
-    // -- a real, well-known feature of electronic-structure theory,
-    // not a real bug. The earlier, now-replaced votca_compare_xml-
-    // based version of this same test already handled this directly
-    // (--signflip-attr j) -- this C++ rewrite had dropped that
-    // handling entirely. Fixed the same way here: compare against
-    // whichever of the direct or sign-flipped deviation is smaller.
+    // The sign of a coupling depends on the arbitrary MO phases; compare
+    // with the smaller of the direct and the sign-flipped deviation.
     double deviation_eV = std::min(std::abs(j_actual - j_reference),
                                    std::abs(j_actual + j_reference));
     BOOST_CHECK_MESSAGE(

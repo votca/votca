@@ -48,45 +48,25 @@
 #include "votca/xtp/segmentmapper.h"
 
 /**
- * \brief ewdbgpol-equivalent calculator, built entirely on the new
- *        Ewald machinery (EwaldRegistry, EwaldRealSpaceSum,
- *        EwaldReciprocalSpaceSum, EwaldShapeCorrection,
- *        EwaldPeriodicDipoleOperator) developed alongside this class,
- *        rather than the legacy xtp/ewald/ code -- registered under a
- *        different Identify() ("ewaldbackground") so the two can coexist
- *        and be compared directly.
+ * \brief ewdbgpol-equivalent calculator built on EwaldRegistry,
+ *        EwaldRealSpaceSum, EwaldReciprocalSpaceSum, EwaldShapeCorrection
+ *        and EwaldPeriodicDipoleOperator instead of the legacy xtp/ewald/
+ *        code. Registered as "ewaldbackground" so that both can coexist.
  *
  * Converges the self-consistent, fully polarized (neutral-state)
  * background of the whole periodic system, and writes it to an HDF5
  * checkpoint file via EwaldRegistry::WriteToCpt.
  *
- * User-facing length-related options (coulombmethod.alpha,
- * coulombmethod.k_max, realspace.r_min) are specified in nm/nm^-1, not
- * this class's own internal bohr/bohr^-1 units -- converted once in
- * ParseOptions, immediately on read. This is deliberate: everything
- * downstream of ParseOptions (member variables, logging, the actual
- * EwaldRealSpaceSum/EwaldReciprocalSpaceSum construction) stays in the
- * same bohr-based units PolarSite/EwaldRegistry already use natively, so
- * only the options-parsing boundary itself needs to know about the
- * user-facing unit choice.
+ * Length-related options (coulombmethod.alpha, coulombmethod.k_max,
+ * realspace.r_min) are given in nm or nm^-1 and converted to bohr or
+ * bohr^-1 in ParseOptions; everything downstream uses atomic units.
  *
- * Segments may have any number of sites each -- this now matches
- * EwaldPeriodicDipoleOperator's own generalized (offset-table) vector
- * layout directly, built the same way here for the same reason: an
- * earlier version of both this class and the operator required exactly
- * one site per segment, and that limitation was lifted from the operator
- * first, validated there in isolation (see
- * test_ewaldperiodicdipoleoperatormultisite.cc), before being carried
- * through here -- so that a bug in this generalization, if there were
- * one, would be easy to isolate from the operator's own already-tested
- * multi-site behavior.
+ * Segments may have any number of sites; b and x use the variable-width
+ * layout of EwaldPeriodicDipoleOperator.
  *
- * The outer "loop until 2nd-order fields converged" structure the legacy
- * PolarBackground::Polarize() itself uses (see the project notes on that
- * class) is not reproduced here at all: EwaldPeriodicDipoleOperator's own
- * ConjugateGradient solve already *is* that convergence loop, in one
- * call, rather than a separate SOR iteration this class would need to
- * drive itself.
+ * The outer "loop until 2nd-order fields converged" of legacy
+ * PolarBackground::Polarize() is not reproduced: the iterative solve
+ * (PCG or JOR) is that loop.
  */
 
 namespace votca {
@@ -105,70 +85,41 @@ class EwaldBackground final : public QMCalculator {
   std::string mapping_file_;
   std::string checkpoint_file_;
 
-  double alpha_ = 0.5;  // bohr^-1 (internal). User-facing XML value
-                        // for coulombmethod.alpha is nm^-1, converted
-                        // in ParseOptions; only used as-is if the
-                        // user explicitly sets it, otherwise
-                        // overwritten in Evaluate() with a value
-                        // derived from the box (see there, already
-                        // in bohr^-1 at that point).
+  double alpha_ = 0.5;  // bohr^-1. XML value (coulombmethod.alpha) is
+                        // in nm^-1. Unless set explicitly, derived from
+                        // the box in Evaluate().
   bool alpha_explicit_ = false;
-  double k_max_ = 3.0;  // bohr^-1 (internal); same nm^-1-in-XML
-                        // pattern as alpha_ -- derived in Evaluate()
-                        // from the (possibly also derived) alpha_,
-                        // unless explicitly set.
+  double k_max_ = 3.0;  // bohr^-1, XML value in nm^-1. Unless set
+                        // explicitly, derived from alpha_ in Evaluate().
   bool k_max_explicit_ = false;
   double thole_a_ = 0.39;
-  double r_min_ = 18.897259886;  // bohr (internal) = 1.0 nm, the actual
-                                 // default applied in ParseOptions. User-
-                                 // facing XML value for realspace.r_min is
-                                 // nm, converted in ParseOptions; this member
-                                 // initializer only matters if ParseOptions
-                                 // somehow never runs.
+  double r_min_ = 18.897259886;  // bohr (= 1.0 nm, the default applied
+                                 // in ParseOptions). XML value
+                                 // (realspace.r_min) is in nm.
   double field_tol_ = 1e-8;
   // Dimensionless: the real-space distance cutoff is
-  // screening_factor_/alpha. See EwaldRealSpaceSum's own constructor for
-  // what it controls and what raising or lowering it costs. Unitless, so
-  // unlike r_min/alpha/k_max it needs no nm<->bohr conversion.
+  // screening_factor_/alpha (see the EwaldRealSpaceSum constructor).
   double screening_factor_ = 6.0;
   EwaldShape shape_ = EwaldShape::Cube;
 
   Index max_iter_ = 200;
   double pcg_tolerance_ = 1e-8;
-  bool induce_ = true;  // matches legacy's own polarmethod.induce; when
-  // Debug/experimental, no legacy counterpart -- see
-  // EwaldBlockJacobiPreconditioner's own class documentation for what
-  // this is for and why it exists, and its own usage-pattern note (the
-  // real reason this needed its own if/else branch below rather than a
-  // single runtime-switchable cg instance: the preconditioner type is a
-  // compile-time Eigen::ConjugateGradient template parameter). Not yet
-  // validated against a real system this size -- only its own mechanics
-  // (compiles, runs, solves correctly) have been confirmed, with a
-  // synthetic test operator, not this real one.
+  bool induce_ = true;  // legacy polarmethod.induce; if false, induced
+                        // dipoles stay zero and no solve is run.
+  // Debug/experimental, no legacy counterpart: use
+  // EwaldBlockJacobiPreconditioner instead of the diagonal one.
   bool use_block_jacobi_preconditioner_ = false;
-  // Debug/experimental. Switches the whole solve from PCG (either
-  // preconditioner) to plain weighted-Jacobi iteration (JOR) -- see
-  // SolveWithJOR's own documentation for the algorithm and its direct
-  // correspondence to legacy PolarBackground's own SOR. Exists
-  // specifically because a real run this session found PCG's own
-  // operator to be genuinely indefinite (p.A.p < 0, a direct algebraic
-  // certificate, not an inference -- confirmed via
-  // SolveWithIndefinitenessCheck), which CG's own convergence theory
-  // cannot handle regardless of preconditioner; JOR makes no positive-
-  // definiteness assumption anywhere in its own derivation.
+  // Debug/experimental. Use weighted-Jacobi iteration (SolveWithJOR,
+  // equivalent to legacy PolarBackground's SOR) instead of PCG. JOR does
+  // not require a positive-definite operator, whereas CG fails if
+  // SolveWithIndefinitenessCheck finds p.A.p <= 0.
   bool use_jor_ = false;
-  // Relaxation factor for use_jor_'s own iteration. Matches legacy
-  // PolarBackground's own default for this specific calculator
-  // (_polar_wSOR_N = 0.35, confirmed directly against legacy's own
-  // source -- NOT the more commonly cited generic 0.25 default declared
-  // on APolarSite::Induce's own signature, which this calculator
-  // overrides).
+  // JOR relaxation factor. Legacy PolarBackground default
+  // (_polar_wSOR_N = 0.35), which overrides the 0.25 default of
+  // APolarSite::Induce.
   double jor_omega_ = 0.35;
-  // Debug/experimental. See SolveWithJOR's own declaration for what
-  // this does and why it exists (literally replicating legacy's own
-  // two-phase unrelaxed-then-relaxed structure, rather than relying on
-  // an unverified assumption to relate this codebase's own JOR
-  // recursion to legacy's).
+  // Debug/experimental. Unrelaxed first JOR step, replicating legacy's
+  // iteration history (see SolveWithJOR).
   bool match_legacy_first_step_ = false;
 };
 
@@ -179,35 +130,16 @@ inline void EwaldBackground::ParseOptions(const tools::Property& opt) {
 
   alpha_explicit_ = opt.exists("coulombmethod.alpha");
   if (alpha_explicit_) {
-    // User-facing value is nm^-1; alpha_ is stored internally in
-    // bohr^-1. alpha has units of 1/length, so converting the numeric
-    // value goes the same direction as EwaldBackground's own box-derived
-    // default below: bohr^-1 = nm^-1 * bohr2nm (NOT nm2bohr -- that
-    // would be backwards for an inverse-length quantity; see the field
-    // conversion note in ptop_dump.cc for the same kind of
-    // easy-to-invert factor, worked through carefully there).
+    // Inverse length: value in bohr^-1 = value in nm^-1 * bohr2nm.
     alpha_ = opt.get("coulombmethod.alpha").as<double>() * tools::conv::bohr2nm;
   }
-  // Default k_max derived from alpha_, not a fixed literal: the
-  // reciprocal-space Gaussian weight exp(-k^2/4*alpha^2) means a k_max
-  // that isn't scaled to alpha can generate a k-vector count many orders
-  // of magnitude larger than what's actually needed for convergence, for
-  // no numerical benefit -- k=6*alpha already gives exp(-9) ~ 1.2e-4, a
-  // reasonable default cutoff. This was a real, costly mistake in an
-  // earlier version of this class (a fixed k_max=15.0 default, entirely
-  // disconnected from alpha_, caused a real run on a 1000-segment system
-  // to hang for an extremely long time computing near-zero-weight
-  // k-vectors) -- worth being explicit about here so it isn't
-  // reintroduced by, e.g., reverting this line without reading why.
-  // alpha_ itself, in turn, is resolved in Evaluate() rather than here
-  // when not explicit (see there) since a good default genuinely depends
-  // on the box, which isn't available yet at this point -- so k_max_'s
-  // own default is also finalized there, once the (possibly derived)
-  // alpha_ is known.
+  // Unless given explicitly, alpha_ and k_max_ are derived in Evaluate(),
+  // where the box is known; k_max_ is always a multiple of alpha_, since
+  // the reciprocal-space weight is exp(-k^2/4 alpha^2). (A fixed k_max
+  // unrelated to alpha produced orders of magnitude too many k-vectors.)
   k_max_explicit_ = opt.exists("coulombmethod.k_max");
   if (k_max_explicit_) {
-    // Same nm^-1 (user-facing) -> bohr^-1 (internal) conversion as
-    // alpha_ above.
+    // nm^-1 -> bohr^-1, as for alpha_.
     k_max_ = opt.get("coulombmethod.k_max").as<double>() * tools::conv::bohr2nm;
   }
   std::string shape_str = opt.ifExistsReturnElseReturnDefault<std::string>(
@@ -224,11 +156,7 @@ inline void EwaldBackground::ParseOptions(const tools::Property& opt) {
 
   thole_a_ = opt.ifExistsReturnElseReturnDefault<double>("polarmethod.thole_a",
                                                          thole_a_);
-  // realspace.r_min is user-facing nm; r_min_ is stored internally in
-  // bohr. r_min is a plain length (not an inverse length like alpha_/
-  // k_max_ above), so this conversion goes the more familiar direction:
-  // bohr = nm * nm2bohr. 1.0 nm is the default here (~18.9 bohr,
-  // replacing the old bare-bohr literal default of 20.0).
+  // Length: bohr = nm * nm2bohr. Default 1.0 nm (~18.9 bohr).
   double r_min_nm =
       opt.ifExistsReturnElseReturnDefault<double>("realspace.r_min", 1.0);
   r_min_ = r_min_nm * tools::conv::nm2bohr;
@@ -247,20 +175,11 @@ inline void EwaldBackground::ParseOptions(const tools::Property& opt) {
       "polarmethod.tolerance", pcg_tolerance_);
   induce_ =
       opt.ifExistsReturnElseReturnDefault<bool>("polarmethod.induce", induce_);
-  // Debug-only, undocumented on purpose (no legacy counterpart to give
-  // it a natural home in the schema) -- see this member's own
-  // declaration for what it's for.
-  // Debug-only, undocumented on purpose, same pattern as the shape one
-  // immediately above.
-  // Debug-only, undocumented on purpose, same pattern as the two above.
-  // Debug-only, undocumented on purpose, same pattern as the three above.
-  // Debug-only, undocumented on purpose, same pattern as the four above.
-  // Debug/experimental, undocumented on purpose -- see
-  // use_block_jacobi_preconditioner_'s own declaration.
+  // Debug/experimental options, intentionally not in the XML schema
+  // (see the member declarations).
   use_block_jacobi_preconditioner_ = opt.ifExistsReturnElseReturnDefault<bool>(
       "polarmethod.use_block_jacobi_preconditioner",
       use_block_jacobi_preconditioner_);
-  // Debug/experimental, see use_jor_'s own declaration.
   use_jor_ = opt.ifExistsReturnElseReturnDefault<bool>("polarmethod.use_jor",
                                                        use_jor_);
   jor_omega_ = opt.ifExistsReturnElseReturnDefault<double>(
@@ -273,13 +192,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   Logger log;
   log.setReportLevel(Log::info);
   log.setCommonPreface("\nEWD");
-  // maverick=true means "single job running alone" in VOTCA's own
-  // terminology (job-parallel calculators set this false so multiple
-  // threads' log output can be buffered and interleaved cleanly) --
-  // this calculator is a single xtp_run job, not job-parallel, and
-  // critically, false here would silently buffer every message below
-  // until a final std::cout<<log flush, which would defeat the entire
-  // point of adding real-time progress output at all.
+  // Single (non-job-parallel) calculator: print log messages immediately
+  // instead of buffering them until the end, so progress is visible.
   log.setMultithreading(true);
 
   auto t_start = std::chrono::steady_clock::now();
@@ -298,10 +212,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
 
   EwaldRegistry registry;
   std::vector<Index> ids;
-  // offsets[n] is the global vector index where segment ids[n]'s own
-  // block starts (in units of a single scalar, 3 per site); mirrors
-  // EwaldPeriodicDipoleOperator's own offsets_ table exactly, since b and
-  // x here must use the same layout that operator expects.
+  // offsets[n]: scalar index where segment ids[n] starts (3 per site),
+  // the same layout as EwaldPeriodicDipoleOperator::offsets_.
   std::vector<Index> offsets;
   ids.reserve(top.Segments().size());
   offsets.reserve(top.Segments().size() + 1);
@@ -322,13 +234,9 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   const Eigen::Matrix3d& box = top.getBox();
   const double volume = box.col(0).dot(box.col(1).cross(box.col(2)));
 
-  // alpha and k_max are derived TOGETHER, from the cost of the two sums
-  // they divide the work between. alpha is free -- it cancels out of the
-  // total, which is what the alpha-independence tests pin -- so the only
-  // thing left to choose it by is how much work each half does.
-  //
-  // Both cutoffs are fixed multiples of alpha, which is what makes the
-  // accuracy alpha-independent in the first place:
+  // alpha and k_max are derived together by balancing the cost of the two
+  // sums; the result is independent of alpha (tested). Both cutoffs are
+  // fixed multiples of alpha, so the accuracy does not depend on it:
   //
   //   real space  EwaldRealSpaceSum truncates at screening_factor/alpha,
   //               leaving a tail of order erfc(screening_factor).
@@ -347,40 +255,22 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   // the standard Ewald result, whose N^(1/6) is what makes the method
   // O(N^(3/2)) rather than O(N^2).
   //
-  // THE PREVIOUS DEFAULTS WERE alpha = 3/L_min AND k_max = 6*alpha, and
-  // between them they switched the splitting off. With those two, and a
-  // cubic cell, k_max/(2pi/L) = (18/L)(L/2pi) = 9/pi ~ 2.86 NO MATTER HOW
-  // BIG THE CELL IS: the reciprocal half is a fixed ~98 k-vectors for
-  // every system ever run, while the real-space cutoff sits at 6/alpha =
-  // 2L -- twice the box -- so the real half grows linearly with the site
-  // count and carries everything. That is a direct lattice sum with an
-  // erfc in it. Measured per target, on thiophene at experimental
-  // density: 301,691 terms at 1000 segments and 1,508,063 at 5000, of
-  // which 98 were reciprocal in both cases.
+  // The former defaults alpha = 3/L_min, k_max = 6*alpha fixed the
+  // reciprocal sum at ~98 k-vectors for any cubic cell while the
+  // real-space cutoff (2L) grew with the system (thiophene: 301,691 terms
+  // per target at 1000 segments, 1,508,063 at 5000). They also truncated
+  // the two halves at very different accuracies (erfc(6) = 2e-17 vs
+  // exp(-9) = 1.2e-4).
   //
-  // The two defaults were also inconsistent with each other about
-  // accuracy, and expensively so: screening_factor = 6 truncates real
-  // space at erfc(6) = 2e-17 while k_max = 6*alpha truncates reciprocal
-  // space at exp(-9) = 1.2e-4, thirteen orders apart, with the money
-  // spent on the side that needed it less.
-  //
-  // So screening_factor is now the single accuracy knob and k_max
-  // follows it: eps = erfc(s_r), then s_k = 2*sqrt(-ln eps) makes the
-  // reciprocal tail match. At the unchanged default s_r = 6 that is
-  // s_k = 12.39, so nothing about real-space accuracy moves and the
-  // reciprocal side improves by thirteen orders -- while the balanced
-  // alpha makes the whole thing 3x faster on a 216-molecule methane box,
-  // 9x on 1000 thiophenes, 21x on 5000, and 62x on a 400,000-site cell.
-  // Cheaper AND stricter, which is only possible because the starting
-  // point was so badly out of balance.
+  // screening_factor s_r is therefore the single accuracy parameter:
+  // eps = erfc(s_r) and s_k = 2*sqrt(-ln eps) give the same reciprocal
+  // tail (s_k = 12.39 for s_r = 6). With the balanced alpha this is 3x
+  // (216 methane) to 62x (400,000 sites) faster than the old defaults.
   //
   // Setting <alpha> or <k_max> explicitly still overrides either half.
   if (!alpha_explicit_ || !k_max_explicit_) {
     const double s_r = screening_factor_;
-    // erfc underflows to 0 for s_r beyond ~27; the clamp keeps the log
-    // finite there rather than producing an infinite s_k. Well outside
-    // any sane setting -- erfc(9) is already 4e-37 -- but this is a
-    // user-settable option, so it is not left to chance.
+    // erfc underflows to 0 for s_r beyond ~27; clamp to keep s_k finite.
     const double eps = std::max(std::erfc(s_r), 1e-300);
     const double s_k = 2.0 * std::sqrt(-std::log(eps));
 
@@ -389,17 +279,10 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
       alpha_ = std::sqrt(2.0 * tools::conv::Pi) * std::pow(n_sites, 1.0 / 6.0) /
                std::cbrt(volume) * std::sqrt(s_r / s_k);
 
-      // NOT clamped against r_min_. An earlier version of this capped
-      // alpha at s_r/r_min_, on the theory that a real-space cutoff
-      // inside r_min_ would overrule it. It does not: r_min_ bounds the
-      // shell search by TRANSLATION magnitude |t| and says only that
-      // convergence may not be declared before that radius, while
-      // real_space_cutoff_ culls by actual PAIR SEPARATION. Accuracy is
-      // erfc(s_r) either way. What a large r_min_ costs is time -- the
-      // search walks shells whose pairs are all culled, contributing
-      // exactly nothing -- so clamping alpha to avoid that would trade a
-      // real cost for an imagined risk, and would do so hardest for the
-      // users who raised r_min_ deliberately. Reported below instead.
+      // Not clamped against r_min_: r_min_ only bounds the shell search
+      // by translation magnitude, while the cutoff culls by pair
+      // separation, so accuracy is erfc(s_r) either way. An r_min_
+      // beyond the cutoff only costs time; this is reported below.
     }
     if (!k_max_explicit_) {
       k_max_ = s_k * alpha_;
@@ -424,12 +307,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
                           << screening_factor_ / alpha_
                           << " bohr (screening_factor=" << screening_factor_
                           << ")" << std::flush;
-  // The two halves printed side by side, because the whole point of the
-  // derived alpha is that they should come out comparable. A run where
-  // these differ by orders of magnitude is one where alpha was set by
-  // hand, or where the derivation was given a cell it does not suit --
-  // either way it is the number to look at first when the background
-  // solve is slower than expected.
+  // With the derived alpha the two halves should be of comparable size;
+  // a large imbalance indicates a hand-set alpha or an unsuitable cell.
   {
     const double n_sites = double(total_size / 3);
     const double n_real_est = (n_sites / volume) *
@@ -441,10 +320,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
         << n_real_est << " vs reciprocal " << recip_sum.NumKVectors()
         << std::flush;
 
-    // r_min_ past the cutoff means the shell search is required to walk
-    // out to a radius where every pair is already culled: those shells
-    // contribute exactly zero and then let it stop. Harmless, and pure
-    // cost, so say so rather than silently absorbing it.
+    // r_min_ beyond the cutoff forces the search through shells whose
+    // pairs are all culled: no effect on accuracy, only on cost.
     const double cutoff = screening_factor_ / alpha_;
     if (r_min_ > cutoff) {
       XTP_LOG(Log::info, log)
@@ -483,11 +360,9 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
         << TimeStamp() << " debug_match_legacy_first_step is ON" << std::flush;
   }
 
-  // Permanent field only (every induced dipole is still zero at this
-  // point), computed once -- this becomes b for the PCG solve below,
-  // matching CalcInducedDipolesViaPCG's own b-construction pattern, but
-  // with the opposite sign: b = +V here, not -V (see
-  // EwaldPeriodicDipoleOperator's own class documentation for why).
+  // Permanent field (all induced dipoles zero), computed once; it is the
+  // right-hand side b = +V of the solve (opposite sign to
+  // CalcInducedDipolesViaPCG, see EwaldPeriodicDipoleOperator).
   auto t_field = std::chrono::steady_clock::now();
   std::vector<std::pair<Index, PolarSite*>> targets;
   targets.reserve(std::size_t(total_size / 3));
@@ -500,17 +375,14 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
       targets.push_back({ids[n], &site});
     }
   }
-  // Parallel: builds every neighbour list (the expensive shell search,
-  // formerly one serial pass over all sites) and applies it. The
-  // operator constructed below finds every list already present.
+  // Builds every neighbour list in parallel and applies it; the operator
+  // constructed below reuses these lists.
   real_sum.AddFieldAtMany<Estatic::V>(targets, EwaldChargeState::Neutral);
   XTP_LOG(Log::info, log) << TimeStamp() << " Real-space permanent field done ("
                           << elapsed_s(t_field) << "s)" << std::flush;
 
   auto t_recip = std::chrono::steady_clock::now();
-  // EwaldReciprocalSpaceSum no longer takes a segment id (it never
-  // excludes anything -- see its own class documentation), so only the
-  // bare site pointers are needed here.
+  // The reciprocal-space sum excludes nothing, so it needs no segment ids.
   std::vector<PolarSite*> recip_targets;
   recip_targets.reserve(targets.size());
   for (const auto& entry : targets) {
@@ -519,8 +391,7 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   recip_sum.AddFieldAtMany<Estatic::V>(
       recip_targets, EwaldChargeState::Neutral,
       [&](std::size_t done, std::size_t total) {
-        // Debug, not info: twenty of these per run drown the lines that
-        // matter, and the total is already on the split line above.
+        // Debug level: the k-vector count is already logged above.
         XTP_LOG(Log::debug, log)
             << TimeStamp() << "   k-space progress: " << done << "/" << total
             << " k-vectors (" << elapsed_s(t_recip) << "s)" << std::flush;
@@ -529,11 +400,10 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
                           << " Reciprocal-space permanent field done ("
                           << elapsed_s(t_recip) << "s)" << std::flush;
 
-  // The shape field is the same at every site, -(4 pi / 3V) M for a cube,
-  // but EwaldShapeCorrection::AddFieldAt sums M over the whole registry
-  // on every call. Once per site made this pass O(N^2): about 110 s of
-  // serial work for 70k sites. Evaluated once on a probe and added, as
-  // EwaldPeriodicDipoleOperator already does.
+  // The shape field -(4 pi / 3V) M (cube) is the same at every site, but
+  // EwaldShapeCorrection::AddFieldAt sums M over the registry on every
+  // call (O(N^2) per site, ~110 s for 70k sites). Evaluate once on a
+  // probe and add, as EwaldPeriodicDipoleOperator does.
   auto t_shape = std::chrono::steady_clock::now();
   {
     PolarSite shape_probe(-1, "X", Eigen::Vector3d::Zero());
@@ -545,43 +415,25 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   }
   XTP_LOG(Log::info, log) << TimeStamp() << " Shape field done ("
                           << elapsed_s(t_shape) << "s)" << std::flush;
-  // Each step above reports its own time; this one is the sum since the
-  // real-space pass began.
+  // Total time since the start of the real-space pass.
   XTP_LOG(Log::info, log) << TimeStamp() << " Permanent field total ("
                           << elapsed_s(t_field) << "s)" << std::flush;
   auto t_intra = std::chrono::steady_clock::now();
 
-  // Intramolecular static-static compensation: EwaldReciprocalSpaceSum's
-  // own structure factor never excludes anything (see that class's own
-  // documentation), so it unconditionally includes every same-segment
-  // static-static pair's own contribution -- exactly the erf(alpha*r)/r
-  // "other half" of the Ewald split (erf+erfc=1). Legacy explicitly
-  // removes this same leak (see EwdInteractor::FP12_ERF_At_By's own
-  // "Note the (-): This is a compensation term" comment) so that the net
-  // static-static intramolecular contribution comes out to genuinely
-  // zero, not the un-cancelled reciprocal-space leak alone -- see
-  // EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection's own
-  // documentation for the fuller account of why (a real mechanism in
-  // legacy's own code, missed on an earlier pass through it, not a new
-  // design decision here). Every ordered pair within a segment is
-  // visited, matching legacy's own double loop.
+  // Intramolecular static-static compensation: the reciprocal-space sum
+  // excludes nothing, so it contains the erf(alpha*r)/r part of every
+  // same-segment permanent pair. As legacy EwdInteractor::FP12_ERF_At_By
+  // does, this is subtracted so that the net intramolecular permanent
+  // interaction is zero (see
+  // EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection). All ordered
+  // pairs are visited, as in legacy's double loop.
   //
-  // INCLUDING i == j. "Never excludes anything" means the structure
-  // factor sums over j = i as well, so each site also receives its own
-  // erf-screened field. For a charge that self-field is zero by
-  // symmetry, which is why skipping i == j was harmless as long as
-  // every site was rank 0 -- but a static DIPOLE's own erf field is the
-  // finite Ewald self-term -(4/3)alpha^3/sqrt(pi) * mu, and leaving it
-  // in the permanent field biases every induced dipole in the cell by a
-  // quantity that grows as alpha^3. The same term is already removed
-  // from the INDUCED side, where EwaldPeriodicDipoleOperator subtracts
-  // EwaldReciprocalSpaceSum::SelfFieldMatrix() from its own operator;
-  // this loop is the permanent-field counterpart, and it was missing.
-  // ApplyErfStaticFieldCorrection's own r < kCoincidenceTol branch is
-  // exactly that limit, so the self-pair needs no special case here --
-  // and because the branch is proportional to getStaticDipole(), it
-  // contributes identically zero for rank-0 input, leaving every
-  // charge-only result unchanged.
+  // This includes i == j: the erf self-field of a permanent dipole is
+  // -(4/3)alpha^3/sqrt(pi) * mu (zero for a charge) and would otherwise
+  // bias the induced dipoles by an alpha^3-dependent amount. It is the
+  // permanent-field counterpart of SelfFieldMatrix() in
+  // EwaldPeriodicDipoleOperator; the r < kCoincidenceTol branch of
+  // ApplyErfStaticFieldCorrection handles this limit.
   EwaldRealSpaceInteractor erf_interactor(alpha_, thole_a_);
   for (Index n = 0; n < Index(ids.size()); ++n) {
     PolarSegment& segment = registry.Get(ids[n], EwaldChargeState::Neutral);
@@ -629,14 +481,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
     double indefinite_curvature = 0.0;
     double lanczos_min_eigenvalue = std::numeric_limits<double>::quiet_NaN();
 
-    // use_jor_ is an outer, first choice: JOR and PCG are two entirely
-    // different algorithms (see SolveWithJOR's own documentation for
-    // why JOR is the one actually chosen once the operator was directly
-    // confirmed indefinite), not two variants of the same solve -- JOR
-    // has no preconditioner-type branching of its own
-    // (EwaldSitePolarizabilityBlocks is the one and only D^-1 it uses, matching
-    // legacy exactly), so it never enters the PCG-specific branches below at
-    // all.
+    // JOR uses EwaldSitePolarizabilityBlocks as D^-1 (as legacy does) and
+    // has no preconditioner choice.
     if (use_jor_) {
       EwaldSitePolarizabilityBlocks site_p(registry, ids);
       auto result = SolveWithJOR(op, site_p, b, max_iter_, jor_omega_, log,
@@ -657,20 +503,10 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
       }
     } else {
 
-      // The preconditioner type is a compile-time choice here too (see
-      // SolveWithIndefinitenessCheck's own documentation for why that
-      // function is templated on it) -- these two branches genuinely
-      // instantiate two different specializations, they cannot share one
-      // call. EwaldBlockJacobiPreconditioner builds itself fully in its
-      // own constructor (see its own class documentation); Eigen's own
-      // DiagonalPreconditioner does not -- it needs an explicit compute(op)
-      // call first, unlike the constructor-based pattern
-      // EwaldBlockJacobiPreconditioner itself uses. Getting this backwards
-      // (assuming both work the same way) would be a real, silent
-      // correctness bug -- solve() on an uncompute()'d DiagonalPreconditioner
-      // does not throw, it just returns nonsense -- so this is deliberately
-      // NOT written as a single shared code path that "just" swaps the
-      // preconditioner type.
+      // The preconditioner type is a template parameter, hence two
+      // branches. EwaldBlockJacobiPreconditioner is fully built by its
+      // constructor, whereas DiagonalPreconditioner requires compute(op)
+      // before use.
       if (use_block_jacobi_preconditioner_) {
         EwaldBlockJacobiPreconditioner precond(registry, ids, alpha_, thole_a_);
         auto result = SolveWithIndefinitenessCheck(op, precond, b, max_iter_,
@@ -701,14 +537,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
           << " iterations, residual " << residual << " (" << elapsed_s(t_pcg)
           << "s)" << std::flush;
       {
-        // Phase breakdown of the matvec -- see
-        // EwaldPeriodicDipoleOperator::RawMultiplyTimings' own
-        // declaration. n_calls exceeds the reported iteration count by
-        // one, since baseline_ = RawMultiply(0) is built in the operator's
-        // own constructor. The first call also builds the real-space
-        // neighbour cache, so it is much more expensive than the rest and
-        // inflates the real_space per-call average; read the per-call
-        // figures as an upper bound on steady-state cost.
+        // Matvec phase breakdown (RawMultiplyTimings). n_calls includes
+        // the baseline_ call in the operator constructor.
         const auto& tm = op.Timings();
         const double n = double(std::max<Index>(tm.n_calls, 1));
         XTP_LOG(Log::info, log)
@@ -731,8 +561,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
         line("assemble", tm.assemble);
         line("intra", tm.intra);
 
-        // Neighbour-list size -- the real cost driver behind the
-        // real_space line above. See EwaldRealSpaceSum::NeighborStats.
+        // Neighbour-list size, which determines the real_space cost
+        // (EwaldRealSpaceSum::NeighborStats).
         const auto ns = real_sum.GetNeighborStats();
         XTP_LOG(Log::info, log)
             << TimeStamp()
@@ -748,24 +578,19 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
         XTP_LOG(Log::info, log) << TimeStamp() << " Lanczos min eigenvalue: "
                                 << lanczos_min_eigenvalue << std::flush;
         if (lanczos_min_eigenvalue < 0.0) {
-          XTP_LOG(Log::info, log)
-              << TimeStamp()
-              << " NEGATIVE -- strong evidence the operator is not "
-                 "positive-definite (see "
-                 "PcgIndefinitenessResult::lanczos_min_eigenvalue for what "
-                 "this does and does not guarantee)."
-              << std::flush;
+          XTP_LOG(Log::info, log) << TimeStamp()
+                                  << " NEGATIVE -- the operator is likely not "
+                                     "positive-definite."
+                                  << std::flush;
         }
       }
 
       if (indefinite_at_iteration >= 0) {
         throw std::runtime_error(
-            "EwaldBackground: PCG's own operator was found to be NOT "
-            "positive-definite at iteration " +
+            "EwaldBackground: PCG operator is NOT positive-definite "
+            "(found at iteration " +
             std::to_string(indefinite_at_iteration) +
-            " (p.A.p = " + std::to_string(indefinite_curvature) +
-            " <= 0) -- this is a direct algebraic certificate, not an "
-            "inference from residual behavior.");
+            ", p.A.p = " + std::to_string(indefinite_curvature) + " <= 0).");
       }
 
       if (!converged) {
@@ -783,11 +608,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
       }
     }
   } else {
-    // Matches legacy's own polarmethod.induce=0 behaviour: every site's
-    // induced dipole stays at zero (already set before the
-    // permanent-field computation above) -- see induce_'s own class
-    // documentation for why this is a separate code path rather than a
-    // zero-polarizability run through the same PCG solve.
+    // As legacy polarmethod.induce = 0: induced dipoles stay zero (set
+    // before the permanent-field computation).
     XTP_LOG(Log::info, log)
         << TimeStamp()
         << " polarmethod.induce is false: skipping the PCG solve, "
@@ -796,19 +618,9 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   }
 
   auto t_cpt = std::chrono::steady_clock::now();
-  // Write the permanent field (b) back into every site's V() before the
-  // checkpoint write, unconditionally regardless of induce_ -- neither
-  // code path above leaves V() holding it otherwise: the PCG path
-  // overwrites V() repeatedly during its own iterations (each
-  // EwaldPeriodicDipoleOperator::multiply() call internally
-  // Reset()s and rewrites every site's V() via RawMultiply), leaving
-  // whatever the *last* iteration's trial field happened to be, not the
-  // permanent field; the induce_=false path leaves V() at the zero
-  // Reset() left it just after b was built above. Restoring b here is
-  // what makes the permanent field actually recoverable from the
-  // checkpoint at all -- without this, hdf5_dump has no way to report
-  // anything but 0.0 for it (see that tool's own former limitation note,
-  // now resolved by this).
+  // Store the permanent field b in V() before writing the checkpoint, so
+  // that it can be read back (e.g. by hdf5_dump). Otherwise V() holds the
+  // last trial field of the solve, or zero if induce_ is false.
   {
     for (std::size_t n = 0; n < ids.size(); ++n) {
       PolarSegment& segment = registry.Get(ids[n], EwaldChargeState::Neutral);
@@ -823,12 +635,10 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   CheckpointWriter w = cpf.getWriter();
   registry.WriteToCpt(w);
 
-  // The convergence parameters travel with the converged state. A job
-  // that later embeds a foreground in this background must use the same
-  // alpha, k_max and shape -- alpha in particular decides how the
-  // interaction is split between the real- and reciprocal-space sums, so
-  // a different value is not the same physics, and nothing about the
-  // mismatch would be visible at run time. See EwaldParameters.
+  // Store the convergence parameters with the converged state: a job
+  // embedding a foreground in this background must use the same alpha,
+  // k_max and shape, since alpha determines how the interaction is split
+  // between the real- and reciprocal-space sums. See EwaldParameters.
   {
     EwaldParameters params;
     params.alpha = alpha_;

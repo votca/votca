@@ -14,34 +14,19 @@
  *
  */
 
-// ===========================================================================
-// STATUS: written but NOT yet run. First real exercise of the full
-// Hirshfeld-partition pipeline built up over several commits
+// Tests the Hirshfeld pipeline
 // (DFTEngine::ComputeHirshfeldReferenceDensities ->
 // HirshfeldPartition::BuildAtomicReferences -> EvaluateWeight ->
-// BuildWeightMatrix), all in one test.
+// BuildWeightMatrix).
 //
-// The check itself is a genuine mathematical invariant, not an
-// approximate sanity check: by construction, w_i(r) = rho_i(r) /
-// sum_j rho_j(r), so summing over EVERY atom i in the molecule gives
-// sum_i w_i(r) = 1 identically, everywhere -- which means sum_i W_i
-// (every atom's own AO-basis weight matrix, summed) must equal the
-// ordinary AO overlap matrix S exactly (up to the numerical grid's own
-// integration error): sum_i W_i,munu = integral (sum_i w_i(r))
-// phi_mu(r) phi_nu(r) dr = integral 1 * phi_mu(r) phi_nu(r) dr =
-// S_munu. This holds regardless of whether any individual reference
-// density is itself "correct" in some deeper physical sense (e.g.
-// regardless of whether the Hund's-rule occupation table entries are
-// exactly right) -- it is a structural property of the ratio
-// construction itself, so it specifically tests the IMPLEMENTATION
-// (indexing, grid integration, AO evaluation, basis re-centering),
-// not the physics of the reference densities.
+// Since sum_i w_i(r) = 1, the weight matrices sum to the overlap matrix,
+// sum_i W_i,munu = integral phi_mu(r) phi_nu(r) dr = S_munu, up to the
+// grid integration error. This holds for any reference densities, so it
+// tests the implementation (indexing, grid integration, AO evaluation,
+// basis centering), not the reference densities themselves.
 //
-// Uses CO specifically (not H2) so the test actually exercises the
-// Hund's-rule occupation table for two different, non-trivial
-// elements (C: triplet 2p2, O: triplet 2p4) rather than only
-// hydrogen's trivial 1s1 case.
-// ===========================================================================
+// CO is used so that the Hund's-rule occupations of two non-trivial
+// elements (C: triplet 2p2, O: triplet 2p4) are exercised.
 
 #include "xtp_libint2.h"
 #include <stdexcept>
@@ -71,18 +56,11 @@ using namespace votca;
 namespace votca {
 namespace xtp {
 
-// Local friend-class test-access helper, matching the same pattern
-// already established in test_dftengine_private.cc/test_dftengine_forces.cc
-// -- ComputeHirshfeldReferenceDensities is a private DFTEngine method.
-//
-// Deliberately defined BEFORE BOOST_AUTO_TEST_SUITE below, not after:
-// that macro introduces its own nested scope (confirmed directly --
-// test_dftengine_private.cc, which also needs this same friend class,
-// does not use BOOST_AUTO_TEST_SUITE at all, keeping everything flat
-// inside namespace votca::xtp with nothing in between), so a class
-// defined after it is NOT directly votca::xtp::DFTEngineTestAccess
-// anymore -- which is exactly what dftengine.h's own
-// "friend class DFTEngineTestAccess;" declaration needs to match.
+// Friend-class access to the private
+// DFTEngine::ComputeHirshfeldReferenceDensities, as in
+// test_dftengine_private.cc. Defined before BOOST_AUTO_TEST_SUITE, which
+// opens a nested scope: the friend declaration in dftengine.h requires
+// exactly votca::xtp::DFTEngineTestAccess.
 class DFTEngineTestAccess {
  public:
   static std::map<std::string, Eigen::MatrixXd>
@@ -144,11 +122,8 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
     xml << "    <mixing_max>0.98</mixing_max>\n";
     xml << "    <mixing_end>0.8</mixing_end>\n";
     xml << "</convergence>\n";
-    // fine, not xcoarse: this test's own accuracy is limited by the
-    // SAME grid's own integration error (BuildWeightMatrix integrates
-    // over this exact grid), so a coarse grid would show up as a
-    // misleadingly large "failure" that is really just integration
-    // noise, not an implementation bug.
+    // The accuracy of the check is limited by the integration error of
+    // this grid, so a fine grid is used.
     xml << "<integration_grid>fine</integration_grid>\n";
     xml << "<max_iterations>200</max_iterations>\n";
     xml << "</xtpdft>\n";
@@ -217,27 +192,12 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
   libint2::finalize();
 }
 
-// ===========================================================================
-// STATUS: written but NOT yet run. First exercise of
-// HirshfeldPartition::ComputeCDFTForceContribution -- the fully
-// assembled, four-term CDFT force gradient built up over several
-// commits (GridWeightDerivativeContribution, weight-function-
-// derivative + its grid integration, PulayAndTranslationContribution).
-//
-// Deliberately does NOT run a full CDFT (or even a full DFT) SCF at
-// each displaced geometry -- that would conflate this NEW force term
-// with the already-validated plain-DFT force and the outer
-// Lagrange-multiplier machinery, and be far slower besides. Instead,
-// isolates ComputeCDFTForceContribution on its own: a fixed, random,
-// symmetric density matrix D (same size/shape at every geometry, its
-// specific values irrelevant -- this is testing the GRADIENT FORMULA,
-// not any physical density) is held constant while the geometry
-// moves, and d(Tr[D*W_c])/dR is compared against a direct finite
-// difference of Tr[D*W_c] itself at the displaced geometries -- the
-// exact same "fixed MO/density matrix" pattern already used for
-// RIJGradient/RIKGradient's own finite-difference tests in
-// test_dftgradient.cc.
-// ===========================================================================
+// Finite-difference test of HirshfeldPartition::ComputeCDFTForceContribution
+// (all four terms). No SCF is run at the displaced geometries, which
+// would mix in the DFT forces and the Lagrange-multiplier optimization.
+// Instead, a fixed random symmetric density matrix D is kept constant
+// and d(Tr[D*W_c])/dR is compared with central differences of
+// Tr[D*W_c], as for RIJGradient/RIKGradient in test_dftgradient.cc.
 BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
   libint2::initialize();
   try {
@@ -298,11 +258,7 @@ BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
     std::map<std::string, Eigen::MatrixXd> reference_densities =
         DFTEngineTestAccess::ComputeHirshfeldReferenceDensities(dft, mol0);
 
-    // Fixed, arbitrary, symmetric density matrix -- generated once and
-    // reused unchanged at every geometry. Same reasoning as
-    // test_dftgradient.cc's own analogous tests: its specific values do
-    // not matter here, only that it stays fixed while the geometry
-    // moves.
+    // Arbitrary symmetric density matrix, fixed for all geometries.
     Index n_bf = full_basis0.AOBasisSize();
     Eigen::MatrixXd density_random = Eigen::MatrixXd::Random(n_bf, n_bf);
     Eigen::MatrixXd density =
@@ -321,31 +277,18 @@ BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
             atoms0, kCarbonIndex, density, mol0, full_basis0, grid0);
     BOOST_REQUIRE_EQUAL(analytic_grad.rows(), 2);
 
-    // Sanity check independent of finite differences, same reasoning as
-    // the existing NuclearRepulsionDerivative/RIJGradient tests:
-    // Tr[D*W_c] cannot depend on where the whole molecule sits in
-    // absolute space, only its internal geometry, so its gradient
-    // summed over every atom must vanish.
+    // Translational invariance: the gradient summed over all atoms
+    // vanishes.
     Eigen::Vector3d total = analytic_grad.colwise().sum();
     BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
 
-    // Tr[D*W_c] with ONE atom's position displaced by "delta" along one
-    // Cartesian axis (0=x, 1=y, 2=z) from mol0's own base geometry,
-    // rebuilding everything geometry-dependent (atoms' own re-centered
-    // bases, the basis, the grid) but reusing the SAME reference_densities
-    // (isolated-atom SCF results do not depend on the molecule's own
-    // geometry at all) and the SAME fixed density matrix D throughout.
-    // delta is in Angstrom, matching BuildCO's own xyz-file convention.
+    // Tr[D*W_c] with one atom displaced by delta [Angstrom] along axis
+    // (0=x, 1=y, 2=z). Bases, atomic references and grid are rebuilt;
+    // reference_densities (geometry independent) and D are reused.
     auto trace_displaced = [&](Index atom_index, int axis, double delta) {
       QMMolecule mol = BuildCO(bond_length);
       Eigen::Vector3d pos = mol[atom_index].getPos();
-      pos(axis) += delta * 1.8897259886;  // Angstrom -> Bohr, matching
-                                          // this codebase's own internal
-                                          // (atomic) units throughout --
-                                          // getPos()/setPos() work in
-                                          // Bohr, unlike BuildCO's own
-                                          // xyz-file input, which LoadFromFile
-                                          // itself converts from Angstrom.
+      pos(axis) += delta * 1.8897259886;  // Angstrom -> Bohr
       mol[atom_index].setPos(pos);
       AOBasis full_basis;
       full_basis.Fill(basisset, mol);
@@ -361,14 +304,10 @@ BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
 
     double h_bohr = h * 1.8897259886;
     double max_mismatch = 0.0;
-    // Both atoms (0=Carbon, the constrained TARGET itself -- a
-    // genuinely different code path than atom 1, via the
-    // 1_{A==target_atom_index} indicator in EvaluateWeightGradient's
-    // own formula -- and 1=Oxygen, non-target), all three Cartesian
-    // axes -- deliberately not just the bond-length/z direction: CO is
-    // linear, so a pure bond-length displacement preserves the
-    // molecule's own cylindrical symmetry and could not by itself catch
-    // a bug specific to an off-axis (x/y) direction.
+    // Both atoms (C is the target, which takes the 1_{A==target} branch
+    // of EvaluateWeightGradient; O is not) and all three axes: for the
+    // linear molecule, displacements along z alone would miss errors in
+    // the off-axis components.
     for (Index atom_index = 0; atom_index < 2; ++atom_index) {
       for (int axis = 0; axis < 3; ++axis) {
         double trace_plus = trace_displaced(atom_index, axis, h);
@@ -381,20 +320,13 @@ BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
                   << ": numerical=" << numerical << ", analytic=" << analytic
                   << ", mismatch=" << mismatch << std::endl;
         if (mismatch > 1.e-4) {
-          std::cout << "NOTE: if this fails, first check whether the mismatch "
-                       "is merely large-ish (grid-integration/finite-"
-                       "difference-step error) or drastically wrong (a "
-                       "genuine bug in one or more of the four CDFT force "
-                       "terms -- check each of GridWeightDerivativeContribution"
-                       "/WeightFunctionDerivativeContribution/"
-                       "PulayAndTranslationContribution individually against "
-                       "its own finite difference before assuming the bug is "
-                       "in how they are summed). Also worth noting whether "
-                       "this specific failure is on atom 0 (the TARGET atom "
-                       "itself, exercising the 1_{A==target} indicator branch "
-                       "in EvaluateWeightGradient) versus atom 1 (non-target) "
-                       "-- a failure isolated to one of these but not the "
-                       "other would point specifically at that branch."
+          std::cout << "NOTE: a small excess points to grid or finite-"
+                       "difference error, a large one to a bug in one of the "
+                       "terms (check GridWeightDerivativeContribution, "
+                       "WeightFunctionDerivativeContribution and "
+                       "PulayAndTranslationContribution individually). A "
+                       "failure only on atom 0 (target) points to the "
+                       "1_{A==target} branch of EvaluateWeightGradient."
                     << std::endl;
         }
         BOOST_CHECK_SMALL(mismatch, 1.e-4);

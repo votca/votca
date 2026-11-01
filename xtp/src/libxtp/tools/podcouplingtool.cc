@@ -36,30 +36,20 @@ void PodCouplingTool::ParseOptions(const tools::Property& user_options) {
 
   orb_file_ = options.get(".orb_file").as<std::string>();
 
-  // Same index-list syntax as CDFT's own cdft.indices and
-  // diabatization.xml's own fragment indices (space-separated
-  // indices and/or ranges, e.g. "1 3 13:17") -- deliberately reusing
-  // the SAME, already-established IndexParser utility both of those
-  // already use, rather than introducing yet another parsing
-  // convention for what is, at its core, the exact same kind of
-  // input (an atom-index list defining a fragment).
+  // Atom index lists in IndexParser syntax (e.g. "1 3 13:17"), as for
+  // cdft.indices and the fragments in diabatization.xml.
   std::string fragment_A_str = options.get(".fragment_A").as<std::string>();
   std::string fragment_B_str = options.get(".fragment_B").as<std::string>();
   if (fragment_A_str.empty() || fragment_B_str.empty()) {
     throw std::runtime_error(
         "PodCouplingTool: fragment_A and fragment_B must both be given, "
-        "e.g. '0:5' and '6:11' -- same syntax as cdft.indices and "
-        "diabatization.xml's own fragment indices.");
+        "e.g. '0:5' and '6:11' (same syntax as cdft.indices).");
   }
   fragment_A_atoms_ = IndexParser().CreateIndexVector(fragment_A_str);
   fragment_B_atoms_ = IndexParser().CreateIndexVector(fragment_B_str);
 
-  // Matching DFTcoupling's own numberofstatesA_/numberofstatesB_
-  // convention exactly (same XML option names, levA/levB) -- covers
-  // BOTH occupied and virtual orbitals for each fragment in a single
-  // call, per direct agreement with the user to mirror DFTcoupling's
-  // own, established behavior here rather than this tool's own,
-  // earlier, single-orbital-pair-only interface.
+  // Number of occupied and virtual levels per fragment; option names and
+  // meaning as in DFTcoupling (levA/levB).
   numberofstatesA_ = options.ifExistsReturnElseReturnDefault<Index>("levA", 1);
   numberofstatesB_ = options.ifExistsReturnElseReturnDefault<Index>("levB", 1);
 
@@ -68,11 +58,7 @@ void PodCouplingTool::ParseOptions(const tools::Property& user_options) {
   XTP_LOG(Log::error, log_) << "Fragment B: " << fragment_B_atoms_.size()
                             << " atoms, levB=" << numberofstatesB_ << flush;
 
-  // Optional cube-file export -- option names (xsteps/ysteps/zsteps/
-  // padding) deliberately matching gencube.xml's own exactly, since
-  // these are the same underlying quantities (a real-space grid for
-  // writing an orbital to a .cube file), not something specific to
-  // this tool that would warrant its own, different naming.
+  // Optional cube-file export; grid options as in gencube.xml.
   write_cube_files_ =
       options.ifExistsReturnElseReturnDefault<bool>("write_cube_files", false);
   if (write_cube_files_) {
@@ -109,14 +95,8 @@ bool PodCouplingTool::Run() {
   Index homoB = pod.getFragmentBHomoIndex();
   Index lumoB = pod.getFragmentBLumoIndex();
 
-  // The full, pairwise coupling matrix across the requested range,
-  // covering both hole (occupied) and electron (virtual) orbitals for
-  // each fragment -- matching DFTcoupling's own output style of
-  // reporting the whole JAB matrix, not just a single pair, per direct
-  // agreement with the user. Rows/columns are labeled by each
-  // orbital's own, absolute (fragment-local) index -- see
-  // PODCoupling::getFragmentAHomoIndex/etc.'s own header comment for
-  // what "absolute" means here.
+  // Full coupling matrix over the requested range, as in DFTcoupling,
+  // labeled by absolute fragment orbital indices.
   XTP_LOG(Log::error, log_) << TimeStamp()
                             << " Full coupling matrix [eV] (fragment A orbital "
                                "index -> fragment B orbital index):"
@@ -135,11 +115,7 @@ bool PodCouplingTool::Run() {
     XTP_LOG(Log::error, log_) << row.str() << flush;
   }
 
-  // The two, most commonly-needed values highlighted directly --
-  // matching the paper's own default focus on hole transport
-  // (HOMO-HOMO), plus its own, direct electron-transport analog
-  // (LUMO-LUMO) -- so a caller does not need to parse the full matrix
-  // above just to get the single, most likely value of interest.
+  // HOMO-HOMO (hole) and LUMO-LUMO (electron) couplings separately.
   double homo_homo_ev =
       pod.getCouplingElement(homoA, homoB) * votca::tools::conv::hrt2ev;
   double lumo_lumo_ev =
@@ -153,19 +129,10 @@ bool PodCouplingTool::Run() {
              lumo_lumo_ev
       << flush;
 
-  // Optional cube-file export of the fragment orbitals actually
-  // computed, per direct user request: reuses the existing
-  // CubeFile_Writer unmodified -- it only ever needs
-  // orb.MOs().eigenvectors().col(index) to contain the right
-  // coefficient vector (confirmed directly by reading
-  // CubeFile_Writer::CalculateValues' own implementation before
-  // relying on this), so each fragment orbital, once embedded into
-  // the full AO basis via PODCoupling::GetFragmentOrbital, is written
-  // into a throwaway COPY of the original orbitals object (never the
-  // original itself, which the rest of this function must not have
-  // mutated out from under it) as a single-column MOs() matrix, then
-  // handed to CubeFile_Writer exactly as gencube.cc's own Run()
-  // already does for an ordinary MO.
+  // Cube files of the computed fragment orbitals. CubeFile_Writer only
+  // reads orb.MOs().eigenvectors().col(index), so each orbital, embedded
+  // in the full AO basis (PODCoupling::GetFragmentOrbital), is stored as
+  // the single MO of a copy of orbitals and written as in gencube.cc.
   if (write_cube_files_) {
     XTP_LOG(Log::error, log_)
         << TimeStamp()
@@ -184,15 +151,8 @@ bool PodCouplingTool::Run() {
       writer.WriteFile(filename, orbitals_copy,
                        QMState(QMStateType::KSstate, 0, false), false);
       XTP_LOG(Log::error, log_) << "  wrote " << filename << flush;
-      // Printed alongside every cube file, not behind a separate
-      // option -- cheap to compute (only ever sorts this fragment's
-      // own, modest-sized AO set), and directly explains what the
-      // cube file itself shows: which specific AO, on which atom,
-      // actually dominates this orbital, since large density visible
-      // on the OTHER fragment's own physical space in the rendered
-      // isosurface does NOT mean a nonzero coefficient there (there
-      // never is one) -- it means a spatial tail from an AO on THIS
-      // fragment, identified here directly.
+      // Dominant AOs of the orbital, e.g. to identify which AO's tail
+      // causes density in the region of the other fragment.
       XTP_LOG(Log::error, log_)
           << pod.DescribeFragmentOrbitalComposition(fragment_A, level) << flush;
     };
@@ -207,15 +167,8 @@ bool PodCouplingTool::Run() {
   }
 
   std::cout << log_;
-  // Explicit trailing newline: confirmed directly, from the user's
-  // own real run, that xtp_tools.cc's own execute() ends right after
-  // tool_->Evaluate() with no final newline anywhere in the shared
-  // framework -- the shell's own next prompt was running directly
-  // into this tool's own last line of output as a result. This is a
-  // local, low-risk fix within this tool's own Run() specifically,
-  // NOT a fix to the shared framework itself (which affects every
-  // existing tool, not just this one, and would need its own,
-  // separate, deliberate change and testing before touching).
+  // Trailing newline: xtp_tools does not print one after Evaluate(), so
+  // the shell prompt would follow the last output line directly.
   std::cout << std::endl;
 
   return true;

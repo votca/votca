@@ -6,16 +6,13 @@ list(APPEND test_cases test_activedensitymatrix)
 list(APPEND test_cases test_activedftengine)
 list(APPEND test_cases test_adiis)
 list(APPEND test_cases test_anderson)
-# DRAFT/UNTESTED -- see test_aoderivatives.cc and libint2_derivative_calls.cc
-# header comments before trusting this; added here so it builds and runs
-# alongside everything else once libint2 is available, not because it has
-# been confirmed to pass.
+# finite-difference checks of the libint2 derivative integrals; skipped if
+# libint2 lacks derivative support
 list(APPEND test_cases test_aoderivatives)
 list(APPEND test_cases test_aobasis)
 list(APPEND test_cases test_aomatrix)
 list(APPEND test_cases test_aomatrix3d)
 list(APPEND test_cases test_aoshell)
-# DRAFT/UNTESTED -- see file header comment before trusting this.
 list(APPEND test_cases test_aoshell_hessian)
 list(APPEND test_cases test_aotransform)
 list(APPEND test_cases test_aogaussiansites)
@@ -47,15 +44,12 @@ list(APPEND test_cases test_density_filter)
 list(APPEND test_cases test_densityintegration)
 list(APPEND test_cases test_dftcoupling)
 list(APPEND test_cases test_dftengine)
-# DRAFT/UNTESTED, slow (two test cases: one unconstrained run plus a
-# full bisection search, and a second running three FULL, independently
-# re-converged CDFT calculations for a total-force finite-difference
-# check) -- see file header comments before trusting this.
+# slow: a constrained-DFT bisection search, and three full CDFT runs for a
+# finite-difference check of the total force
 list(APPEND test_cases test_dftengine_cdft)
 list(APPEND test_cases test_dftengine_private)
-# DRAFT/UNTESTED, slow (three full SCF runs) -- see file header comment.
+# slow: three full SCF runs
 list(APPEND test_cases test_dftengine_forces)
-# DRAFT/UNTESTED -- see file header comment before trusting this.
 list(APPEND test_cases test_dftgradient)
 list(APPEND test_cases test_diabatization)
 list(APPEND test_cases test_diis)
@@ -86,7 +80,6 @@ list(APPEND test_cases test_graphrandomwalk)
 list(APPEND test_cases test_grid)
 list(APPEND test_cases test_gw)
 list(APPEND test_cases test_hdf5)
-# DRAFT/UNTESTED -- see file header comment before trusting this.
 list(APPEND test_cases test_hirshfeldpartition)
 list(APPEND test_cases test_hist)
 list(APPEND test_cases test_incrementalfockbuilder)
@@ -146,7 +139,6 @@ list(APPEND test_cases test_trustregion)
 list(APPEND test_cases test_vc2index)
 list(APPEND test_cases test_vxc_potential)
 list(APPEND test_cases test_vxc_grid)
-# DRAFT/UNTESTED -- see file header comment before trusting this.
 list(APPEND test_cases test_xcgradient)
 
 # build and run unit tests
@@ -161,29 +153,10 @@ foreach(PROG ${test_cases} )
   if(PROG STREQUAL "test_vxc_potential")
     target_link_libraries(unit_${PROG} Libxc::xc)
   endif()
-  # openbabel is a PRIVATE dependency of votca_xtp (xtp/src/libxtp/
-  # CMakeLists.txt), so its own include directories are not
-  # automatically propagated here via votca_xtp alone -- confirmed
-  # directly, from a real, direct compile error on the user's own
-  # actual machine ("openbabel/atom.h file not found"), that this is
-  # genuinely needed, matching the same, already-established pattern
-  # this same loop already uses for Libint2::int2/ECPINT::ecpint
-  # (both of which propagate their own include directories
-  # automatically, being proper, modern imported targets -- openbabel
-  # itself is the older-style, unnamespaced target confirmed earlier
-  # this session not to do so automatically).
-  #
-  # SYSTEM added here too -- matching the exact same, real, direct fix
-  # just applied to xtp/src/libxtp/CMakeLists.txt's own equivalent
-  # call, for the exact same real reason, confirmed directly from a
-  # real CI compile failure (Ubuntu, gcc 16): OpenBabel3's own real
-  # headers trigger multiple, real -Werror-promoted warnings of their
-  # own that are entirely OpenBabel3's own, not this project's own
-  # code at all. Applied here to every real test executable (this
-  # whole loop, not just test_fragmentsaturator specifically) is
-  # genuinely harmless -- every other test simply never actually
-  # includes an OpenBabel header at all, so this only actually matters
-  # for the one that does.
+  # openbabel is a PRIVATE dependency of votca_xtp and, unlike the imported
+  # Libint2/ECPINT targets, does not propagate its include directories
+  # (needed by test_fragmentsaturator). SYSTEM suppresses -Werror warnings
+  # from the OpenBabel3 headers; harmless for tests that do not include them.
   target_include_directories(unit_${PROG} SYSTEM PRIVATE ${OpenBabel3_INCLUDE_DIRS})
   target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
@@ -197,39 +170,15 @@ if(TARGET unit_test_aoderivatives)
   set_target_properties(unit_test_aoderivatives PROPERTIES JOB_POOL_COMPILE votca_libint2)
 endif()
 
-# unit_test_dftengine_cdft's own cdft_total_force_finite_difference case
-# runs THREE full, independent CDFT calculations (each potentially as
-# expensive as the direct-minimization fallback machinery elsewhere in
-# this codebase) specifically to validate analytic CDFT forces -- on a
-# runner where libint2 genuinely supports derivative integrals (e.g.
-# Fedora rawhide, confirmed directly: unit_test_dftengine_forces, a
-# single plain-DFT forces calculation, already takes ~72 sec there) this
-# is legitimately several times more expensive than that, and was
-# observed hitting the default CTest timeout (1500 sec) without
-# completing. On a runner where libint2 lacks derivative support (e.g.
-# openSUSE, confirmed directly: unit_test_dftengine_forces completes in
-# ~0.16 sec there via its own early, clean skip), this test's own
-# in-code HasLibint2DerivativeSupport() check (see
-# cdft_total_force_finite_difference's own comment) skips just as
-# quickly, so this longer timeout only ever matters on runners where the
-# calculation is genuinely running for real.
+# cdft_total_force_finite_difference runs three full CDFT calculations and
+# exceeded CTest's default 1500 sec where libint2 supports derivative
+# integrals; without that support the case is skipped immediately.
 set_tests_properties(unit_test_dftengine_cdft PROPERTIES TIMEOUT 3600)
 
-# Same reason, same remedy, different test. unit_test_podcoupling runs a
-# real B3LYP/def2-svp SCF on an ethene dimer (96 basis functions, 32
-# electrons) as one of six test cases, and on a Debug build that single
-# SCF does not fit inside CTest's default 1500 sec: confirmed directly
-# from a real CI Debug run, where the SCF alone ran from 7:25:13 to
-# 7:43:56 -- 1123 sec, 75% of the whole budget -- converging cleanly in
-# 14 iterations to a Final Single Point Energy of -157.061707611 Ha
-# before the remaining cases pushed the test past the wall. So this is
-# a budget problem, not a hang: nothing is stuck and nothing is wrong
-# with the calculation, it simply needs more than 25 minutes at -O0.
-#
-# Note that DART_TESTING_TIMEOUT (top-level CMakeLists.txt) is raised to
-# 7200 only for ENABLE_COVERAGE_BUILD, so every other build type --
-# including the Debug build in the CI matrix -- gets CTest's 1500 sec
-# default and is the binding case here.
+# unit_test_podcoupling runs a B3LYP/def2-svp SCF on an ethene dimer (96
+# basis functions) that alone takes ~1100 sec in the CI Debug build, so the
+# test exceeds the 1500 sec default (DART_TESTING_TIMEOUT is raised only for
+# coverage builds).
 set_tests_properties(unit_test_podcoupling PROPERTIES TIMEOUT 3600)
 
 # unit_test_chargeresponsefit runs 16 hybrid SCFs for water (finite-
@@ -239,19 +188,9 @@ set_tests_properties(unit_test_podcoupling PROPERTIES TIMEOUT 3600)
 # the longer limit is headroom for loaded runners.
 set_tests_properties(unit_test_chargeresponsefit PROPERTIES TIMEOUT 3600)
 
-# Real, direct new external-bond/H-saturation support fields, added
-# this same session to both QMAtom::WriteToCpt (/QMdata/qmmolecule/
-# qmatoms) and MD-level Atom::WriteToCpt (/frame_N/segments/*/atoms)
-# -- the same field names in both cases -- that a reference .orb/
-# .hdf5 file predating this feature genuinely does not have at all.
-# Confirmed directly, from a real CI failure report, that
-# votca_compare_hdf5's own --ignore-dataset-regex would be too blunt a
-# fix here (it would skip the WHOLE dataset, including position/
-# element data that should still genuinely be compared) --
-# --ignore-field (added directly to votca_compare_hdf5 alongside this
-# fix) instead drops only these specific field names from the
-# comparison, while every other field within the same dataset is
-# still genuinely compared.
+# External-bond/H-saturation fields written by QMAtom::WriteToCpt and
+# Atom::WriteToCpt that older reference .orb/.hdf5 files lack. --ignore-field
+# drops only these fields; the rest of each dataset is still compared.
 set(EXTERNAL_BOND_IGNORE_FIELDS
   --ignore-field has_external_bond
   --ignore-field ext_bond_dir.x --ignore-field ext_bond_dir.y --ignore-field ext_bond_dir.z
@@ -596,21 +535,9 @@ if(RUN_XTP_INTEGRATIONTESTS)
 
   # xtp_parallel -e ipodcopuling -j write
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_ipodcoupling_write)
-  # Real, direct, honest correction of a real, genuine cycle error,
-  # caught directly by the user's own real CTest run: a setup test
-  # cannot list the same fixture it itself sets up in its own
-  # FIXTURES_REQUIRED property -- confirmed directly, from CMake's own
-  # official documentation, that this is exactly, explicitly
-  # documented as an error case ("cannot require same fixture as
-  # setup"), since it is, by definition, a real, direct, self-
-  # referential circular dependency. Removed FIXTURES_REQUIRED from
-  # every one of these setup tests below -- each keeps only
-  # FIXTURES_SETUP -- and used the standard, official DEPENDS test
-  # property instead (CMake's own documented, correct way to order
-  # multiple setup tests for the same real fixture) to enforce the one
-  # real ordering need that actually exists here: MAKE_DIRECTORY must
-  # genuinely run before any real symlink/copy into that same real
-  # directory at all.
+  # Setup tests of a fixture cannot require that fixture (CMake error), so
+  # DEPENDS orders them: the directory is created before anything is
+  # linked or copied into it.
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_write_dir COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNPATH})
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_write_dir PROPERTIES FIXTURES_SETUP ipodcoupling_write)
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_write_system_xml COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
@@ -632,19 +559,11 @@ if(RUN_XTP_INTEGRATIONTESTS)
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_ipodcoupling_write (votca_compare_xml not found)")
   endif()
 
-  # xtp_parallel -e ipodcoupling -j run, but tasks="input" only, and
-  # dftpackage.name="orca" (via the separate, real, direct,
-  # orca-flavored reference ipodcoupling_orca_input.xml), worked
-  # through directly with the user: writes a real, direct, plain text
-  # temp.inp file (Orca::WriteCoordinates), containing the
-  # H-saturated, OpenBabel-relaxed geometry, without ever genuinely
-  # running any real DFT calculation at all -- much cheaper than the
-  # combined DFT+PODCoupling run stage below, and does not itself
-  # need a real ORCA installation at all (Orca::WriteInputFile itself
-  # never invokes the real orca binary -- confirmed directly, by
-  # reading it, before using this design). See this test's own real,
-  # direct C++ checker (check_ipodcoupling_input_geometry.cc) for the
-  # full, real reasoning.
+  # xtp_parallel -e ipodcoupling -j run with tasks="input" and
+  # dftpackage.name="orca" (ipodcoupling_orca_input.xml): writes the ORCA
+  # input temp.inp with the H-saturated, OpenBabel-relaxed geometry without
+  # running a DFT calculation; ORCA itself is not needed. The geometry is
+  # checked by check_ipodcoupling_input_geometry.cc.
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_ipodcoupling_orca_input)
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_orca_input_dir COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNPATH})
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_orca_input_dir PROPERTIES FIXTURES_SETUP ipodcoupling_orca_input)
@@ -664,18 +583,9 @@ if(RUN_XTP_INTEGRATIONTESTS)
   set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_orca_input PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_orca_input FIXTURES_SETUP ipodcoupling_orca_input_done)
   add_executable(check_ipodcoupling_input_geometry check_ipodcoupling_input_geometry.cc)
   target_link_libraries(check_ipodcoupling_input_geometry Boost::unit_test_framework)
-  # Real, direct, explicit C++17 requirement -- confirmed directly,
-  # this same session, as the real, actual root cause of a real
-  # macOS-14 CI build failure (constexpr/noexcept both genuinely
-  # failing to parse at all, deep inside Boost.Test's own headers):
-  # unlike check_ipodcoupling_coupling_output (links votca_tools) and
-  # every unit_${PROG} test above (links votca_xtp), both of which set
-  # target_compile_features(... PUBLIC cxx_std_17) and so
-  # automatically propagate C++17 to anything linking against them,
-  # this target links against neither at all, so it never genuinely
-  # inherited C++17 from anywhere -- falling back instead to CMake's
-  # own real, actual compiler default, which predates both constexpr
-  # and noexcept entirely on this real toolchain.
+  # This target links neither votca_tools nor votca_xtp, so it does not
+  # inherit their PUBLIC cxx_std_17; the macOS compiler default is too old
+  # for the Boost.Test headers.
   target_compile_features(check_ipodcoupling_input_geometry PRIVATE cxx_std_17)
   target_compile_definitions(check_ipodcoupling_input_geometry PRIVATE
     BOOST_TEST_DYN_LINK
@@ -696,75 +606,28 @@ if(RUN_XTP_INTEGRATIONTESTS)
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_md_files PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_qc_files COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_qc_files PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
-  # state.hdf5/ipodcoupling.jobs specifically: both real, direct,
-  # mutable inputs -- ipodcoupling.jobs is the exact real file whose
-  # own real status the user directly diagnosed getting mutated
-  # AVAILABLE -> COMPLETE in place, the real, direct root cause this
-  # whole fixture mechanism originally addressed.
+  # state.hdf5 and ipodcoupling.jobs are modified by the run (job status
+  # AVAILABLE -> COMPLETE), so they are copied fresh before every run.
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_state COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_nbl.hdf5 ${RUNPATH}/state.hdf5)
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_state PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/ipodcoupling.jobs.write ${RUNPATH}/ipodcoupling.jobs)
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_jobs PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
-  # Real, direct, pre-seeded orbFileAB, worked through directly with
-  # the user: tasks="podcoupling" (this shared reference
-  # ipodcoupling.xml's own tasks value, changed above) reads this
-  # exact, real, pre-existing file directly (IPodCoupling::EvalJob's
-  # own, already-established else { orbitalsAB.ReadFromCpt(orbFileAB);
-  # } branch) rather than genuinely computing it via a real DFT
-  # calculation at all -- confirmed directly, this same session, that
-  # temp.orb and orbFileAB are the exact same, real format (both
-  # Orbitals::WriteToCpt/ReadFromCpt), just different real paths. Both
-  # real platforms now run PODCoupling itself on genuinely
-  # bit-identical input, entirely eliminating the real, confirmed
-  # cross-platform OpenBabel-version numerical noise (see
-  # check_ipodcoupling_coupling_output.cc's own header comment) for
-  # this specific real coupling-value comparison.
+  # Pre-seeded dimer orbitals: with tasks="podcoupling" IPodCoupling reads
+  # orbFileAB instead of running DFT, so every platform computes the
+  # coupling from identical input, independent of the OpenBabel version.
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_orb COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNPATH}/OR_FILES/pairs_ipodcoupling/frame_0)
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_orb PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_orb_copy COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/OR_FILES/pairs_ipodcoupling/frame_0/pair_0_2.orb ${RUNPATH}/OR_FILES/pairs_ipodcoupling/frame_0/pair_0_2.orb)
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_orb_copy PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_orb)
   add_test(NAME integration_Run_xtp_parallel_ipodcoupling_run COMMAND xtp_parallel -e ipodcoupling -o ipodcoupling.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
-  # Real, direct, honest correction, worked through directly with the
-  # user, of a real, genuine gap the user themselves correctly
-  # identified: DEPENDS alone (used further below, on the real
-  # downstream Compare test) only ever orders tests -- confirmed
-  # directly, from the user's own real, direct debug-build timeout
-  # log, that the real Compare test still genuinely ran (and failed,
-  # with a real, but genuinely misleading, "no coupling elements at
-  # all" error) even after the real Run test above had already timed
-  # out entirely. Fixed by tagging this same real Run test with a new,
-  # real, direct FIXTURES_SETUP too -- confirmed directly, against
-  # CMake's own official fixtures documentation, that any real test
-  # (not only a dedicated Setup test) can genuinely be tagged this way
-  # -- so the real downstream Compare test below, once tagged with
-  # FIXTURES_REQUIRED for this same new fixture, is genuinely,
-  # correctly skipped by CTest's own real, documented behavior if this
-  # real Run test itself fails (including a real timeout) at all,
-  # rather than running anyway and reporting a real, but misleading,
-  # secondary failure of its own.
-  #
-  # TIMEOUT 3600 added too, matching the same, already-established
-  # real precedent in this same file (unit_test_dftengine_cdft,
-  # TIMEOUT 3600) -- confirmed directly, from the user's own real,
-  # direct debug-build log, that a real, actual DFT calculation, run
-  # in a real debug build (no optimization at all), genuinely exceeded
-  # the default 1500s timeout.
+  # The Run test also sets up the fixture ipodcoupling_run_done, so the
+  # Compare test is skipped if it fails or times out (DEPENDS alone only
+  # orders tests). TIMEOUT: the Debug build exceeded the 1500 sec default.
   set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_run FIXTURES_SETUP ipodcoupling_run_done TIMEOUT 3600)
-  # Real, direct, standalone executable (not another
-  # votca_compare_xml-based comparison at all), worked through
-  # directly with the user, in direct response to real, confirmed
-  # cross-platform numerical noise in these j (coupling) values --
-  # itself confirmed, directly, this same session, to genuinely
-  # originate from real OpenBabel version differences across
-  # platforms (3.1.1 vs. 3.2.0), not a real bug in this project's own
-  # code, and not something this project's own code can control. See
-  # this executable's own real, direct source file
-  # (check_ipodcoupling_coupling_output.cc) for the full, real
-  # reasoning. Real, direct paths compiled in at real CMake configure
-  # time (both REFPATH/RUNPATH already absolute), rather than passed
-  # as real command-line arguments, since real command-line arguments
-  # here would otherwise conflict with Boost::unit_test_framework's
-  # own real argument parsing.
+  # Dedicated checker instead of votca_compare_xml: the coupling values
+  # differ slightly between OpenBabel versions (3.1.1 vs 3.2.0), see
+  # check_ipodcoupling_coupling_output.cc. The file paths are compiled in
+  # because command-line arguments would clash with Boost.Test's parsing.
   add_executable(check_ipodcoupling_coupling_output check_ipodcoupling_coupling_output.cc)
   target_link_libraries(check_ipodcoupling_coupling_output votca_tools Boost::unit_test_framework)
   target_compile_definitions(check_ipodcoupling_coupling_output PRIVATE

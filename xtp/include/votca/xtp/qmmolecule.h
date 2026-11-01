@@ -41,39 +41,11 @@ class QMMolecule : public AtomContainer<QMAtom> {
     Index offset = atomlist_.size();
     type_ += "_" + container.getType();
     for (const auto& at : container) {
-      // Real, direct fix for a real, direct, pre-existing bug --
-      // reconstructing a brand new QMAtom from scratch here (the
-      // (Index, element, pos) constructor, as this used to do)
-      // silently discards everything else about the original atom
-      // at all: hasExternalBond()/external_bond_direction_/
-      // external_bond_partner_segment_id_/bonded_partner_ids_ all
-      // reset to their own, empty defaults. Confirmed directly, this
-      // exact way, from the user's own real, direct diagnostic run:
-      // only ONE of three genuinely expected external bonds ever
-      // actually saturated at all -- specifically the one on the
-      // atom belonging to the FIRST segment merged into a QMMolecule
-      // this way (qmmol = mapper.map(*seg1, stateA), a real, direct
-      // copy-construction, not affected by this bug at all) -- every
-      // subsequent segment's own atoms, merged in via THIS method
-      // (qmmol.AddContainer(mapper.map(seg2, stateB))), silently lost
-      // this data entirely.
-      //
-      // Fixed by copying the whole atom directly (preserving
-      // everything about it), then only mutating what genuinely does
-      // need to change once merged into a larger container: its own
-      // id (via setID(), matching this method's own, already-
-      // established "unique ids" comment/purpose exactly), and its
-      // own bonded_partner_ids_ (via the new setBondedPartnerIds()
-      // added directly alongside this fix, qmatom.h) -- these are
-      // recorded local to the smaller QMMolecule this atom was
-      // originally mapped within, so need the exact same offset
-      // applied to them too, or they would end up pointing at the
-      // wrong atom entirely once merged. hasExternalBond()/
-      // external_bond_direction_/external_bond_partner_segment_id_
-      // need no such offsetting at all -- none of them are ids that
-      // point at another atom within this same container (the first
-      // two are per-atom properties; the third is a real, direct
-      // SEGMENT id, an entirely separate, global id space).
+      // Copy the whole atom so that external-bond data and bonded partners
+      // are kept (constructing a new QMAtom from index, element and
+      // position dropped them). The atom ID and the bonded-partner IDs
+      // are local to the added container and are shifted by offset; the
+      // external-bond partner is a segment ID and needs no offset.
       QMAtom atom = at;
       atom.setID(at.getId() + offset);
       const Index* partners = at.getBondedPartnerIds();

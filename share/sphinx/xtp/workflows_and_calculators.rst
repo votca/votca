@@ -10,6 +10,18 @@ QMMM_GROMACS tutorial) is
    multipole/polarizable (MPS) files of each segment and state;
    ``xtp_run -e mapchecker`` writes the mapped structures as .pdb files for
    inspection.
+
+   Other MD formats work the same way, only the input files differ. For
+   LAMMPS, give the data file as topology and a dump file as trajectory, e.g.
+   ``xtp_map -t system.data -c traj.dump -s system.xml -f state.hdf5 -i 99``
+   for frame 99. The LAMMPS reader derives names that the mapping file has to
+   use: atom types are the element (recognized from the mass) followed by
+   the LAMMPS type number (``C63``, ``S23``), and molecules are named by
+   their composition in alphabetical order (``C4H4S1`` for thiophene; a
+   suffix ``-0``, ``-1``, ... distinguishes different molecules with the
+   same composition). ``xtp_map -m`` writes a skeleton mapping file with
+   these names for any input format.
+
 #. ``xtp_run -e neighborlist``: pairs of neighbouring segments.
 #. ``xtp_run -e einternal``: reads internal (gas-phase) site energies and
    reorganization energies (e.g. ``-c energies_file=system.xml``) into the

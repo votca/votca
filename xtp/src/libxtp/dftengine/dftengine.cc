@@ -79,14 +79,8 @@ void CanonicalizeOrbitalPhases(tools::EigenSystem& mos) {
 
 }  // namespace
 
-// Defined in libint2_derivative_calls.cc -- forward declared here
-// (rather than only near ComputeAndStoreForces further down, where the
-// other libint2_derivative_calls.cc forward declarations live) because
-// Initialize() below needs it too, to warn early -- at options-parsing
-// time, before any SCF work at all -- if compute_forces=true was
-// requested on a build that cannot actually do it. See that file's own
-// compile-time guard (around LIBINT2_MAX_DERIV_ORDER) for the full
-// explanation of why this check exists.
+// Defined in libint2_derivative_calls.cc; used by Initialize() to reject
+// compute_forces on builds without derivative integrals.
 bool HasLibint2DerivativeSupport();
 
 /**
@@ -133,73 +127,40 @@ void DFTEngine::Initialize(tools::Property& options) {
     compute_forces_ = options.get(key_xtpdft + ".compute_forces").as<bool>();
   }
   if (compute_forces_ && !HasLibint2DerivativeSupport()) {
-    // Fail fast, at options-parsing time, rather than only discovering
-    // this after a full (potentially expensive) SCF has already
-    // converged. Genuinely throws now (previously only printed a
-    // std::cerr WARNING and let Initialize() return normally, so the
-    // full SCF still ran to completion regardless, wasting real
-    // compute on a calculation that could never produce forces) --
-    // throwing std::runtime_error here for an invalid/impossible
-    // options combination matches this file's own, already-established
-    // convention (see e.g. "Spin multiplicity must be >= 1." and
-    // several other throw std::runtime_error(...) calls elsewhere in
-    // this same function), not a new pattern.
+    // Fail before the SCF rather than after it.
     throw std::runtime_error(
-        "compute_forces=true was requested, but the libint2 this was "
-        "built against does not support derivative integrals for one "
-        "or more operator categories it needs (one-body, the two-center "
-        "Coulomb metric, or three-center RI -- see "
-        "libint2_derivative_calls.cc's own compile guards for exactly "
-        "which). Many pre-packaged libint2 builds (Homebrew, Ubuntu "
-        "apt, etc.) do not enable derivative-integral support for all "
-        "of these by default; rebuild libint2 with "
-        "--enable-1body/--enable-eri2/--enable-eri3 to use this "
-        "feature.");
+        "compute_forces=true was requested, but libint2 was built without "
+        "derivative integrals for one or more of the required operator "
+        "categories (one-body, two-center Coulomb metric, three-center RI). "
+        "Many packaged libint2 builds (Homebrew, Ubuntu apt, etc.) lack "
+        "them; rebuild libint2 with --enable-1body/--enable-eri2/"
+        "--enable-eri3 to use this feature.");
   }
   if (compute_forces_ && !ecp_name_.empty()) {
-    // A real, previously-unguarded gap: the SCF's own Hamiltonian
-    // genuinely includes the ECP contribution (H0 = T + V_nuc + V_ECP
-    // + V_ext, see the comment on that further down in this file, and
-    // dftAOECP.FillPotential(dftbasis_, ecp_) actually called during
-    // the SCF itself) -- but ComputeAndStoreForces/ComputeAndStoreForcesUKS
-    // have no d(V_ECP)/dR term at all (confirmed directly: neither
-    // function references ecp_ or ecp_name_ anywhere). Computing
-    // forces anyway in this case would not fail cleanly the way the
-    // libint2-support case above does -- it would silently produce a
-    // physically INCOMPLETE result (missing the ECP contribution to
-    // the force entirely) that looks like a normal, valid force
-    // output, which is worse than refusing outright. Refuse instead.
+    // H0 contains V_ECP, but the force routines have no d(V_ECP)/dR term;
+    // refuse rather than return incomplete forces.
     throw std::runtime_error(
         "compute_forces=true was requested together with an ECP ('" +
         ecp_name_ +
-        "'), but analytic nuclear forces do not yet include the ECP "
-        "contribution to the force (d(V_ECP)/dR) -- computing forces "
-        "in this configuration would silently omit that term rather "
-        "than fail visibly. Either drop the ECP or do not request "
-        "compute_forces until this is implemented.");
+        "'), but the analytic nuclear forces do not include the ECP "
+        "term d(V_ECP)/dR. Either drop the ECP or do not request "
+        "compute_forces.");
   }
 
   if (options.exists(key_xtpdft + ".cdft.enabled")) {
     cdft_enabled_ = options.get(key_xtpdft + ".cdft.enabled").as<bool>();
   }
   if (cdft_enabled_) {
-    // Deliberately parsed into a CDFTConstraintSpec (atom indices +
-    // charge, both directly from the options tree) here, at
-    // Initialize() time, rather than building the actual
-    // HirshfeldPartition::Constraint (which needs the reference
-    // densities and weight matrix) right away -- those need the
-    // molecule and basis, neither of which exist yet at this point;
-    // BuildCDFTConstraint (elsewhere in this file) does that
-    // conversion later, once Evaluate() actually has an Orbitals
-    // object with real QMAtoms to work with.
+    // Only the spec is stored here; the Constraint needs the molecule and
+    // is built in Evaluate() by BuildCDFTConstraint.
     std::string indices_str =
         options.get(key_xtpdft + ".cdft.indices").as<std::string>();
     if (indices_str.empty()) {
       throw std::runtime_error(
-          "cdft.enabled=true was requested, but cdft.indices is empty -- "
-          "specify which atoms (0-based, e.g. '1 3 13:17', same syntax "
-          "already used for diabatization.xml's own fragment indices) "
-          "make up the constrained fragment.");
+          "cdft.enabled=true was requested, but cdft.indices is empty; "
+          "specify the atoms of the constrained fragment (0-based, e.g. "
+          "'1 3 13:17', same syntax as the fragment indices in "
+          "diabatization.xml).");
     }
     cdft_constraint_spec_.atom_indices =
         IndexParser().CreateIndexVector(indices_str);
@@ -213,14 +174,8 @@ void DFTEngine::Initialize(tools::Property& options) {
         options.get(key_xtpdft + ".cdft.population_tolerance").as<double>();
     cdft_constraint_spec_.guess_strategy =
         options.get(key_xtpdft + ".cdft.guess_strategy").as<std::string>();
-    // Note: CDFT itself needs no derivative integral at all (it only
-    // ever builds ENERGY-level quantities -- reference densities,
-    // weight matrices, Fock-matrix potentials -- never the
-    // deriv_order=1 machinery compute_forces needs), so there is no
-    // separate HasLibint2DerivativeSupport() check needed here; if
-    // compute_forces were ALSO left enabled alongside cdft.enabled,
-    // the earlier compute_forces-specific check above already covers
-    // that combination.
+    // CDFT itself needs no derivative integrals, so no
+    // HasLibint2DerivativeSupport() check here.
   }
 
   initial_guess_ = options.get(".initial_guess").as<std::string>();
@@ -273,17 +228,15 @@ void DFTEngine::Initialize(tools::Property& options) {
   }
   conv_opt_.mixingparameter =
       options.get(key_xtpdft + ".convergence.mixing").as<double>();
-  // Ceiling for adaptive damping -- see the options struct's own
-  // comment (convergenceacc.h) for the full ORCA-derived reasoning.
+  // Ceiling for adaptive damping, see convergenceacc.h.
   conv_opt_.mixingmax =
       options.get(key_xtpdft + ".convergence.mixing_max").as<double>();
   conv_opt_.levelshift =
       options.get(key_xtpdft + ".convergence.levelshift").as<double>();
   conv_opt_.levelshiftend =
       options.get(key_xtpdft + ".convergence.levelshift_end").as<double>();
-  // Independent from adiis_start -- see the options struct's own
-  // comment (convergenceacc.h) and UKSConvergenceAcc::Iterate's own
-  // mixing-trigger comment for the full reasoning.
+  // Independent from adiis_start, see convergenceacc.h and
+  // UKSConvergenceAcc::Iterate.
   conv_opt_.mixingend =
       options.get(key_xtpdft + ".convergence.mixing_end").as<double>();
   conv_opt_.maxout =
@@ -417,23 +370,9 @@ void DFTEngine::CalcElDipole(const Orbitals& orb) const {
   return;
 }
 
-// Assembles the total ground-state gradient (nuclear repulsion + RI-J
-// Coulomb + XC, LDA or GGA) from the converged density matrix, negates it
-// to the physical force convention, and stores it via Orbitals::setForces().
-// See the detailed SCOPE note on the declaration in dftengine.h for exactly
-// which cases this does and does not support, and why.
-//
-// Every individual term here (NuclearRepulsionDerivative, RIJGradient,
-// PulayGradient, GridWeightGradient) was separately derived and validated
-// via finite-difference tests earlier in this branch (see
-// test_dftgradient.cc and test_xcgradient.cc) -- this function's own new
-// content is just the SUMMATION and the sign convention, not any new
-// derivative math.
-// Defined in libint2_derivative_calls.cc, not yet in any header (same
-// STATUS noted throughout that file) -- forward declared here. Unlike
-// DFTGradient::RIJGradient/PulayGradient/etc., these return RAW AO-matrix
-// derivatives (d(matrix_munu)/dR), not already-contracted energy
-// gradients -- the contraction with Dmat is done explicitly below.
+// Defined in libint2_derivative_calls.cc. Unlike DFTGradient::RIJGradient
+// etc., these return AO-matrix derivatives d(M_munu)/dR, which are
+// contracted with the density below.
 using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
 std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
     const AOBasis& aobasis);
@@ -441,11 +380,11 @@ std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
     const AOBasis& aobasis);
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     const AOBasis& aobasis, const QMMolecule& mol);
-// HasLibint2DerivativeSupport() (used below in both ComputeAndStoreForces
-// and ComputeAndStoreForcesUKS) is already forward declared earlier in
-// this file, near Initialize() -- see that declaration's own comment
-// for why it needed to be that early.
 
+// Total ground-state gradient (nuclear repulsion, one-electron, overlap
+// Pulay, RI-J, XC and, for hybrids, RI-K) from the converged density matrix,
+// stored as the force -dE/dR via Orbitals::setForces(). The individual terms
+// are tested in test_dftgradient.cc and test_xcgradient.cc.
 void DFTEngine::ComputeAndStoreForces(
     Orbitals& orb, const Eigen::MatrixXd& Dmat,
     const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
@@ -463,10 +402,8 @@ void DFTEngine::ComputeAndStoreForces(
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp()
         << " Skipping force calculation: the libint2 this was built "
-           "against does not support derivative integrals for one or "
-           "more operator categories it needs. Many pre-packaged "
-           "libint2 builds (Homebrew, Ubuntu apt, etc.) do not enable "
-           "this by default -- rebuild libint2 with "
+           "against lacks derivative integrals for one or more required "
+           "operator categories; rebuild libint2 with "
            "--enable-1body/--enable-eri2/--enable-eri3 to use analytic "
            "forces."
         << std::flush;
@@ -474,24 +411,12 @@ void DFTEngine::ComputeAndStoreForces(
   }
 
   if (!ecp_name_.empty()) {
-    // Same reasoning as Initialize()'s own, earlier check (which
-    // should already have caught this before any SCF work even
-    // started) -- this is a defense-in-depth repeat, matching the
-    // existing HasLibint2DerivativeSupport() re-check just above,
-    // in case compute_forces_/ecp_name_ were ever set some other way
-    // than through Initialize()'s own options parsing. Skips cleanly
-    // (log + return) rather than throwing here, matching this
-    // function's own existing style for the libint2-support case
-    // above -- by the time SCF has already converged this far,
-    // throwing would be a less graceful failure than simply not
-    // storing forces, though Initialize()'s own check is the
-    // preferred, much earlier place for this to actually be caught.
+    // Normally rejected in Initialize(); repeated here in case the members
+    // were set otherwise. Skip instead of throwing after a converged SCF.
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Skipping force calculation: an ECP ('" << ecp_name_
         << "') was used for this SCF, but analytic nuclear forces do "
-           "not yet include the ECP contribution to the force "
-           "(d(V_ECP)/dR) -- computing forces in this configuration "
-           "would silently omit that term rather than fail visibly."
+           "not include the ECP term d(V_ECP)/dR."
         << std::flush;
     return;
   }
@@ -502,17 +427,9 @@ void DFTEngine::ComputeAndStoreForces(
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Starting force calculation ("
                               << natoms << " atoms)" << std::flush;
 
-  // One-electron (kinetic + nuclear attraction) contribution --
-  // dEone/dR_A = Tr[Dmat . d(T+V_ne)/dR_A]. This was the piece
-  // discovered MISSING from the total gradient by the first genuine
-  // end-to-end SCF+forces test (test_dftengine_forces.cc): kinetic
-  // derivatives were validated at the very start of this whole branch
-  // and then never actually wired into any gradient assembly, and
-  // nuclear attraction derivatives were never implemented at all until
-  // that gap was found. See ComputeNuclearAttractionDerivatives in
-  // libint2_derivative_calls.cc for the detailed derivation (sign
-  // convention checked directly against AOMultipole's own,
-  // already-validated energy-level code, not assumed).
+  // One-electron (kinetic + nuclear attraction) contribution,
+  // dE_one/dR_A = Tr[D d(T+V_ne)/dR_A]. See
+  // ComputeNuclearAttractionDerivatives for the sign convention.
   XTP_LOG(Log::error, *pLog_) << TimeStamp()
                               << "   Computing one-electron (kinetic + nuclear "
                                  "attraction) derivatives"
@@ -529,32 +446,13 @@ void DFTEngine::ComputeAndStoreForces(
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << "   One-electron derivatives done" << std::flush;
 
-  // Overlap "Pulay force" -- a SECOND, genuinely distinct missing term,
-  // found after the kinetic+nuclear-attraction fix improved but did not
-  // fully resolve the discrepancy against the end-to-end finite-difference
-  // test (magnitude dropped ~7x in the right direction, but still wrong
-  // by roughly the size of a real missing term, not noise).
-  //
-  // Distinct from the earlier "PulayGradient" naming (which is about
-  // basis functions inside the XC integral) -- this is the CLASSICAL
-  // SCF Pulay/overlap force, present in essentially any Gaussian-basis
-  // HF/DFT gradient: the MO coefficients C are only implicitly
-  // R-independent because they satisfy the orthonormality constraint
-  // C^T S C = I, and S itself depends on R (basis functions move). At
-  // the SCF stationary point, the Lagrange multipliers for this
-  // constraint are exactly the orbital energies (canonical MOs), giving
-  // an extra term dE/dR_A|_overlap = -Tr[W . dS/dR_A], where
-  // W = 2 * C_occ * diag(eps_occ) * C_occ^T (the "energy-weighted
-  // density matrix", factor of 2 matching the same doubled convention
-  // Dmat already uses for closed-shell restricted). Confirmed as a
-  // standard, expected term by libint2's own reference SCF-gradient
-  // example (compute_1body_ints_deriv<Operator::overlap> combined with
-  // exactly this W construction, in
-  // libint2/include/libint2/lcao/1body.h) -- not a novel derivation.
-  //
-  // ComputeOverlapDerivatives itself was validated (finite-difference
-  // tested) at the very start of this whole branch and then never
-  // actually used in any gradient assembly until now, same as kinetic.
+  // Overlap (SCF Pulay) term from the orthonormality constraint
+  // C^T S(R) C = I. For canonical MOs at convergence the Lagrange
+  // multipliers are the orbital energies, giving
+  //   dE/dR_A|_overlap = -Tr[W dS/dR_A],  W = 2 C_occ diag(eps_occ) C_occ^T
+  // (energy-weighted density, factor 2 for closed shells; cf. the libint2
+  // SCF gradient example). Not to be confused with PulayGradient, the
+  // basis-function term of the XC integral.
   Index n_occ = num_docc_ + num_socc_alpha_;
   Eigen::MatrixXd C_occ = orb.MOs().eigenvectors().leftCols(n_occ);
   Eigen::VectorXd eps_occ = orb.MOs().eigenvalues().head(n_occ);
@@ -592,25 +490,11 @@ void DFTEngine::ComputeAndStoreForces(
   Eigen::MatrixXd grad = nucrep_term + eone_grad + overlap_pulay_grad +
                          rij_term + pulay_term + weight_term;
 
-  // Exact-exchange (RI-K) gradient -- hybrid functionals only. Skipped
-  // entirely (not just multiplied by a zero ScaHFX_) when not needed,
-  // since RIKGradient is genuinely expensive (O(nocc^2 * naux) linear
-  // solves) unlike the GGA sigma terms, which are cheap enough to
-  // compute unconditionally.
-  //
-  // RIKGradient's own energy convention (E_K = -sum_ij c_ij.d_ij) was
-  // confirmed, via direct numerical simulation of
-  // ERIs::CalculateEXX_mos's real algorithm and then a real C++
-  // finite-difference test against that same production function
-  // (test_dftgradient.cc), to equal EXACTLY 0.25*Dmat.cwiseProduct(K).sum()
-  // at ScaHFX_=1 -- so for general ScaHFX_, the contribution is
-  // ScaHFX_ * RIKGradient(...), a direct scaling, matching exactly how
-  // the real SCF energy scales its own exx term
-  // (exx = 0.25*ScaHFX_*Dmat.cwiseProduct(K).sum()).
-  //
-  // This removes what was previously an explicit, logged SCOPE
-  // limitation (hybrid functionals skipped entirely) -- see git history
-  // for the full derivation/verification that led to this.
+  // Exact-exchange (RI-K) gradient, hybrids only; skipped otherwise since
+  // RIKGradient costs O(nocc^2 * naux) linear solves. Its energy,
+  // E_K = -sum_ij c_ij.d_ij, equals 0.25*Dmat.cwiseProduct(K).sum() at
+  // ScaHFX_ = 1 (tested in test_dftgradient.cc), so the contribution is
+  // ScaHFX_ * RIKGradient, as exx = 0.25*ScaHFX_*Dmat.cwiseProduct(K).sum().
   if (ScaHFX_ > 0.0) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << "   Computing RI-K (exact exchange) gradient"
@@ -620,11 +504,8 @@ void DFTEngine::ComputeAndStoreForces(
         << TimeStamp() << "   RI-K gradient done" << std::flush;
   }
 
-  // Sanity check independent of the finite-difference tests already done
-  // per-term: translational invariance means the TOTAL gradient must sum
-  // to zero across all atoms. Logged rather than asserted/thrown --
-  // deliberately not blocking a real SCF run over a force-only sanity
-  // check, but worth knowing about if it ever fires.
+  // Translational invariance: the total gradient must sum to zero over
+  // atoms. Only logged, not thrown.
   Eigen::Vector3d sum = grad.colwise().sum();
   if (sum.cwiseAbs().maxCoeff() > 1e-4) {
     XTP_LOG(Log::error, *pLog_)
@@ -637,25 +518,15 @@ void DFTEngine::ComputeAndStoreForces(
         << std::flush;
   }
 
-  // Physical force = -dE/dR, matching the convention external tools
-  // (e.g. ASE's Calculator.get_forces()) expect -- NuclearRepulsionDerivative/
-  // RIJGradient/PulayGradient/GridWeightGradient all return dE/dR directly
-  // (the gradient, not the force), consistent with each other throughout
-  // this branch; negating once here, at the point of storage, rather than
-  // in each individual term, keeps that internal convention consistent
-  // and puts the physical-force sign flip in exactly one place.
+  // All terms above are dE/dR; store the force -dE/dR (the convention of
+  // e.g. ASE's Calculator.get_forces()).
   Eigen::MatrixXd force = -grad;
   orb.setForces(force);
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Computed and stored ground-state nuclear forces."
       << std::flush;
-  // Atomic units (Hartree/Bohr) -- deliberately NOT converted here, same
-  // convention as what gets stored via setForces()/WriteToCpt above and
-  // what the rest of this file's own log output uses for energies
-  // (Hartree throughout; only the earlier "Molecule Coordinates" section
-  // converts to Angstrom, for readability, and that conversion is
-  // unrelated to this).
+  // Printed in atomic units (Hartree/Bohr), as stored.
   XTP_LOG(Log::error, *pLog_) << " Forces [Ha/Bohr]" << std::flush;
   for (Index a = 0; a < natoms; ++a) {
     std::string output =
@@ -670,30 +541,15 @@ void DFTEngine::ComputeAndStoreForces(
 Eigen::MatrixXd DFTEngine::ComputeOverlapPulayGradientUKS(
     const QMMolecule& mol, const tools::EigenSystem& MOs_alpha,
     const tools::EigenSystem& MOs_beta) const {
-  // W = W_alpha + W_beta, each WITHOUT the factor of 2 RKS uses -- UKS
-  // spin densities/MO occupations are not pre-doubled (each spin
-  // channel already corresponds to its own electron count).
+  // W = W_alpha + W_beta without the closed-shell factor 2.
   //
-  // NOTE ON VALIDATION: this term is NOT checkable against a
-  // fixed-C finite difference the way the other UKS gradient terms are
-  // -- confirmed directly by a failed attempt to do exactly that (see
-  // git history). The overlap Pulay force specifically corrects for C's
-  // IMPLICIT R-dependence through the orthonormality constraint
-  // C^T S(R) C = I, valid only at a genuine variational stationary
-  // point (the Lagrange-multiplier argument requires C to actually be a
-  // converged SCF solution) -- a fixed, arbitrary C held constant across
-  // displaced geometries never satisfies that constraint
-  // self-consistently, so there is no fixed-C energy this term is
-  // supposed to match. This mirrors exactly why the RKS version of this
-  // term was only ever validated by a genuine, self-consistent
-  // end-to-end SCF test (test_dftengine_forces.cc), never a
-  // fixed-density-matrix unit test. See
-  // compute_non_xc_gradient_uks_finite_difference and
-  // overlap_pulay_gradient_uks_reduces_to_rks in
-  // test_dftengine_private.cc for how this piece is actually checked
-  // instead: the other four terms against a fixed-C finite difference,
-  // and this term separately against the already-validated RKS formula
-  // in the alpha==beta limit.
+  // This term accounts for the implicit R-dependence of C through
+  // C^T S(R) C = I and is only valid at an SCF stationary point, so it has
+  // no fixed-C finite-difference counterpart. test_dftengine_private.cc
+  // checks it against the RKS formula for alpha == beta
+  // (overlap_pulay_gradient_uks_reduces_to_rks) and the other non-XC terms
+  // by fixed-C finite differences
+  // (compute_non_xc_gradient_uks_finite_difference).
   Index n_occ_alpha = num_alpha_electrons_;
   Index n_occ_beta = num_beta_electrons_;
   Eigen::MatrixXd C_alpha_occ = MOs_alpha.eigenvectors().leftCols(n_occ_alpha);
@@ -722,12 +578,8 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
   Index natoms = mol.size();
   const Eigen::MatrixXd D_total = Dspin.total();
 
-  // One-electron and RI-J: identical formulas/conventions to the RKS
-  // case, just built from D_total = Dspin.alpha + Dspin.beta -- matches
-  // exactly how RKS's own Dmat is already alpha+beta (E_one and E_coul
-  // in EvaluateUKS use D_total the same way EvaluateClosedShell's Eone/
-  // Etwo use Dmat), confirmed directly by reading EvaluateUKS rather
-  // than assumed.
+  // One-electron and RI-J terms as for RKS, with D_total = D_alpha + D_beta
+  // in place of the closed-shell Dmat.
   std::vector<AOMatrixDerivative> dT = ComputeKineticDerivatives(dftbasis_);
   std::vector<AOMatrixDerivative> dVne =
       ComputeNuclearAttractionDerivatives(dftbasis_, mol);
@@ -746,16 +598,10 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
       overlap_pulay_grad +
       DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
 
-  // Exact exchange (RI-K), hybrids only. Factor of 0.5*ScaHFX_ (not
-  // ScaHFX_ alone) -- confirmed both algebraically and numerically
-  // (Python, to ~1e-14) that ERIs::CalculateEXX_dmat(P) ==
-  // 0.5*ERIs::CalculateEXX_mos(C) when P=C*C^T, and UKS's own exact
-  // exchange goes through CalculateEXX_dmat (a DIFFERENT code path than
-  // RIKGradient was validated against, which uses CalculateEXX_mos
-  // directly) -- tracing that factor of 0.5 through both spin channels'
-  // energy expressions gives dE_exx/dR =
-  // 0.5*ScaHFX_*[RIKGradient(C_alpha_occ)+RIKGradient(C_beta_occ)], not
-  // the naive ScaHFX_*(...) that would be a factor-of-2 error.
+  // Exact exchange (RI-K), hybrids only. UKS exchange uses
+  // ERIs::CalculateEXX_dmat(P) = 0.5*ERIs::CalculateEXX_mos(C) for
+  // P = C C^T, while RIKGradient corresponds to CalculateEXX_mos, hence
+  // dE_exx/dR = 0.5*ScaHFX_*[RIKGradient(C_alpha_occ)+RIKGradient(C_beta_occ)].
   if (ScaHFX_ > 0.0) {
     Eigen::MatrixXd C_alpha_occ =
         MOs_alpha.eigenvectors().leftCols(num_alpha_electrons_);
@@ -786,10 +632,8 @@ void DFTEngine::ComputeAndStoreForcesUKS(
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp()
         << " Skipping UKS force calculation: the libint2 this was "
-           "built against does not support derivative integrals for "
-           "one or more operator categories it needs. Many "
-           "pre-packaged libint2 builds (Homebrew, Ubuntu apt, etc.) "
-           "do not enable this by default -- rebuild libint2 with "
+           "built against lacks derivative integrals for one or more "
+           "required operator categories; rebuild libint2 with "
            "--enable-1body/--enable-eri2/--enable-eri3 to use "
            "analytic forces."
         << std::flush;
@@ -797,17 +641,12 @@ void DFTEngine::ComputeAndStoreForcesUKS(
   }
 
   if (!ecp_name_.empty()) {
-    // Same reasoning as the RKS ComputeAndStoreForces' own, identical
-    // check just above (and Initialize()'s own, earlier, preferred
-    // check) -- ECP forces are not implemented in either spin
-    // channel's gradient assembly.
+    // See ComputeAndStoreForces.
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Skipping UKS force calculation: an ECP ('"
         << ecp_name_
         << "') was used for this SCF, but analytic nuclear forces do "
-           "not yet include the ECP contribution to the force "
-           "(d(V_ECP)/dR) -- computing forces in this configuration "
-           "would silently omit that term rather than fail visibly."
+           "not include the ECP term d(V_ECP)/dR."
         << std::flush;
     return;
   }
@@ -815,19 +654,12 @@ void DFTEngine::ComputeAndStoreForcesUKS(
   Eigen::MatrixXd grad =
       ComputeNonXCGradientUKS(orb.QMAtoms(), Dspin, MOs_alpha, MOs_beta);
 
-  // XC gradient (LDA and GGA both supported -- see the detailed
-  // derivation/validation history on this function's declaration in
-  // dftengine.h and on PulayGradientUKS/GridWeightGradientUKS in
-  // vxc_potential.h).
+  // XC gradient (LDA and GGA), see PulayGradientUKS/GridWeightGradientUKS.
   grad += vxcpotential.PulayGradientUKS(Dspin.alpha, Dspin.beta, dftbasis_);
   grad += vxcpotential.GridWeightGradientUKS(Dspin.alpha, Dspin.beta,
                                              orb.QMAtoms());
 
-  // Sanity check independent of the finite-difference tests already
-  // done per-term: translational invariance means the TOTAL gradient
-  // must sum to zero across all atoms. Logged rather than asserted/
-  // thrown, same as the RKS path -- deliberately not blocking a real
-  // SCF run over a force-only sanity check.
+  // Translational invariance check, logged only (as for RKS).
   Eigen::Vector3d sum = grad.colwise().sum();
   if (sum.cwiseAbs().maxCoeff() > 1e-4) {
     XTP_LOG(Log::error, *pLog_)
@@ -841,18 +673,14 @@ void DFTEngine::ComputeAndStoreForcesUKS(
         << std::flush;
   }
 
-  // Physical force = -dE/dR, matching the RKS ComputeAndStoreForces
-  // convention exactly -- all pieces above return dE/dR directly (the
-  // gradient, not the force), negated once here at the point of
-  // storage.
+  // Store the force -dE/dR, as for RKS.
   Eigen::MatrixXd force = -grad;
   orb.setForces(force);
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Computed and stored ground-state UKS nuclear forces."
       << std::flush;
-  // Same convention as ComputeAndStoreForces (RKS): atomic units
-  // (Hartree/Bohr), matching what gets stored via setForces() above.
+  // Printed in atomic units (Hartree/Bohr), as stored.
   const QMMolecule& mol_for_print = orb.QMAtoms();
   XTP_LOG(Log::error, *pLog_) << " Forces [Ha/Bohr]" << std::flush;
   for (Index a = 0; a < force.rows(); ++a) {
@@ -1038,45 +866,22 @@ void DFTEngine::ComputePolarizability(Orbitals& orb) {
 
 bool DFTEngine::EvaluateAndTime(Orbitals& orb) {
   if (cdft_enabled_) {
-    // Deliberately dispatched here, BEFORE any of the normal
-    // Prepare/SetupH0/SetupVxc/ConfigOrbfile setup below -- RunCDFT
-    // does that same setup internally itself (matching this
-    // function's own structure exactly), so doing it here too would
-    // just duplicate the work. BuildCDFTConstraint needs orb.QMAtoms()
-    // to already be set (the same requirement Evaluate() itself has,
-    // via SetupH0(orb.QMAtoms()) below), so this is not adding any new
-    // requirement on the caller.
+    // Dispatched before the setup below, which RunCDFT does itself.
     HirshfeldPartition::Constraint constraint =
         BuildCDFTConstraint(orb.QMAtoms(), cdft_constraint_spec_);
 
-    // Suppresses the ordinary DFT force calculation during EVERY
-    // intermediate lambda-bisection trial inside RunCDFT (each of
-    // which internally calls EvaluateUKS, which would otherwise
-    // trigger the full, expensive ComputeAndStoreForcesUKS on each one
-    // -- confirmed directly, via a real run, to be a genuine,
-    // substantial waste: only the FINAL, converged lambda's own force
-    // is ever actually used). Restored unconditionally below,
-    // regardless of whether RunCDFT converges, so this never leaks a
-    // suppressed value back to the caller.
+    // No forces during the lambda trials of RunCDFT; only the converged
+    // lambda's force is needed. Restored whether or not RunCDFT converges.
     bool original_compute_forces = compute_forces_;
     compute_forces_ = false;
     bool converged = RunCDFT(orb, constraint);
     compute_forces_ = original_compute_forces;
 
     if (converged && original_compute_forces) {
-      // ONE, explicit, final UKS evaluation to compute the ordinary
-      // DFT force for the now-converged, fixed CDFT density -- orb
-      // already holds the converged MOs from RunCDFT's own, final
-      // internal EvaluateUKS call, so this re-run starts from (and
-      // should remain at) that same fixed point, converging
-      // essentially immediately rather than as a fresh, cold SCF.
-      // Deliberately re-runs Prepare/SetupH0/SetupVxc/ConfigOrbfile
-      // (the same setup RunCDFT already did once, internally, at its
-      // own start) rather than threading H0/vxcpotential through
-      // RunCDFT's own signature to avoid this -- a real, accepted
-      // cost (this setup, not the SCF itself, is what gets redone),
-      // chosen specifically to avoid touching RunCDFT's own,
-      // already-validated signature/control flow at all.
+      // One more UKS evaluation at the converged lambda to compute the DFT
+      // force. orb holds the converged MOs, so the SCF converges almost
+      // immediately; only the setup is repeated, to keep RunCDFT's
+      // interface unchanged.
       XTP_LOG(Log::error, *pLog_)
           << TimeStamp()
           << " CDFT converged -- computing the ordinary DFT force once, "
@@ -1090,27 +895,11 @@ bool DFTEngine::EvaluateAndTime(Orbitals& orb) {
     }
 
     if (converged && orb.hasForces()) {
-      // The explicit, final EvaluateUKS call just above (not RunCDFT's
-      // own, internal ones, which now have forces suppressed -- see
-      // the comment on original_compute_forces above) computed and
-      // stored the ordinary DFT force; this adds the CDFT-specific
-      // correction on top of it. Done HERE, once, after RunCDFT's
-      // outer loop has fully converged --
-      // deliberately NOT inside ComputeAndStoreForcesUKS itself (which
-      // would otherwise redo this work, wastefully and riskily, at
-      // EVERY outer CDFT iteration, since RunCDFT calls EvaluateUKS
-      // repeatedly) and deliberately NOT by changing RunCDFT's own
-      // signature to pass through the original per-atom fragment
-      // indices (constraint only carries the already-SUMMED
-      // weight_matrix, not which atoms went into it -- rebuilding here
-      // instead, via cdft_constraint_spec_'s own atom_indices, avoids
-      // touching RunCDFT's own, already-validated signature/behavior
-      // at all).
-      //
-      // Rebuilds the same reference densities/atomic references/
-      // basis/grid BuildCDFTConstraint itself already built internally
-      // -- a redundant but cheap recomputation (no SCF involved),
-      // accepted deliberately for this reason.
+      // Add the CDFT constraint term to the DFT force, once, at the
+      // converged lambda. The constraint only carries the summed weight
+      // matrix, so the per-atom contributions are rebuilt from
+      // cdft_constraint_spec_.atom_indices; this repeats the (cheap, no SCF)
+      // reference-density, basis and grid setup of BuildCDFTConstraint.
       std::map<std::string, Eigen::MatrixXd> reference_densities =
           ComputeHirshfeldReferenceDensities(orb.QMAtoms());
       AOBasis full_dftbasis;
@@ -1127,10 +916,8 @@ bool DFTEngine::EvaluateAndTime(Orbitals& orb) {
 
       std::array<Eigen::MatrixXd, 2> Dspin =
           orb.DensityMatrixGroundStateSpinResolved();
-      // Total (alpha+beta) density -- matches the charge constraint's
-      // own spin_alpha_coefficient=spin_beta_coefficient=+1.0
-      // convention exactly (Tr[(D_alpha+D_beta)*W] = the same
-      // population EvaluateMismatch itself computes inside RunCDFT).
+      // Total density, as the charge constraint has
+      // spin_alpha_coefficient = spin_beta_coefficient = +1.
       Eigen::MatrixXd density_total = Dspin[0] + Dspin[1];
 
       Eigen::MatrixXd cdft_gradient_correction =
@@ -1141,12 +928,8 @@ bool DFTEngine::EvaluateAndTime(Orbitals& orb) {
                 atoms, atom_index, density_total, orb.QMAtoms(), full_dftbasis,
                 grid);
       }
-      // Physical force = -dE/dR (ComputeAndStoreForcesUKS's own,
-      // already-established convention): the CDFT correction to the
-      // GRADIENT is +lambda*d(Tr[D*W_c])/dR (added directly, matching
-      // ComputeCDFTForceContribution's own gradient-convention
-      // return), so the correction to the FORCE is -lambda times this
-      // same quantity.
+      // ComputeCDFTForceContribution returns d(Tr[D W_c])/dR; the gradient
+      // correction is +lambda times that, so the force gets -lambda times it.
       orb.setForces(orb.getForces() -
                     constraint.lambda * cdft_gradient_correction);
     }
@@ -1233,26 +1016,16 @@ bool DFTEngine::RunCDFT(Orbitals& orb,
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
   ConfigOrbfile(orb);
 
-  // Restored on every exit path (converged or not) -- RunCDFT
-  // deliberately overrides this member's own value between outer
-  // iterations (to force the warm-start "orbfile" guess from the
-  // second iteration onward), so it must not leak whatever value the
-  // caller's own options actually specified.
+  // initial_guess_ is switched to "orbfile" for warm starts; restored on
+  // every exit path.
   std::string saved_initial_guess = initial_guess_;
 
   constraints_ = {constraint};
 
-  // Bisection bracket for lambda -- deliberately not Newton's method:
-  // bisection needs only that the population is monotonic in lambda
-  // (true for a well-behaved CDFT problem: increasing lambda always
-  // pushes more density toward -- or away from, depending on sign --
-  // the constrained region), never an explicit dN/dlambda derivative,
-  // making this the more robust choice for a first implementation.
-  // Starts centered on the caller's own initial guess (constraint.lambda,
-  // 0.0 by default) and expands outward, doubling each time, until the
-  // mismatch changes sign across the bracket or a hard iteration limit
-  // is hit -- rather than assuming any single fixed bracket width is
-  // always wide enough for every system.
+  // Bisection in lambda: needs only monotonicity of the population in
+  // lambda, no dN/dlambda. The bracket is centred on constraint.lambda and
+  // doubled in width until the mismatch changes sign or
+  // kMaxBracketAttempts is reached.
   double lambda_lo = constraint.lambda - 0.1;
   double lambda_hi = constraint.lambda + 0.1;
 
@@ -1270,14 +1043,8 @@ bool DFTEngine::RunCDFT(Orbitals& orb,
     if (cdft_constraint_spec_.guess_strategy == "warmstart") {
       initial_guess_ = "orbfile";  // warm start every subsequent call
     }
-    // "fresh": deliberately leave initial_guess_ untouched here, so it
-    // stays at whatever the calculation's own, original, top-level
-    // setting was for every trial -- see this option's own XML help
-    // text (dftpackage.xml) for why this can matter: if consecutive
-    // lambda trials correspond to substantially different electronic
-    // structures, warm-starting from the immediately preceding trial's
-    // own converged density could be a worse starting point than a
-    // fresh guess, not a better one.
+    // "fresh": keep the configured guess for every trial, for cases where
+    // consecutive lambdas give very different densities (dftpackage.xml).
     std::array<Eigen::MatrixXd, 2> Dspin =
         orb.DensityMatrixGroundStateSpinResolved();
     double population =
@@ -1759,21 +1526,11 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
 
     double totenergy = H0.energy() + E_one + E_coul + E_xc + E_exx;
 
-    // CDFT constraint potential -- deliberately the LAST term added to
-    // either Fock matrix, and gated by a single, cheap .empty() check:
-    // for any standard, non-CDFT run (constraints_ left at its default,
-    // empty state), this entire block is skipped, and both H_alpha and
-    // H_beta are built exactly as they always were -- no measurable
-    // overhead, no behavior change whatsoever. Adds
-    // lambda_c * spin_alpha/beta_coefficient * W_c to the respective
-    // Fock matrix for every active constraint c (a charge constraint
-    // uses +1/+1, adding the identical potential to both channels; a
-    // future spin constraint would use +1/-1 -- see Constraint's own
-    // comment in hirshfeldpartition.h for why these are stored
-    // separately rather than this code assuming "charge" specifically),
-    // and the corresponding correction term to the reported total
-    // energy: E_CDFT = E_KS + sum_c lambda_c * (N_c^computed -
-    // N_c^target), the standard Wu-Van Voorhis Lagrangian.
+    // CDFT constraint potential (no-op if constraints_ is empty): adds
+    // lambda_c * spin_alpha/beta_coefficient * W_c to the alpha/beta Fock
+    // matrices (charge constraint: +1/+1; a spin constraint would use
+    // +1/-1) and uses the Wu-Van Voorhis Lagrangian
+    //   E_CDFT = E_KS + sum_c lambda_c (N_c - N_c^target).
     if (!constraints_.empty()) {
       for (const HirshfeldPartition::Constraint& c : constraints_) {
         H_alpha += (c.lambda * c.spin_alpha_coefficient) * c.weight_matrix;
@@ -1804,15 +1561,11 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
 
     UKSConvergenceAcc::SpinFock Hspin{H_alpha, H_beta};
 
-    // Coupled Fock builder: both new densities are used together, for
-    // BOTH the Coulomb/exchange terms and the XC potential, in a single
-    // call. This is what lets CoupledAugmentedHessianStep/
-    // BuildCoupledSigmaVector capture the real alpha-beta coupling
-    // (through the shared Coulomb potential and the XC kernel's
-    // cross-spin terms). Mirrors the exact same H0 + Coulomb/exchange +
-    // XC sequence already used to build H_alpha/H_beta themselves just
-    // above, so a perturbed density that happens to equal the current
-    // one reproduces the identical Fock matrix.
+    // Coupled Fock builder: both spin densities enter the Coulomb/exchange
+    // and XC terms together, so CoupledAugmentedHessianStep/
+    // BuildCoupledSigmaVector see the alpha-beta coupling (shared Coulomb
+    // potential, cross-spin XC kernel). Same H0 + J/K + V_xc sequence as
+    // H_alpha/H_beta above, so the current density reproduces them.
     conv_uks.setCoupledFockBuilder(
         [this, &H0, &vxcpotential](const Eigen::MatrixXd& alpha_new,
                                    const Eigen::MatrixXd& beta_new) {
@@ -2049,17 +1802,13 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
     Vxc_Grid ewaldgrid;
     ewaldgrid.GridSetup(grid_name_, mol, dftbasis_);
 
-    // The rebuild above is REQUIRED, not a convenience. external_ewaldgrid_
-    // arrived by value from QMRegion, where it was built against an AOBasis
-    // local to QMRegion::PrepareEwaldPotentialGrid, and a Vxc_Grid holds raw
-    // `const AOShell*` into the basis it was built from. Those pointers
-    // dangle by the time it gets here, so only its coordinates and its
-    // potential values may be read -- integrating on it directly would be
-    // undefined behaviour. See the comment on QMRegion::ewaldgrid_.
+    // The rebuild is required: external_ewaldgrid_ was built in QMRegion
+    // against a local AOBasis, and a Vxc_Grid holds raw `const AOShell*`
+    // into that basis, which now dangle. Only its coordinates and potential
+    // values may be read (see QMRegion::ewaldgrid_).
     //
-    // The two grids agree only if both sides used the same name, molecule
-    // and basis. Checked, because pairing potential values with the wrong
-    // points is a wrong Hamiltonian that nothing downstream would flag.
+    // The grids agree only if both used the same grid name, molecule and
+    // basis; checked, since a mismatch would silently give a wrong H0.
     if (ewaldgrid.getBoxesSize() != external_ewaldgrid_.getBoxesSize()) {
       throw std::runtime_error(
           "DFTEngine: the external Ewald potential grid has " +
@@ -2500,33 +2249,15 @@ std::vector<std::array<double, 4>> ValenceConfiguration(Index z, Index ncore,
   return result;
 }
 
-// Hund's-rule ground-state (alpha electrons, beta electrons) for the
-// main-group (s/p-block) elements most relevant to organic systems --
-// H through Kr, plus the heavier halogens (Br, I) via their own,
-// separately-computed period-5 entries. Explicitly does NOT cover
-// d-block (Sc-Zn, Y-Cd) or f-block elements: the d^n s^2 vs d^(n+1) s^1
-// (and worse, f-block) ground-state competition is genuinely subtle
-// and functional-dependent -- exactly why CP2K's own isolated-atom
-// ("ATOM") program requires explicit, manual per-subshell occupation
-// specification rather than trusting any automatic rule (confirmed
-// directly: HORTON's own CP2K pro-atom documentation states "The ATOM
-// program of CP2K does not simply follow the Aufbau rule to assign
-// orbital occupations"). Returns std::nullopt for anything not
-// explicitly covered, so callers can fall back to the existing,
-// simpler parity-based logic with a clear warning rather than silently
-// guessing.
+// Hund's-rule ground-state (alpha, beta) electron counts for the s/p-block
+// elements H-Ca, Ga-Kr and In-Xe. d- and f-block elements are not covered:
+// the d^n s^2 vs d^(n+1) s^1 competition is functional-dependent (CP2K's
+// ATOM code likewise requires explicit occupations). Returns std::nullopt
+// for those, and callers fall back to the parity split.
 //
-// Method: standard Aufbau filling order (1s,2s,2p,3s,3p,4s,3d,4p,5s,
-// 4d,5p) up to (but explicitly skipping) each d-block range, applying
-// Hund's rule within any open p subshell (spread across all 3 p
-// orbitals with parallel/majority spin first, only pairing once every
-// orbital in that subshell already has one) -- for p^n, n<=3 gives n
-// alpha/0 beta in that subshell; n>3 gives 3 alpha/(n-3) beta. Every
-// entry below was computed by hand from this rule and can be checked
-// against any standard table of atomic ground-state term symbols
-// (all are unambiguous, textbook Hund's-rule cases for main-group
-// atoms -- no functional-dependent ambiguity of the kind that affects
-// d/f-block).
+// Aufbau order 1s,2s,2p,3s,3p,4s,3d,4p,5s,4d,5p with Hund's rule in the
+// open p shell: p^n gives n alpha for n <= 3, and 3 alpha + (n-3) beta for
+// n > 3.
 std::optional<std::pair<Index, Index>> HundsRuleAlphaBetaElectrons(
     Index nuclear_charge) {
   switch (nuclear_charge) {
@@ -2570,7 +2301,7 @@ std::optional<std::pair<Index, Index>> HundsRuleAlphaBetaElectrons(
       return std::make_pair(10, 9);  // K:  [Ar] 4s1
     case 20:
       return std::make_pair(10, 10);  // Ca: 4s2
-    // 21-30 (Sc-Zn): 3d block -- deliberately NOT covered.
+    // 21-30 (Sc-Zn): 3d block, not covered.
     case 31:
       return std::make_pair(16, 15);  // Ga: [Zn] 4p1
     case 32:
@@ -2583,7 +2314,7 @@ std::optional<std::pair<Index, Index>> HundsRuleAlphaBetaElectrons(
       return std::make_pair(18, 17);  // Br: 4p5 (3a+2b)
     case 36:
       return std::make_pair(18, 18);  // Kr: 4p6
-    // 39-48 (Y-Cd): 4d block -- deliberately NOT covered.
+    // 39-48 (Y-Cd): 4d block, not covered.
     case 49:
       return std::make_pair(25, 24);  // In: [Cd] 5p1
     case 50:
@@ -2653,9 +2384,8 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
           << " No Hund's-rule ground-state occupation table "
              "entry for nuclear charge "
           << z
-          << " (d/f-block elements are not covered -- see "
-             "HundsRuleAlphaBetaElectrons's own comment for why) -- "
-             "falling back to the simpler, parity-based alpha/beta split."
+          << " (d/f-block elements are not covered); "
+             "falling back to the parity-based alpha/beta split."
           << std::flush;
       use_hunds_rule_occupation = false;
     }
@@ -2948,9 +2678,7 @@ std::map<std::string, Eigen::MatrixXd>
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Calculating Hirshfeld reference density for "
         << element << std::flush;
-    // use_hunds_rule_occupation=true unconditionally here -- this is
-    // the one and only caller that should ever request it; AtomicGuess
-    // just above, the pre-existing SAD-guess caller, never does.
+    // Hund's-rule ground state, unlike the SAD guess in AtomicGuess.
     reference_densities[element] = RunAtomicDFT_unrestricted(
         unique_atom, /*use_hunds_rule_occupation=*/true);
   }
@@ -3379,13 +3107,9 @@ HirshfeldPartition::Constraint DFTEngine::BuildCDFTConstraint(
           " atoms (0-based indexing -- valid range is 0.." +
           std::to_string(mol.size() - 1) + ").");
     }
-    // Hirshfeld weights are additive across atoms in a fragment --
-    // w_fragment(r) = sum_{i in fragment} w_i(r) -- so the fragment's
-    // own weight matrix is just the sum of each atom's own
-    // BuildWeightMatrix result, and the neutral reference population
-    // (needed to convert the options file's charge-relative target
-    // into RunCDFT's own absolute-population convention) is just the
-    // sum of the fragment atoms' own nuclear charges.
+    // Hirshfeld weights are additive, w_fragment(r) = sum_{i in fragment}
+    // w_i(r); the neutral reference population is the sum of the nuclear
+    // charges.
     constraint.weight_matrix += HirshfeldPartition::BuildWeightMatrix(
         atoms, atom_index, full_dftbasis, grid);
     neutral_reference_population +=
@@ -3692,36 +3416,15 @@ double DFTEngine::ExternalRepulsion(
                                     << std::flush;
         continue;
       }
-      // The site as the NUCLEI must see it: permanent multipoles PLUS the
-      // induced dipole.
-      //
-      // Why this is not what happens by default. The electronic half of
-      // this same interaction is built by AOMultipole::FillBlock, which
-      // reads site_->getDipole() -- a VIRTUAL accessor that PolarSite
-      // overrides as Q_.segment<3>(1) + induced_dipole_, and it promotes
-      // rank to 1 on exactly the test repeated below, so the electrons
-      // see the induced dipoles deliberately. The nuclear half arrives
-      // here and goes through eeInteractor::CalcStaticEnergy_site, whose
-      // VSiteA reads the SOURCE's moments as siteB.Q().segment<3>(1) --
-      // and Q() is not virtual. It returns the raw permanent vector, so
-      // the nuclei never saw an induced dipole at all.
-      //
-      // For a neutral QM region the electronic and nuclear halves very
-      // nearly cancel, so dropping one of them leaves essentially the
-      // whole surviving half standing: measured on a methane QM/MM job
-      // with the permanent multipoles zeroed, the QM energy moved by
-      // -4.5e-3 Ha between inter-region iterations where the polar
-      // region's own 1/2 F^T P F was 2.7e-5 Ha, a factor of ~84. With
-      // zeroed permanent multipoles Q_ is identically zero, which is why
-      // "Nuclei-external site interaction energy" printed as exactly 0
-      // while H0 was plainly not.
-      //
-      // Fixed HERE rather than in VSiteA, whose use of Q() is correct and
-      // deliberate: the induction solver contracts permanent and induced
-      // moments through separate channels, and folding induced dipoles
-      // into the static one there would double-count them in every polar
-      // energy in the package. The counterparty here is a bare nucleus,
-      // so no such channel exists and the sum is unambiguous.
+      // The nuclei must see the permanent multipoles plus the induced
+      // dipole, as the electrons do (AOMultipole::FillBlock uses the virtual
+      // getDipole(), which includes the induced dipole of a PolarSite).
+      // eeInteractor::CalcStaticEnergy_site reads the non-virtual Q(), i.e.
+      // permanent moments only, so the induced dipole is added here. Since
+      // the electronic and nuclear terms nearly cancel for a neutral QM
+      // region, omitting it gives large errors. VSiteA itself is correct:
+      // the induction solver treats permanent and induced moments
+      // separately, and changing it would double-count induced dipoles.
       Vector9d Q = site->Q();
       if (const PolarSite* p = AsChargeResponseSite(*site)) {
         // induced charge and dipole of a charge-response site: Gaussians,
@@ -4013,53 +3716,42 @@ Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
   Index nA = atomsA.size();
   Index nB = atomsB.size();
 
-  // --- Sanity check 1: element count and sequence ---
-  // Deliberately checked BEFORE the geometry check below -- a clear
-  // "wrong element at index N" error is far more actionable than the
-  // generic "distance mismatch" the geometry check alone would give if
-  // the atom ordering itself were wrong.
+  // Check 1: atom count and element sequence (before the geometry check,
+  // since an ordering error gives a clearer message here).
   if (nA + nB != dimer_mol.size()) {
     throw std::runtime_error(
         "BuildDimerGuessFromMonomerFiles: monomer A (" + std::to_string(nA) +
         " atoms) + monomer B (" + std::to_string(nB) +
-        " atoms) does not equal this calculation's own molecule (" +
+        " atoms) does not equal this calculation's molecule (" +
         std::to_string(dimer_mol.size()) +
-        " atoms) -- wrong monomer file(s), or this calculation's molecule "
-        "is not simply the concatenation of these two monomers.");
+        " atoms): wrong monomer file(s), or the molecule is not the "
+        "concatenation of the two monomers.");
   }
   for (Index i = 0; i < nA; ++i) {
     if (atomsA[i].getElement() != dimer_mol[i].getElement()) {
       throw std::runtime_error(
-          "BuildDimerGuessFromMonomerFiles: monomer A's own atom " +
+          "BuildDimerGuessFromMonomerFiles: monomer A atom " +
           std::to_string(i) + " (" + atomsA[i].getElement() +
-          ") does not match this calculation's own atom " + std::to_string(i) +
+          ") does not match this calculation's atom " + std::to_string(i) +
           " (" + dimer_mol[i].getElement() +
-          ") -- dimer_guess assumes monomer A occupies exactly the first "
-          "N_A atoms of this calculation's molecule, in the same order.");
+          "); dimer_guess requires monomer A to be the first N_A atoms of "
+          "the molecule, in the same order.");
     }
   }
   for (Index i = 0; i < nB; ++i) {
     if (atomsB[i].getElement() != dimer_mol[nA + i].getElement()) {
       throw std::runtime_error(
-          "BuildDimerGuessFromMonomerFiles: monomer B's own atom " +
+          "BuildDimerGuessFromMonomerFiles: monomer B atom " +
           std::to_string(i) + " (" + atomsB[i].getElement() +
-          ") does not match this calculation's own atom " +
-          std::to_string(nA + i) + " (" + dimer_mol[nA + i].getElement() +
-          ") -- dimer_guess assumes monomer B occupies exactly the "
-          "remaining atoms of this calculation's molecule (after monomer "
-          "A's own N_A atoms), in the same order.");
+          ") does not match this calculation's atom " + std::to_string(nA + i) +
+          " (" + dimer_mol[nA + i].getElement() +
+          "); dimer_guess requires monomer B to be the remaining atoms of "
+          "the molecule (after monomer A), in the same order.");
     }
   }
 
-  // --- Sanity check 2: internal geometry (translation/rotation
-  // invariant) ---
-  // Every pairwise interatomic distance WITHIN a monomer is unchanged
-  // by rigid translation or rotation of that monomer as a whole --
-  // exactly the operation that happens between a monomer's own,
-  // independent optimization and its placement into the dimer. So this
-  // checks the one thing that SHOULD be identical (internal geometry)
-  // rather than the one thing that is EXPECTED to differ (absolute
-  // position/orientation).
+  // Check 2: intra-monomer interatomic distances, which are invariant under
+  // the rigid translation/rotation placing a monomer into the dimer.
   constexpr double kGeometryToleranceBohr = 1e-3;
   auto CheckInternalGeometry = [&](const QMMolecule& monomer_atoms,
                                    Index offset_in_dimer,
@@ -4076,21 +3768,15 @@ Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
         if (diff > kGeometryToleranceBohr) {
           throw std::runtime_error(
               "BuildDimerGuessFromMonomerFiles: " + label +
-              "'s own internal geometry does not match this calculation's "
-              "molecule -- distance between its own atoms " +
+              "'s internal geometry does not match this calculation's "
+              "molecule: distance between its atoms " +
               std::to_string(i) + " and " + std::to_string(j) + " is " +
               std::to_string(monomer_distance) +
               " Bohr in the monomer file, but " +
               std::to_string(dimer_distance) +
-              " Bohr in this calculation's own molecule (difference " +
+              " Bohr in this calculation's molecule (difference " +
               std::to_string(diff) + " Bohr, tolerance " +
-              std::to_string(kGeometryToleranceBohr) +
-              " Bohr). This is checked as an INTERNAL, translation/"
-              "rotation-invariant distance specifically because the "
-              "monomer's absolute position/orientation is expected to "
-              "differ between its own standalone optimization and its "
-              "placement in the dimer -- only its internal geometry "
-              "should still match.");
+              std::to_string(kGeometryToleranceBohr) + " Bohr).");
         }
       }
     }
@@ -4129,12 +3815,8 @@ Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
   WarnIfRotated(atomsB, nA, "Monomer B");
 
   Orbitals dimer_guess;
-  // PrepareDimerGuess/PrepareDimerGuessMixedSpin both call SetupDftBasis
-  // internally, which needs this->QMAtoms() already populated -- the
-  // SAME requirement iqm.cc's own, existing caller of PrepareDimerGuess
-  // already satisfies (orbitalsAB.QMAtoms() is set there well before its
-  // own PrepareDimerGuess call), confirmed directly by reading that
-  // code rather than assumed.
+  // PrepareDimerGuessMixedSpin calls SetupDftBasis, which needs QMAtoms()
+  // to be set (as in iqm.cc for PrepareDimerGuess).
   dimer_guess.QMAtoms() = dimer_mol;
   dimer_guess.PrepareDimerGuessMixedSpin(monomerA, monomerB);
   return dimer_guess;

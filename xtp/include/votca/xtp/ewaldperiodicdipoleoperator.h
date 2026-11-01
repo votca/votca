@@ -35,262 +35,63 @@
 
 /**
  * \brief Matrix-free periodic induced-dipole self-consistent-field
- *        operator, for use with Eigen::ConjugateGradient.
+ *        operator, for use with Eigen iterative solvers.
  *
- * This mirrors DipoleDipoleInteraction's own existing interface (see
- * dipoledipoleinteraction.h) exactly -- same required Eigen::EigenBase
- * typedefs/constants, same InnerIterator/operator()/multiply() shape --
- * so it plugs into Eigen::ConjugateGradient the same way
- * PolarRegion::CalcInducedDipolesViaPCG already uses
- * DipoleDipoleInteraction, with the periodic real+reciprocal field
- * (EwaldRealSpaceSum + EwaldReciprocalSpaceSum) standing in for
- * DipoleDipoleInteraction's own aperiodic eeInteractor::
- * FillTholeInteraction wherever the "interaction between two sites"
- * building block is needed.
+ * Follows the Eigen::EigenBase interface of DipoleDipoleInteraction
+ * (dipoledipoleinteraction.h), with the periodic real- plus
+ * reciprocal-space field (EwaldRealSpaceSum, EwaldReciprocalSpaceSum,
+ * EwaldShapeCorrection) in place of the aperiodic
+ * eeInteractor::FillTholeInteraction.
  *
- * Segments in `ids` may have any number of sites each (this was not
- * always true of this class -- an earlier version required exactly one
- * site per segment; generalizing it was deliberately sequenced after
- * that simpler version was already validated, so that any new bug
- * introduced by the generalization itself would be easy to isolate from
- * bugs in the underlying physics, which by this point had already been
- * separately confirmed). The vector layout any v/x this operator is
- * applied to must follow is: for each id in ids (in order), 3 entries
- * per site of that segment (xyz), in the order EwaldRegistry::Get(id,
- * Neutral)'s own site iteration gives them -- i.e. a variable-width,
- * offset-table ("CSR-style") layout, not a fixed 3-per-segment one.
+ * Vector layout: for each id in `ids` (in order), 3 entries (xyz) per site
+ * of that segment, in the site order of EwaldRegistry::Get(id, Neutral).
+ * Segments may have any number of sites, so the layout is variable-width
+ * (see offsets_).
  *
- * multiply(v) computes A*v, where A is the induced-dipole self-consistent
- * operator restricted to ids: A*v = D*v + (periodic field that induced
- * dipoles v produce at every ids site, from every OTHER ids site's
- * periodic images, at every translation including zero -- see below for
- * why zero-translation same-segment pairs are no longer excluded here)
- * + (intramolecular erfc-screened, Thole-damped coupling between
- * distinct sites of the SAME segment, at zero translation). D is the
- * same block-diagonal inverse-polarizability term (site.getPInv())
- * already used by DipoleDipoleInteraction.
+ * The induced dipoles solve mu = P*(F_perm + C*mu), i.e.
+ *   A*mu = (P^-1 - C)*mu = F_perm,
+ * where C*mu is the field produced by the induced dipoles of the `ids`
+ * sites: the periodic real-space sum (excluding zero-translation
+ * same-segment pairs), the reciprocal-space sum (no exclusions), the
+ * shape/surface term, and the intramolecular Thole-damped coupling
+ * between distinct sites of the same segment (AddIntraSegmentCoupling).
+ * Like legacy PolarBackground and DipoleDipoleInteraction, intramolecular
+ * induced-induced coupling is included; it is Thole damped with the same
+ * exponential (van Duijnen-Swart) form as legacy EwdInteractor::L3()/L5()
+ * (FU12_ERFC_At_By damps intra- and intermolecular pairs alike).
  *
- * The intramolecular term above was NOT present in an earlier version of
- * this class, based on a mistaken belief that DipoleDipoleInteraction
- * excludes intra-segment coupling the same way EwaldRealSpaceSum does for
- * the periodic sum (see that class's own documentation) -- checking
- * DipoleDipoleInteraction::multiply() directly shows this is wrong: its
- * inner loop couples every pair of sites in its own flat sites_ list via
- * FillTholeInteraction, with no segment-awareness at all beyond
- * operator()'s own same-site (not same-segment) diagonal check. Both
- * legacy PolarBackground (see its own explicitly-labeled "Real-space,
- * intramolecular contribution" loop, inside its own induction-iteration
- * section specifically -- NOT its permanent-field section, which has no
- * intramolecular loop at all) and modern PolarRegion/
- * DipoleDipoleInteraction therefore include intramolecular induced-
- * induced coupling as standard practice; omitting it here was an actual
- * correctness gap in this class, not a deliberate scoping choice, caught
- * only once a real full-polarizability comparison against legacy
- * surfaced a large, systematic, atom-specific discrepancy that a static-
- * field-only (Tier 1) comparison could never have exposed, since this
- * term contributes nothing until induction is actually active.
+ * Because the reciprocal-space sum excludes nothing, it also contains
+ * each site's spurious self-field -M*v_i, which is cancelled by
+ * self_field_matrix_ (as in legacy FU12_ERF_At_By with identical sites).
+ * With that correction getPInv() is the exact diagonal block of A.
  *
- * This class's own damping choice for that term went through TWO
- * mistaken revisions before landing on Thole-damped, worth recording in
- * full since both were confident and both were wrong in different
- * directions:
+ * Sign convention: b = +F_perm, not b = -V as in
+ * PolarRegion::CalcInducedDipolesViaPCG. eeInteractor::V() stores the
+ * negative of the field (e = q*phi + mu.V), whereas the Ewald classes'
+ * V() stores the physical field E (energy q*phi - mu.E).
  *
- *   1. The first version used eeInteractor::FillTholeInteraction
- *      (Thole-damped) for the intramolecular tensor, copying
- *      DipoleDipoleInteraction's own convention directly -- reasonable
- *      on its face, but DipoleDipoleInteraction is aperiodic (no erfc/
- *      alpha concept at all), so "Thole-only" there isn't a considered
- *      choice about periodic intramolecular coupling specifically, it's
- *      the only mechanism that exists in an aperiodic context at all --
- *      not evidence about what a periodic class should do.
+ * The field sums include every registered segment, not only `ids`, so
+ * RawMultiply(v) contains a v-independent contribution from segments
+ * outside `ids`. multiply(v) = RawMultiply(v) - baseline_, with
+ * baseline_ = RawMultiply(0), which restores linearity (multiply(0) = 0).
+ * Segments outside `ids` thus act as a fixed, non-responding background;
+ * their influence enters only through the permanent field in b.
  *
- *   2. The second version, correcting the first, used
- *      EwaldRealSpaceInteractor::ComputeB directly, deliberately
- *      UNDAMPED by Thole -- reasoning by analogy from the PERMANENT-
- *      field case (EwaldRealSpaceInteractor::
- *      ApplyErfStaticFieldCorrection, which genuinely has no
- *      Thole factor, because legacy's own static intramolecular
- *      treatment has no real-space loop at all, only a reciprocal-space
- *      erf compensation). That analogy does not transfer: legacy's
- *      INDUCED case is structurally different. Its own FU12_ERFC_At_By
- *      -- the SAME method used for both intermolecular (PolarBackground,
- *      confirmed at its own real-space induction loop, roughly line 954)
- *      and intramolecular (confirmed at its own explicitly-labeled
- *      "Real-space, intramolecular contribution" loop, roughly line
- *      453-454) induced-induced real-space pairs -- applies Thole
- *      damping via its own l3/l5 mechanism unconditionally, with no
- *      special-casing for same-segment pairs at either call site. Static
- *      and induced genuinely differ in legacy's own code (no real-space
- *      intramolecular loop at all for statics; a real, Thole-damped one
- *      for induction) -- generalizing from one to the other, in two
- *      different directions across these two mistakes, was the actual
- *      error both times, not a single reversible sign or magnitude slip.
+ * The operator is symmetric when restricted to `ids` (see
+ * test_ewaldperiodicdipolesymmetry.cc); the intramolecular term is added
+ * as a block/block.transpose() pair to preserve this. The sign/scale
+ * convention is tested on a single polarizable site in a point-charge
+ * field (test_ewaldperiodicdipoleoperator.cc), multi-site segments in
+ * test_ewaldperiodicdipoleoperatormultisite.cc.
  *
- * A separate, related check was also worth doing directly rather than by
- * analogy: is legacy's OWN Thole damping model here (its L3()/L5(),
- * called via UpdateAllBls from FU12_ERFC_At_By) the same exponential
- * (Thole/van Duijnen-Swart) form ComputeThole already uses, or a
- * different (e.g. linear) one? An earlier investigation concluded
- * "linear" -- but that conclusion was traced from XInteractor, which
- * PolarBackground constructs and uses ONLY inside its own explicitly-
- * labeled "CUTOFF TREATMENT" branches (coulombmethod.method="cutoff",
- * not the "ewald" default this class is actually compared against).
- * Tracing EwdInteractor's own L3()/L5() directly instead -- confirmed as
- * the class PolarBackground actually uses by default, via its own
- * _ewdactor member and the "ewald" default in ewdbgpol.xml's own schema
- * -- shows L3()=1-exp(-ta1*tu3), L5()=1-(1+ta1*tu3)*exp(-ta1*tu3): the
- * SAME exponential form ComputeThole already implements, with ta1
- * traced back to the same polarmethod.aDamp/thole_a parameter. So this
- * class's own Thole model was never the mismatch; AddIntraSegmentCoupling
- * calling ComputeThole now (with the real thole_a -- see this class's
- * own constructor documentation) is a genuine fix, not a model-form
- * change.
+ * operator()(i,j) is only used by Eigen's preconditioner setup, which
+ * keeps the diagonal. Same-site entries return the getPInv() block;
+ * all other entries (including distinct sites of one segment) return
+ * 0.0, since a periodic pair tensor would require a full Ewald
+ * evaluation.
  *
- * A FOURTH, related mismatch was found in EwaldReciprocalSpaceSum: an
- * earlier version of that class excluded the target's own segment from
- * its own reciprocal-space sum entirely, modeled on EwaldRealSpaceSum's
- * own real-space exclusion. Tracing legacy's own reciprocal-space code
- * (PolarBackground::KThread::SP_SFactorCalc/FP_KFieldCalc for the
- * permanent case, SU_SFactorCalc/FU_KFieldCalc for the induced case)
- * shows it never excludes anything -- every registered site, including
- * the target's own segment, contributes to the one global structure
- * factor applied back to every site. This matters specifically because
- * of the Ewald-split identity erfc(a*r)/r + [reciprocal-space
- * contribution] = 1/r EXACTLY: if EwaldRealSpaceSum's own real-space sum
- * legitimately excludes a same-segment, zero-translation pair (which it
- * still correctly does, unchanged), the reciprocal-space contribution to
- * that SAME pair must still be included for the two Ewald halves to
- * combine into the correct total wherever they're meant to -- e.g. here,
- * where the erfc-screened intramolecular term above is only the real-
- * space HALF of the intended full-strength (Thole-damped) intramolecular
- * interaction; the other half arrives automatically once
- * EwaldReciprocalSpaceSum stops excluding anything at all (see that
- * class's own documentation for the fuller account). This is why the
- * periodic-field term's own documentation above no longer says
- * "excluding that site's own segment's zero-translation copy" the way
- * an earlier revision of this comment did -- only EwaldRealSpaceSum's
- * own real-space exclusion remains; EwaldReciprocalSpaceSum's own
- * contribution is unconditional now.
- *
- * The periodic-field term is computed by temporarily writing v into
- * registry_'s induced-dipole slots and evaluating EwaldRealSpaceSum::
- * AddFieldAt / EwaldReciprocalSpaceSum::AddFieldAtMany at every ids site;
- * confirmed symmetric for this combination when restricted to ids-only
- * coupling (see test_ewaldperiodicdipolesymmetry.cc -- written against
- * the earlier, segment-excluding version of EwaldReciprocalSpaceSum;
- * worth re-confirming this still holds now that exclusion is gone
- * entirely, though the underlying argument -- a symmetric physical
- * kernel stays symmetric whether or not a term is added to both sides of
- * a pair uniformly -- does not depend on that exclusion having existed),
- * a prerequisite for ConjugateGradient. The intramolecular term is
- * added/transposed into both sites' own result the same block/
- * block.transpose() pairing DipoleDipoleInteraction::multiply() itself
- * uses, which keeps the combined operator symmetric overall. This
- * intramolecular contribution is linear in v and vanishes at v=0, so it
- * does not affect baseline_ (see below) at all.
- *
- * The sign/scale convention relative to
- * DipoleDipoleInteraction's own established one has since been checked
- * against a physically unambiguous case -- a single polarizable site in
- * one fixed external charge's field must develop an induced dipole
- * aligned with that field -- and matches (see
- * test_ewaldperiodicdipoleoperator.cc); this does not by itself prove
- * correctness for larger, genuinely self-consistent (multi-site,
- * multi-iteration) cases, which is worth validating separately before
- * trusting this for anything real -- and is worth re-validating again
- * specifically for the genuinely-multi-site-per-segment case this
- * generalization introduces, since neither existing test exercises that
- * case at all. The intramolecular-coupling addition above is itself
- * NOT YET covered by either existing test (both use single-site
- * segments where the term is identically zero) -- validating it
- * directly, e.g. against a small system where PolarRegion's own
- * DipoleDipoleInteraction can be run for comparison, is a genuine open
- * task, not something this comment should be read as already having
- * confirmed.
- *
- * A genuine bug was caught and fixed here during that same validation:
- * AddFieldAt/AddFieldAtMany sum the field from every OTHER registered
- * segment, not just other members of ids -- so a naive multiply(v) would
- * silently include a constant contribution from any registered segment
- * outside ids (e.g. a fixed external background), independent of v. That
- * breaks the linearity ConjugateGradient requires (multiply(0) must be
- * 0). The fix: baseline_ (computed once at construction, as the same raw
- * computation evaluated at v=0) captures exactly that external leak, and
- * multiply(v) subtracts it, leaving only the genuine ids-internal
- * coupling. Segments outside ids still correctly influence the physics
- * overall -- through the permanent field baked into b before this
- * operator is ever invoked -- just not redundantly inside A itself.
- *
- * IMPORTANT, and easy to get backwards: the right-hand side b to pass to
- * ConjugateGradient::solveWithGuess is b = +V_permanent, not b = -V, even
- * though PolarRegion::CalcInducedDipolesViaPCG itself uses b = -V for the
- * (legacy-derived) DipoleDipoleInteraction operator. The two are not
- * interchangeable conventions to copy blindly: eeInteractor's own V()
- * stores the *negative* of the physical field (confirmed via its own
- * energy expression, e = q*phi + mu.V, which only matches the standard
- * U = q*phi - mu.E if V = -E), whereas EwaldRealSpaceInteractor/
- * EwaldRealSpaceSum/EwaldReciprocalSpaceSum's own V() stores the genuine,
- * un-negated physical field (confirmed via test_ewaldrealspaceinteractor
- * .cc's own explicit CalcStaticEnergy formula, q*phi - mu.E). This sign
- * mismatch was caught the hard way -- as a factor-of-exactly-(-1)
- * discrepancy in test_ewaldperiodicdipoleoperator.cc, after the
- * double-counting bug above was already fixed and could no longer
- * explain it -- rather than reasoned out from first principles, which is
- * exactly why it is worth stating this explicitly here rather than
- * trusting a future caller to rediscover it.
- *
- * operator()(i,j) is used by Eigen's preconditioner setup (via
- * InnerIterator) to extract the literal diagonal only; DiagonalPrecon-
- * ditioner never reads an off-diagonal value even though it is visited
- * during setup. DipoleDipoleInteraction's own operator()(i,j) computes
- * the real interaction tensor for every cross-site pair regardless (its
- * own comment notes this is "not a fast method"), which is tolerable
- * there because that tensor is O(1) per pair (aperiodic). Here, the
- * periodic per-pair tensor would cost a full real+reciprocal evaluation,
- * so cross-site entries return 0.0 unconditionally rather than computing
- * (and discarding) the real value -- same-site entries still return the
- * genuine getPInv() block, exactly as DipoleDipoleInteraction does, since
- * that is both cheap and the only part of operator()'s output the
- * preconditioner actually keeps. "Same-site" here means the literal same
- * PolarSite, not merely the same segment -- two different sites of the
- * same multi-site segment are cross-site entries here too (0.0), even
- * though multiply() now does couple them via the intramolecular term
- * described above: that coupling is never read by
- * DiagonalPreconditioner either (same reasoning as the periodic term),
- * so operator()'s own 0.0 for it is equally safe to leave uncomputed,
- * not an oversight relative to multiply()'s own, more complete behavior.
- *
- * getPInv() alone was NOT actually the true diagonal for a real interval
- * spanning this class's own reciprocal-space-no-exclusion change and the
- * self_field_matrix_ fix below: with the former in place but not yet the
- * latter, a site's own true diagonal was getPInv() + (that site's own
- * spurious reciprocal-space self-field contribution, see
- * self_field_matrix_'s own documentation) -- a real, if modest-looking
- * (~4% relative to getPInv() for the specific system this was first
- * noticed on), mismatch between what operator() reported and what
- * multiply() actually used, silently degrading DiagonalPreconditioner's
- * own effectiveness (observed as PCG iteration counts roughly
- * quadrupling for one real system, alongside the separate, larger
- * reciprocal-space-related slowdown from that same change). Adding
- * self_field_matrix_ back into multiply()'s own diagonal (see below)
- * cancels that same self-field term there too, restoring getPInv() as
- * the genuine true diagonal and operator()'s own reported value as
- * correct again -- not a coincidence: both fixes address the same
- * underlying leak, just in two different places it needed correcting.
- *
- * Registered segments not included in `ids` (the set this operator
- * solves for) are treated as a fixed, non-reacting external background:
- * their own sites still contribute to the periodic field seen by the
- * segments in `ids` (via the same intermolecular-only exclusion already
- * implemented in EwaldRealSpaceSum/EwaldReciprocalSpaceSum), but their
- * own induced dipoles are never themselves solved for or perturbed by
- * multiply(). This is what lets this operator solve for the induced
- * dipoles of, e.g., a growing/adaptive subset of sites without needing
- * to re-solve the whole periodic system's own dipoles at once.
- *
- * registry, real_sum, and recip_sum are all stored by reference and must
- * outlive this object; real_sum and recip_sum must have been constructed
- * against the same registry passed here.
+ * registry, real_sum, recip_sum and shape are stored by reference and
+ * must outlive this object; the sums must be built on the same registry.
  *
  * Units: bohr, Hartree atomic units throughout.
  */
@@ -303,12 +104,9 @@ class EwaldPeriodicDipoleOperator;
 
 namespace Eigen {
 namespace internal {
-// EwaldPeriodicDipoleOperator's traits must be specialized before the
-// class itself inherits from Eigen::EigenBase<EwaldPeriodicDipoleOperator>
-// below (Eigen::EigenBase's own definition instantiates
-// internal::traits<Derived> immediately) -- matching the exact ordering
-// DipoleDipoleInteraction's own header (dipoledipoleinteraction.h) uses
-// for the same reason.
+// The traits must be specialized before the class derives from
+// Eigen::EigenBase, which instantiates internal::traits of the derived
+// type immediately (same ordering as dipoledipoleinteraction.h).
 template <>
 struct traits<votca::xtp::EwaldPeriodicDipoleOperator>
     : public Eigen::internal::traits<Eigen::MatrixXd> {};
@@ -331,37 +129,17 @@ class EwaldPeriodicDipoleOperator
     IsRowMajor = false
   };
 
-  // ids: the segments this operator solves for, in the order that
-  //   defines the layout of any vector this operator is applied to (see
-  //   class documentation for the exact, variable-width layout). Every
-  //   id must be registered in registry at EwaldChargeState::Neutral.
-  // alpha_ewald: Ewald splitting parameter, shared with real_sum/
-  //   recip_sum's own construction, needed here to build a matching
-  //   erfc-screened intramolecular interactor.
-  // thole_a: the SAME Thole damping parameter real_sum's own
-  //   construction uses (polarmethod.aDamp in ewdbgpol.xml terms). This
-  //   used to be an unused placeholder here (0.39, hardcoded, since
-  //   intra_interactor_ was originally only ever used for its own public
-  //   ComputeB): AddIntraSegmentCoupling did not apply Thole damping to
-  //   the intramolecular term at all, on the -- since corrected --
-  //   assumption that legacy's own treatment was undamped there too (see
-  //   AddIntraSegmentCoupling's own documentation for the fuller
-  //   history). It now genuinely calls ComputeThole, so this parameter
-  //   is genuinely used and must be the real value, not a placeholder.
-  // shape: the SAME EwaldShapeCorrection instance EwaldBackground's own
-  //   permanent-field generation uses. This class previously had NO
-  //   shape-correction mechanism at all for the induced case -- a real,
-  //   previously-unnoticed gap, found only once EwdInteractor's own
-  //   FU12_ShapeField_At_By was traced directly (called unconditionally
-  //   inside PolarBackground's own induction-iteration loop, mirroring
-  //   FP12_ShapeField_At_By's own permanent-field treatment exactly, but
-  //   using each site's own CURRENT induced dipole rather than its
-  //   static one). EwaldShapeCorrection::TotalDipoleMoment already sums
-  //   charge + static dipole + induced dipole together (see its own
-  //   documentation), so no new shape-correction class or formula is
-  //   needed here -- only a new call site, added inside RawMultiply
-  //   itself (see there for why this is genuinely linear in v and does
-  //   not disturb baseline_'s own established v=0 subtraction pattern).
+  // ids: the segments solved for; their order defines the vector layout
+  //   (see class documentation). Every id must be registered at
+  //   EwaldChargeState::Neutral.
+  // alpha_ewald: Ewald splitting parameter, the same as used for
+  //   real_sum/recip_sum; needed for the intramolecular interactor.
+  // thole_a: Thole damping parameter, the same as used for real_sum
+  //   (polarmethod.aDamp in ewdbgpol.xml); used by
+  //   AddIntraSegmentCoupling.
+  // shape: the EwaldShapeCorrection also used for the permanent field.
+  //   Applied to the induced dipoles in every product, as legacy does
+  //   with FU12_ShapeField_At_By in each induction iteration.
   EwaldPeriodicDipoleOperator(EwaldRegistry& registry,
                               const EwaldRealSpaceSum& real_sum,
                               const EwaldReciprocalSpaceSum& recip_sum,
@@ -369,15 +147,9 @@ class EwaldPeriodicDipoleOperator
                               std::vector<Index> ids, double alpha_ewald,
                               double thole_a);
 
-  // Debug/experimental. Accumulated wall-clock spent inside RawMultiply,
-  // split by phase, across every call for the lifetime of this object.
-  // Added to attribute the per-iteration cost of the solve without a
-  // sampling profiler: the phases below are each a single loop, so a
-  // deterministic accumulator answers "where does the matvec time go"
-  // exactly, where sampling an inlined hot function tends to report
-  // little beyond "in AddFieldAt". Times are in seconds; n_calls is the
-  // number of RawMultiply invocations they are summed over (one per
-  // solver iteration, plus one for the baseline_ construction).
+  // Accumulated wall-clock time (seconds) spent in RawMultiply, split by
+  // phase, over the lifetime of this object. n_calls is the number of
+  // RawMultiply calls (one per solver iteration plus one for baseline_).
   struct RawMultiplyTimings {
     double setup = 0.0;       // dipole set + Reset over every site
     double real_space = 0.0;  // EwaldRealSpaceSum::AddFieldAt
@@ -424,37 +196,27 @@ class EwaldPeriodicDipoleOperator
                           Eigen::AliasFreeProduct>(*this, x.derived());
   }
 
-  // See class documentation: same-site entries return the real getPInv()
-  // block; cross-site entries return 0.0 unconditionally (never actually
-  // read by DiagonalPreconditioner, and expensive to compute honestly
-  // for a periodic pair).
+  // Same-site entries return the getPInv() block; cross-site entries
+  // return 0.0 (only the diagonal is used by the preconditioner).
   double operator()(Index i, Index j) const;
 
-  // The actual matrix-vector product; see class documentation for what
-  // this computes.
+  // Matrix-vector product A*v (see class documentation).
   Eigen::VectorXd multiply(const Eigen::VectorXd& v) const;
 
  private:
-  // Computes getPInv()*v + (periodic field from every OTHER registered
-  // segment, including those not in ids_) at every ids_ site. Not itself
-  // linear in v (it carries the constant leak from non-ids_ sources) --
-  // multiply() below fixes that by subtracting baseline_ = RawMultiply(0).
+  // Computes getPInv()*v minus the field at every ids_ site from all
+  // registered segments (including those not in ids_). Affine rather
+  // than linear in v; multiply() subtracts baseline_ = RawMultiply(0).
   Eigen::VectorXd RawMultiply(const Eigen::VectorXd& v) const;
 
-  // Adds the intramolecular erfc-screened, Thole-damped contribution
-  // (see class documentation for the fuller history) into result in
-  // place, for every segment in ids_ with more than one site. This term
-  // is linear in v and contributes 0 at v=0, so it is folded directly
-  // into RawMultiply's own result rather than needing any separate
-  // baseline_ handling.
+  // Adds the intramolecular Thole-damped induced-dipole field (the part
+  // not already contained in the reciprocal-space sum) to result, for
+  // every segment in ids_ with more than one site. Linear in v.
   void AddIntraSegmentCoupling(const Eigen::VectorXd& v,
                                Eigen::VectorXd& result) const;
 
-  // Global vector index i's (segment index within ids_, site index
-  // within that segment) -- the reverse of the offset table below,
-  // found by binary search (std::upper_bound) on offsets_. Used only by
-  // operator()(i,j), which is not performance-critical (see class
-  // documentation).
+  // Maps a global vector index to (segment index in ids_, site index in
+  // that segment) by binary search on offsets_. Used by operator()(i,j).
   std::pair<Index, Index> LocateSite(Index i) const;
 
   EwaldRegistry& registry_;
@@ -462,38 +224,22 @@ class EwaldPeriodicDipoleOperator
   const EwaldReciprocalSpaceSum& recip_sum_;
   const EwaldShapeCorrection& shape_;
   std::vector<Index> ids_;
-  // Used for its own public ComputeB (erfc-screened B-functions) AND
-  // ComputeThole (Thole damping factors), constructed with the REAL
-  // thole_a passed to this class's own constructor -- unlike an earlier
-  // version of this class (see AddIntraSegmentCoupling's own
-  // documentation), ComputeThole genuinely is called from this class
-  // now, so thole_a here must be the real value, not a placeholder.
+  // Provides ComputeB/ComputeErfB and ComputeThole for the
+  // intramolecular term.
   EwaldRealSpaceInteractor intra_interactor_;
-  // offsets_[n] is the global vector index (in units of a single scalar,
-  // not a 3-vector) where segment ids_[n]'s own block starts;
-  // offsets_[n+1]-offsets_[n] = 3 * (that segment's own site count).
+  // offsets_[n] is the scalar index where segment ids_[n] starts;
+  // offsets_[n+1]-offsets_[n] = 3 * (number of sites in that segment).
   // offsets_.size() == ids_.size()+1, with offsets_.back() == size_.
   std::vector<Index> offsets_;
   Index size_;
   Eigen::VectorXd baseline_;
   mutable RawMultiplyTimings timings_;
-  // The position-independent 3x3 matrix M such that a site's own trial
-  // dipole v_i produces a spurious reciprocal-space self-field -M*v_i at
-  // its own position (see EwaldReciprocalSpaceSum::SelfFieldMatrix's own
-  // documentation for the derivation). Legacy explicitly removes this
-  // same leak for the induced-dipole case (EwdInteractor::
-  // FU12_ERF_At_By, called with the SAME site passed as both arguments
-  // -- confirmed by tracing PolarBackground's own SOR iteration
-  // directly -- with its own explicit "Note the (-): This is a
-  // compensation term" comment); this class did not, until this was
-  // traced down as the explanation for a large, carbon-specific
-  // discrepancy that survived fixing the (separate) intramolecular
-  // static-static leak. Computed once here (position-independent, same
-  // for every site, depends only on the k-vector set/alpha/volume) and
-  // added back into RawMultiply's own result for every site, cancelling
-  // that site's own -M*v_i leak already present via site.V() (recip_sum_
-  // never excludes anything, self included -- see its own class
-  // documentation).
+  // 3x3 matrix M such that a dipole v_i produces a spurious
+  // reciprocal-space self-field -M*v_i at its own position (see
+  // EwaldReciprocalSpaceSum::SelfFieldMatrix). Depends only on the
+  // k-vectors, alpha and volume. RawMultiply cancels this self-field for
+  // every site, as legacy does via EwdInteractor::FU12_ERF_At_By with
+  // the same site as both arguments.
   Eigen::Matrix3d self_field_matrix_;
 };
 

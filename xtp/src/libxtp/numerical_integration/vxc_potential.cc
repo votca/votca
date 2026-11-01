@@ -786,47 +786,21 @@ std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::IntegrateFXC(
 }
 
 // ===========================================================================
-// Derivation (worked out before writing this, checked against LibXC's own
-// documented API convention rather than assumed):
+// XC gradient at fixed grid weights: basis-function (Pulay) and grid-point
+// translation terms, LDA and GGA. The grid-weight (SSW partition) term is
+// in GridWeightGradient.
 //
-// E_xc = sum_p weight_p * e_xc(rho_p)  (e_xc = rho*f_xc, energy density)
+// E_xc = sum_p weight_p * e_xc(rho_p, sigma_p)  (e_xc = rho*f_xc)
 //
-// dE_xc/dR_A |_Pulay = sum_p weight_p * v_xc(rho_p) * d(rho_p)/dR_A|_basis
+// dE_xc/dR_A = sum_p weight_p [v_rho d(rho_p)/dR_A + v_sigma d(sigma_p)/dR_A]
 //
-// where v_xc(rho) = de_xc/drho. Confirmed (not assumed) that this is
-// EXACTLY xc.df_drho as already computed by EvaluateXC: xc_lda_exc_vxc /
-// xc_gga_exc_vxc are LibXC's own named functions -- "exc" = energy per
-// particle (f_xc), "vxc" = the potential dE_xc/drho directly (LibXC
-// applies the f_xc + rho*df_xc/drho correction internally; the "vxc"
-// output already IS the full potential, matching how df_drho is already
-// used to build Vxc_here above -- no extra term needed here).
+// with v_rho = xc.df_drho, v_sigma = xc.df_dsigma (LibXC vrho/vsigma, the
+// full derivatives of e_xc).
 //
-// For an atom-centered Gaussian chi_mu(r) = phi_mu(r - R_A), the nuclear
-// derivative is EXACTLY -grad_r(chi_mu) for the atom mu is centered on,
-// and exactly zero for every other atom (since r-R_A depends negatively
-// on R_A). This means d(chi_mu)/dR_A can be read directly off
-// ao.derivatives (already computed for the GGA sigma term above), just
-// negated and restricted to basis functions centered on atom A -- no new
-// basis-function-derivative machinery is needed for this piece.
-//
-// Using the symmetry of the density matrix (same trick as the standard
-// Pulay-force derivation):
-//   d(rho_p)/dR_A|_basis = -2 * sum_{mu in A} sum_nu P_munu (grad_r
-//   chi_mu)(r_p) chi_nu(r_p)
-//                        = -sum_{mu in A} temp(mu) * (grad_r chi_mu)(r_p)
-// where temp = ao.values^T * DMAT_here (DMAT_here = 2P, already exactly
-// what IntegrateVXC computes above) -- the factor of 2 from symmetry is
-// already folded into DMAT_here, so no extra factor is needed here either.
-//
-// SCOPE (see also the STATUS note on the declaration in vxc_potential.h):
-// this captures the FULL Pulay term for LDA functionals. For GGA
-// functionals, it captures only the df_drho-driven part; the additional
-// df_dsigma-driven Pulay contribution needs second derivatives of basis
-// functions w.r.t. electron position, not implemented here. The
-// grid-weight (SSW partition) derivative term is a SEPARATE piece,
-// deliberately not included in this function.
-//
-// STATUS: written but NOT yet run/tested.
+// Basis term: for chi_mu(r) = phi_mu(r - R_A), d(chi_mu)/dR_A =
+// -grad_r chi_mu for mu on A and zero otherwise, so with
+// temp = ao.values^T * DMAT_here (DMAT_here = 2P)
+//   d(rho_p)/dR_A|_basis = -sum_{mu in A} temp(mu) (grad_r chi_mu)(r_p).
 // ===========================================================================
 template <class Grid>
 Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
@@ -858,10 +832,7 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
         continue;
       }
 
-      // Box-local AO index -> atom index, built once per box (not once per
-      // grid point), using the same getShells()/getAOranges() mapping the
-      // rest of GridBox already relies on for its own big-matrix
-      // read/write bookkeeping.
+      // box-local AO index -> atom index
       std::vector<Index> local_idx_to_atom(box.Matrixsize());
       const std::vector<const AOShell*>& shells = box.getShells();
       const std::vector<GridboxRange>& ao_ranges = box.getAOranges();
@@ -874,10 +845,7 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
 
       const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
       const std::vector<double>& weights = box.getGridWeights();
-      // Needed for the grid-point-translation term added below -- NOT
-      // needed by the basis-function/Pulay term itself, which only cares
-      // about which atom owns each AO (local_idx_to_atom above), not
-      // which atom owns each grid POINT.
+      // atom each grid point moves with, for the translation terms
       const std::vector<Index>& owner_atoms = box.getOwnerAtoms();
 
       for (Index p = 0; p < box.size(); ++p) {
@@ -896,41 +864,24 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
             EvaluateXC(rho, rho_grad.squaredNorm());
 
         // ===========================================================
-        // GGA SIGMA-DEPENDENT TERMS (added after the LDA-only version was
-        // fully validated -- see aoshell.h/aoshell.cc for the
-        // EvalAOspaceHessian this depends on, and conversation history
-        // for the derivation, independently verified numerically in
-        // Python on a toy multi-atom system to ~1e-12 before writing any
-        // of this C++). Exactly zero for LDA functionals (xc.df_dsigma is
-        // default-initialized to 0 and untouched by xc_lda_exc_vxc, which
-        // never writes to it -- confirmed directly in EvaluateXC above),
-        // so this cannot regress the already-validated LDA behavior;
-        // safe to compute unconditionally rather than branch on
-        // functional type.
+        // GGA sigma terms (need the AO Hessians, EvalAOspaceHessian).
+        // They vanish for LDA, where xc.df_dsigma stays 0.
         //
         // sigma_p = |grad_r(rho_p)|^2 = rho_grad . rho_grad
         //
-        // Gmat(mu,l) = sum_nu DMAT_mu,nu * grad_nu,l = (DMAT_here *
-        // ao.derivatives) s_vec(mu)  = sum_l Gmat(mu,l) * rho_grad_l = Gmat *
-        // rho_grad
+        // Gmat(mu,l) = sum_nu DMAT_mu,nu grad_nu,l  (DMAT_here*ao.derivatives)
+        // s_vec(mu) = sum_l Gmat(mu,l) rho_grad_l  (Gmat*rho_grad)
         //
-        // Basis-type (mu in A):
-        //   dsigma_p/dR_A|_basis = -2 * sum_{mu in A} [ grad_mu * s_vec(mu)
-        //                                                + temp_mu *
-        //                                                (Hessian_mu .
-        //                                                rho_grad) ]
+        // Basis term (mu in A):
+        //   dsigma_p/dR_A|_basis = -2 sum_{mu in A} [grad_mu s_vec(mu)
+        //                          + temp_mu (Hessian_mu . rho_grad)]
         //
-        // Translation-type (A == owner(p) only), via the density's OWN
-        // Hessian at this point:
+        // Translation term (A == owner(p) only), with the density Hessian:
         //   Hessian_rho = sum_mu temp_mu*Hessian_mu
         //                 + symmetrized(ao.derivatives^T * Gmat)
         //   dsigma_p/dR_owner|_translation = 2 * (Hessian_rho * rho_grad)
         //
-        // Both contract with v_sigma = xc.df_dsigma (LibXC's vsigma
-        // convention, analogous to df_drho/vrho -- already the full
-        // dE_xc/dsigma, no further correction needed, same reasoning
-        // already confirmed for df_drho) and the point's full weight,
-        // exactly like the rho-dependent terms above/below.
+        // Both are contracted with weight_p * v_sigma.
         Eigen::MatrixX3d Gmat = DMAT_here * ao.derivatives;  // (Matrixsize x 3)
         Eigen::VectorXd s_vec = Gmat * rho_grad;             // (Matrixsize)
 
@@ -948,61 +899,24 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
         // ===========================================================
 
         // ===========================================================
-        // NEWLY ADDED TERM: grid-point translation.
-        //
-        // A genuinely distinct THIRD contribution to the XC gradient,
-        // separate from both the basis-function/Pulay term below and the
-        // grid-weight (SSW partition) term in GridWeightGradient. Found
-        // by re-deriving the full chain rule for rho_p(r_p(R)) after the
-        // C_p fix (in GridWeightGradient) substantially improved but did
-        // not fully resolve a residual discrepancy against finite
-        // differences.
-        //
-        // Grid points are rigidly attached to their owner atom
-        // (r_p = R_owner + local_offset, local_offset fixed). Since
-        // rho_p = rho(r_p(R)), differentiating through r_p itself (not
-        // just through the basis functions' own centers, which is what
-        // the Pulay term below captures) gives an EXTRA term whenever
-        // A is this point's own owner:
-        //
-        //   d(rho_p)/dR_A |_translation = (dr_p/dR_A) . grad_r(rho_p)
-        //                               = grad_r(rho_p)   if A == owner(p)
-        //                               = 0                otherwise
-        //
-        // (dr_p/dR_owner = identity, since r_p moves rigidly with its
-        // owner; dr_p/dR_A = 0 for any other atom, since a point's
-        // position never depends on any atom besides its own owner).
-        // grad_r(rho_p) is exactly rho_grad, already computed above for
-        // the GGA sigma term -- no new integral or expensive computation
-        // needed, just one more accumulation using quantities already in
-        // hand. Contracting with v_xc = xc.df_drho (same convention
-        // established for the basis-function term below) and the
-        // point's full stored weight (this term does NOT involve any
-        // weight derivative -- weight is held fixed here, exactly like
-        // the Pulay term; only rho_p's dependence on the point's own
-        // moving position is new):
-        //
-        //   dE_xc/dR_A |_translation = sum_{p: owner(p)==A}
-        //                                  weight_p * v_xc(rho_p) *
-        //                                  grad_r(rho_p)
+        // Grid-point translation term. Points move rigidly with their
+        // owner atom, r_p = R_owner + const, so
+        //   d(rho_p)/dR_A|_translation = grad_r(rho_p) if A == owner(p),
+        //                                0 otherwise,
+        //   dE_xc/dR_A|_translation = sum_{p: owner(p)==A}
+        //                             weight_p v_rho(rho_p) grad_r(rho_p).
         Index owner_of_point = owner_atoms[p];
         grad_thread[thread_id].row(owner_of_point) +=
             (weight * xc.df_drho * rho_grad).transpose();
         // ===========================================================
 
-        // d(rho_p)/dR_A|_basis, accumulated per local AO index mu, then
-        // scattered to the correct atom via local_idx_to_atom. Looping
-        // over local indices directly (rather than trying to slice
-        // contiguous per-atom row ranges) since a single box's
-        // significant shells are not guaranteed to be grouped
-        // contiguously by atom.
+        // Basis terms, per local AO index mu, added to the atom of mu (the
+        // shells of a box are not necessarily grouped by atom).
         for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
           Index atom = local_idx_to_atom[mu];
           Eigen::Vector3d contribution = -weight * xc.df_drho * temp(mu) *
                                          ao.derivatives.row(mu).transpose();
-          // GGA sigma basis-type term, added to the same per-mu
-          // contribution (same atom, same accumulation) -- see the
-          // detailed derivation comment above.
+          // GGA sigma basis term, see above
           Eigen::Vector3d dsigma_basis_mu =
               -2.0 * (ao.derivatives.row(mu).transpose() * s_vec(mu) +
                       temp(mu) * (ao.hessians[mu] * rho_grad));
@@ -1171,23 +1085,13 @@ typename Vxc_Potential<Grid>::SpinResult Vxc_Potential<Grid>::IntegrateVXCSpin(
 }
 
 namespace {
-// Standalone re-implementation of Vxc_Grid's switching function and its
-// derivative -- NOT calling into Vxc_Grid::erf1c (private, and exposing
-// it seemed like more churn than re-stating this one small, stateless,
-// pure-math formula here). Must stay byte-for-byte consistent with
-// Vxc_Grid::erf1c (0.5*erfc(|x/(1-x^2)|*alpha), alpha=1/0.30) -- if that
-// function's constants ever change, this needs to change with it.
+// SSW switching function and its derivative, restated from the private
+// Vxc_Grid::erf1c (0.5*erfc(|x/(1-x^2)|*alpha), alpha = 1/0.30); must be kept
+// consistent with it.
 constexpr double kSSWAlpha = 1.0 / 0.30;
 constexpr double kSSWCutoff = 0.725;
 
-constexpr double kSqrtPi = 1.7724538509055160273;  // sqrt(pi), literal
-                                                   // constant rather than
-                                                   // M_PI (not standard
-                                                   // C++, not otherwise
-                                                   // used anywhere in
-                                                   // this codebase --
-                                                   // avoiding relying on
-                                                   // it being defined).
+constexpr double kSqrtPi = 1.7724538509055160273;  // M_PI is not standard
 
 double SSWValue(double mu) {
   double val = 0.5 * std::erfc(std::abs(mu / (1.0 - mu * mu)) * kSSWAlpha);
@@ -1197,9 +1101,7 @@ double SSWValue(double mu) {
   return val;
 }
 
-// d(SSWValue)/d(mu). Exact closed form, verified numerically against
-// finite differences in Python (matching to ~1e-11) before translating
-// to C++ -- see conversation history.
+// d(SSWValue)/d(mu), closed form.
 double SSWDerivative(double mu) {
   double h = std::abs(mu) / (1.0 - mu * mu);
   double sign_mu = (mu > 0.0) ? 1.0 : ((mu < 0.0) ? -1.0 : 0.0);
@@ -1257,16 +1159,11 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
 
         Index owner = owner_atoms[pidx];
         if (owner < 0) {
-          // Point predates owner-atom tracking (e.g. constructed via some
-          // other path not yet updated) -- cannot compute this term for
-          // it. Should not happen for any grid built via GridSetup after
-          // this change; flagged rather than silently skipped, since a
-          // silent skip here would quietly produce a wrong (incomplete)
-          // gradient.
+          // Owner atoms are set by GridSetup; skipping the point would give
+          // an incomplete gradient.
           throw std::runtime_error(
-              "GridWeightGradient: grid point has no owner_atom set -- was "
-              "this grid built via GridSetup after the owner-atom tracking "
-              "change?");
+              "GridWeightGradient: grid point has no owner atom set; the "
+              "grid must be built with Vxc_Grid::GridSetup.");
         }
 
         // rq(k) = distance from THIS point to atom k; needed for every
@@ -1310,10 +1207,9 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
         double wsum = p.sum();
         double w_owner = p(owner) / wsum;
 
-        // d(rq(k))/dR_A, per the case analysis verified in Python: zero
-        // unless A is this point's owner or A==k; +-unit vector otherwise
-        // (with the owner==k case being exactly zero, since the point and
-        // its own owner move together).
+        // d(rq(k))/dR_A: zero unless A is the point's owner or A == k, then
+        // +-unit vector; zero if owner == k == A (point and owner move
+        // together).
         auto d_rq_dR = [&](Index k, Index A) -> Eigen::Vector3d {
           if (A == owner && A == k) {
             return Eigen::Vector3d::Zero();
@@ -1344,18 +1240,10 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
           return (d_rq_b - d_rq_a) / Rab - (mu / Rab) * dRab;
         };
         auto dp_dR = [&](Index k, Index A) -> Eigen::Vector3d {
-          // Threshold, not exact-zero check: p(k) approaches zero
-          // SMOOTHLY as any of its factors approaches the SSW saturation
-          // boundary (sk->1 or 1-sk->0), and the log-derivative terms
-          // below (divided by sk or (1-sk)) blow up faster than p(k)
-          // itself vanishes, in that regime -- a classic 0/0 numerical
-          // instability. A state with negligible weight can't meaningfully
-          // contribute to the total either way, so treating it as exactly
-          // zero here is a defensible approximation, not just a numerical
-          // patch. Threshold value not yet tuned against real data; if
-          // this test now passes but with values that look suspiciously
-          // insensitive to h, or if a genuinely different tolerance is
-          // needed elsewhere, revisit this constant specifically.
+          // The log-derivative terms below divide by sk or (1-sk), which
+          // gives 0/0 as p(k) -> 0 near SSW saturation; points with
+          // negligible p(k) are treated as zero. The threshold is not
+          // tuned.
           constexpr double kNegligibleP = 1.e-8;
           if (p(k) < kNegligibleP) {
             return Eigen::Vector3d::Zero();
@@ -1367,9 +1255,7 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
             }
             double skv = sk_table(k, b);
             if (skv < kNegligibleP) {
-              continue;  // this factor's own contribution to p(k) is
-                         // already negligible; skip rather than divide by
-                         // a near-zero skv.
+              continue;  // avoid dividing by a near-zero skv
             }
             total += (SSWDerivative(mu_table(k, b)) / skv) * dmu_dR(k, b, A);
           }
@@ -1380,7 +1266,7 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
             double skv = sk_table(a, k);
             double one_minus_skv = 1.0 - skv;
             if (one_minus_skv < kNegligibleP) {
-              continue;  // same reasoning, for the (1-sk) denominator.
+              continue;  // same for the (1-sk) denominator
             }
             total += (-SSWDerivative(mu_table(a, k)) / one_minus_skv) *
                      dmu_dR(a, k, A);
@@ -1388,37 +1274,18 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
           return p(k) * total;
         };
 
-        // Guard against dividing by a near-zero w_owner: if w_owner is
-        // negligible, weight_p = C_p*w_owner is also negligible (C_p is a
-        // bounded quadrature weight, not something that can blow up to
-        // compensate), so this point's actual contribution to the total
-        // XC energy is negligible regardless of what C_p technically
-        // works out to -- same physical justification as the earlier
-        // p(k) threshold: a point with negligible weight can't
-        // meaningfully affect the total either way, so treating it as
-        // contributing exactly zero here is defensible, not just a
-        // numerical patch.
+        // Skip points with negligible w_owner (then weight_p = C_p*w_owner
+        // is negligible too, C_p being bounded) to avoid dividing by it.
         constexpr double kNegligibleWOwner = 1.e-8;
         if (w_owner < kNegligibleWOwner) {
           continue;
         }
 
-        // BUG FIX: weight (as stored/read from the grid) is NOT w_owner
-        // alone -- per GridSetup, weight_p = C_p * w_owner(p), where C_p
-        // is the raw radial*angular quadrature weight (position-
-        // independent -- depends only on the fixed Lebedev/Euler-Maclaurin
-        // grid design for the owning element, never on any atom's
-        // position) and w_owner is the SSW partition fraction computed
-        // above. The energy contribution from this point is
-        // weight_p*rho_p*f_xc_p = C_p*w_owner*rho_p*f_xc_p, so
-        // differentiating w_owner alone (which is all `dw` below
-        // computes) needs the missing C_p = weight/w_owner factor too --
-        // previously this was bare rho*f_xc, silently missing C_p, which
-        // is ~1 for "typical" points but swings far from 1 for points
-        // where the partition is lopsided (w_owner small), exactly
-        // matching why the resulting error's magnitude depended on which
-        // points a given density matrix happened to weight rather than
-        // ever looking pathological in any single point's own dw value.
+        // The stored weight is weight_p = C_p * w_owner(p), with C_p the
+        // geometry-independent radial*angular quadrature weight and w_owner
+        // the SSW partition weight. The energy C_p*w_owner*rho_p*f_xc_p is
+        // differentiated through w_owner only (dw below), so the prefactor
+        // needs C_p = weight/w_owner.
         double C_p = weight / w_owner;
 
         double prefactor = C_p * rho * xc.f_xc;
@@ -1458,17 +1325,12 @@ template <class Grid>
 Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradientUKS(
     const Eigen::MatrixXd& dmat_alpha, const Eigen::MatrixXd& dmat_beta,
     const AOBasis& dftbasis) const {
-  // GGA support: full derivation verified numerically in Python (toy
-  // multi-atom system, ~1e-12) before writing this -- see conversation
-  // history. Key simplification found: the sigma-dependent gradient,
-  // which naively needs THREE separate contributions (from sigma_aa,
-  // sigma_ab, sigma_bb), collapses into reusing the SAME per-spin
-  // machinery as the restricted GGA case (Gmat_s, Hessian_rho_s) twice
-  // -- once per spin channel -- by combining the three vsigma weights
-  // into two "effective" gradient vectors:
+  // UKS version of PulayGradient (LDA and GGA). The three sigma terms
+  // (sigma_aa, sigma_ab, sigma_bb) reduce to the restricted per-spin
+  // expressions (Gmat_s, Hessian_rho_s), applied once per spin with the
+  // effective gradient vectors
   //   V_a = 2*vsigma_aa*rho_a_grad + vsigma_ab*rho_b_grad
-  //   V_b = 2*vsigma_bb*rho_b_grad + vsigma_ab*rho_a_grad
-  // No LDA-only restriction needed anymore.
+  //   V_b = 2*vsigma_bb*rho_b_grad + vsigma_ab*rho_a_grad.
   Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<Eigen::MatrixXd> grad_thread(nthreads,
@@ -1531,18 +1393,15 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradientUKS(
         typename Vxc_Potential<Grid>::XC_entry_spin xc =
             EvaluateXCSpin(rho_a, rho_b, sigma_aa, sigma_ab, sigma_bb);
 
-        // Translation-type term (A == owner(p) only), LDA part -- same as
-        // before, unaffected by GGA.
+        // translation term (A == owner(p) only), rho part
         Index owner_of_point = owner_atoms[p];
         grad_thread[thread_id].row(owner_of_point) +=
             (weight * (xc.vrho_a * rho_a_grad + xc.vrho_b * rho_b_grad))
                 .transpose();
 
-        // GGA sigma terms -- both basis-type and translation-type reuse
-        // the same Gmat_s/Hessian_rho_s construction per spin channel
-        // (matching the restricted GGA case's own Gmat/Hessian_rho
-        // exactly, just built from dmat_alpha/dmat_beta separately
-        // instead of one pre-doubled DMAT_here), contracted with V_a/V_b.
+        // GGA sigma terms: basis and translation terms as in the restricted
+        // case, with Gmat_s/Hessian_rho_s per spin (from the spin density
+        // matrices instead of DMAT_here), contracted with V_a/V_b.
         Eigen::MatrixX3d Gmat_a = 2.0 * (DMa * ao.derivatives);
         Eigen::MatrixX3d Gmat_b = 2.0 * (DMb * ao.derivatives);
         Eigen::Vector3d V_a =
@@ -1610,22 +1469,11 @@ template <class Grid>
 Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradientUKS(
     const Eigen::MatrixXd& dmat_alpha, const Eigen::MatrixXd& dmat_beta,
     const QMMolecule& atoms) const {
-  // GGA support: the weight-derivative term is functional-form-agnostic
-  // (unchanged geometric dw/dR logic below) -- only needed real
-  // sigma_aa/sigma_ab/sigma_bb instead of hardcoded zeros, computed
-  // from the actual density gradients below. No LDA-only restriction
-  // needed here at all.
-  // Copy-adapted from GridWeightGradient (restricted case) -- the SSW
-  // weight-derivative logic itself (d_rq_dR, d_Rab_dR, dmu_dR, dp_dR,
-  // and the C_p/w_owner construction) is PURELY GEOMETRIC and
-  // functional-form-agnostic, unchanged from that already-validated
-  // implementation (which took many rounds of debugging to get right,
-  // including the C_p fix -- see git history). Only the PREFACTOR
-  // changes here: rho_a, rho_b computed unpaired (no 2x/0.5x factor,
-  // matching IntegrateVXCSpin's own convention exactly, since UKS spin
-  // density matrices are not pre-doubled), and xc.f_xc from
-  // EvaluateXCSpin (the spin-polarized functional value) instead of
-  // EvaluateXC.
+  // UKS version of GridWeightGradient (LDA and GGA). The SSW weight
+  // derivative (d_rq_dR, d_Rab_dR, dmu_dR, dp_dR, C_p/w_owner) is purely
+  // geometric and identical; only the prefactor differs: rho_a, rho_b
+  // from the spin density matrices (not pre-doubled, as in
+  // IntegrateVXCSpin) and f_xc from EvaluateXCSpin.
   Index natoms = atoms.size();
   Eigen::MatrixXd Rij = grid_.CalcInverseAtomDist(atoms);
 
@@ -1680,9 +1528,8 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradientUKS(
         Index owner = owner_atoms[pidx];
         if (owner < 0) {
           throw std::runtime_error(
-              "GridWeightGradientUKS: grid point has no owner_atom set -- "
-              "was this grid built via GridSetup after the owner-atom "
-              "tracking change?");
+              "GridWeightGradientUKS: grid point has no owner atom set; the "
+              "grid must be built with Vxc_Grid::GridSetup.");
         }
 
         const Eigen::Vector3d& point = points[pidx];

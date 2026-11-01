@@ -101,15 +101,10 @@ double EwaldRegion::charge() const {
 }
 
 double EwaldRegion::Etotal() const {
-  // Zero, not a throw, and deliberately so. The background's
-  // contribution to the ENERGY is genuinely not implemented -- only its
-  // field is -- but throwing here aborts the job after the induction has
-  // already converged, destroying the very dipoles the run was for.
-  //
-  // The omission is announced instead: ApplyFieldTo logs a prominent
-  // warning on first use, and AppendResult records it in the job's own
-  // output so it survives into the result file rather than living only
-  // in a log nobody re-reads.
+  // The background's energy contribution is not implemented, only its
+  // field. Return zero instead of throwing, which would abort the job after
+  // the induction has converged and lose the dipoles. ApplyFieldTo warns on
+  // first use, and AppendResult records the omission in the job output.
   return 0.0;
 }
 

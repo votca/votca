@@ -49,17 +49,10 @@ PolarSegment MakeChargeSegment(Index id, const Eigen::Vector3d& pos,
   return seg;
 }
 
-// The real test of a real-space/reciprocal-space split: the *combined*
-// field (real+reciprocal together, at a fixed pair of well-converged
-// cutoffs) must not depend on the arbitrary Ewald splitting parameter
-// alpha, since alpha is purely a computational convenience that decides
-// how much of the true 1/r interaction is pushed into real space versus
-// reciprocal space. This does not require the shape/k=0 correction (out
-// of scope for this class) to hold, since that term is itself alpha-
-// independent -- it is a genuinely strong, sign-sensitive check on its
-// own, and one that could not be performed on the real-space sum in
-// isolation (see test_ewaldrealspacesum.cc), since the real-space term
-// alone has no alpha-independent target to compare against.
+// The combined real- plus reciprocal-space field (at well-converged
+// cutoffs) must not depend on the Ewald splitting parameter alpha. The
+// shape/k=0 term is alpha-independent and not needed here. This
+// sign-sensitive check is not possible for the real-space sum alone.
 BOOST_AUTO_TEST_CASE(alpha_independence_of_combined_field) {
   Eigen::Matrix3d box = 30.0 * Eigen::Matrix3d::Identity();
 
@@ -70,16 +63,11 @@ BOOST_AUTO_TEST_CASE(alpha_independence_of_combined_field) {
 
     PolarSite target(2, "H", Eigen::Vector3d(2.5, 1.0, -0.7));
 
-    // k_max must scale with alpha, because a larger alpha means a
-    // slower-decaying Gaussian weight in k-space. Tying it to alpha as
-    // 12*alpha rather than picking one flat literal generous enough for
-    // the largest alpha keeps the truncation error FIXED across the
-    // scan -- exp(-(12*alpha)^2/(4*alpha^2)) = exp(-36) = 2.3e-16,
-    // against a 1e-4 comparison below -- which is what this test needs:
-    // an alpha-dependent truncation error would imitate the failure it
-    // is looking for. It is also far cheaper, cubically so: 98,384
-    // k-vectors at alpha = 0.5 in this 30 bohr box, against 7,123,810
-    // at the flat k_max = 25.0 this used to pass.
+    // k_max = 12*alpha keeps the truncation error fixed at
+    // exp(-(12 alpha)^2/(4 alpha^2)) = exp(-36) = 2.3e-16 for every
+    // alpha, so it cannot mimic an alpha dependence. It is also much
+    // cheaper than a fixed k_max = 25 (98,384 vs 7,123,810 k-vectors at
+    // alpha = 0.5 in this 30 bohr box).
     EwaldReciprocalSpaceSum recip(box, registry, alpha,
                                   /*k_max=*/12.0 * alpha);
     recip.AddFieldAt<Estatic::V>(target, EwaldChargeState::Neutral);
@@ -107,8 +95,8 @@ BOOST_AUTO_TEST_CASE(alpha_independence_of_combined_field) {
 // reciprocal-space field at the target must lie entirely along x (y and z
 // components must vanish), and -- same sign convention as a repulsive
 // Coulomb field from a positive source -- must point away from the
-// source charge along that axis, matching EwaldRealSpaceInteractor's own
-// (already-validated) sign convention.
+// source charge along that axis, matching the EwaldRealSpaceInteractor
+// sign convention.
 BOOST_AUTO_TEST_CASE(onaxis_symmetry_and_sign) {
   Eigen::Matrix3d box = 10.0 * Eigen::Matrix3d::Identity();
   EwaldRegistry registry;
@@ -159,29 +147,16 @@ BOOST_AUTO_TEST_CASE(add_field_at_many_handles_repeated_targets) {
   }
 }
 
-// EwaldReciprocalSpaceSum, unlike EwaldRealSpaceSum, never excludes
-// anything from its own global structure factor -- not even the
-// target's own registered segment (see this class's own class
-// documentation for why: legacy PolarBackground's own reciprocal-space
-// code, both for the permanent case (SP_SFactorCalc/FP_KFieldCalc) and
-// the induced case (SU_SFactorCalc/FU_KFieldCalc), works the same way,
-// and the Ewald-split identity erfc(a*r)/r + [reciprocal-space
-// contribution] = 1/r requires this reciprocal-space contribution to be
-// present, unconditionally, for the two halves to combine correctly
-// wherever EwaldRealSpaceSum's own real-space sum legitimately excludes
-// a pair). An earlier version of this test checked the OPPOSITE property
-// (intramolecular contribution excluded) -- correct for the code as it
-// existed then, but wrong now.
+// Unlike EwaldRealSpaceSum, EwaldReciprocalSpaceSum excludes nothing from
+// the structure factor, not even the target's own segment, as in legacy
+// PolarBackground (SP_SFactorCalc/FP_KFieldCalc and
+// SU_SFactorCalc/FU_KFieldCalc). The erf part of pairs excluded from the
+// real-space sum must be present for erfc + erf = 1 to hold.
 //
-// What this test actually checks: a target DOES feel a nonzero
-// reciprocal-space contribution from another site of its own registered
-// segment -- but not a nonzero contribution from its own literal self.
-// The self-contribution is zero by construction, not by exclusion: a
-// site's own term in the global structure factor sum is q*exp(-i*k.r)
-// (purely real when evaluated back at that same site's own position r,
-// since the phase exactly cancels), and Im[V] of a purely real quantity
-// is 0 -- so a point charge/dipole never feels a net field from itself
-// via this formula, regardless of whether anything is excluded.
+// Checks that a target feels the reciprocal-space field of another site
+// of its own segment. A point charge's own contribution to its field is
+// zero by construction: its structure-factor term evaluated at its own
+// position is real, and the field is taken from the imaginary part.
 BOOST_AUTO_TEST_CASE(intramolecular_contribution_included) {
   Eigen::Matrix3d box = 10.0 * Eigen::Matrix3d::Identity();
   EwaldRegistry registry;
@@ -208,19 +183,11 @@ BOOST_AUTO_TEST_CASE(intramolecular_contribution_included) {
   EwaldReciprocalSpaceSum recip(box, registry, 0.35, /*k_max=*/20.0);
   recip.AddFieldAt<Estatic::V>(target, EwaldChargeState::Neutral);
 
-  // Not zero: site_b now genuinely feels site_a's own contribution
-  // (opposite charges 2.0 bohr apart -- a real, sizeable field, not a
-  // rounding-level residual).
+  // Nonzero: site_b feels site_a (opposite charges 2.0 bohr apart).
   BOOST_CHECK(target.V().norm() > 1e-3);
 
-  // Cross-check against an INDEPENDENT registry containing only site_a
-  // (no site_b at all) -- the field a lone external charge would
-  // produce at the same target position, entirely unrelated to any
-  // exclusion/inclusion question about site_b's own segment membership.
-  // If intramolecular contributions are genuinely included (not merely
-  // "not exactly excluded" through some other accident), this must match
-  // the two-site registry's own result exactly, since site_b's own
-  // self-contribution is exactly zero (see class-level comment above).
+  // Cross-check against a registry containing only site_a: since site_b's
+  // self-contribution is zero, the fields must agree exactly.
   EwaldRegistry registry_external_only;
   PolarSegment seg_a_only("seg", 1);
   seg_a_only.push_back(site_a);
@@ -241,16 +208,12 @@ BOOST_AUTO_TEST_CASE(intramolecular_contribution_included) {
 // real- and reciprocal-space sums. It has no physical meaning, so the
 // TOTAL must not depend on it, even though each half changes strongly.
 //
-// This is far more sensitive than checking either half alone, and it is
-// what caught a real error while this was being written: an erf
-// correction had been subtracted from the energy by analogy with the
-// FIELD, where it is genuinely needed because the field's reciprocal
-// part sums the total structure factor. The energy's reciprocal part is
-// a CROSS term that never contains the foreground, so the correction
-// removed a foreground-foreground contribution that was never added.
-// Being erf-weighted, the spurious term is alpha-dependent, so it broke
-// this invariant immediately while leaving each half individually
-// plausible.
+// This is far more sensitive than checking either half alone. For
+// example, subtracting an erf correction from the energy by analogy with
+// the field (where the reciprocal part contains the total structure
+// factor) would remove a foreground-foreground term that the energy's
+// reciprocal cross term never contains; being erf-weighted, that error
+// is alpha-dependent and fails here.
 BOOST_AUTO_TEST_CASE(static_energy_is_independent_of_the_splitting) {
   const double L = 20.0;
   const double thole = 0.39;
@@ -318,14 +281,12 @@ BOOST_AUTO_TEST_CASE(static_energy_is_independent_of_the_splitting) {
       e_real += real_sum.CalcStaticEnergyAt(probe, EwaldChargeState::Neutral);
       fg_sites.push_back({&site, site.getPos()});
     }
-    // NOTHING is held out of S_bg (this revision). The foreground
-    // segment's COINCIDENT copy is what real space suppresses, and it is
-    // removed from the reciprocal side by subtracting its erf energy --
-    // its other periodic images are ordinary background molecules and
-    // belong in both sums. Holding the segment out of S_bg instead
-    // removed those images from the reciprocal side while real space
-    // kept them, which is exactly the alpha-dependence this case
-    // measures. See EwaldRegion's step (5).
+    // Nothing is held out of S_bg. Real space suppresses the foreground
+    // segment's COINCIDENT copy, which is removed from the reciprocal
+    // side by subtracting its erf energy; its other periodic images are
+    // ordinary background and belong in both sums. Holding the segment
+    // out of S_bg would remove those images from the reciprocal side only
+    // and make the total alpha-dependent. See EwaldRegion's step (5).
     const std::vector<const PolarSite*> no_exclusions;
     const double e_recip = recip_sum.CalcStaticEnergyBetween(
         fg_sites, no_exclusions, EwaldChargeState::Neutral);
@@ -409,15 +370,14 @@ EwaldRegistry BuildInducedTestRegistry(double L) {
 // So the invariant is tested with damping switched OFF, which is what a
 // very large thole_a does: ComputeThole leaves l3 = l5 = 1 whenever
 // au3 >= 40. That makes the decomposition exact, and the test then
-// genuinely checks the real/reciprocal split rather than the damping
+// checks the real/reciprocal split rather than the damping
 // model. A second case below measures how large the damped
 // alpha-dependence actually is, so the approximation is quantified
 // rather than assumed small.
 BOOST_AUTO_TEST_CASE(induced_source_energy_is_independent_of_the_splitting) {
   const double L = 20.0;
   const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
-  // Large enough that au3 >= 40 for every pair that matters, i.e. no
-  // damping anywhere -- see this test's own comment above.
+  // Large enough that au3 >= 40 for every relevant pair (no damping).
   const double thole_undamped = 1e6;
 
   EwaldRegistry registry = BuildInducedTestRegistry(L);
@@ -487,19 +447,15 @@ BOOST_AUTO_TEST_CASE(induced_source_energy_is_independent_of_the_splitting) {
 // The real-space half of the induced-source term is damped and the
 // reciprocal half is not (legacy has the same asymmetry:
 // FU12_ERFC_At_By damps, FU12_ERF_At_By does not), so in principle the
-// split is only approximately alpha-independent. In practice, at
-// realistic damping it is not approximate at all -- damping is active
-// only at sub-molecular separations, and the real-space sum already
-// excludes same-segment pairs, so every pair that reaches this term is
-// undamped. Measured on this fixture: thole_a = 0.39 gives the same
-// energy as thole_a = 1e6 to nine digits, with an alpha drift of 7e-10
-// against 1.6e-14 for the strictly undamped case.
+// split is only approximately alpha-independent. At realistic damping
+// the difference is negligible: damping acts only at sub-molecular
+// separations, and the real-space sum excludes same-segment pairs. Measured on
+// this fixture: thole_a = 0.39 gives the same energy as thole_a = 1e6 to nine
+// digits, with an alpha drift of 7e-10 against 1.6e-14 for the strictly
+// undamped case.
 //
-// So the first case below records that the caveat costs nothing at
-// realistic parameters -- and the second makes sure damping is
-// nevertheless WIRED IN, by turning it up until it bites. Without that
-// second case, code that silently never applied damping would pass
-// every other test in this file.
+// The first case below checks this; the second checks that damping is
+// applied at all, by making it strong enough to matter.
 BOOST_AUTO_TEST_CASE(damping_is_inactive_at_intermolecular_range) {
   const double L = 20.0;
   const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
@@ -563,9 +519,8 @@ BOOST_AUTO_TEST_CASE(damping_is_inactive_at_intermolecular_range) {
   BOOST_CHECK_SMALL(std::abs(hi - lo) / std::abs(lo), 1e-8);
 }
 
-// Turn the damping up until it bites, to prove it is actually applied.
-// At thole_a = 0.01 on this fixture the term changes sign, so this
-// cannot pass on code that ignores damping entirely.
+// Strong damping must change the term: at thole_a = 0.01 it changes
+// sign on this fixture.
 BOOST_AUTO_TEST_CASE(damping_is_applied_when_it_is_active) {
   const double L = 20.0;
   const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
@@ -636,12 +591,10 @@ EwaldRegistry BuildNeutralLattice(double L) {
   return registry;
 }
 
-// The invariant the rest of this suite misses: a foreground that is BOTH
-// charged and multi-segment. Charge alone passes (n_fg = 1 below is
-// exact), multiple segments alone passes; together they caught a version
-// that held the whole foreground out of S_bg and so deleted its periodic
-// images -- a lattice of vacancies rather than one carved-out cavity,
-// worth 1e-3 eV of alpha-dependence on a production job.
+// A foreground that is both charged and multi-segment. Only this
+// combination detects holding the whole foreground out of S_bg, which
+// deletes its periodic images (a lattice of vacancies instead of one
+// cavity; 1e-3 eV alpha-dependence on a production job).
 BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
   const double L = 20.0;
   const double thole = 0.39;
@@ -686,10 +639,9 @@ BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
 
     double reference = 0.0;
     bool have_reference = false;
-    // Reaches down to 0.12 deliberately: at alpha >= 0.25 in this box the
-    // erfc-screened share of a segment's own-image interaction is already
-    // negligible, so a scan starting there cannot see the real-space half
-    // of the split at all.
+    // Down to alpha = 0.12: for alpha >= 0.25 in this box the
+    // erfc-screened part of a segment's own-image interaction is
+    // negligible, and the real-space half would not be tested.
     for (double alpha : {0.12, 0.20, 0.30}) {
       const double k_max = 14.0 * alpha;
       EwaldRealSpaceSum real_sum(box, registry, alpha, thole, 6.0 / alpha,
@@ -739,10 +691,9 @@ BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
         have_reference = true;
         BOOST_REQUIRE_GT(std::abs(total), 1e-12);
       } else {
-        // 1e-5 rather than the 1e-8 the single-segment cases reach. The
-        // residual shrinks ~30x per alpha step, so it is truncation, not
-        // a missing term -- but it has never been explained, and the
-        // loose tolerance records that rather than hiding it.
+        // 1e-5 rather than 1e-8 as in the single-segment cases. The
+        // residual shrinks ~30x per alpha step, indicating truncation
+        // rather than a missing term; its origin is not understood.
         BOOST_CHECK_SMALL(std::abs(total - reference) / std::abs(reference),
                           1e-5);
       }
@@ -753,37 +704,30 @@ BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
 // ORACLE FOR EwaldRegion::PotentialAt.
 //
 // The potential at a point is what a UNIT TEST CHARGE placed there would
-// report as its own energy: with q = 1 and mu = 0, every energy routine
-// in this machinery reduces to q*phi - mu.E = phi. That is not a
-// convenience -- it is what pins phi's gauge. phi carries an arbitrary
-// additive constant (the k = 0 term is omitted, i.e. the uniform
-// neutralising background), and a charged region embedded in it shifts
-// by q * phi_0. Defining phi through the same expressions the energy
-// already uses fixes that constant to the one every validated number in
-// this code was computed with, instead of leaving it to be rediscovered
-// as an unexplained offset once a QM density is sitting in the hole.
+// report as its energy: with q = 1 and mu = 0, q*phi - mu.E = phi. This
+// fixes the gauge of phi, which carries an arbitrary additive constant
+// (the k = 0 term, i.e. the uniform neutralising background, is
+// omitted) that shifts a charged region by q * phi_0. Defining phi
+// through the energy expressions gives it the same constant as all
+// energies computed here.
 //
 // So this case asserts the round trip: phi and E sampled at each
 // foreground site with a unit probe, recombined as sum_i [q_i phi_i -
 // mu_i . E_i], must reproduce the energy assembled directly from those
-// sites. Two different entry points into the same sums; agreement to
-// round-off or one of them is wrong.
+// sites, to round-off.
 //
-// PROBES MUST HAVE DISTINCT, STABLE ADDRESSES. EwaldRealSpaceSum keys
-// its neighbour cache on the target's address and writes an entry on
-// first use, so a probe built on the stack inside a loop -- reusing one
-// address for a succession of different positions -- gets the first
-// point's neighbour list for every later point, silently. Held in
-// unique_ptrs here for exactly that reason; the same constraint is why
-// PotentialAt cannot be implemented by walking a DFT grid with a probe.
+// Probes must have distinct, stable addresses: EwaldRealSpaceSum keys
+// its neighbour cache on the target address, so a probe reused at
+// different positions would get the first point's neighbour list. Hence
+// the unique_ptrs (and PotentialAt does not use probes).
 BOOST_AUTO_TEST_CASE(unit_probe_potential_reproduces_the_static_energy) {
   const double L = 20.0;
   const double thole = 0.39;
   const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
 
   // The lattice of static_energy_is_independent_of_the_splitting, but
-  // with dipoles at the magnitude a real rank-1 .mps carries, so the
-  // dipole half of phi is actually exercised.
+  // with dipoles of the magnitude of a rank-1 .mps, so that the dipole
+  // part of phi is exercised.
   EwaldRegistry registry;
   const Index n = 3;
   const double d = L / double(n);
@@ -825,8 +769,8 @@ BOOST_AUTO_TEST_CASE(unit_probe_potential_reproduces_the_static_energy) {
   const std::vector<std::pair<Index, Eigen::Vector3d>> foreground{
       {fg_id, fg_pos}};
 
-  // Well away from the foreground segment, where phi has no business
-  // depending on the splitting either.
+  // Away from the foreground segment; phi must not depend on alpha here
+  // either.
   const Eigen::Vector3d far_point(0.5 * d, 0.37 * d, 0.71 * d);
   double phi_far_reference = 0.0;
   bool have_far = false;
@@ -869,11 +813,9 @@ BOOST_AUTO_TEST_CASE(unit_probe_potential_reproduces_the_static_energy) {
 
     // ---- oracle: phi and E sampled with unit probes.
     //
-    // The segment id handed to AddFieldAt is a FOREGROUND one on purpose.
-    // It only decides whether the zero-translation self-pair is skipped,
-    // and that skip is disabled for sources that have a foreground copy
-    // -- which is the behaviour a point that is not a site of its own
-    // wants, and what makes this reproduce the reference.
+    // A FOREGROUND segment id is passed to AddFieldAt on purpose: it only
+    // controls the zero-translation self-skip, which is disabled for
+    // sources with a foreground copy, as needed for a free point.
     std::vector<std::unique_ptr<PolarSite>> unit_probes;
     unit_probes.reserve(std::size_t(n_sites) + 1);
     auto sample = [&](const Eigen::Vector3d& point, Eigen::Vector3d& field) {
@@ -932,18 +874,14 @@ BOOST_AUTO_TEST_CASE(unit_probe_potential_reproduces_the_static_energy) {
   }
 }
 
-// The batched potential must agree, point for point, with what a unit
-// test charge reports -- the oracle the case above pinned to the energy
-// convention. Same numbers by two routes: one rebuilding S(k) per point,
-// one paying for it once.
+// The batched potential must agree point by point with a unit test
+// charge (the oracle of the case above): S(k) rebuilt per point versus
+// computed once.
 //
-// AGAINST THE SUM OF BOTH CHANNELS. TotalStructureFactors builds its
-// moments from getStaticDipole() + getInducedDipole(), so PotentialAtMany
-// is the counterpart of AddFieldAtMany and already carries the permanent
-// and induced backgrounds together. Comparing it against
-// CalcStaticEnergyBetween alone is wrong by the induced term, and the
-// lattice below is built so that error would be tens of percent rather
-// than something a loose tolerance could absorb.
+// Compared against the sum of both channels: TotalStructureFactors uses
+// getStaticDipole() + getInducedDipole(), so PotentialAtMany contains
+// the permanent and induced backgrounds. The lattice is chosen so that
+// omitting the induced term would be a tens-of-percent error.
 BOOST_AUTO_TEST_CASE(batched_potential_matches_the_unit_probe) {
   const double L = 20.0;
   const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
@@ -1013,8 +951,7 @@ BOOST_AUTO_TEST_CASE(batched_potential_matches_the_unit_probe) {
         one, no_exclusions, EwaldChargeState::Neutral);
     const double oracle = oracle_static + oracle_induced;
 
-    // Not vacuous, and the induced half must be big enough that leaving
-    // it out would fail this case rather than slip under the tolerance.
+    // The induced part must be large enough that omitting it would fail.
     BOOST_REQUIRE_GT(std::abs(oracle), 1e-12);
     BOOST_REQUIRE_GT(std::abs(oracle_induced / oracle), 1e-6);
 

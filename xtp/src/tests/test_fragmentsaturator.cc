@@ -40,10 +40,8 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(fragmentsaturator_test)
 
 BOOST_AUTO_TEST_CASE(saturate_single_external_bond_test) {
-  // Simple, direct, hand-verifiable geometry -- deliberately NOT
-  // reusing test_segmentmapper.cc's own, more complex, mapping-file-
-  // based setup at all, since FragmentSaturator operates directly on
-  // an already-mapped QMMolecule and needs none of that machinery.
+  // Hand-checkable geometry; FragmentSaturator works on an already
+  // mapped QMMolecule, so no mapping files are needed.
   QMMolecule mol("Test", 0);
   QMAtom atom0(0, "C", Eigen::Vector3d::Zero());
   atom0.setExternalBondDirection(Eigen::Vector3d::UnitX());
@@ -58,15 +56,13 @@ BOOST_AUTO_TEST_CASE(saturate_single_external_bond_test) {
       FragmentSaturator::SaturateExternalBonds(mol, bond_length_angstrom);
   const QMMolecule& result = saturation_result.mol;
 
-  // mol itself, the original input, must remain entirely unchanged --
-  // SaturateExternalBonds must never modify its own input at all.
+  // The input is not modified.
   BOOST_CHECK_EQUAL(mol.size(), 3);
 
   // Exactly one new atom appended (only atom0 has an external bond).
   BOOST_CHECK_EQUAL(result.size(), 4);
 
-  // The three original atoms are copied unchanged, at their own,
-  // original indices.
+  // Original atoms are copied unchanged, at their original indices.
   BOOST_CHECK_EQUAL(result[0].getElement(), "C");
   BOOST_CHECK_EQUAL(result[0].getId(), 0);
   BOOST_CHECK_EQUAL(result[0].getPos().isApprox(Eigen::Vector3d::Zero()), true);
@@ -81,10 +77,8 @@ BOOST_AUTO_TEST_CASE(saturate_single_external_bond_test) {
   BOOST_CHECK_EQUAL(result[2].getPos().isApprox(-Eigen::Vector3d::UnitX()),
                     true);
 
-  // The new H atom itself: appended strictly after all original
-  // atoms (index 3), placed along atom0's own, already-normalized
-  // external-bond direction (+X), at the given bond length, converted
-  // to Bohr the same way SaturateExternalBonds itself does.
+  // New H appended at index 3, at the bond length (in Bohr) along the
+  // external-bond direction +X of atom0.
   BOOST_CHECK_EQUAL(result[3].getElement(), "H");
   BOOST_CHECK_EQUAL(result[3].getId(), 3);
   Eigen::Vector3d expected_new_pos =
@@ -98,18 +92,12 @@ BOOST_AUTO_TEST_CASE(saturate_single_external_bond_test) {
     std::cout << expected_new_pos << std::endl;
   }
 
-  // Real, direct, new coverage for a real, direct bug fix: the new H
-  // atom's own bonded_partner_ids_ must record its own real parent
-  // (atom0), and atom0's own copy within result must, symmetrically,
-  // record the new H as one of its own real partners too -- both
-  // needed for RelaxNewAtoms's own OpenBabel-based connectivity to
-  // actually know these two atoms are bonded at all.
+  // The new bond is recorded on both atoms, as required for the
+  // OpenBabel connectivity in RelaxNewAtoms.
   BOOST_CHECK_EQUAL(result[3].getBondedPartnerIds()[0], 0);
   BOOST_CHECK_EQUAL(result[0].getBondedPartnerIds()[0], 3);
 
-  // new_atom_parent_ids: -1 for every original atom (0-2), and atom0's
-  // own id (0) -- the atom the new H is saturating -- for the new H
-  // itself (index 3).
+  // new_atom_parent_ids: -1 for original atoms, parent id 0 for the H.
   BOOST_CHECK_EQUAL(saturation_result.new_atom_parent_ids.size(), 4);
   BOOST_CHECK_EQUAL(saturation_result.new_atom_parent_ids[0], -1);
   BOOST_CHECK_EQUAL(saturation_result.new_atom_parent_ids[1], -1);
@@ -118,9 +106,7 @@ BOOST_AUTO_TEST_CASE(saturate_single_external_bond_test) {
 }
 
 BOOST_AUTO_TEST_CASE(saturate_no_external_bonds_test) {
-  // Direct, simple sanity check: if no atom has an external bond at
-  // all, the result must be identical to the input (in size -- no new
-  // atoms appended at all).
+  // Without external bonds no atoms are added.
   QMMolecule mol("Test", 0);
   QMAtom atom0(0, "C", Eigen::Vector3d::Zero());
   QMAtom atom1(1, "H", Eigen::Vector3d::UnitX());
@@ -134,24 +120,13 @@ BOOST_AUTO_TEST_CASE(saturate_no_external_bonds_test) {
 }
 
 BOOST_AUTO_TEST_CASE(relax_new_atom_test) {
-  // Sanity-check style test, deliberately not an exact-value one --
-  // unlike this file's own earlier tests, the actual, real MMFF94-
-  // relaxed position cannot be hand-predicted or independently
-  // reproduced here at all (no local OpenBabel available to check
-  // against, the way earlier tests in this session could reproduce
-  // xtp's own math directly in Python). Checks the real, physically
-  // meaningful properties instead: does relaxation actually move a
-  // deliberately bad starting position toward something chemically
-  // reasonable, while leaving the fixed, original atoms alone.
+  // The MMFF94 result is not checked against exact values, only for
+  // physically reasonable behavior: the fixed atoms stay in place and a
+  // bad H position is corrected.
   //
-  // Reuses the same known, tetrahedral methane geometry used
-  // elsewhere this session (test_segmentmapper.cc's own
-  // DataFiles/segmentmapper/molecule.xyz) -- C at the origin, three
-  // real H's at their own, real tetrahedral positions -- but the
-  // fourth H is deliberately placed at HALF its own, real distance
-  // from the carbon (~0.545 Angstrom instead of the real ~1.09), a
-  // clearly, deliberately too-short, chemically wrong starting bond
-  // length -- exactly the kind of case relaxation is meant to fix.
+  // Methane geometry as in DataFiles/segmentmapper/molecule.xyz, with
+  // the fourth H at half the C-H bond length (0.545 instead of about
+  // 1.09 Angstrom).
   double ang2bohr = tools::conv::ang2bohr;
   Eigen::Vector3d c_pos = Eigen::Vector3d::Zero();
   Eigen::Vector3d h1_pos = Eigen::Vector3d(0.629, 0.629, 0.629) * ang2bohr;
@@ -169,9 +144,8 @@ BOOST_AUTO_TEST_CASE(relax_new_atom_test) {
   QMAtom h3(3, "H", h3_pos);
   QMAtom h4(4, "H", h4_bad_pos);
 
-  // Real, known connectivity: C bonded to all four H's (both
-  // directions, matching Md2QmEngine::map()'s own, established,
-  // symmetric convention).
+  // C bonded to all four H, stored on both atoms as in
+  // Md2QmEngine::map().
   c_atom.AddBondedPartner(1);
   c_atom.AddBondedPartner(2);
   c_atom.AddBondedPartner(3);
@@ -192,31 +166,20 @@ BOOST_AUTO_TEST_CASE(relax_new_atom_test) {
 
   BOOST_CHECK_EQUAL(result.size(), 5);
 
-  // The four originally-fixed atoms come back essentially unchanged
-  // -- a real force-field minimizer may move a "fixed" atom by a
-  // tiny, real numerical amount depending on its own internal
-  // implementation, so this uses a loose, direct, absolute-distance
-  // check (0.01 Angstrom) rather than exact equality. Deliberately
-  // NOT Eigen's own isApprox() here -- that uses a RELATIVE
-  // tolerance (|a-b| <= tol*min(|a|,|b|)), which breaks down against
-  // c_pos specifically, exactly Zero() -- a relative tolerance
-  // against a zero vector effectively demands exact equality, not
-  // the loose check actually intended here.
+  // Fixed atoms may move slightly in the minimizer; check an absolute
+  // distance of 0.01 Angstrom. Eigen's isApprox() is relative and would
+  // require exact equality for c_pos = 0.
   double loose_tol_bohr = 0.01 * ang2bohr;
   BOOST_CHECK_LT((result[0].getPos() - c_pos).norm(), loose_tol_bohr);
   BOOST_CHECK_LT((result[1].getPos() - h1_pos).norm(), loose_tol_bohr);
   BOOST_CHECK_LT((result[2].getPos() - h2_pos).norm(), loose_tol_bohr);
   BOOST_CHECK_LT((result[3].getPos() - h3_pos).norm(), loose_tol_bohr);
 
-  // The new H (atom 4) actually moved from its own, deliberately bad
-  // starting position.
+  // The new H moved away from its starting position.
   double moved_distance_bohr = (result[4].getPos() - h4_bad_pos).norm();
   BOOST_CHECK_GT(moved_distance_bohr, 0.05 * ang2bohr);
 
-  // The resulting C-H bond length for the relaxed atom is now in a
-  // chemically reasonable range -- not pinned to a single, exact
-  // expected value at all, given no independent way to reproduce
-  // OpenBabel's own, real MMFF94 result here.
+  // Relaxed C-H bond length in a chemically reasonable range.
   double relaxed_bond_length_angstrom =
       (result[4].getPos() - result[0].getPos()).norm() / ang2bohr;
   BOOST_CHECK_GT(relaxed_bond_length_angstrom, 0.9);
@@ -228,16 +191,10 @@ BOOST_AUTO_TEST_CASE(relax_new_atom_test) {
   }
 }
 
-// Direct, temporary diagnostic test -- NOT part of the normal test
-// suite at all (disabled by default: run explicitly via
-// --run_test=fragmentsaturator_test/relax_new_atom_timing_breakdown_test).
-// Added directly in response to a real, observed, surprising ~42s
-// runtime for relax_new_atom_test above, on the user's own real
-// machine -- re-implements RelaxNewAtoms's own steps here, separately,
-// each directly timed, since I have no way to run a real profiler on
-// the user's own machine myself. Uses the exact same geometry/setup
-// as relax_new_atom_test above, so the timings here are directly
-// comparable to that real, already-observed 42s figure.
+// Diagnostic timing test, disabled by default; run with
+// --run_test=fragmentsaturator_test/relax_new_atom_timing_breakdown_test.
+// Times the individual steps of RelaxNewAtoms for the setup of
+// relax_new_atom_test (which once took about 42 s on some machines).
 BOOST_AUTO_TEST_CASE(relax_new_atom_timing_breakdown_test,
                      *boost::unit_test::disabled()) {
   double ang2bohr = tools::conv::ang2bohr;
@@ -329,16 +286,9 @@ BOOST_AUTO_TEST_CASE(relax_new_atom_timing_breakdown_test,
             << " ms (ok=" << constrained_setup_ok << ")" << std::endl;
   BOOST_REQUIRE(constrained_setup_ok);
 
-  // Step 5: ConjugateGradients (the same n_steps=500 default
-  // RelaxNewAtoms itself uses). Real, direct note: RelaxNewAtoms's
-  // own real production code no longer calls this single-shot
-  // ConjugateGradients() directly at all (replaced with a manual,
-  // early-stopping convergence loop, in direct response to a real,
-  // confirmed cross-platform coupling discrepancy this session) -- so
-  // this specific step no longer exactly mirrors production. Left
-  // as-is deliberately: this is still a genuinely useful worst-case
-  // timing baseline (the full 500 steps, with no early stopping at
-  // all), which is exactly what this diagnostic test is for.
+  // Step 5: ConjugateGradients with the default n_steps = 500.
+  // RelaxNewAtoms stops early on convergence instead, so this is the
+  // worst-case timing.
   pFF->ConjugateGradients(500);
   auto t5 = clock::now();
   std::cout << "[timing] ConjugateGradients(500): " << ms(t5 - t4) << " ms"

@@ -17,40 +17,18 @@
  *
  */
 
-// Real, direct, standalone check, worked through directly with the
-// user: the second half of splitting ipodcoupling's own run-stage
-// test into two, real, separate, much cheaper pieces, in direct
-// response to the real, confirmed real cross-platform OpenBabel-
-// version numerical noise this same session already worked through
-// directly (see check_ipodcoupling_coupling_output.cc's own header
-// comment for that full, real reasoning), combined with a real,
-// direct debug-build timeout on the previous, real, single
-// combined DFT+PODCoupling test.
+// Checks the H-saturated, OpenBabel-relaxed supermolecule geometry that
+// the ipodcoupling "input" task writes to temp.inp. The test uses the
+// ORCA package settings (ipodcoupling_orca_input.xml), since
+// Orca::WriteInputFile writes a plain-text input file without running
+// ORCA (XTPDFT keeps its input in memory). Together with
+// check_ipodcoupling_coupling_output.cc (which starts from stored
+// orbitals) this replaces a single, slow DFT+PODCoupling test.
 //
-// Checks the geometry written into temp.inp by IPodCoupling's own
-// "input"-only task, using a real, direct, orca-flavored reference
-// ipodcoupling.xml (ipodcoupling_orca_input.xml, distinct from this
-// same test suite's own xtp-flavored ipodcoupling.xml): confirmed
-// directly, by reading it, that Orca::WriteInputFile itself --
-// unlike XTPDFT::WriteInputFile, which is entirely in-memory --
-// genuinely writes a real, direct, plain text temp.inp file
-// (Orca::WriteCoordinates), containing the H-saturated,
-// OpenBabel-relaxed supermolecule geometry, without ever genuinely
-// running any real DFT calculation, or requiring a real ORCA
-// installation, at all.
-//
-// This geometry itself still genuinely reflects the same real,
-// platform-dependent OpenBabel-version noise as before (this
-// "input"-only task still genuinely runs RelaxNewAtoms, same as
-// every other task combination) -- so, unlike
-// check_ipodcoupling_coupling_output.cc's own j-value check, this
-// uses a real, direct, fatal (BOOST_CHECK, not merely
-// BOOST_WARN_MESSAGE) small-tolerance comparison instead: worked
-// through directly with the user, checking the geometry itself,
-// directly, is genuinely less volatile than checking the final
-// coupling values (which amplify small geometry differences through
-// a real, additional, downstream DFT calculation on top) -- so a
-// real, direct, fatal check here is both achievable and worthwhile.
+// The geometry depends on the OpenBabel version (RelaxNewAtoms), but far
+// less than couplings computed from it, which amplify geometry
+// differences through the DFT calculation, so it can be checked with a
+// small tolerance.
 
 #define BOOST_TEST_MAIN
 
@@ -71,15 +49,9 @@ struct Atom {
   double x, y, z;
 };
 
-// Real, direct, minimal parser for Orca::WriteCoordinates's own real,
-// actual output format (confirmed directly, by reading it, before
-// writing this parser): a "* xyz <charge> <spin>" header line,
-// followed by one real "<element> <x> <y> <z>" line per real atom (in
-// Angstrom), terminated by a real "* " line. Deliberately tolerant of
-// exact whitespace/column width (Orca::WriteCoordinates itself uses
-// std::setw for fixed-width columns, which this parser does not try
-// to replicate exactly at all) -- only the real, actual element and
-// numeric values themselves are checked.
+// Minimal parser for the Orca::WriteCoordinates format: a header line
+// "* xyz charge spin", one line "element x y z" per atom (Angstrom), and
+// a terminating "*" line. Whitespace and column widths are ignored.
 std::vector<Atom> ParseOrcaInputGeometry(const std::string &filename) {
   std::ifstream ifs(filename);
   if (!ifs.is_open()) {
@@ -96,8 +68,7 @@ std::vector<Atom> ParseOrcaInputGeometry(const std::string &filename) {
       }
       continue;
     }
-    // Real, direct end-of-geometry marker (Orca::WriteCoordinates's
-    // own "* " terminator line).
+    // End of the geometry block.
     std::string trimmed = line;
     trimmed.erase(0, trimmed.find_first_not_of(" \t"));
     if (!trimmed.empty() && trimmed[0] == '*') {
@@ -121,26 +92,14 @@ BOOST_AUTO_TEST_SUITE(check_ipodcoupling_input_geometry_test)
 
 BOOST_AUTO_TEST_CASE(check_temp_inp_geometry_agrees_with_reference) {
 
-  // Real, direct paths -- both known at real CMake configure time
-  // already (REFPATH/RUNPATH, xtp/src/tests/CMakeLists.txt's own real
-  // ipodcoupling input stage), compiled in directly here rather than
-  // parsed from real command-line arguments at all, for the same,
-  // already-established real reason as
-  // check_ipodcoupling_coupling_output.cc (real command-line
-  // arguments here would otherwise conflict with
-  // Boost::unit_test_framework's own real argument parsing).
+  // Paths are set at configure time (xtp/src/tests/CMakeLists.txt), since
+  // command-line arguments would conflict with Boost.Test's argument
+  // parsing.
   std::string actual_file = IPODCOUPLING_INPUT_TEMP_INP_FILE;
   std::string reference_file = IPODCOUPLING_INPUT_TEMP_INP_REFERENCE_FILE;
 
-  // Real, direct, small tolerance, worked through directly with the
-  // user: sized deliberately looser than the real, actual,
-  // cross-platform geometry displacement this same session already
-  // directly measured (up to ~35 mA, between a real macOS/Homebrew
-  // OpenBabel 3.2.0 run and a real Ubuntu/apt OpenBabel 3.1.1 run,
-  // confirmed directly this same session) -- but still a real, direct
-  // fatal check (BOOST_CHECK, not merely a warning), since checking
-  // the geometry itself, directly, is genuinely less volatile than
-  // checking the final, downstream coupling values.
+  // Above the observed cross-platform displacement of up to about
+  // 0.035 Angstrom (OpenBabel 3.2.0 on macOS vs. 3.1.1 on Ubuntu).
   double tolerance_angstrom = 0.05;
 
   std::vector<Atom> actual_atoms = ParseOrcaInputGeometry(actual_file);
@@ -149,32 +108,27 @@ BOOST_AUTO_TEST_CASE(check_temp_inp_geometry_agrees_with_reference) {
   BOOST_REQUIRE_MESSAGE(!reference_atoms.empty(),
                         "Reference file '"
                             << reference_file
-                            << "' contains no real, parseable geometry at "
-                               "all -- cannot check against it.");
+                            << "' contains no parseable geometry.");
   BOOST_REQUIRE_MESSAGE(
       !actual_atoms.empty(),
-      "Real, actual file '"
-          << actual_file
-          << "' contains no real, parseable geometry at all -- "
-             "IPodCoupling's own \"input\" task itself never actually "
-             "wrote temp.inp, or genuinely crashed before doing so.");
+      "File '" << actual_file
+               << "' contains no parseable geometry; the ipodcoupling "
+                  "\"input\" task did not write temp.inp.");
 
   BOOST_REQUIRE_MESSAGE(actual_atoms.size() == reference_atoms.size(),
-                        "Real, actual atom count ("
-                            << actual_atoms.size()
-                            << ") does not match the reference atom "
-                               "count ("
-                            << reference_atoms.size() << ") at all.");
+                        "Atom count (" << actual_atoms.size()
+                                       << ") does not match the reference atom "
+                                          "count ("
+                                       << reference_atoms.size() << ").");
 
   for (std::size_t i = 0; i < actual_atoms.size(); ++i) {
     const Atom &actual = actual_atoms[i];
     const Atom &reference = reference_atoms[i];
 
     BOOST_CHECK_MESSAGE(actual.element == reference.element,
-                        "Atom " << i << ": real, actual element '"
-                                << actual.element
+                        "Atom " << i << ": element '" << actual.element
                                 << "' does not match the reference element '"
-                                << reference.element << "' at all.");
+                                << reference.element << "'.");
 
     double dx = actual.x - reference.x;
     double dy = actual.y - reference.y;
@@ -184,7 +138,7 @@ BOOST_AUTO_TEST_CASE(check_temp_inp_geometry_agrees_with_reference) {
     BOOST_CHECK_MESSAGE(
         distance <= tolerance_angstrom,
         "Atom " << i << " (" << actual.element
-                << "): real, actual position deviates from the reference "
+                << "): position deviates from the reference "
                    "by "
                 << distance << " Angstrom (tolerance=" << tolerance_angstrom
                 << " Angstrom) -- actual=(" << actual.x << ", " << actual.y

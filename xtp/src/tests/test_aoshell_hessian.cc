@@ -14,27 +14,12 @@
  *
  */
 
-// ===========================================================================
-// STATUS: written but NOT yet run/tested. Validates AOShell::EvalAOspaceHessian
-// (added for GGA XC-gradient support -- see aoshell.h/aoshell.cc for the
-// full derivation) against a finite difference of the existing, already-
-// validated first-derivative EvalAOspace output.
-//
-// Every individual d2P polynomial coefficient (the shell-specific new
-// content) was already cross-checked symbolically against exact sympy
-// differentiation before this test was written -- see conversation
-// history. This test validates the FULL assembled Hessian (including the
-// Gaussian-times-polynomial product-rule terms, the per-primitive
-// accumulation for a genuine multi-primitive contraction, and the one
-// scaling-convention bug already found and fixed by that symbolic check)
-// against real numerical evidence, the same way every other derivative
-// in this whole branch has been validated.
-//
-// Reuses aoshell/Al.xyz + aoshell/largeshell.xml from the existing,
-// already-validated test_aoshell.cc -- a single SPDFG shell (S through G,
-// every angular momentum EvalAOspaceHessian supports) with TWO Gaussian
-// primitives (a genuine contraction, not a single-primitive edge case).
-// ===========================================================================
+// Checks AOShell::EvalAOspaceHessian (second derivatives of the AO values
+// w.r.t. the electron position, used by the GGA XC gradient) against
+// central finite differences of the first derivatives from EvalAOspace, for
+// an SPDFG shell with two primitives (aoshell/Al.xyz,
+// aoshell/largeshell.xml) at a generic off-axis point; also checks that the
+// Hessians are symmetric.
 
 #define BOOST_TEST_MAIN
 
@@ -69,27 +54,16 @@ BOOST_AUTO_TEST_CASE(EvalAOspaceHessian_finite_difference) {
   aobasis.Fill(basis, mol);
 
   BOOST_REQUIRE(aobasis.getNumofShells() >= 1);
-  // NOTE: the SPDFG XML tag groups S/P/D/F/G under one shared set of
-  // Gaussian primitives, but AOShell::l_ can only hold a single angular
-  // momentum (matching EvalAOspace's single-shell-type switch
-  // statement) -- AOBasis::Fill splits this into separate AOShell
-  // objects internally, one per angular momentum, each sharing the same
-  // primitive data. Confirmed directly: getNumofShells() returns 5, not
-  // 1, for this basis file (an incorrect assumption in an earlier
-  // version of this test). Sum function counts across all shells
-  // instead of assuming a single shell with 25 functions.
+  // AOBasis::Fill splits the SPDFG shell into one AOShell per l (5 shells
+  // sharing the primitives), so count the functions over all shells.
   Index total_funcs = 0;
   for (Index s = 0; s < aobasis.getNumofShells(); ++s) {
     total_funcs += aobasis.getShell(s).getNumFunc();
   }
   BOOST_REQUIRE_EQUAL(total_funcs, 25);  // 1(S)+3(P)+5(D)+7(F)+9(G)
 
-  // Deliberately NOT at the shell center (Al is at the origin) or on any
-  // coordinate axis/plane -- an off-axis, generic point exercises every
-  // term in every polynomial (many of the d2P entries vanish identically
-  // on-axis, e.g. d2P/dxy for several functions is proportional to
-  // x*y or similar, which would trivially vanish at x=0 or y=0 and not
-  // actually test that term).
+  // Generic point, not on an axis or plane through the centre (Al at the
+  // origin), where many second-derivative terms vanish.
   Eigen::Vector3d point(0.83, -0.51, 1.27);
   double h = 1e-5;
 
@@ -135,10 +109,7 @@ BOOST_AUTO_TEST_CASE(EvalAOspaceHessian_finite_difference) {
       }
     }
 
-    // Hessian symmetry (H_ij == H_ji) is a real, independent
-    // mathematical requirement for any twice-differentiable function --
-    // cheap to check, doesn't depend on finite-difference precision at
-    // all.
+    // Hessian symmetry, independent of the finite differences
     for (Index k = 0; k < shell.getNumFunc(); ++k) {
       double asymmetry =
           (AO.hessians[k] - AO.hessians[k].transpose()).cwiseAbs().maxCoeff();

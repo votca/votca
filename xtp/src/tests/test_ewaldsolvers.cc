@@ -38,31 +38,21 @@
 #include "votca/xtp/ewaldsolvers.h"
 #include "votca/xtp/logger.h"
 
-// NOTE ON WHAT THIS FILE DELIBERATELY DOES NOT DO.
-//
-// None of the checks below compare against a hand-assembled reference
-// matrix or a stored expected vector. That is deliberate, and it is the
-// direct lesson of a real bug: the operator was built as P^-1 + C
-// instead of P^-1 - C -- inverting the induced-induced feedback and so
-// converging to the wrong dipoles -- and the existing operator tests did
-// NOT catch it, because their dense references had been written by
-// mirroring the implementation's own sign convention. They agreed with
-// the bug. The same happened a second time with the self-field term.
-//
-// So every assertion here is either an invariant the true solution must
-// satisfy regardless of how it is computed (A*x = b), an agreement
-// between two independent solvers, or a structural property of the
-// operator (symmetry, positive-definiteness, conditioning). None of
-// those can be satisfied by a reference that mirrors a mistake.
+// No check below compares against a hand-assembled reference matrix or a
+// stored vector: such references, written to mirror the implementation's
+// sign convention, failed to detect both the P^-1 + C (instead of
+// P^-1 - C) error and the self-field sign error. Every assertion is
+// instead an invariant of the true solution (A*x = b), an agreement
+// between independent solvers, or a structural property of the operator
+// (symmetry, positive definiteness, conditioning).
 
 using namespace votca;
 using namespace votca::xtp;
 
 namespace {
 
-// A small periodic system with several multi-site segments. Deliberately
-// multi-site: the intramolecular coupling block is where two of the
-// historical sign mistakes lived, and a single-site system has none.
+// A small periodic system with several multi-site segments, so that the
+// intramolecular coupling block is exercised.
 EwaldRegistry MakeSystem(double box_length, Index n_per_side) {
   EwaldRegistry registry;
   const double d = box_length / double(n_per_side);
@@ -102,9 +92,8 @@ std::vector<Index> AllIds(Index n) {
   return ids;
 }
 
-// Right-hand side: any fixed, reproducible vector will do. The solvers
-// are being tested, not the permanent-field generation (which has its
-// own tests), so this deliberately does not depend on that machinery.
+// Right-hand side: any fixed, reproducible vector; the permanent-field
+// generation is tested elsewhere.
 Eigen::VectorXd MakeRhs(Index size) {
   Eigen::VectorXd b(size);
   for (Index i = 0; i < size; ++i) {
@@ -114,8 +103,7 @@ Eigen::VectorXd MakeRhs(Index size) {
 }
 
 // Dense form of the operator, obtained by applying it to unit vectors.
-// This is a MEASUREMENT of the operator, not a re-derivation of it, so
-// it cannot encode a mistaken sign convention of its own.
+// A measurement, not a re-derivation, so it cannot encode a sign error.
 Eigen::MatrixXd DenseOperator(const EwaldPeriodicDipoleOperator& op) {
   const Index n = op.rows();
   Eigen::MatrixXd A(n, n);
@@ -131,11 +119,9 @@ Eigen::MatrixXd DenseOperator(const EwaldPeriodicDipoleOperator& op) {
 
 BOOST_AUTO_TEST_SUITE(ewaldsolvers_test)
 
-// The operator must be symmetric positive definite: CG's convergence
-// theory requires it, and the block-Jacobi preconditioner's own LDLT
-// factorization assumes it. This is also the cheapest possible guard on
-// the coupling sign -- flipping C from -C to +C breaks definiteness long
-// before it breaks anything a casual eyeball check would notice.
+// The operator must be symmetric positive definite, as required by CG
+// and assumed by the block-Jacobi preconditioner. This is also a cheap
+// guard on the coupling sign: +C instead of -C breaks definiteness.
 BOOST_AUTO_TEST_CASE(operator_is_symmetric_positive_definite) {
   const double alpha = 0.3;
   const double L = 14.0;
@@ -143,15 +129,11 @@ BOOST_AUTO_TEST_CASE(operator_is_symmetric_positive_definite) {
   EwaldRegistry registry = MakeSystem(L, 2);
   std::vector<Index> ids = AllIds(8);
 
-  // Tighter real-space convergence than the other cases here, on
-  // purpose. EwaldRealSpaceSum converges each target's own neighbour
-  // list independently, so at looser settings a pair can be summed for
-  // target i and not for target j, which makes A asymmetric at the level
-  // of the truncation itself -- measured at 8e-5 with r_min=12 /
-  // field_tol=1e-12, dropping to 1e-16 with the values below. That is a
-  // property of the adaptive shell search, not a bug, but it means
-  // symmetry can only be asserted at machine precision once the sum is
-  // converged tightly enough that the neighbour sets agree.
+  // Tighter real-space convergence than elsewhere: each target's
+  // neighbour list is converged independently, so a pair may be included
+  // for target i but not for j, making A asymmetric at the truncation
+  // level (8e-5 with r_min=12 / field_tol=1e-12, 1e-16 with the values
+  // below).
   EwaldRealSpaceSum real_sum(box, registry, alpha, 0.39, /*r_min=*/30.0,
                              /*field_tol=*/1e-14);
   EwaldReciprocalSpaceSum recip_sum(box, registry, alpha, /*k_max=*/8.0);
@@ -172,10 +154,8 @@ BOOST_AUTO_TEST_CASE(operator_is_symmetric_positive_definite) {
   BOOST_CHECK_GT(lambda_min, 0.0);
 }
 
-// The defining property of the answer, independent of how it was found:
-// the returned x must actually solve A*x = b. A stored reference vector
-// would only assert that the code still does what it did before, which
-// is exactly what let an inverted coupling sign survive.
+// The returned x must solve A*x = b (a stored reference vector would
+// only check that the result has not changed).
 BOOST_AUTO_TEST_CASE(pcg_solution_satisfies_the_system) {
   const double alpha = 0.3;
   const double L = 14.0;
@@ -199,7 +179,7 @@ BOOST_AUTO_TEST_CASE(pcg_solution_satisfies_the_system) {
                                              std::chrono::steady_clock::now());
 
   BOOST_REQUIRE(result.converged);
-  // Never found indefinite: a direct certificate, not an inference.
+  // No non-positive curvature encountered.
   BOOST_CHECK_EQUAL(result.indefinite_at_iteration, -1);
 
   const double rel_residual = (op * result.x - b).norm() / b.norm();
@@ -209,11 +189,8 @@ BOOST_AUTO_TEST_CASE(pcg_solution_satisfies_the_system) {
   BOOST_CHECK_GT(result.x.norm(), 1e-10);  // not vacuously zero
 }
 
-// JOR and PCG walk entirely different paths through the same space. If
-// both are correct they must land on the same fixed point; if either has
-// a solver-specific mistake they will not. Neither side of this
-// comparison is a hand-written reference, so neither can encode the
-// other's error.
+// JOR and PCG are independent algorithms and must converge to the same
+// fixed point.
 BOOST_AUTO_TEST_CASE(jor_and_pcg_agree) {
   const double alpha = 0.3;
   const double L = 14.0;
@@ -240,17 +217,11 @@ BOOST_AUTO_TEST_CASE(jor_and_pcg_agree) {
   auto jor = SolveWithJOR(op, site_p, b, /*max_iter=*/20000, /*omega=*/0.35,
                           log, t0, /*match_legacy_first_step=*/false);
 
-  // JOR stops on a per-site dipole-change criterion with a hardcoded
-  // 1e-3 threshold (matching legacy's own epstol), NOT on a residual, so
-  // it cannot be driven to the precision PCG reaches here however many
-  // iterations it is given. Demanding agreement at PCG's tolerance would
-  // therefore fail for a reason that has nothing to do with correctness.
-  //
-  // The meaningful invariant is that the gap between the two is
-  // explained by JOR's own incomplete convergence: if the solvers had
-  // genuinely different fixed points, the difference between them would
-  // NOT be of the order of JOR's own residual, it would be some
-  // unrelated constant.
+  // JOR stops on a per-site dipole-change criterion (epstol = 1e-3, as in
+  // legacy), not on the residual, so it does not reach PCG's precision.
+  // The check is therefore that the difference between the two solutions
+  // is of the order of JOR's residual; different fixed points would give
+  // an unrelated, larger difference.
   const double jor_residual = (op * jor.x - b).norm() / b.norm();
   const double rel_diff = (jor.x - pcg.x).norm() / pcg.x.norm();
   std::cout << "JOR iterations = " << jor.iterations
@@ -262,12 +233,10 @@ BOOST_AUTO_TEST_CASE(jor_and_pcg_agree) {
   BOOST_CHECK_LT(rel_diff, 10.0 * jor_residual);
 }
 
-// A preconditioner cannot change the fixed point, only the path to it,
-// so no correctness test can detect a broken one -- it just silently
-// costs iterations. This is the guard for that: a real bug once left the
-// block-Jacobi coupling term with the wrong sign, which made the
-// conditioning ~4x WORSE than no preconditioner at all and nearly
-// doubled the iteration count, while every result stayed correct.
+// A preconditioner does not change the fixed point, so a broken one only
+// costs iterations. A wrong sign of the block-Jacobi coupling term made
+// the conditioning ~4x worse than without preconditioner and nearly
+// doubled the iteration count; this test guards against that.
 BOOST_AUTO_TEST_CASE(preconditioner_improves_conditioning) {
   const double alpha = 0.3;
   const double L = 14.0;
@@ -318,9 +287,8 @@ BOOST_AUTO_TEST_CASE(preconditioner_improves_conditioning) {
 
 // The operator parallelizes over targets with no cross-target reduction,
 // so the summation order is fixed and the result must be independent of
-// thread count -- not merely close, but bit-for-bit identical. Asserting
-// exact equality is deliberate: a tolerance here would quietly permit a
-// genuine race to creep in.
+// thread count, bit for bit. Exact equality is asserted on purpose: a
+// tolerance could hide a data race.
 BOOST_AUTO_TEST_CASE(operator_is_thread_count_independent) {
   const double alpha = 0.3;
   const double L = 14.0;
@@ -363,9 +331,8 @@ BOOST_AUTO_TEST_CASE(operator_is_thread_count_independent) {
 // The real-space distance cull discards pairs whose erfc-screened
 // contribution is below the working precision. It is a pure cost
 // optimization: at the default screening_factor the field must be
-// unchanged. This guards it as alpha varies -- the cutoff is
-// screening_factor/alpha, so a system with different alpha gets a
-// different cutoff without anyone touching the option.
+// unchanged. Since the cutoff is screening_factor/alpha, this is checked
+// as alpha varies.
 BOOST_AUTO_TEST_CASE(screening_cutoff_does_not_change_the_field) {
   const double alpha = 0.3;
   const double L = 14.0;

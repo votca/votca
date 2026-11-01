@@ -14,41 +14,15 @@ if(NOT TARGET Libint2::int2)
   endif()
 endif()
 
-# libint2 derivative-integral support (needed for DFTEngine's
-# compute_forces option) depends on flags passed at libint2's OWN
-# configure time (--enable-1body / --enable-eri2 / --enable-eri3),
-# independently of each other and of whatever this libint2 install was
-# otherwise built with. This was previously an actual configure-time
-# check (via check_cxx_symbol_exists against libint2's own
-# LIBINT_INCLUDE_ONEBODY/_ERI2/_ERI3 macros), but every attempt at that
-# -- first passing imported targets directly via
-# CMAKE_REQUIRED_LIBRARIES, then extracting their properties manually
-# -- gave a wrong answer (false "not found") on at least one real,
-# known-good machine, and one attempt caused a hard, build-breaking
-# configure error on a CI runner besides. try_compile's own isolated
-# sub-project, which check_cxx_symbol_exists uses internally, does not
-# behave consistently enough across different libint2 discovery
-# mechanisms (CONFIG-mode vs classic MODULE-mode Find<Pkg>.cmake
-# scripts) and package managers to be worth the risk for what is
-# ultimately a convenience message, not something anything else in the
-# build depends on. A plain, static note is more honest than a check
-# that has repeatedly gotten the wrong answer while looking
-# authoritative. The actual, reliable answer is determined at COMPILE
-# time by the per-category #ifdef guards in
-# xtp/src/libxtp/libint2_derivative_calls.cc (checking these same
-# macros directly, with no try_compile involved at all -- compiled as
-# part of the real votca_xtp target, which has shown neither failure
-# mode), and reported to the user at RUNTIME by
-# DFTEngine::Initialize's own check, which fires immediately if
-# compute_forces=true is requested on a build that cannot actually do
-# it.
+# libint2 derivative integrals (needed for compute_forces) require libint2
+# to be configured with --enable-1body, --enable-eri2 and --enable-eri3. This
+# is not checked here: try_compile-based checks gave wrong answers with some
+# libint2 discovery modes. libint2_derivative_calls.cc checks the macros at
+# compile time, and DFTEngine::Initialize reports missing support at runtime.
 message(STATUS
-  "Note: DFTEngine's compute_forces option needs this libint2 to have "
-  "been configured with --enable-1body, --enable-eri2, and "
-  "--enable-eri3 (independently of each other, and of whatever else "
-  "this libint2 install was built with). This is not checked at "
-  "configure time; if compute_forces does not work at runtime, verify "
-  "these flags on the libint2 installation actually being used.")
+  "Note: the compute_forces option of the DFT engine needs libint2 "
+  "configured with --enable-1body, --enable-eri2 and --enable-eri3; "
+  "this is not checked at configure time.")
 
 find_package(ecpint REQUIRED)
 set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculates Gaussian integrals over pseudo potentials")
@@ -57,31 +31,15 @@ message(STATUS "Found libecpint: ${ecpint_DIR}")
 find_package(HDF5 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
 
-# Required for FragmentSaturator's own, planned OpenBabel-based
-# constrained MMFF94/UFF relaxation of newly-placed H-saturation atoms
-# (design worked through directly with the user; the actual relaxation
-# code itself is not yet implemented -- this is only the build-system
-# dependency, added ahead of it). Deliberately a required, whole-
-# project dependency, not conditional on any option -- the user
-# explicitly confirmed this directly, to avoid the same "diverging
-# toolchain by DFT package" problem already flagged for an ORCA-only
-# fallback: making OpenBabel optional here would only recreate that
-# same problem in a different form.
+# FragmentSaturator relaxes newly placed H-saturation atoms with
+# OpenBabel (MMFF94/UFF). Required rather than optional, so that results do
+# not depend on which optional packages a build has.
 #
-# The package name is "OpenBabel3", not "OpenBabel" -- confirmed
-# directly, via OpenBabel's own upstream CMake source
-# (OpenBabel3Config.cmake.in), before writing this, rather than
-# guessed. There is also a real, known, still-open upstream bug
-# (openbabel/openbabel issues #2305, #2374, #2264): OpenBabel3Config.cmake
-# can locate itself but then set OpenBabel3_FOUND to FALSE anyway,
-# because it unconditionally references imported targets (maeparser,
-# coordgen) that many real installs do not actually have -- even
-# though nothing this project uses needs either of them at all. If
-# this find_package call fails on an install that otherwise looks
-# correct, this is very likely why -- check for exactly this "targets
-# are referenced, but are missing: maeparser coordgen" message in the
-# configure output before assuming OpenBabel itself is missing or
-# broken.
+# Known upstream bug (openbabel/openbabel #2305, #2374, #2264):
+# OpenBabel3Config.cmake can set OpenBabel3_FOUND to FALSE because it
+# references the imported targets maeparser and coordgen, which many installs
+# lack (VOTCA needs neither). If find_package fails, look for "targets are
+# referenced, but are missing: maeparser coordgen" in the configure output.
 find_package(OpenBabel3 REQUIRED)
 set_package_properties(OpenBabel3 PROPERTIES TYPE REQUIRED PURPOSE "Places and relaxes new H atoms when saturating covalently-bonded fragment boundaries")
 

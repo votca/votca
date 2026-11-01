@@ -14,13 +14,9 @@
  *
  */
 //
-// Focused specifically on MapAtomsToAOIndices -- the one, genuinely new
-// piece of index-mapping logic PODCoupling needs, and the exact place a
-// subtle bug could silently corrupt every downstream result (directly
-// flagged as the primary risk before any of this was written: real
-// fragment definitions, both for this and for the existing CDFT tests,
-// use a genuinely DISJOINT, scattered set of atom indices, not a
-// contiguous, block-wise range).
+// Tests of PODCoupling, with emphasis on MapAtomsToAOIndices: fragment
+// definitions are in general non-contiguous sets of atom indices, and
+// index-mapping errors would silently corrupt all results.
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE podcoupling_test
@@ -46,17 +42,10 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(podcoupling_test)
 
 namespace {
-// The 12, individual atom lines for the co-facial ethylene dimer at a
-// given separation, in a FIXED, "canonical" order (molecule A's own 6
-// atoms first: C1, C2, H1a, H1b, H2a, H2b -- then molecule B's own 6,
-// in the same internal order) -- see
-// pod_coupling_ethylene_dimer_decays_with_distance's own header
-// comment, below, for the geometry itself and why these specific bond
-// lengths/angle were chosen. Callers that want a different atom
-// ORDER (e.g. the scrambled test case below) permute this list
-// themselves, keeping track of where each atom ends up so the
-// corresponding fragment_A_atoms/fragment_B_atoms can be constructed
-// to match.
+// Atom lines (Angstrom) of the co-facial ethylene dimer at the given
+// separation, in canonical order: molecule A (C1, C2, H1a, H1b, H2a,
+// H2b), then molecule B in the same order. Callers that need another
+// atom order permute the list and adapt the fragment indices.
 std::vector<std::string> EthyleneDimerAtomLines(double separation_angstrom) {
   std::ostringstream sep;
   sep << separation_angstrom;
@@ -76,32 +65,14 @@ std::vector<std::string> EthyleneDimerAtomLines(double separation_angstrom) {
   };
 }
 
-// Shared by both the contiguous and scrambled ethylene-dimer test
-// cases below -- runs a real DFT SCF on the given, already-ordered
-// list of atom lines (in EXACTLY the order they will appear in the
-// resulting geometry file -- the caller is responsible for whatever
-// permutation it wants to test), then computes PODCoupling's own
-// HOMO-HOMO coupling for the given fragment atom indices (which must
-// correctly correspond to WHATEVER order atom_lines is actually in --
-// this is exactly what lets the scrambled test case reuse this same
-// function while still validly cross-checking against the contiguous
-// case's own result: same physical system, same physical answer,
-// different bookkeeping only).
+// Runs a DFT SCF on the atoms in the given order and returns |J| [eV]
+// of the HOMO-HOMO POD coupling for the given fragment atom indices,
+// which must refer to that order.
 //
-// half_homo_gap_ev_out (optional, nullptr by default -- existing
-// callers that only want the POD coupling itself are unaffected): if
-// given, filled with 0.5*(E_HOMO - E_HOMO-1) of the SAME, already-
-// converged dimer SCF this function already ran for PODCoupling
-// itself -- essentially free, no additional calculation needed. Per
-// the paper's own eqn (12) and its own direct confirmation ("both
-// approaches yield identical transfer integrals for this symmetric
-// dimer configuration"), this simpler estimate is not merely an
-// approximation but EXACTLY equal to the full projective coupling
-// for a symmetric dimer specifically (identical monomers, symmetric
-// mutual orientation) -- exactly the case this co-facial ethylene
-// dimer test already is, so this is a genuinely strong, independent,
-// theoretically-exact cross-check, not just another qualitative
-// sanity check.
+// If half_homo_gap_ev_out is given, it receives 0.5*|E_HOMO - E_HOMO-1|
+// [eV] of the same SCF. For a symmetric dimer this equals the coupling
+// exactly (Baumeier, Kirkpatrick, Andrienko, PCCP 12, 11103 (2010),
+// Eq. 12). If write_orb_file is given, the orbitals are written there.
 double RunEthyleneDimerCoupling(const std::vector<std::string>& atom_lines,
                                 const std::vector<Index>& fragment_A_atoms,
                                 const std::vector<Index>& fragment_B_atoms,
@@ -157,32 +128,15 @@ double RunEthyleneDimerCoupling(const std::vector<std::string>& atom_lines,
   bool converged = dft.Evaluate(orb);
   BOOST_REQUIRE_EQUAL(converged, true);
 
-  // Written here specifically so a separate, later test (exercising
-  // PodCouplingTool's own ParseOptions()/Run() directly, currently
-  // uncovered per Codecov) can reuse this SAME, already-converged
-  // calculation by reading it back from disk, rather than needing to
-  // run a fresh, separate, redundant SCF of its own -- directly
-  // avoiding adding another expensive DFT run to this file, given the
-  // user's own, immediately preceding request to CUT this file's own
-  // SCF count for CI runtime, not grow it again right after.
+  // Reused by podcouplingtool_run_end_to_end to avoid another SCF.
   if (write_orb_file != nullptr) {
     orb.WriteToCpt(*write_orb_file);
   }
 
   if (half_homo_gap_ev_out != nullptr) {
-    // Number of occupied (doubly-filled) dimer orbitals -- computed
-    // dynamically from the loaded geometry's own total nuclear
-    // charge (matching PODCoupling's own convention for a fragment's
-    // occupied-orbital count, applied here to the whole dimer instead
-    // of a fragment) rather than hardcoded, so this does not silently
-    // go stale if the geometry ever changes. For this specific,
-    // neutral, closed-shell 24-atom-free (12-atom) ethylene dimer
-    // this is exact (32 electrons total, 16 doubly-occupied orbitals),
-    // not an approximation -- unlike the analogous per-FRAGMENT count
-    // PODCoupling itself uses internally, which is genuinely
-    // approximate for a covalently-bonded fragment (see podcoupling.cc's
-    // own comment on this) -- there is no such ambiguity for the
-    // WHOLE, intact, neutral dimer here at all.
+    // Number of doubly occupied orbitals from the total nuclear charge;
+    // exact for the neutral closed-shell dimer (32 electrons, 16
+    // orbitals).
     double nuccharge = 0.0;
     const QMMolecule& mol = orb.QMAtoms();
     for (Index i = 0; i < mol.size(); ++i) {
@@ -198,28 +152,15 @@ double RunEthyleneDimerCoupling(const std::vector<std::string>& atom_lines,
         0.5 * std::abs(homo - homo_minus_1) * 27.211386245988;
   }
 
-  // HOMO-HOMO coupling (hole transfer) -- matching the paper's own,
-  // explicit focus ("Throughout the paper we will consider the
-  // particular case of hole transport"). numberofstatesA/B=1 gives
-  // just {HOMO, LUMO} for each fragment -- matching
-  // DFTcoupling::CalculateCouplings' own convention exactly, per
-  // direct agreement with the user, rather than this class's own,
-  // earlier, single-orbital-pair-only interface.
+  // HOMO-HOMO (hole) coupling; numberofstates = 1 gives {HOMO, LUMO}
+  // per fragment, as in DFTcoupling.
   PODCoupling pod(orb, &log, fragment_A_atoms, fragment_B_atoms);
   pod.CalculateCouplings(1, 1);
   double coupling_hartree = pod.getCouplingElement(pod.getFragmentAHomoIndex(),
                                                    pod.getFragmentBHomoIndex());
 
-  // Logger only ever BUFFERS its own messages internally -- nothing
-  // prints them anywhere on its own. Confirmed directly, from a real
-  // run, that this was exactly why an earlier, added S_AB diagnostic
-  // (XTP_LOG(...) inside PODCoupling::CalculateCouplings itself) never
-  // actually appeared in this test's own output at all -- the same,
-  // underlying mechanism already found earlier this session for
-  // pyxtp's own capture_standard_output. Explicitly flushed here via
-  // the Logger class's own, public friend operator<<(std::ostream&,
-  // Logger&), matching the same pattern already confirmed working
-  // there.
+  // Logger only buffers messages; print them (e.g. the PODCoupling
+  // diagnostics) explicitly.
   std::cout << log;
 
   return std::abs(coupling_hartree) * 27.211386245988;  // Hartree -> eV
@@ -227,10 +168,8 @@ double RunEthyleneDimerCoupling(const std::vector<std::string>& atom_lines,
 }  // namespace
 
 BOOST_AUTO_TEST_CASE(map_atoms_to_ao_indices_disjoint_out_of_order) {
-  // Deliberately varied per-atom function counts (NOT all equal -- an
-  // off-by-one or wrong-cumulative-sum bug could easily still pass a
-  // uniform-size test by accident) for 5 atoms: 3, 1, 4, 1, 5 AOs each.
-  // Prefix sum (each atom's own starting AO index): 0, 3, 4, 8, 9, [14].
+  // Unequal AO counts per atom, so that prefix-sum errors are detected.
+  // Starting AO indices: 0, 3, 4, 8, 9 (total 14).
   //   atom 0: AOs [0, 1, 2]
   //   atom 1: AOs [3]
   //   atom 2: AOs [4, 5, 6, 7]
@@ -238,17 +177,12 @@ BOOST_AUTO_TEST_CASE(map_atoms_to_ao_indices_disjoint_out_of_order) {
   //   atom 4: AOs [9, 10, 11, 12, 13]
   std::vector<Index> func_per_atom = {3, 1, 4, 1, 5};
 
-  // Deliberately DISJOINT (skips atoms 1 and 2 entirely) and DELIBERATELY
-  // OUT OF NUMERICAL ORDER (3, 0, 4 -- not 0, 3, 4) -- confirms the
-  // function preserves the caller's own given order rather than
-  // silently, implicitly sorting the atom indices first.
+  // Non-contiguous and unsorted: the given order must be preserved.
   std::vector<Index> atom_indices = {3, 0, 4};
 
   std::vector<Index> result = MapAtomsToAOIndices(atom_indices, func_per_atom);
 
-  // Hand-computed expected result, in the SAME order as atom_indices:
-  // atom 3's own AOs ([8]), then atom 0's own AOs ([0,1,2]), then atom
-  // 4's own AOs ([9,10,11,12,13]).
+  // AOs of atom 3, then atom 0, then atom 4.
   std::vector<Index> expected = {8, 0, 1, 2, 9, 10, 11, 12, 13};
 
   BOOST_REQUIRE_EQUAL(result.size(), expected.size());
@@ -258,9 +192,7 @@ BOOST_AUTO_TEST_CASE(map_atoms_to_ao_indices_disjoint_out_of_order) {
 }
 
 BOOST_AUTO_TEST_CASE(map_atoms_to_ao_indices_single_atom) {
-  // Simplest possible case, checked directly: a single atom, not the
-  // first one in the molecule, gets exactly its own AO range and
-  // nothing else.
+  // A single atom other than the first gets exactly its own AO range.
   std::vector<Index> func_per_atom = {2, 3, 4};
   std::vector<Index> atom_indices = {1};
   std::vector<Index> result = MapAtomsToAOIndices(atom_indices, func_per_atom);
@@ -272,11 +204,7 @@ BOOST_AUTO_TEST_CASE(map_atoms_to_ao_indices_single_atom) {
 }
 
 BOOST_AUTO_TEST_CASE(map_atoms_to_ao_indices_all_atoms_contiguous_case) {
-  // A contiguous, block-wise fragment (the "easy" case this whole
-  // function exists to NOT be limited to) should still work correctly
-  // -- confirms the general, disjoint-capable implementation does not
-  // accidentally break the simpler, contiguous case it needs to
-  // subsume.
+  // Contiguous fragment.
   std::vector<Index> func_per_atom = {2, 2, 2, 2};
   std::vector<Index> atom_indices = {1, 2};
   std::vector<Index> result = MapAtomsToAOIndices(atom_indices, func_per_atom);
@@ -295,47 +223,20 @@ BOOST_AUTO_TEST_CASE(map_atoms_to_ao_indices_out_of_range_throws) {
 }
 
 BOOST_AUTO_TEST_CASE(pod_coupling_ethylene_dimer_consistency_checks) {
-  // Combines two, independent consistency checks on the SAME co-facial
-  // ethylene dimer (contiguous atom order, d=4.0 Angstrom) -- merged
-  // into one test case, per direct user request to cut this file's
-  // own CI runtime (each check needs its own real DFT SCF, and this
-  // file previously ran 5 across three separate test cases; this
-  // reduces that to 2 total, without losing either check's own
-  // coverage): the "distance decays" test case this file used to have
-  // was dropped entirely (a genuine, real coverage loss, accepted
-  // directly by the user); this merge, in contrast, costs nothing, since
-  // the two checks below were already running on the exact same,
-  // contiguous d=4.0 geometry as two, separate, fully redundant SCF
-  // calculations.
-  //
-  // 1. Direct, end-to-end validation of the disjoint-fragment handling
-  //    (scrambled vs. contiguous atom order) -- exercising the full,
-  //    real pipeline (geometry loading, basis construction,
-  //    Fock/overlap matrix indexing, AND the fragment gather itself),
-  //    not just MapAtomsToAOIndices in isolation (already covered
-  //    separately, by map_atoms_to_ao_indices_disjoint_out_of_order at
-  //    the top of this file).
-  // 2. Cross-check of the CONTIGUOUS case's own result against the
-  //    dimer's own half-HOMO-HOMO-1 gap -- exact for a symmetric dimer
-  //    per the paper this whole test system is drawn from (Baumeier,
-  //    Kirkpatrick, Andrienko, PCCP 2010, 12, 11103, eqn (12): "both
-  //    approaches yield identical transfer integrals for this
-  //    symmetric dimer configuration"), and free to obtain here since
-  //    the contiguous case's own dimer SCF is already being run for
-  //    check 1 anyway.
+  // Two checks on the co-facial ethylene dimer at d = 4.0 Angstrom,
+  // combined to limit the number of SCF runs (two in total):
+  // 1. Scrambled vs. contiguous atom order, testing the fragment
+  //    handling end to end (geometry, basis, Fock/overlap indexing).
+  // 2. Coupling of the contiguous case vs. half the HOMO/HOMO-1
+  //    splitting, which agree exactly for a symmetric dimer (Baumeier,
+  //    Kirkpatrick, Andrienko, PCCP 12, 11103 (2010), Eq. 12).
   libint2::initialize();
 
-  // Deliberately scrambled: neither molecule's own 6 atoms are
-  // contiguous in this new order, and the resulting fragment indices
-  // are not sorted either -- computed precisely (not by hand) as the
-  // permutation's own inverse, to avoid exactly the kind of
-  // off-by-one bug this test exists to guard against. In terms of
-  // the CANONICAL indices from EthyleneDimerAtomLines (A: 0-5, B:
-  // 6-11), this new file's own atom order is:
+  // Scrambled order with non-contiguous, unsorted fragments. In terms of
+  // the canonical indices (A: 0-5, B: 6-11):
   //   new position:      0   1  2  3  4  5  6  7  8  9  10 11
   //   canonical index:  11   0  6  2  8  1  7  3  9  4  10 5
-  // i.e. fragment A's own 6 atoms end up at new positions
-  // {1,5,3,7,9,11} and fragment B's own 6 end up at {2,6,4,8,10,0}.
+  // so fragment A is at {1,5,3,7,9,11} and fragment B at {2,6,4,8,10,0}.
   std::vector<Index> scramble_order = {11, 0, 6, 2, 8, 1, 7, 3, 9, 4, 10, 5};
   std::vector<Index> fragment_A_scrambled = {1, 5, 3, 7, 9, 11};
   std::vector<Index> fragment_B_scrambled = {2, 6, 4, 8, 10, 0};
@@ -368,67 +269,25 @@ BOOST_AUTO_TEST_CASE(pod_coupling_ethylene_dimer_consistency_checks) {
             << " eV, 0.5*(HOMO-HOMO-1) = " << half_homo_gap << " eV"
             << std::endl;
 
-  // These describe the exact same physical system (same geometry,
-  // same separation, same two fragments -- only the order atoms
-  // happen to be listed in, and correspondingly the atom-index
-  // bookkeeping, differ) -- a correct implementation must give the
-  // same coupling either way, up to ordinary numerical noise (SCF
-  // convergence threshold, integration grid, floating-point
-  // summation order differences from the different loop iteration
-  // order this reordering induces). A real indexing bug in the
-  // disjoint-fragment handling would instead show up here as a
-  // LARGE, qualitative discrepancy, not a small numerical one.
+  // Same physical system; only numerical noise (SCF convergence, grid,
+  // summation order) is allowed. Indexing errors give large deviations.
   BOOST_CHECK_CLOSE(coupling_scrambled, coupling_contiguous, 1.0);
 
-  // A somewhat looser tolerance than the scrambled-vs-contiguous check
-  // above (which compares two calls that are, numerically, almost
-  // identical up to floating-point summation order) -- these two
-  // quantities are computed via genuinely DIFFERENT routes (one via
-  // fragment-block Fock diagonalization and an off-diagonal matrix
-  // element, the other via the dimer's own, already-diagonalized MO
-  // energies directly), so full floating-point-level agreement is not
-  // expected even though the paper's own eqn (12) shows them to be
-  // mathematically identical in the symmetric-dimer limit -- still
-  // tight enough that a genuine, substantial error in either PODCoupling
-  // itself or this test's own half-gap calculation would be caught.
+  // Looser tolerance: equal in theory, but computed by different routes
+  // (fragment-block diagonalization vs. dimer MO energies).
   BOOST_CHECK_CLOSE(coupling_contiguous, half_homo_gap, 5.0);
 
   libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(podcouplingtool_run_end_to_end) {
-  // Directly exercises PodCouplingTool's own ParseOptions()/Run() --
-  // added specifically because Codecov flagged podcouplingtool.cc as
-  // uncovered (test_podcoupling.cc, until now, only ever tested the
-  // underlying PODCoupling class directly, matching this codebase's
-  // own, established convention -- test_diabatization.cc similarly
-  // only tests ERDiabatization/GMHDiabatization/FCDDiabatization
-  // directly, never the Diabatization tool itself -- confirmed
-  // directly, by reading it, before assuming this gap was specific to
-  // this new file).
+  // Runs PodCouplingTool (ParseOptions/Run) end to end on the .orb file
+  // written by pod_coupling_ethylene_dimer_consistency_checks, which must
+  // run first (Boost.Test runs test cases in declaration order); a
+  // missing file makes Orbitals::ReadFromCpt throw.
   //
-  // Deliberately reuses the .orb file the consistency-checks test case
-  // above already wrote out for its own contiguous-case SCF (same
-  // geometry, same fragments), rather than running a fresh SCF here --
-  // this test would otherwise need its own, additional DFT calculation
-  // just to have something for the tool to read, directly working
-  // against the user's own, immediately preceding request to cut this
-  // file's own SCF count for CI runtime. Depends on
-  // pod_coupling_ethylene_dimer_consistency_checks having already run
-  // (Boost.Test runs test cases within a suite in declaration order by
-  // default, and this test is declared after it in this same file) --
-  // if that file path is missing, this fails with a clear,
-  // Orbitals::ReadFromCpt-level error rather than silently skipping.
-  //
-  // Goes through the same, PUBLIC QMToolFactory interface the real
-  // xtp_tools binary itself uses (confirmed directly, by reading
-  // xtp_tools.cc, to be tool_ = xtp::QMToolFactory().Create(name); ...
-  // tool_->Initialize(options); ... tool_->Evaluate();) -- deliberately
-  // NOT constructing PodCouplingTool directly, since its own header
-  // lives in the libxtp/tools/ source directory (a private,
-  // implementation-internal location, not on this test executable's
-  // own include path), rather than a location publicly visible from
-  // xtp/src/tests/ at all.
+  // The tool is created through QMToolFactory, as in xtp_tools, since
+  // its header in libxtp/tools/ is not on the test include path.
   std::ofstream xml("podcoupling_tool_test.xml");
   xml << "<podcoupling>\n";
   xml << "<job_name>podcoupling_tool_test</job_name>\n";

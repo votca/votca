@@ -40,17 +40,15 @@ class StaticRegion;
 /**
  * \brief The periodic Ewald background, as a Region.
  *
- * SKELETON. The region plumbing is complete and correct; the periodic
- * field evaluation is deliberately absent, and every entry point that
- * would need it throws rather than returning a plausible zero. Filling
- * it in is the next step.
+ * The periodic field and potential are implemented (ApplyFieldTo,
+ * PotentialAt, ApplyPotentialTo); the background energy is not yet.
  *
  * This region is unlike the others in three ways, all consequences of
  * the same fact -- it represents an environment that was converged
  * once, beforehand, by the ewaldbackground calculator:
  *
  *  1. Its induced dipoles are FROZEN. Other regions do not polarize it,
- *     so InteractwithQMRegion/PolarRegion/StaticRegion genuinely return
+ *     so InteractwithQMRegion/PolarRegion/StaticRegion return
  *     0.0. Those are not stubs: "nothing happens" is the correct
  *     physics, and the same one-way relationship legacy has, where the
  *     background is computed once and the foreground alone re-polarizes.
@@ -61,14 +59,14 @@ class StaticRegion;
  *
  *  3. It does not own segments carved out of the job's topology. It
  *     represents the whole periodic cell, read from the background
- *     calculator's own checkpoint, and the segments a polar region
+ *     calculator's checkpoint, and the segments a polar region
  *     holds explicitly are SUPPRESSED from it (see
- *     EwaldRealSpaceSum's own foreground documentation) rather than
+ *     the foreground documentation of EwaldRealSpaceSum) rather than
  *     removed from its ownership. size() therefore reports the
  *     background's segment count, not a share of the job's segments.
  *
  * The influence in the other direction -- this region acting ON a polar
- * or QM region -- is implemented by THAT region's own
+ * or QM region -- is implemented by THAT region's
  * InteractwithEwaldRegion, following the existing convention in
  * Region::ApplyInfluenceOfOtherRegions, where each region computes the
  * influence of others upon itself.
@@ -82,8 +80,7 @@ class EwaldRegion : public Region {
 
   void Initialize(const tools::Property& prop) override;
 
-  // Always true: this region is frozen, so it can never be the reason a
-  // job fails to converge. See this class's own documentation.
+  // Always true: this region is frozen (see class documentation).
   bool Converged() const override { return true; }
 
   void Evaluate(std::vector<std::unique_ptr<Region>>& regions) override;
@@ -106,9 +103,8 @@ class EwaldRegion : public Region {
  protected:
   void AppendResult(tools::Property& prop) const override;
 
-  // All three are genuinely 0.0, not placeholders: the background is
-  // frozen and no other region polarizes it. See this class's own
-  // documentation, point 1.
+  // 0.0 by design, not placeholders: the background is frozen and no
+  // other region polarizes it (see class documentation, point 1).
   double InteractwithQMRegion(const QMRegion&) override { return 0.0; }
   double InteractwithPolarRegion(const PolarRegion&) override { return 0.0; }
   double InteractwithStaticRegion(const StaticRegion&) override { return 0.0; }
@@ -127,10 +123,10 @@ class EwaldRegion : public Region {
   // Accumulates this periodic background's field into every site of
   // `foreground`, which is the polar region's own segment list.
   //
-  // The four contributions, matching legacy's own ER - EC + EK + E0
+  // The four contributions, matching legacy's ER - EC + EK + E0
   // decomposition:
   //
-  //   + real space (erfc), with the foreground's own copies SUPPRESSED
+  //   + real space (erfc), with the foreground copies SUPPRESSED
   //     so they are not counted twice -- they are about to be treated
   //     explicitly by the polar region instead
   //   + reciprocal space, over the FULL periodic density. This still
@@ -141,7 +137,7 @@ class EwaldRegion : public Region {
   //     copies, which removes what the reciprocal sum just put back
   //
   // The last term uses the NEUTRAL multipoles together with the
-  // background's own converged induced dipoles, not the job's charge
+  // background's converged induced dipoles, not the job's charge
   // state -- because that is what the reciprocal sum actually placed
   // there. Using the job's state instead would remove something that was
   // never added, and would make a charged job differ from the background
@@ -214,7 +210,7 @@ class EwaldRegion : public Region {
   // foreground's positions are fixed for the whole job even though its
   // dipoles change every SCF iteration, so the sums -- and the neighbour
   // cache inside the real-space one -- stay valid throughout. Mutable
-  // for the same reason EwaldRealSpaceSum's own cache is: this is lazily
+  // for the same reason the EwaldRealSpaceSum cache is: this is lazily
   // built state behind a const interface, not mutable physics.
   //
   // What is cached is specific to the foreground it was built for:

@@ -43,11 +43,7 @@ std::vector<HirshfeldPartition::AtomicReference>
   for (const QMAtom& real_atom : mol) {
     auto it = reference_densities.find(real_atom.getElement());
     if (it == reference_densities.end()) {
-      // Deliberately fail loudly rather than silently skip: a missing
-      // entry here means DFTEngine::ComputeHirshfeldReferenceDensities
-      // was not actually run for every element this molecule contains,
-      // which would otherwise show up only much later, as a silently
-      // wrong (missing-atom) weight denominator.
+      // Skipping the atom would silently corrupt the weight denominator.
       throw std::runtime_error(
           "HirshfeldPartition::BuildAtomicReferences: no reference "
           "density found for element '" +
@@ -56,11 +52,8 @@ std::vector<HirshfeldPartition::AtomicReference>
           "actually run for every element in this molecule?");
     }
 
-    // Same construction RunAtomicDFT_unrestricted itself uses (a
-    // single-atom QMMolecule, then AOBasis::Fill on it) -- except at
-    // this REAL atom's own position, not the origin, so the resulting
-    // basis functions are already centered where they need to be for
-    // EvaluateAtomicDensity/EvaluateWeight to evaluate correctly.
+    // Single-atom basis as in RunAtomicDFT_unrestricted, but centered on
+    // the atom's position in the molecule instead of the origin.
     QMMolecule single_atom("hirshfeld_reference_atom", 0);
     single_atom.push_back(
         QMAtom(0, real_atom.getElement(), real_atom.getPos()));
@@ -96,10 +89,7 @@ Eigen::Vector3d HirshfeldPartition::EvaluateAtomicDensityGradient(
     ao_derivatives.block(shell.getStartIndex(), 0, shell.getNumFunc(), 3) =
         vals.derivatives;
   }
-  // rho(r) = phi^T P phi, so grad_rho(r) = 2 * derivatives^T * (P * phi) --
-  // same quadratic-form pattern as EvaluateAtomicDensity itself, just
-  // carrying the extra factor of 2 and the derivative (rather than
-  // value) of the second phi in the product rule.
+  // rho(r) = phi^T P phi, so grad_rho(r) = 2 * derivatives^T * (P * phi).
   return 2.0 * ao_derivatives.transpose() * (reference_density * ao_values);
 }
 
@@ -116,11 +106,8 @@ double HirshfeldPartition::EvaluateWeight(
       numerator = rho_j;
     }
   }
-  // Same negligible-denominator guard pattern already used for the SSW
-  // grid weights in GridWeightGradient (kNegligibleWOwner there) --
-  // points far from every atom, where every rho_j(point) is
-  // negligible, would otherwise divide a near-zero numerator by a
-  // near-zero denominator.
+  // Far from all atoms the weight is 0/0; return 0 (cf. kNegligibleWOwner
+  // in GridWeightGradient).
   constexpr double kNegligibleDenominator = 1.e-12;
   if (denominator < kNegligibleDenominator) {
     return 0.0;
@@ -136,9 +123,7 @@ Eigen::Vector3d HirshfeldPartition::EvaluateWeightGradient(
     denominator +=
         EvaluateAtomicDensity(atoms[j].basis, atoms[j].density, point);
   }
-  // Same negligible-denominator guard as EvaluateWeight itself, for
-  // the identical reason -- points far from every atom, where the
-  // whole formula is 0/0 in the limit.
+  // Same 0/0 guard as in EvaluateWeight.
   constexpr double kNegligibleDenominator = 1.e-12;
   if (denominator < kNegligibleDenominator) {
     return Eigen::Vector3d::Zero();
@@ -152,7 +137,7 @@ Eigen::Vector3d HirshfeldPartition::EvaluateWeightGradient(
       (differentiate_atom_index == target_atom_index) ? 1.0 : 0.0;
   // d w_target/d R_A = [w_target(point) - 1_{A==target}] *
   //                    grad_rho_A(point) / rho_tot(point)
-  // -- see this function's own header comment for the derivation.
+  // (derivation in the header).
   return (w_target - indicator) * grad_rho_A / denominator;
 }
 
@@ -176,7 +161,7 @@ Eigen::Vector3d HirshfeldPartition::EvaluatePointWeightGradient(
   Eigen::Vector3d grad_rho_target = EvaluateAtomicDensityGradient(
       atoms[target_atom_index].basis, atoms[target_atom_index].density, point);
   // grad_r w(r) = [grad_r rho_target(r) - w(r)*grad_r rho_tot(r)] /
-  //               rho_tot(r) -- see this function's own header comment.
+  //               rho_tot(r)
   return (grad_rho_target - w_target * grad_denominator) / denominator;
 }
 
@@ -186,16 +171,10 @@ Eigen::MatrixXd HirshfeldPartition::BuildWeightMatrix(
   Index full_size = full_dftbasis.AOBasisSize();
   Eigen::MatrixXd W = Eigen::MatrixXd::Zero(full_size, full_size);
 
-  // Deliberately omp critical around AddtoBigMatrix alone, rather than
-  // the per-thread full-Natoms-squared-sized accumulator pattern used
-  // for the (much smaller) Natoms x 3 force-contribution functions
-  // below -- W is a full AOBasisSize x AOBasisSize matrix, potentially
-  // large for bigger systems, so nthreads separate copies of it would
-  // be a real memory cost; box_contribution (the only thing entering
-  // the critical section) is small and box-local, so only that final,
-  // cheap accumulation step is serialized, not the expensive per-point
-  // EvaluateWeight/CalcAOValues work this loop spends most of its time
-  // on.
+  // Unlike the Natoms x 3 force contributions below, W is not
+  // accumulated per thread (nthreads copies of an AO-sized matrix would
+  // cost too much memory). Only the cheap AddtoBigMatrix of the
+  // box-local contribution is serialized.
   std::exception_ptr eptr_weightmatrix = nullptr;
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid.getBoxesSize(); ++i) {
@@ -213,9 +192,7 @@ Eigen::MatrixXd HirshfeldPartition::BuildWeightMatrix(
       for (Index p = 0; p < static_cast<Index>(points.size()); ++p) {
         double w_i = EvaluateWeight(atoms, target_atom_index, points[p]);
         if (w_i == 0.0) {
-          // Purely a performance guard (skip the AO evaluation entirely
-          // when it cannot contribute anything), not a correctness one --
-          // see this function's own header comment.
+          // Performance only: a zero weight contributes nothing.
           continue;
         }
         AOShell::AOValues ao = box.CalcAOValues(points[p]);
@@ -240,24 +217,15 @@ Eigen::MatrixXd HirshfeldPartition::BuildWeightMatrix(
     std::rethrow_exception(eptr_weightmatrix);
   }
 
-  // The outer product ao.values * ao.values.transpose() is already
-  // exactly symmetric by construction, so this is a numerical no-op --
-  // guards only against tiny floating-point asymmetry accumulating
-  // across many grid points, matching the same defensive pattern used
-  // elsewhere in this branch for operator matrices built this way.
+  // Symmetric by construction; removes floating-point asymmetry only.
   W = 0.5 * (W + W.transpose());
   return W;
 }
 
 namespace {
-// Faithfully duplicated from vxc_potential.cc's own anonymous namespace
-// (SSWValue/SSWDerivative/kSSWCutoff there) -- those are genuinely
-// inaccessible from this file (confirmed: they are inside an
-// anonymous namespace in that translation unit, not exposed via any
-// header), and per the explicit decision this grew out of, this is a
-// deliberate duplication rather than a refactor of that existing,
-// already-validated file. Must stay byte-for-byte consistent with the
-// original if it is ever changed there.
+// Copy of SSWValue/SSWDerivative/kSSWCutoff from the anonymous namespace
+// in vxc_potential.cc (duplicated to leave that file unchanged). Keep
+// both versions identical.
 constexpr double kSSWAlpha = 1.0 / 0.30;
 constexpr double kSSWCutoff = 0.725;
 constexpr double kSqrtPi = 1.7724538509055160273;
@@ -420,13 +388,9 @@ Eigen::MatrixXd HirshfeldPartition::GridWeightDerivativeContribution(
           return p(k) * total;
         };
 
-        // Same prefactor role as GridWeightGradient's own C_p*rho*xc.f_xc,
-        // just with w_c(point) in place of xc.f_xc -- this point's
-        // contribution to Tr[D*W_c] is weight*w_c*rho_molecule =
-        // C_p*w_owner*w_c*rho_molecule, and differentiating w_owner alone
-        // (dw below) needs this same missing C_p factor multiplied back
-        // in, for the identical reason documented in GridWeightGradient's
-        // own comment on this.
+        // As C_p*rho*xc.f_xc in GridWeightGradient, with w_c instead of
+        // f_xc: the point contributes weight*w_c*rho_molecule =
+        // C_p*w_owner*w_c*rho_molecule, and only w_owner is differentiated.
         double prefactor = C_p * w_c * rho_molecule;
 
         for (Index A = 0; A < natoms; ++A) {
@@ -479,17 +443,12 @@ Eigen::MatrixXd HirshfeldPartition::PulayAndTranslationContribution(
         continue;
       }
 
-      // DMAT_here carries the same factor-of-2 convention as
-      // PulayGradient's own DMAT_here -- temp(mu) below is therefore
-      // already 2*(D*phi)_mu, matching that function's own contribution
-      // formula exactly (no separate factor of 2 needed at the point of
-      // use).
+      // Factor 2 as in PulayGradient: temp(mu) = 2*(D*phi)_mu.
       const Eigen::MatrixXd DMAT_here =
           2 * box.ReadFromBigMatrix(density_matrix);
 
-      // Same box-local-AO-index -> atom-index bookkeeping as
-      // PulayGradient's own, identical reasoning: a box's significant
-      // shells are not guaranteed to be grouped contiguously by atom.
+      // Box-local AO index -> atom, as in PulayGradient: the significant
+      // shells of a box are not grouped contiguously by atom.
       std::vector<Index> local_idx_to_atom(box.Matrixsize());
       const std::vector<const AOShell*>& shells = box.getShells();
       const std::vector<GridboxRange>& ao_ranges = box.getAOranges();
@@ -517,10 +476,9 @@ Eigen::MatrixXd HirshfeldPartition::PulayAndTranslationContribution(
         double w_c = EvaluateWeight(atoms, target_atom_index, point);
 
         // --- Pulay (basis-function) term ---
-        // Same sign/accumulation convention as PulayGradient's own LDA
-        // term, confirmed directly: contribution = -weight * <potential>
-        // * temp(mu) * ao.derivatives.row(mu), with w_c(point) here in
-        // place of xc.df_drho there.
+        // As the LDA term of PulayGradient: -weight * potential * temp(mu)
+        // * ao.derivatives.row(mu), with w_c(point) as the potential
+        // instead of xc.df_drho.
         for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
           Index atom = local_idx_to_atom[mu];
           Eigen::Vector3d contribution =
@@ -529,13 +487,9 @@ Eigen::MatrixXd HirshfeldPartition::PulayAndTranslationContribution(
         }
 
         // --- Grid-point-translation term ---
-        // Only the point's OWNER atom is affected (r_p moves rigidly
-        // with its owner only) -- see EvaluatePointWeightGradient's own
-        // header comment for the derivation. Full product rule, since
-        // both w_c(r) and rho_molecule(r) vary here (unlike the analogous
-        // XC term, which has only one point-varying factor -- xc.df_drho
-        // is evaluated AT rho, not itself differentiated in that specific
-        // term).
+        // r_p moves rigidly with its owner atom only (see
+        // EvaluatePointWeightGradient). Product rule over w_c(r) and
+        // rho_molecule(r), both of which depend on r.
         Index owner = owner_atoms[p];
         if (owner < 0) {
           throw std::runtime_error(
@@ -632,9 +586,7 @@ Eigen::MatrixXd HirshfeldPartition::ComputeCDFTForceContribution(
     const std::vector<AtomicReference>& atoms, Index target_atom_index,
     const Eigen::MatrixXd& density_matrix, const QMMolecule& mol,
     const AOBasis& full_dftbasis, const Vxc_Grid& grid) {
-  // Linear sum of all four terms -- see this function's own header
-  // comment for why the product-rule decomposition means their sum is
-  // exactly the full derivative, with no additional cross-terms.
+  // Sum of all four product-rule terms (see header).
   return GridWeightDerivativeContribution(atoms, target_atom_index,
                                           density_matrix, mol, grid) +
          WeightFunctionDerivativeContribution(

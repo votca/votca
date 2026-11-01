@@ -37,44 +37,12 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(md2qmengine_test)
 
 BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
-  // Directly exercises Md2QmEngine::map()'s own computation of the
-  // RAW external-bond direction from real, MD-level bond connectivity
-  // -- the one piece of the whole external-bond-direction pipeline
-  // (Atom's own storage, this computation, QMAtom's own parallel
-  // storage, SegmentMapper's own transform-and-transfer) that had no
-  // direct test coverage at all until now -- test_segmentmapper.cc's
-  // own external_bond_direction_transfer_test only ever exercises the
-  // transform-and-transfer half, given an already-set input
-  // direction, never this detection half at all.
-  //
-  // Per the user's own, direct suggestion: based on the bithiophene
-  // geometry already used earlier this session, with each ring
-  // mapped to its own, SEPARATE segment (matching a real, plausible
-  // "polymer terminal unit" scenario) -- confirmed directly, this
-  // session, that this specific, segment-level (not fragment-level)
-  // granularity is exactly what this feature is designed to detect:
-  // a real bond crossing an actual *segment* boundary, not merely an
-  // internal *fragment* boundary within one, single segment (the
-  // "3 fragments, 1 segment" case, matching test_segmentmapper.cc's
-  // own ch4.xml setup, never triggers this feature at all, confirmed
-  // directly, by inspecting Md2QmEngine::map()'s own code, since it
-  // never tracks fragment membership when building its own output at
-  // all, only segment membership).
-  //
-  // Single, real, synthetic csg::Topology: one molecule ("Bithiophene"),
-  // 16 beads, matching this session's own, already-established
-  // bithiophene.xyz atom order and geometry exactly (positions
-  // converted from the original Angstrom to nm here, since
-  // Md2QmEngine::map() itself directly converts bead positions from
-  // nm to bohr via tools::conv::nm2bohr) -- with real bonded
-  // interactions (csg::IBond) matching that same, already-confirmed
-  // connectivity, including the key, single C-C bond connecting the
-  // two rings (atom 1 <-> atom 9). The mapping file splits this one
-  // molecule into two, separate segments, "ThiopheneLeft" (atoms
-  // 0-7) and "ThiopheneRight" (atoms 8-15) -- so the 1<->9 bond is
-  // exactly the one, real bond that should be detected as crossing a
-  // segment boundary; every other bond in the structure stays within
-  // one segment or the other.
+  // Tests the detection of external bonds in Md2QmEngine::map() (the
+  // transfer through SegmentMapper is tested in test_segmentmapper.cc).
+  // A bithiophene molecule (16 atoms, positions in nm) is split into two
+  // segments, ThiopheneLeft (atoms 0-7) and ThiopheneRight (atoms 8-15),
+  // so the inter-ring bond 1-9 is the only bond crossing a segment
+  // boundary. Fragment boundaries within one segment are not detected.
   csg::Topology top;
   csg::Molecule* mol = top.CreateMolecule("Bithiophene");
 
@@ -82,7 +50,7 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
     std::string element;
     Eigen::Vector3d pos_angstrom;
   };
-  // Same order/positions as this session's own bithiophene.xyz.
+  // Same order/positions as bithiophene.xyz.
   std::vector<BeadSpec> beads = {
       {"S", {0.000000, 0.000000, 0.000000}},
       {"C", {1.714000, 0.000000, 0.000000}},
@@ -130,29 +98,19 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
       {10, 13},
       {11, 14},
       {12, 15},
-      // The one, real, inter-ring bond -- the only one crossing a
-      // segment boundary in this test's own mapping below.
+      // Inter-ring bond, the only one crossing a segment boundary.
       {1, 9},
   };
   for (const auto& b : bonds) {
-    // Real, direct fix for a real, genuine, repeated instance of the
-    // exact same setGroup() bug already fixed twice earlier this same
-    // session, in gmxtopologyreader.cc and xtp_map.cc's own
-    // GuessBonds -- confirmed directly, this third time, from the
-    // user's own real, direct CI failure report. A freshly-
-    // constructed IBond's own group_ starts out empty by default;
-    // getGroup() itself directly asserts this is non-empty.
+    // getGroup() asserts a non-empty group, which a new IBond does not
+    // have.
     csg::Interaction* ic = new csg::IBond(b.first, b.second);
     ic->setGroup("BONDS");
     top.AddBondedInteraction(ic);
   }
 
-  // Mapping file: splits the single "Bithiophene" molecule into two,
-  // separate segments, one per ring -- deliberately omits
-  // qmcoords/map2md entirely, confirmed directly, by reading
-  // Md2QmEngine::map()/CheckMappingFile()'s own code first, that
-  // neither is ever accessed there at all (only SegmentMapper::map(),
-  // not exercised by this test, uses qmcoords).
+  // One segment per ring. qmcoords/map2md are omitted, they are only used
+  // by SegmentMapper::map().
   std::string mapfile = "md2qmengine_bithiophene_test.xml";
   std::ofstream f(mapfile);
   f << R"(<topology>
@@ -211,11 +169,8 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
   BOOST_CHECK_EQUAL(left->size(), 8);
   BOOST_CHECK_EQUAL(right->size(), 8);
 
-  // Atom 1 (ring-junction C, on "ThiopheneLeft") must have its own
-  // external bond correctly detected -- direction (raw, MD-level,
-  // untransformed -- this test does not go through
-  // SegmentMapper::map() at all) pointing toward atom 9's own real
-  // position.
+  // Atom 1 (ring-junction C in ThiopheneLeft) has an external bond with
+  // the unrotated MD direction toward atom 9.
   const Atom* left_junction = nullptr;
   for (const Atom& a : *left) {
     if (a.getId() == 1) {
@@ -236,9 +191,7 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
     std::cout << expected_left_dir << std::endl;
   }
 
-  // Not just THAT an external bond exists, but WHICH segment it
-  // crosses into -- must be the real "ThiopheneRight" segment's own,
-  // actual, real id (right->getId()), not merely non-negative/set.
+  // The partner segment must be ThiopheneRight.
   BOOST_CHECK_EQUAL(left_junction->getExternalBondPartnerSegmentId(),
                     right->getId());
 
@@ -264,14 +217,11 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
     std::cout << expected_right_dir << std::endl;
   }
 
-  // Symmetric check: must point back to the real "ThiopheneLeft"
-  // segment's own, actual id.
+  // The partner segment must be ThiopheneLeft.
   BOOST_CHECK_EQUAL(right_junction->getExternalBondPartnerSegmentId(),
                     left->getId());
 
-  // Every other atom, in either segment, has no real external bond at
-  // all (every other bond in the structure stays within its own,
-  // single segment) -- must not report one.
+  // No other atom has an external bond.
   for (const Segment* seg : {left, right}) {
     for (const Atom& a : *seg) {
       if (a.getId() == 1 || a.getId() == 9) {

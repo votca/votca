@@ -1028,20 +1028,16 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
 }
 
 /**
- * \brief Guess for a dimer of two monomers with independently ARBITRARY
- * charge and spin, built by combining each monomer's own, already-
- * converged electronic structure directly.
+ * \brief Dimer guess from two converged monomers of arbitrary charge and
+ * spin.
  *
- * Unlike PrepareDimerGuess (restricted, closed-shell singlets only),
- * this builds the dimer's alpha and beta MO coefficient blocks
- * SEPARATELY: | Aalpha 0 | and | Abeta 0 |
- *             | 0 Balpha|     | 0  Bbeta|
- * A restricted monomer contributes the SAME block to both alpha and
- * beta (its own alpha/beta MOs being identical by construction); an
- * unrestricted monomer contributes its own, genuinely different alpha
- * and beta blocks. The dimer itself is always treated as unrestricted,
- * since that is the only representation general enough to hold two
- * monomers whose electron counts need not match.
+ * Unlike PrepareDimerGuess (closed-shell only), the alpha and beta MO
+ * coefficients are built as separate block-diagonal matrices:
+ *   | Aalpha 0 | and | Abeta 0 |
+ *   | 0 Balpha|     | 0  Bbeta|
+ * A restricted monomer contributes the same block to alpha and beta. The
+ * dimer is always unrestricted, since the monomer electron counts need not
+ * match.
  */
 void Orbitals::PrepareDimerGuessMixedSpin(const Orbitals& orbitalsA,
                                           const Orbitals& orbitalsB) {

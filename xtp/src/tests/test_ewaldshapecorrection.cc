@@ -32,9 +32,8 @@ BOOST_AUTO_TEST_SUITE(ewaldshapecorrection_test)
 // A small system with a charge, a static dipole, and an induced dipole,
 // spread across two registered segments, chosen so the total dipole
 // moment M = sum(q*r + mu_static + mu_induced) is nonzero and has no
-// special symmetry -- exercising every term of TotalDipoleMoment's own
-// sum, and giving a genuine (not vacuously zero) check for the field
-// formulas below.
+// special symmetry, so that every term of TotalDipoleMoment contributes
+// and the field checks below are not vacuous.
 EwaldRegistry BuildTestRegistry() {
   EwaldRegistry registry;
 
@@ -53,8 +52,8 @@ EwaldRegistry BuildTestRegistry() {
   site2.setpolarization(Eigen::Matrix3d::Identity());
   Vector9d mpoles2 = Vector9d::Zero();
   mpoles2(0) = -0.2;  // charge
-  mpoles2(3) = 0.3;   // static dipole z-component (Q10, per PolarSite's
-                      // own Q11c,Q11s,Q10 -> x,y,z convention)
+  mpoles2(3) = 0.3;   // static dipole z-component (Q10, per the PolarSite
+                      // Q11c,Q11s,Q10 -> x,y,z convention)
   site2.setMultipole(mpoles2, 1);
   seg2.push_back(site2);
   registry.Register(2, EwaldChargeState::Neutral, seg2);
@@ -62,10 +61,8 @@ EwaldRegistry BuildTestRegistry() {
   return registry;
 }
 
-// Independent hand computation of M, to cross-check against
-// EwaldShapeCorrection's own internal TotalDipoleMoment (not directly
-// exposed, so this is verified indirectly through the cube-shape field
-// formula in the next test instead of calling it directly).
+// Hand computation of M, used to check the (private) TotalDipoleMoment
+// of EwaldShapeCorrection indirectly through the cube-shape field.
 Eigen::Vector3d ExpectedTotalDipoleMoment() {
   Eigen::Vector3d M = Eigen::Vector3d::Zero();
   // site1: q=0.5 at (1,0,0), static dipole zero, induced (0.1,0,0)
@@ -218,8 +215,8 @@ PolarSegment ChargedForeground() {
 // dipole moments of both sides shift under translation, and only the
 // full three-term bracket cancels those shifts.
 //
-// The Q1.Q1-only form this method first had passes every other test in
-// this file and fails this one.
+// A Q1.Q1-only form passes every other test in this file but fails
+// this one.
 BOOST_AUTO_TEST_CASE(shape_energy_is_origin_invariant) {
   const double volume = 125.0;
   const PolarSegment fg = ChargedForeground();
@@ -327,8 +324,7 @@ BOOST_AUTO_TEST_CASE(slab_shape_energy_matches_bracket_form) {
 //
 //   U = - E . Q1_fg
 //
-// That identity is what the term was first built from. It is true, but
-// only here -- which is exactly why building on it alone was wrong.
+// This identity holds only for a neutral foreground.
 BOOST_AUTO_TEST_CASE(neutral_foreground_reduces_to_field_contraction) {
   EwaldRegistry registry = BuildPermanentOnlyBackground();
   const double volume = 125.0;
@@ -421,18 +417,16 @@ BOOST_AUTO_TEST_CASE(shape_energy_excludes_listed_background_sites) {
   BOOST_CHECK_CLOSE(e_excluded, -(4.0 * kPiLocal / (3.0 * volume)) * bracket,
                     1e-9);
 
-  // And excluding something genuinely changes the answer.
+  // And excluding something changes the answer.
   const double e_full = shape.CalcStaticEnergyBetween(
       AsForeground(fg), {}, EwaldChargeState::Neutral);
   BOOST_CHECK(std::abs(e_full - e_excluded) > 1e-8);
 }
 
-// Regression guard for the bug this term was added alongside: the energy
-// must follow the FOREGROUND's own moments. Were they taken from the
-// background copies instead, two charge states of the same segment at
-// the same position would report the same energy, and the difference
-// between them -- the whole point of a site-energy calculation -- would
-// silently lose this contribution.
+// The energy must use the FOREGROUND moments, not those of the
+// background copies; otherwise two charge states of the same segment at
+// the same position would get the same energy and the site-energy
+// difference would lose this contribution.
 BOOST_AUTO_TEST_CASE(shape_energy_tracks_foreground_charge_state) {
   EwaldRegistry registry = BuildPermanentOnlyBackground();
   const double volume = 125.0;

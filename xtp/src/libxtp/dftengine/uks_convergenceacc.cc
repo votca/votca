@@ -146,15 +146,10 @@ Eigen::VectorXd UKSConvergenceAcc::BuildCoupledSigmaVector(
   kappa_alpha_trial *= finite_diff_step;
   kappa_beta_trial *= finite_diff_step;
 
-  // Same linearized-exponential + Lowdin-reorthonormalization approach
-  // as BuildSigmaVector's own EvaluateGradientAt -- but rotates BOTH
-  // channels together and builds BOTH new Fock matrices together in
-  // ONE coupled_fock_builder call, rather than one channel at a time
-  // with the other held fixed. This is what actually captures the
-  // alpha-beta coupling: the shared Coulomb potential and the XC
-  // kernel's cross-spin terms naturally see both perturbed densities
-  // together inside coupled_fock_builder, rather than needing this
-  // function to construct any cross-coupling term explicitly itself.
+  // Linearized exponential + Lowdin reorthonormalization as in
+  // BuildSigmaVector, but both spins are rotated together and both Fock
+  // matrices built in one coupled_fock_builder call, which gives the
+  // alpha-beta coupling (shared Coulomb, cross-spin XC kernel).
   auto EvaluateBothGradientsAt = [&](const Eigen::MatrixXd& kappa_alpha,
                                      const Eigen::MatrixXd& kappa_beta)
       -> std::pair<Eigen::MatrixXd, Eigen::MatrixXd> {
@@ -237,31 +232,13 @@ Eigen::MatrixXd UKSConvergenceAcc::DirectMinimizationRotation(
   // since g_ia and h_ia themselves do not change under that later,
   // uniform rescaling, only kappa does.
   Eigen::MatrixXd h_matrix = Eigen::MatrixXd::Zero(nao, nao);
-  // Guards near-degenerate occ-virt orbital pairs from producing a
-  // wildly oversized step for THAT pair specifically -- confirmed
-  // directly against an independent ORCA reference run on this exact
-  // system, whose own TRAH implementation repeatedly hit BOTH
-  // genuinely negative gaps (occupied/virtual character swapping
-  // during iteration, since occupation here is defined by column
-  // index, not current energy ordering -- down to -0.635 Ha) and
-  // gaps numerically indistinguishable from zero (as small as
-  // 0.000002 Ha), needing its own explicit warnings and special
-  // handling for both. abs() here is essential, not cosmetic: a
-  // signed gap of -0.6 would otherwise pass std::max(-0.6, kMinGap)
-  // as if it were the tiny POSITIVE value kMinGap, producing an
-  // enormous, wrong-direction step for exactly that pair -- the
-  // Hessian approximation must be treated as positive-definite
-  // (a legitimate descent direction) regardless of the true, possibly
-  // negative or near-zero curvature this diagonal approximation
-  // cannot itself represent.
+  // Diagonal Hessian h_ia = max(|eps_a - eps_i|, kMinGap), kept positive
+  // definite. Occupations follow the column index, not the energy order,
+  // so gaps can be negative (occupied/virtual swaps) or near zero; without
+  // abs() a negative gap would become kMinGap and give a huge step.
   constexpr double kMinGap = 1e-3;
-  // Per-PAIR step cap, independent of and in addition to the overall,
-  // whole-matrix trust-radius bound below -- confirmed necessary
-  // because a single pathological pair (as above) could otherwise
-  // dominate the entire rotation DIRECTION even after the whole
-  // matrix is normalized to the trust radius, silently scaling every
-  // other, well-behaved pair down to near-nothing while that one bad
-  // pair still controls where the step actually points.
+  // Per-pair step cap in addition to the trust radius below, so that a
+  // single near-degenerate pair cannot dominate the step direction.
   constexpr double kMaxKappaElement = 0.1;
   for (Index i = 0; i < nocclevels; ++i) {
     for (Index a = nocclevels; a < nao; ++a) {
@@ -532,37 +509,17 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
       nocclevels_alpha_ < MOs_alpha.eigenvalues().size()) {
     double gap_alpha = MOs_alpha.eigenvalues()(nocclevels_alpha_) -
                        MOs_alpha.eigenvalues()(nocclevels_alpha_ - 1);
-    // consecutive_adiis_failures_ < kMaxConsecutiveADIISFailures added
-    // deliberately: a real run showed level shift catastrophically
-    // breaking the Davidson solve this class's own direct-minimization
-    // fallback depends on (residual climbing past 395, far beyond any
-    // prior failure mode) once direct-minimization engaged (originally
-    // discovered against an earlier, decoupled AugmentedHessianStep
-    // implementation; the same mechanism still applies to
-    // CoupledAugmentedHessianStep's own diagonal preconditioner below,
-    // which is built the same way). Root cause: Levelshift() modifies H
-    // in place, BEFORE CoupledAugmentedHessianStep/DirectMinimizationRotation
-    // ever see it -- and that preconditioner (diag_h) is built directly
-    // from eps(a)-eps(i), the raw orbital energy gap, which becomes
-    // systematically inflated by the shift for virtual orbitals.
-    // ADIIS/DIIS do not
-    // have this problem (they operate on the Fock/density matrices
-    // themselves, never deriving a separate quantity like an orbital
-    // gap from the shifted eigenvalues), so level shift stays active
-    // for them -- this guard only disables it once direct-minimization
-    // is about to take over, since level shift's own purpose
-    // (discouraging occ-virt mixing during diagonalization) does not
-    // even apply to a method that never diagonalizes H at all.
+    // No level shift once direct minimization takes over: Levelshift()
+    // modifies H in place, inflating the virtual orbital energies from
+    // which the diagonal preconditioner of
+    // CoupledAugmentedHessianStep/DirectMinimizationRotation is built,
+    // which makes the Davidson solve diverge. ADIIS/DIIS are unaffected.
     if ((diiserror_ > opt_alpha_.levelshiftend &&
          opt_alpha_.levelshift > 0.0) ||
         gap_alpha < 1e-6) {
-      // "- 1" margin: consecutive_adiis_failures_ is only incremented
-      // LATER in this same Iterate() call (after this check runs), so
-      // without the margin this would still see the PREVIOUS
-      // iteration's count on the exact iteration where the threshold
-      // is reached and direct-minimization actually fires -- letting
-      // level shift through on precisely the iteration it needs to be
-      // blocked, one iteration too late.
+      // "- 1": consecutive_adiis_failures_ is incremented later in this
+      // call, so this also covers the iteration on which direct
+      // minimization starts.
       if (consecutive_adiis_failures_ < kMaxConsecutiveADIISFailures - 1 &&
           !trah_active_) {
         Levelshift(H.alpha, MOs_alpha.eigenvectors(), opt_alpha_,
@@ -590,12 +547,8 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
 
   diiserror_ = CombinedError(err_alpha, err_beta);
 
-  // Trailing-average trigger bookkeeping (see this class's own header
-  // comment on diiserror_history_ for the full ORCA-derived reasoning)
-  // -- tracked unconditionally, every iteration, regardless of what
-  // this iteration goes on to do (ADIIS/DIIS/mixing/direct-
-  // minimization), since the whole point is to observe the genuine,
-  // realized trajectory of diiserror_ itself.
+  // Trailing-average trigger bookkeeping (see diiserror_history_),
+  // recorded every iteration whatever method is used.
   ++total_iteration_count_;
   diiserror_history_.push_back(diiserror_);
   if (Index(diiserror_history_.size()) > kTrailingWindowSize) {
@@ -693,30 +646,14 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
 
   if (diiserror_ > opt_alpha_.mixingend || !opt_alpha_.usediis || diis_error ||
       (mathist_alpha_.size() <= 2 && !near_convergence)) {
-    // mixingend, not adiis_start -- deliberately decoupled (see the
-    // options struct's own comment in convergenceacc.h): ORCA keeps
-    // DampErr fully independent of DIISStart, and recommends making
-    // DampErr much SMALLER for difficult systems specifically so
-    // damping stays active well past the point where DIIS itself
-    // starts being tried -- reusing adiis_start here could never
-    // represent that independently, since it would tie "when does
-    // mixing turn off" to the same value as "when does ADIIS/DIIS
-    // engage at all", which are conceptually separate questions.
+    // mixingend is independent of adiis_start (like ORCA's DampErr and
+    // DIISStart), so damping can stay on after DIIS starts; see
+    // convergenceacc.h.
     usedmixing_ = true;
-    // Adaptive damping (matches ORCA's own DampFac/DampMax design,
-    // confirmed directly from a real ORCA log's own resolved SCF
-    // settings -- see the options struct's own comment in
-    // convergenceacc.h for the full reasoning): ramp LINEARLY from
-    // mixingparameter (the base, e.g. 0.7) toward mixingmax (the
-    // ceiling, e.g. 0.98) as consecutive_adiis_failures_ increases
-    // toward kMaxConsecutiveADIISFailures, rather than applying the
-    // ceiling value for the entire run regardless of whether the SCF
-    // is actually struggling. Ties the ramp to the SAME signal already
-    // driving the direct-minimization trigger itself, rather than
-    // introducing a separate struggle metric -- consecutive_adiis_
-    // failures_ resets to 0 on any successful ADIIS/DIIS step, so the
-    // ramp relaxes back toward the base value just as readily as it
-    // climbed.
+    // Adaptive damping (cf. ORCA DampFac/DampMax): ramp linearly from
+    // mixingparameter to mixingmax as consecutive_adiis_failures_ goes to
+    // kMaxConsecutiveADIISFailures. The counter resets after a successful
+    // ADIIS/DIIS step, so the damping relaxes again.
     double ramp_fraction =
         std::min(1.0, double(consecutive_adiis_failures_) /
                           double(kMaxConsecutiveADIISFailures));

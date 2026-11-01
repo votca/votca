@@ -14,27 +14,14 @@
  *
  */
 
-// ===========================================================================
-// STATUS: written but NOT yet run. First real exercise of
-// DFTEngine::RunCDFT (the outer, warm-started, bisection-based
-// Lagrange-multiplier loop) -- everything tested in
-// test_hirshfeldpartition.cc validates only the weight-matrix
-// machinery in isolation; this is the first test to actually run the
-// full CDFT SCF loop end to end.
-//
-// Deliberately does NOT assume any particular "correct" physical
-// target population in advance (this branch has no independent source
-// of truth for what CO's true Hirshfeld population on carbon should
-// be). Instead: runs an ordinary, UNCONSTRAINED UKS calculation first
-// to get carbon's own NATURAL Hirshfeld population, then constrains to
-// a deliberately shifted target (natural + 0.1) and checks that
-// RunCDFT actually drives the SCF there. This tests the OPTIMIZER
-// itself (does bisection converge, does the warm-start reuse behave
-// correctly across repeated EvaluateUKS calls, is the measured
-// population after convergence actually close to the requested
-// target) independently of any specific chemistry claim about what
-// the "right" answer should be.
-// ===========================================================================
+// End-to-end tests of charge-constrained DFT (CDFT) for CO.
+// rundcft_reaches_shifted_target_population runs an unconstrained UKS
+// calculation to get the Hirshfeld population of carbon, then calls
+// DFTEngine::RunCDFT with the target shifted by +0.1 and checks that the
+// bisection over lambda converges to it. cdft_total_force_finite_difference
+// goes through DFTEngine::Evaluate with cdft enabled and compares the total
+// CDFT force with a finite difference of three full CDFT calculations
+// (slow; skipped without libint2 derivative support).
 
 #include "xtp_libint2.h"
 #include <stdexcept>
@@ -305,42 +292,15 @@ BOOST_AUTO_TEST_CASE(rundcft_reaches_shifted_target_population) {
 }
 
 // ===========================================================================
-// STATUS: written but NOT yet run. Validates the PRODUCTION path this
-// time -- DFTEngine::Evaluate's own cdft_enabled_ dispatch, including
-// the force correction wired into it -- not RunCDFT called directly
-// the way rundcft_reaches_shifted_target_population does. This is the
-// natural next step after ComputeCDFTForceContribution's own
-// fixed-density-matrix finite-difference test (in
-// test_hirshfeldpartition.cc) already passed to near machine
-// precision: THAT test confirmed the underlying force TERM is
-// mathematically correct in isolation; THIS test checks that it is
-// correctly wired into a real, fully self-consistent CDFT calculation
-// end to end -- Evaluate() -> BuildCDFTConstraint -> RunCDFT (full
-// bisection, warm-started inner SCF) -> the force correction added
-// afterward.
-//
-// Runs three FULL CDFT calculations (bond_length, bond_length+h,
-// bond_length-h), each its own complete outer bisection loop -- unlike
-// the fixed-density-matrix test, there is no way to isolate just the
-// force term here without running the real optimizer, so this is
-// slower (comparable to or more than the existing "3 full SCF"
-// plain-DFT forces test already in this codebase).
+// End-to-end check of the CDFT forces through DFTEngine::Evaluate
+// (BuildCDFTConstraint -> RunCDFT -> force correction) against a finite
+// difference of the total energy. The force term alone is checked at fixed
+// density matrix in test_hirshfeldpartition.cc. Slow: three full CDFT
+// calculations (bond_length and bond_length +/- h).
 // ===========================================================================
 BOOST_AUTO_TEST_CASE(cdft_total_force_finite_difference) {
-  // Checked BEFORE libint2::initialize()/anything else runs, not
-  // after: this test runs THREE full, independent CDFT calculations
-  // (see this test's own comment below), each potentially as
-  // expensive as the direct-minimization fallback machinery
-  // elsewhere in this codebase -- discovering the lack of derivative
-  // support only after paying for one or more of those three would
-  // waste real CI time (or, worse, risk a CI timeout) for a
-  // calculation that could never produce forces regardless. CDFT
-  // forces build directly on the same underlying derivative
-  // machinery ordinary DFT forces need, so this should only run when
-  // that same, underlying support is actually present -- exactly the
-  // same condition DFTEngine::Initialize() itself already enforces
-  // (throwing if compute_forces_=true without it), just checked here
-  // proactively rather than by catching that throw after the fact.
+  // CDFT forces need libint2 derivative integrals (DFTEngine::Initialize
+  // throws without them); check first rather than after expensive SCFs.
   if (!HasLibint2DerivativeSupport()) {
     std::cout << "SKIPPING cdft_total_force_finite_difference: this "
                  "libint2 build lacks derivative-integral support for "

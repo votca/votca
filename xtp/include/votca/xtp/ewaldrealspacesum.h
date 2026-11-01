@@ -39,51 +39,26 @@
  *        field at a target position from every registered segment, summed
  *        over periodic images, converged by adaptive radial shells.
  *
- * This is a fresh implementation of the algorithm identified in the legacy
- * xtp/ewald/ code's RThread::FP_FieldCalc (real-space contribution grows
- * shell-by-shell until the per-shell contribution becomes negligible), not
- * a port of it. In particular the convergence criterion is re-derived: the
- * legacy code's own "test dipole" / RMS-count construction was never fully
- * understood even by the people who wrote it, so this class instead tracks
- * the plain magnitude of each shell's own field contribution and stops once
- * that drops below an absolute tolerance (with a minimum radius enforced
- * throughout, so an accidentally-small early shell can't trigger early
- * stopping). This is a considered simplification, not a proven-equivalent
- * reformulation -- see the project notes on validating its own convergence
- * behaviour (does the total field actually stabilize as the tolerance
- * tightens?) before trusting it on a production system.
+ * Follows the shell-by-shell scheme of legacy RThread::FP_FieldCalc, but
+ * with a simpler convergence criterion: the sum stops once the magnitude
+ * of a shell's field contribution drops below an absolute tolerance,
+ * provided a minimum radius r_min has been reached (legacy uses a
+ * "test dipole" RMS construction instead).
  *
- * Scope: this class computes the *intermolecular* real-space field only.
- * Interactions between two sites in the same registered segment (whether
- * at zero translation, i.e. genuinely intramolecular, or at a nonzero
- * translation, i.e. that segment's own periodic image) are excluded
- * entirely and left to whatever already handles intramolecular coupling
- * -- this mirrors the existing split in eeInteractor between
- * ApplyStaticField/ApplyInducedField (intermolecular) and
- * Cholesky_IntraSegment/FillTholeInteraction (intramolecular), rather than
- * inventing a new boundary.
+ * Scope: the target's own segment at zero translation (the
+ * intramolecular pairs, including the r = 0 self-pair) is excluded; its
+ * other periodic images are included. Intramolecular coupling is handled
+ * elsewhere, as in the split of eeInteractor between
+ * ApplyStaticField/ApplyInducedField and
+ * Cholesky_IntraSegment/FillTholeInteraction.
  *
- * Performance: AddFieldAt caches the real, geometry-determined neighbor
- * set (which (source segment, periodic-translation) pairs actually
- * contributed to a given target's own converged sum) per (target site,
- * source charge state) pair, keyed by that site's own address together
- * with source_state. The first call for a given (target, state) pair
- * runs the full shell-by-shell convergence search (scanning every
- * registered segment each shell); every subsequent call for that SAME
- * pair reuses the cached (source, translation) list directly, skipping
- * the search entirely. This mirrors legacy PolarBackground's own RThread::
- * PolarNbs() mechanism (built once, at its own first SOR iteration, then
- * reused for every later one) rather than being a novel optimization --
- * a direct comparison against a legacy log for the same real system
- * found this class's own repeated full-system rescan, once per PCG
- * iteration, to be the dominant cause of a real ~8x wall-clock slowdown
- * relative to legacy's own SOR solve at a comparable iteration count
- * (with thread count and iteration count both directly ruled out as
- * explanations first). This caching is safe specifically because site
- * POSITIONS are fixed for the lifetime of a single PCG solve (only
- * induced dipole VALUES change between iterations, which this cache
- * never stores) -- it would NOT be safe to reuse across a call sequence
- * where target or source positions themselves change.
+ * Performance: the (source segment, translation) pairs that contribute to
+ * a target's converged sum are cached per (target site address, source
+ * charge state), so only the first call runs the shell search, as with
+ * legacy RThread::PolarNbs(). Without the cache the repeated search made
+ * each solver iteration ~8x slower than legacy. The cache assumes that
+ * site positions do not change during its lifetime; only induced-dipole
+ * values may change.
  *
  * Units: bohr, Hartree atomic units throughout, matching PolarSite and
  * EwaldRealSpaceInteractor.
@@ -95,63 +70,42 @@ namespace xtp {
 class EwaldRealSpaceSum {
  public:
   // box: columns are the lattice vectors a, b, c (matching
-  //   Topology::getBox()'s own convention).
+  //   the Topology::getBox() convention).
   // registry: source of every segment's multipole/induced-dipole state.
   //   Stored by reference; the registry must outlive this object, and
-  //   FieldAt() reads whatever is currently in it (e.g. updated induced
-  //   dipoles from a prior SCF iteration).
+  //   AddFieldAt() reads its current state (e.g. updated induced dipoles).
   // alpha, thole_a: passed through to the underlying
   //   EwaldRealSpaceInteractor.
   // r_min: minimum shell radius (bohr) before convergence may be declared,
   //   regardless of how small any individual shell's contribution is.
-  // field_tol: convergence threshold (atomic units) on a shell's own
+  // field_tol: convergence threshold (atomic units) on a shell's
   //   contribution to the field magnitude.
   // shell_width: radial bin width (bohr) used to group periodic images
   //   into shells.
   // n_max: safety cap on the lattice-translation search box (translations
   //   with |na|,|nb|,|nc| <= n_max are considered candidates). If
-  //   convergence is not reached within this box, FieldAt() throws rather
-  //   than silently returning an unconverged result.
+  //   convergence is not reached within this box, AddFieldAt() throws.
   // screening_factor: sets the real-space distance cutoff to
-  //   screening_factor / alpha. A pair separated by more than that
-  //   contributes at most ~erfc(screening_factor) of the local field, so
-  //   the default 6.0 truncates at ~2e-17 per pair -- far below any
-  //   realistic field_tol, while discarding the large majority of
-  //   (source segment, translation) pairs a periodic sum would otherwise
-  //   evaluate (measured: 78.7% on a 1000-segment box, a 4.5x saving in
-  //   real-space cost with the converged dipoles unchanged in every
-  //   printed digit). Raise it to tighten the truncation at
-  //   proportionally greater cost -- the number of surviving pairs grows
-  //   as the cube -- or lower it to trade accuracy for speed
-  //   deliberately. Values below ~4 start to matter at the 1e-11 level
-  //   and should be checked against a reference before use.
+  //   screening_factor / alpha. Beyond it a pair contributes at most
+  //   ~erfc(screening_factor); the default 6.0 gives ~2e-17 and discards
+  //   78.7% of the pairs on a 1000-segment box (4.5x faster real-space
+  //   sum, converged dipoles unchanged in all printed digits). The number
+  //   of retained pairs grows as the cube of the cutoff. Values below ~4
+  //   affect results at the 1e-11 level.
+  //   Kept as the last parameter so that existing positional calls are
+  //   not silently reinterpreted; add new parameters at the end.
   //
-  // screening_factor is deliberately the LAST parameter rather than
-  // sitting next to the other accuracy controls it belongs with: adding
-  // it mid-signature silently reinterpreted the positional shell_width
-  // and n_max arguments of existing callers, which still compiled and
-  // then culled every pair. Keep new parameters at the end.
+  // foreground: (segment id, centroid position) pairs treated explicitly
+  //   by a polar region and therefore removed from this sum (the MM/MM or
+  //   QM/MM carve-out). Each entry suppresses only the periodic copy at
+  //   the given position; all other images remain in the background.
   //
-  // foreground: (segment id, segment centroid position) pairs that are
-  //   handled EXPLICITLY by a polar region rather than by this periodic
-  //   sum, and so must be removed from it -- the "carving out" an MM/MM
-  //   or QM/MM job performs. Each entry suppresses exactly the one
-  //   periodic copy of that segment sitting at the given position; every
-  //   OTHER lattice image of the same segment remains part of the
-  //   background and is still summed.
-  //
-  //   Matched by position rather than by "is this the minimum image",
-  //   deliberately. Two foreground segments can be separated by up to
-  //   twice the region cutoff, so for a target near the edge of the
-  //   foreground the minimum image of another foreground segment can be
-  //   a DIFFERENT copy than the one the polar region actually holds --
-  //   in which case a minimum-image rule would exclude the wrong one and
-  //   silently double-count. Legacy sidesteps the same trap by keying
-  //   its own ForegroundTable on explicit (id, na, nb, nc) rather than
-  //   on nearest-image. Positions come from JobTopology, which has
-  //   already centred them, so an exact-coordinate match is meaningful;
-  //   kForegroundMatchTol only absorbs round-off, and is orders of
-  //   magnitude below any real inter-segment separation.
+  //   Copies are matched by position, not by minimum image: two
+  //   foreground segments can be up to twice the region cutoff apart, so
+  //   the minimum image may differ from the copy held by the polar region
+  //   (legacy likewise keys its ForegroundTable on (id, na, nb, nc)).
+  //   Positions come from JobTopology and are already centred, so
+  //   kForegroundMatchTol only absorbs round-off.
   //
   //   Empty by default, which is the plain periodic background.
   EwaldRealSpaceSum(
@@ -162,28 +116,17 @@ class EwaldRealSpaceSum {
       const std::vector<std::pair<Index, Eigen::Vector3d>>& foreground = {});
 
   // Accumulates the total intermolecular real-space field into target's
-  // own V()/V_noE() accumulators (via EwaldRealSpaceInteractor, matching
-  // its convention), generated by every segment in the registry at charge
-  // state source_state, excluding target_segment_id itself (see class
-  // documentation on scope). target's position (target.getPos()) is used
-  // as the field evaluation point; target itself need not already be
-  // registered in registry_. Throws std::runtime_error if convergence is
-  // not reached within n_max shells.
+  // V()/V_noE() accumulators (EwaldRealSpaceInteractor convention) from
+  // every segment registered at source_state, excluding the
+  // zero-translation copy of target_segment_id (see class documentation).
+  // The field is evaluated at target.getPos(); target need not be
+  // registered. Throws std::runtime_error if convergence is not reached
+  // within n_max shells.
   //
-  // include_static selects whether each source's PERMANENT multipole
-  // field is accumulated alongside its induced-dipole field. It exists
-  // for the iterative solver: the permanent contribution does not depend
-  // on the induced dipoles, so EwaldPeriodicDipoleOperator's own
-  // RawMultiply recomputes an identical constant on every iteration,
-  // which its multiply() = RawMultiply(v) - baseline_ then cancels
-  // exactly. Passing false there drops that work with no effect on the
-  // result (both RawMultiply(v) and baseline_ shift by the same
-  // constant). Measured at ~53% of this class's own per-pair real-space
-  // cost, i.e. the single largest avoidable cost in the solve.
-  //
-  // Defaults to true, so the permanent-field pass that builds the
-  // solver's own right-hand side (which genuinely needs it) is
-  // unaffected.
+  // include_static = false skips the permanent-multipole field and
+  // accumulates only the induced-dipole field. EwaldPeriodicDipoleOperator
+  // uses this, since the permanent field is a constant that cancels in
+  // RawMultiply(v) - baseline_; it is ~53% of the per-pair cost.
   template <enum Estatic CE>
   void AddFieldAt(Index target_segment_id, PolarSite& target,
                   EwaldChargeState source_state,
@@ -198,73 +141,43 @@ class EwaldRealSpaceSum {
   // target sees the same (source, translation) list, applied in the same
   // order.
   //
-  // This, not an omp loop around AddFieldAt, is how a caller evaluates
-  // many targets concurrently: AddFieldAt inserts into neighbor_cache_
-  // on a miss, and concurrent insertion into an unordered_map loses
-  // entries (and can corrupt the table) without any diagnostic.
+  // Use this (or PrepareNeighborCache first) rather than an OpenMP loop
+  // around AddFieldAt: AddFieldAt inserts into neighbor_cache_ on a miss,
+  // and concurrent insertion into an unordered_map is a data race.
   template <enum Estatic CE>
   void AddFieldAtMany(const std::vector<std::pair<Index, PolarSite*>>& targets,
                       EwaldChargeState source_state,
                       bool include_static = true) const;
 
-  // The erfc-screened PERMANENT-multipole interaction energy between one
-  // target site and every background source this class would sum a field
-  // from -- the same neighbour set, with the same foreground copies
-  // suppressed and the same distance cull applied, so the energy and the
-  // field are guaranteed to describe the same system.
+  // erfc-screened interaction energy between the PERMANENT multipoles of
+  // one target site and of every background source, over the same cached
+  // neighbour list (foreground suppression and distance cull included)
+  // that AddFieldAt uses, so energy and field describe the same system.
+  // Induced dipoles do not enter: the foreground's are handled by
+  // PolarRegion (E_polar_ext), the background's by
+  // CalcInducedSourceEnergyAt.
   //
-  // Permanent multipoles on BOTH sides. Neither side's induced dipoles
-  // enter: the foreground's are PolarRegion's business (E_polar_ext),
-  // and the background's belong to CalcInducedSourceEnergyAt below.
-  //
-  // Requires the neighbour cache to exist, i.e. AddFieldAt or
-  // PrepareNeighborCache must have run for this target first. It does
-  // not build the cache itself, because doing so would make an energy
-  // query silently expensive and, worse, order-dependent.
-  // No target_segment_id parameter, unlike AddFieldAt: the neighbour
-  // list is keyed on the target site itself, and the exclusion of the
-  // target's own segment is already baked into the cached list, so the
-  // id would be dead weight here.
+  // Requires the neighbour list of this target (AddFieldAt or
+  // PrepareNeighborCache must have run); it is not built here, to keep
+  // the energy query cheap and independent of call order. The list
+  // already encodes the own-segment exclusion, so no segment id is
+  // needed.
   double CalcStaticEnergyAt(const PolarSite& target,
                             EwaldChargeState source_state) const;
 
-  // The erfc-screened, Thole-damped energy between the BACKGROUND's
-  // induced dipoles (sources) and one foreground target's PERMANENT
-  // moments -- over exactly the neighbour set CalcStaticEnergyAt uses,
-  // for the same reason: the energy and the field must describe the
-  // same system.
-  //
-  // This is the [fg permanent] x [bg induced] corner of the
-  // permanent/induced product. See
-  // EwaldRealSpaceInteractor::CalcInducedSourceEnergy for why it has no
-  // other home, and why it is damped where the permanent energies are
-  // not.
-  //
-  // Same cache requirement as CalcStaticEnergyAt, and for the same
-  // reason.
   // POTENTIAL at arbitrary points, batched. Total of both channels, to
   // match EwaldReciprocalSpaceSum::PotentialAtMany and the field
   // AddFieldAt delivers: permanent moments through CalcStaticEnergy,
   // background induced dipoles through CalcInducedSourceEnergy.
   //
-  // NO NEIGHBOUR CACHE, deliberately. AddFieldAt keys its cache on the
-  // target's ADDRESS and writes an entry on first use, which is right
-  // for a fixed set of sites queried repeatedly and wrong for a DFT
-  // grid: one entry per point would run to gigabytes, and reusing one
-  // probe object across positions would silently hand every later point
-  // the first one's neighbour list. Points here are just coordinates, so
-  // nothing is keyed and nothing is kept.
-  //
-  // Its traversal therefore duplicates AddFieldAt's distance cull,
-  // foreground suppression and zero-translation self-skip rather than
-  // sharing them -- those rules are interleaved with a field-based
-  // convergence check there, which has no meaning for a potential.
-  // Duplicated rules drift, so this is held to AddFieldAt's own answer
-  // by unit_probe_potential_reproduces_the_static_energy and the
-  // EwaldRegion case that compares against a direct lattice sum. The
-  // shell-convergence early exit is dropped in favour of the geometric
-  // cutoff alone, which visits a superset of what the shell search
-  // reaches.
+  // Uses no neighbour cache: the cache is keyed on site addresses, and
+  // one entry per grid point (e.g. a DFT grid) would be prohibitively
+  // large. The distance cull, foreground suppression and zero-translation
+  // self-skip of AddFieldAt are therefore duplicated here; consistency is
+  // tested by unit_probe_potential_reproduces_the_static_energy and the
+  // EwaldRegion comparison with a direct lattice sum. Instead of the
+  // shell-convergence exit only the geometric cutoff is used, which
+  // visits a superset of the shell search.
   //
   // target_segment_id decides only whether the zero-translation
   // self-pair is skipped, and that skip is disabled for any source with
@@ -274,6 +187,12 @@ class EwaldRealSpaceSum {
                                   const std::vector<Eigen::Vector3d>& points,
                                   EwaldChargeState source_state) const;
 
+  // erfc-screened, Thole-damped energy between the BACKGROUND induced
+  // dipoles (sources) and the PERMANENT moments of one foreground target,
+  // over the same neighbour list as CalcStaticEnergyAt (same cache
+  // requirement). This is the [fg permanent] x [bg induced] term; see
+  // EwaldRealSpaceInteractor::CalcInducedSourceEnergy for why it is
+  // damped where the permanent energies are not.
   double CalcInducedSourceEnergyAt(const PolarSite& target,
                                    EwaldChargeState source_state) const;
 
@@ -282,21 +201,16 @@ class EwaldRealSpaceSum {
   // each target, so the targets themselves are not touched. Targets that
   // already have a list (and repeated entries) are skipped.
   //
-  // The searches run in parallel -- each one only reads this object --
-  // and the lists are inserted into neighbor_cache_ afterwards, serially,
-  // together with the statistics counters. Once every list exists
-  // AddFieldAt is read-only with respect to this object and safe to call
-  // concurrently for distinct targets. Calling this is optional --
-  // AddFieldAt still builds its own list on demand -- but a caller that
-  // skips it must not run AddFieldAt in parallel.
+  // The searches run in parallel; the lists and statistics are then
+  // inserted serially. Afterwards AddFieldAt does not modify this object
+  // and may be called concurrently for distinct targets. Without this
+  // call AddFieldAt builds lists on demand and must not run in parallel.
   //
   // converge_static_field selects the field whose shell contribution
-  // decides when the search stops, exactly as include_static does for
-  // AddFieldAt's own on-demand search: true converges the permanent plus
-  // induced field (what AddFieldAt<V>(..., true) would have built),
-  // false the induced field alone. Callers pass what their first
-  // AddFieldAt call would have passed, so the list -- and hence every
-  // later result -- is the one the on-demand path would have produced.
+  // terminates the search, as include_static does for AddFieldAt: true
+  // for permanent plus induced, false for induced only. Pass the value
+  // the first AddFieldAt call would use, so that the list is identical
+  // to the on-demand one.
   void PrepareNeighborCache(
       const std::vector<std::pair<Index, PolarSite*>>& targets,
       EwaldChargeState source_state, bool converge_static_field = false) const;
@@ -372,9 +286,8 @@ class EwaldRealSpaceSum {
       const std::pair<const PolarSite*, EwaldChargeState>& key,
       NeighborList list, const SearchCounts& counts) const;
 
-  // std::pair has no default std::hash specialization; EwaldChargeState
-  // (an enum class) does, via std::underlying_type, since C++14, so this
-  // only needs to combine the two.
+  // std::pair has no std::hash specialization; combine the hashes of
+  // the pointer and the enum (hashable since C++14).
   struct PairHash {
     std::size_t operator()(
         const std::pair<const PolarSite*, EwaldChargeState>& key) const {
@@ -403,12 +316,8 @@ class EwaldRealSpaceSum {
   // have no entry at all; those that do usually have exactly one.
   std::map<Index, std::vector<Eigen::Vector3d>> foreground_;
   // Neighbour-list statistics, accumulated as the cache is built. The
-  // cached list is the real cost driver of the whole solve: every entry
-  // is one (source segment, periodic translation) pair, re-evaluated
-  // against every one of the target's own sites on every iteration.
-  // Reported once per run so the effect of alpha, r_min and the
-  // distance cull on that cost is visible directly, rather than being
-  // inferred from wall-clock.
+  // number of entries determines the cost per solver iteration; it is
+  // reported so that the effect of alpha, r_min and the cull is visible.
   mutable Index cached_targets_ = 0;
   mutable Index cached_entries_ = 0;
   mutable Index culled_entries_ = 0;
@@ -428,37 +337,18 @@ class EwaldRealSpaceSum {
   Index n_max_;
 
   // Generated once at construction (depends only on the box, not on the
-  // target position), reused by every FieldAt() call.
+  // target position), reused by every AddFieldAt() call.
   std::vector<Translation> translations_;
 
-  // Every (source_id, translation_idx) pair that genuinely contributed to
-  // a given target's own converged sum -- i.e. the real, geometry-
-  // determined neighbor list, analogous to legacy PolarBackground's own
-  // RThread::PolarNbs(). Built once per distinct (target site, source
-  // charge state) pair (keyed by the site's own address plus
-  // source_state -- the address alone is NOT enough: this class's
-  // registered segments could in principle be queried at a different
-  // EwaldChargeState for the same physical target site, and geometric
-  // neighbors depend on which segments are actually registered at that
-  // state via Has(), not on the target's own identity alone), then
-  // reused on every subsequent call for that same (target, state) pair.
-  // The motivating caller (EwaldPeriodicDipoleOperator, via its own
-  // targets_ vector built once and reused every RawMultiply call) always
-  // uses EwaldChargeState::Neutral, so this distinction is not
-  // exercised by anything in this codebase today, but the key is chosen
-  // to be genuinely correct rather than correct only for the one
-  // access pattern that happens to exist right now.
-  // The first tuple element is a direct pointer to the source segment,
-  // not its id: resolving an id through registry_ costs a Has() plus a
-  // Get(), i.e. two std::map lookups, and this list is walked once per
-  // (target site, neighbour) pair -- ~3e7 times per solver iteration on
-  // a 1000-segment system, measured at ~59ns per entry against ~3ns for
-  // a stored pointer. Legacy's own PolarNb stores the neighbour segment
-  // by pointer for the same reason. Safe because the registry outlives
-  // this object (see the class documentation) and its segments are
-  // stored in a std::map, whose elements keep stable addresses; the same
-  // stability argument this cache already relies on for target site
-  // addresses being usable as keys.
+  // Neighbour list (source segment, translation) of each target's
+  // converged sum, analogous to legacy RThread::PolarNbs(). Keyed by
+  // (target site address, source charge state), since the set of
+  // registered sources depends on the charge state.
+  // Sources are stored by pointer rather than id: an id lookup costs two
+  // std::map lookups (~59 ns vs ~3 ns per entry, ~3e7 entries per
+  // iteration for 1000 segments). This is safe because the registry
+  // outlives this object and stores segments in a std::map, whose
+  // elements have stable addresses.
   mutable std::unordered_map<std::pair<const PolarSite*, EwaldChargeState>,
                              NeighborList, PairHash>
       neighbor_cache_;
