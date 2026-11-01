@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(calculator_report) {
 
 BOOST_AUTO_TEST_CASE(report_lines_are_wrapped) {
   citations::Reset();
-  for (const std::string& key : {"Baumeier:2024", "Chen:2025a", "Ghan:2020"}) {
+  for (const char* key : {"Baumeier:2024", "Chen:2025a", "Ghan:2020"}) {
     citations::Cite(key);
   }
   std::istringstream report(citations::Report());
