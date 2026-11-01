@@ -102,38 +102,56 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
       }
 
       // GROMACS 2026 and later only provide the enum class
-      // InteractionFunction; 2023-2025 only provide the plain enum values
-      // F_BONDS/F_CONSTR. GMX_VERSION is from gromacs/version.h.
+      // InteractionFunction; 2023-2025 only provide the plain enum values.
+      // GMX_VERSION is from gromacs/version.h. Read are the two-atom bond
+      // types that define chemical connectivity, constraints (which replace
+      // bonds with "constraints = h-bonds/all-bonds") and SETTLE (rigid
+      // water). Restraint, harmonic-potential and non-connecting constraint
+      // types are not bonds and are skipped.
 #if GMX_VERSION >= 20260000
-      std::array<int, 2> ftypes = {
+      std::array<int, 8> bond_ftypes = {
           static_cast<int>(InteractionFunction::Bonds),
+          static_cast<int>(InteractionFunction::GROMOS96Bonds),
+          static_cast<int>(InteractionFunction::MorsePotential),
+          static_cast<int>(InteractionFunction::CubicBonds),
+          static_cast<int>(InteractionFunction::ConnectBonds),
+          static_cast<int>(InteractionFunction::FENEBonds),
+          static_cast<int>(InteractionFunction::TabulatedBonds),
           static_cast<int>(InteractionFunction::Constraints)};
+      int settle_ftype = static_cast<int>(InteractionFunction::SETTLE);
 #else
-      std::array<int, 2> ftypes = {F_BONDS, F_CONSTR};
+      std::array<int, 8> bond_ftypes = {F_BONDS,      F_G96BONDS,  F_MORSE,
+                                        F_CUBICBONDS, F_CONNBONDS, F_FENEBONDS,
+                                        F_TABBONDS,   F_CONSTR};
+      int settle_ftype = F_SETTLE;
 #endif
+
+      // getGroup() asserts a non-empty group, which a new IBond does not
+      // have; use "BONDS" as in lammpsdatareader.cc and pdbreader.cc.
+      const Index first = Index(ifirstatom);
+      auto add_bond = [&top, first](Index a, Index b) {
+        Interaction *ic = new IBond(a + first, b + first);
+        ic->setGroup("BONDS");
+        top.AddBondedInteraction(ic);
+      };
 
       // mol->ilist holds one flat list per interaction type; each entry
       // occupies interaction_function[ftype].nratoms + 1 ints: the
-      // parameter type index followed by the atom indices. Bonds and
-      // constraints are read, since "constraints = h-bonds/all-bonds"
-      // turns bonds into constraints. Other bond-like types (G96, Morse,
-      // cubic bonds, connections) are not read.
-      for (int ftype : ftypes) {
+      // parameter type index followed by the atom indices.
+      for (int ftype : bond_ftypes) {
         const InteractionList &ilist = mol->ilist[ftype];
-        Index nratoms = interaction_function[ftype].nratoms;
-        Index stride = nratoms + 1;
+        Index stride = interaction_function[ftype].nratoms + 1;
         for (Index i = 0; i < Index(ilist.size()); i += stride) {
-          // ilist.iatoms[i] is the parameter index (not needed, only
-          // connectivity is read).
-          Index atom1 = ilist.iatoms[i + 1];
-          Index atom2 = ilist.iatoms[i + 2];
-          // getGroup() asserts a non-empty group, which a new IBond does
-          // not have; use "BONDS" as in lammpsdatareader.cc and
-          // pdbreader.cc.
-          Interaction *ic =
-              new IBond(Index(atom1 + ifirstatom), Index(atom2 + ifirstatom));
-          ic->setGroup("BONDS");
-          top.AddBondedInteraction(ic);
+          add_bond(ilist.iatoms[i + 1], ilist.iatoms[i + 2]);
+        }
+      }
+      // SETTLE entries list O, H1, H2.
+      {
+        const InteractionList &ilist = mol->ilist[settle_ftype];
+        Index stride = interaction_function[settle_ftype].nratoms + 1;
+        for (Index i = 0; i < Index(ilist.size()); i += stride) {
+          add_bond(ilist.iatoms[i + 1], ilist.iatoms[i + 2]);
+          add_bond(ilist.iatoms[i + 1], ilist.iatoms[i + 3]);
         }
       }
 

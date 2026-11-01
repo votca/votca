@@ -253,8 +253,8 @@ struct JorResult {
 // converted to bohr since dipoles here are in atomic units. The
 // convergence tolerance epstol (SolveWithJOR) is a ratio and needs no
 // conversion.
-double SiteRelativeDipoleChange(const Eigen::Vector3d& U0,
-                                const Eigen::Vector3d& U1) {
+inline double SiteRelativeDipoleChange(const Eigen::Vector3d& U0,
+                                       const Eigen::Vector3d& U1) {
   const double small = 1e-10 * tools::conv::nm2bohr;
   const double abs_U0 = U0.norm();
   const double abs_U1 = U1.norm();
@@ -284,12 +284,12 @@ double SiteRelativeDipoleChange(const Eigen::Vector3d& U0,
 // InduceDirect() followed by wSOR-relaxed Induce() calls. The iterates
 // are then directly comparable to legacy's (up to the bohr/nm dipole
 // conversion).
-JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
-                       const EwaldSitePolarizabilityBlocks& site_p,
-                       const Eigen::VectorXd& b, Index max_iter, double omega,
-                       Logger& log,
-                       std::chrono::steady_clock::time_point t_start,
-                       bool match_legacy_first_step) {
+inline JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
+                              const EwaldSitePolarizabilityBlocks& site_p,
+                              const Eigen::VectorXd& b, Index max_iter,
+                              double omega, Logger& log,
+                              std::chrono::steady_clock::time_point t_start,
+                              bool match_legacy_first_step) {
   auto elapsed_s = [&]() {
     return std::chrono::duration<double>(std::chrono::steady_clock::now() -
                                          t_start)

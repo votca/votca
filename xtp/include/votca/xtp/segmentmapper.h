@@ -112,6 +112,11 @@ class SegmentMapper {
   void TransferBondedPartners(mapAtom*, const Atom*,
                               const std::map<Index, mapAtom*>&) const {}
 
+  // Rewrites the bonded-partner IDs of atom from template atom IDs to the
+  // IDs of the returned container (old_to_new). No-op by default;
+  // specialized for QMMolecule below.
+  void RemapBondedPartners(mapAtom&, const std::map<Index, Index>&) const {}
+
   Logger& log_;
   std::pair<Index, Index> CalcAtomIdRange(const Segment& seg) const;
   std::pair<Index, Index> CalcAtomIdRange(const std::vector<Index>& seg) const;
@@ -181,6 +186,23 @@ inline void SegmentMapper<QMMolecule>::TransferBondedPartners(
       map_atom->AddBondedPartner(it->second->getId());
     }
   }
+}
+
+template <>
+inline void SegmentMapper<QMMolecule>::RemapBondedPartners(
+    QMAtom& atom, const std::map<Index, Index>& old_to_new) const {
+  Index ids[QMAtom::kMaxBondedPartners];
+  Index n = 0;
+  for (Index i = 0; i < QMAtom::kMaxBondedPartners; i++) {
+    auto it = old_to_new.find(atom.getBondedPartnerIds()[i]);
+    if (it != old_to_new.end()) {
+      ids[n++] = it->second;
+    }
+  }
+  for (Index i = n; i < QMAtom::kMaxBondedPartners; i++) {
+    ids[i] = -1;
+  }
+  atom.setBondedPartnerIds(ids);
 }
 
 template <>

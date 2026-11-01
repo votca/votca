@@ -323,4 +323,46 @@ BOOST_AUTO_TEST_CASE(bonded_partner_translation_across_fragments_test) {
     BOOST_CHECK_EQUAL(h_partners[3], -1);
   }
 }
+BOOST_AUTO_TEST_CASE(bonded_partner_ids_follow_reordered_qmatoms_test) {
+  // ch4_reordered.xml lists the template atoms as 0:C 2:H 1:H 4:H 3:H, so
+  // the mapped atoms are renumbered: MD atom k becomes QM atom k, while its
+  // template index differs. Bonded-partner IDs must use the new numbering.
+  Logger log;
+  QMMapper mapper = QMMapper(log);
+  mapper.LoadMappingFile(std::string(XTP_TEST_DATA_FOLDER) +
+                         "/segmentmapper/ch4_reordered.xml");
+  Segment seg("Methane", 1);
+  Atom atm1(1, "CB", 5, Eigen::Vector3d::Zero(), "C");
+  Atom atm2(1, "HB1", 6, Eigen::Vector3d::UnitX(), "H");
+  Atom atm3(1, "HB2", 7, Eigen::Vector3d::UnitY(), "H");
+  Atom atm4(1, "HB3", 8, -Eigen::Vector3d::UnitX(), "H");
+  Atom atm5(1, "HB4", 9, -Eigen::Vector3d::UnitY(), "H");
+  atm1.AddBondedPartner(atm2.getId());
+  atm1.AddBondedPartner(atm3.getId());
+  atm1.AddBondedPartner(atm4.getId());
+  atm1.AddBondedPartner(atm5.getId());
+  atm2.AddBondedPartner(atm1.getId());
+  atm3.AddBondedPartner(atm1.getId());
+  atm4.AddBondedPartner(atm1.getId());
+  atm5.AddBondedPartner(atm1.getId());
+  seg.push_back(atm1);
+  seg.push_back(atm2);
+  seg.push_back(atm3);
+  seg.push_back(atm4);
+  seg.push_back(atm5);
+
+  QMMolecule qmmol = mapper.map(
+      seg, std::string(XTP_TEST_DATA_FOLDER) + "/segmentmapper/molecule.xyz");
+
+  const Index* c_partners = qmmol[0].getBondedPartnerIds();
+  for (Index i = 0; i < 4; i++) {
+    BOOST_CHECK_EQUAL(c_partners[i], i + 1);
+  }
+  for (Index i = 1; i < qmmol.size(); i++) {
+    BOOST_CHECK_EQUAL(qmmol[i].getId(), i);
+    const Index* h_partners = qmmol[i].getBondedPartnerIds();
+    BOOST_CHECK_EQUAL(h_partners[0], 0);
+    BOOST_CHECK_EQUAL(h_partners[1], -1);
+  }
+}
 BOOST_AUTO_TEST_SUITE_END()

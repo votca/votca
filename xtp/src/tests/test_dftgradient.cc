@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(nuclear_repulsion_derivative_finite_difference) {
 
   // .xyz coordinates are read as Angstrom; a failure by a uniform factor
   // 1.8897 would indicate a unit mismatch.
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
 
   QMMolecule mol0 = BuildTestMolecule(0.0);
   Eigen::MatrixXd deriv = DFTGradient::NuclearRepulsionDerivative(mol0);
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(nuclear_repulsion_derivative_finite_difference) {
   double e_plus = NuclearRepulsionEnergyReference(mol_plus);
   double e_minus = NuclearRepulsionEnergyReference(mol_minus);
   double finite_diff_deriv_ang = (e_plus - e_minus) / (2.0 * h);
-  double finite_diff_deriv_bohr = finite_diff_deriv_ang * kBohrPerAngstrom;
+  double finite_diff_deriv_bohr = finite_diff_deriv_ang * kAngstromPerBohr;
 
   double analytic = deriv(2, 0);  // atom index 2, x-component
   // O(h^2) error at h = 1e-4
@@ -198,9 +198,9 @@ BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
     auxbasis_minus.Fill(basisset, mol_minus);
     double e_minus = rij_energy(auxbasis_minus, dftbasis_minus);
 
-    constexpr double kBohrPerAngstrom = 0.52917721090380;
+    constexpr double kAngstromPerBohr = 0.52917721090380;
     double finite_diff_deriv =
-        (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+        (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
 
     double analytic = analytic_grad(1, 2);  // atom 1 (second H), z-component
     bool matches =
@@ -300,9 +300,9 @@ BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
     auxbasis_minus.Fill(basisset, mol_minus);
     double e_minus = rik_energy(auxbasis_minus, dftbasis_minus);
 
-    constexpr double kBohrPerAngstrom = 0.52917721090380;
+    constexpr double kAngstromPerBohr = 0.52917721090380;
     double finite_diff_deriv =
-        (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+        (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
 
     double analytic = analytic_grad(1, 2);  // atom 1 (second H), z-component
     bool matches =

@@ -304,6 +304,35 @@ void Reset() {
   UsedKeys().clear();
 }
 
+namespace {
+// Greedy word wrap to at most width characters per line. The first line
+// starts with first, continuation lines with indent. Words (e.g. DOIs) are
+// never split, so a single word longer than the line may exceed width.
+std::string Wrap(const std::string& text, const std::string& first,
+                 const std::string& indent, std::size_t width = 78) {
+  std::istringstream words(text);
+  std::string out = first;
+  std::size_t line_length = first.size();
+  bool line_empty = true;
+  std::string word;
+  while (words >> word) {
+    if (!line_empty && line_length + 1 + word.size() > width) {
+      out += "\n" + indent;
+      line_length = indent.size();
+      line_empty = true;
+    }
+    if (!line_empty) {
+      out += " ";
+      line_length++;
+    }
+    out += word;
+    line_length += word.size();
+    line_empty = false;
+  }
+  return out + "\n";
+}
+}  // namespace
+
 std::string Report() {
   const std::vector<std::string> used = Used();
   if (used.empty()) {
@@ -315,7 +344,8 @@ std::string Report() {
       << "Please cite the methods used in this run:\n";
   std::size_t n = 1;
   for (const std::string& key : used) {
-    out << "  [" << n++ << "] " << Format(key) << "\n";
+    const std::string label = "  [" + std::to_string(n++) + "] ";
+    out << Wrap(Format(key), label, std::string(label.size(), ' '));
   }
   out << rule << "\n";
   return out.str();
@@ -340,14 +370,14 @@ std::string CalculatorReport(const std::string& name) {
   const CalculatorEntry entry = ForCalculator(name);
   std::ostringstream out;
   out << "References for " << name << ":\n";
-  out << "  " << Format("Baumeier:2024") << "\n";
+  out << Wrap(Format("Baumeier:2024"), "  ", "    ");
   for (const std::string& key : entry.keys) {
-    out << "  " << Format(key) << "\n";
+    out << Wrap(Format(key), "  ", "    ");
   }
   if (!entry.optional.empty()) {
     out << "Depending on the options:\n";
     for (const Optional& opt : entry.optional) {
-      out << "  " << opt.when << ": " << Format(opt.key) << "\n";
+      out << Wrap(opt.when + ": " + Format(opt.key), "  ", "    ");
     }
   }
   return out.str();

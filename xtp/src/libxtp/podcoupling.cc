@@ -24,6 +24,7 @@
 #include <Eigen/Eigenvalues>
 #include <algorithm>
 #include <sstream>
+#include <votca/tools/constants.h>
 
 namespace votca {
 namespace xtp {
@@ -247,8 +248,8 @@ void PODCoupling::CalculateCouplings(Index numberofstatesA,
           << " PODCoupling diagnostic: pair (A=" << (Range_orbA_.first + i)
           << ", B=" << (Range_orbB_.first + j) << "): S_AB=" << S_AB
           << ", (1-S_AB^2)=" << denominator
-          << ", raw J_AB=" << (J_AB * 27.211386245988)
-          << " eV, corrected=" << (JAB_(i, j) * 27.211386245988) << " eV"
+          << ", raw J_AB=" << (J_AB * tools::conv::hrt2ev)
+          << " eV, corrected=" << (JAB_(i, j) * tools::conv::hrt2ev) << " eV"
           << std::flush;
     }
   }

@@ -147,27 +147,16 @@ QMMolecule FragmentSaturator::RelaxNewAtoms(const QMMolecule& mol,
   // Check every 10 steps to limit the cost of Energy() evaluations.
   const Index check_interval = 10;
   bool still_running = true;
-  Index step = 0;
-  bool converged = false;
-  for (; step < n_steps && still_running; step += check_interval) {
+  for (Index step = 0; step < n_steps && still_running;
+       step += check_interval) {
     Index steps_this_round = std::min(check_interval, n_steps - step);
     still_running = pFF->ConjugateGradientsTakeNSteps(int(steps_this_round));
     double e_now = pFF->Energy();
     if (std::abs(e_now - e_prev) < econv) {
-      converged = true;
-      step += steps_this_round;
       break;
     }
     e_prev = e_now;
   }
-  // Temporary diagnostic. RelaxNewAtoms is static and has no Logger, so
-  // std::cerr is used.
-  std::cerr << "[RelaxNewAtoms] took " << step << "/" << n_steps
-            << " conjugate-gradient steps ("
-            << (converged ? "converged early"
-                          : (still_running ? "exhausted full budget"
-                                           : "OpenBabel itself stopped"))
-            << ")" << std::endl;
   pFF->GetCoordinates(obmol);
 
   // Same elements and ids; only the free H atoms move (fixed atoms are

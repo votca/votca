@@ -161,8 +161,8 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference) {
     double e_plus = orb_plus.getDFTTotalEnergy();
     double e_minus = orb_minus.getDFTTotalEnergy();
 
-    constexpr double kBohrPerAngstrom = 0.52917721090380;
-    double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+    constexpr double kAngstromPerBohr = 0.52917721090380;
+    double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
     // force = -dE/dR
     double finite_diff_force = -finite_diff_dEdz;
 
@@ -229,8 +229,8 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference_hybrid) {
     double e_plus = orb_plus.getDFTTotalEnergy();
     double e_minus = orb_minus.getDFTTotalEnergy();
 
-    constexpr double kBohrPerAngstrom = 0.52917721090380;
-    double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+    constexpr double kAngstromPerBohr = 0.52917721090380;
+    double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
     double finite_diff_force = -finite_diff_dEdz;
 
     double analytic_force = forces(1, 2);
@@ -299,8 +299,8 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference_uks) {
     double e_plus = orb_plus.getDFTTotalEnergy();
     double e_minus = orb_minus.getDFTTotalEnergy();
 
-    constexpr double kBohrPerAngstrom = 0.52917721090380;
-    double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+    constexpr double kAngstromPerBohr = 0.52917721090380;
+    double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
     double finite_diff_force = -finite_diff_dEdz;
 
     double analytic_force = forces(1, 2);

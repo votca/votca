@@ -349,7 +349,7 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
                           << (use_jor_ ? ""
                                        : (use_block_jacobi_preconditioner_
                                               ? " (block-Jacobi)"
-                                              : " (unpreconditioned)"))
+                                              : " (diagonal)"))
                           << std::flush;
   if (use_jor_) {
     XTP_LOG(Log::info, log)

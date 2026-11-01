@@ -577,11 +577,17 @@ AtomContainer SegmentMapper<AtomContainer>::map(
   // getId() equal to the position in the container, which e.g. the
   // fragment A/B classification in IPodCoupling::EvalJob relies on.
   // Atoms are copied rather than rebuilt to keep multipole data of
-  // StaticSite/PolarSite.
+  // StaticSite/PolarSite. Bonded-partner IDs refer to template atom IDs and
+  // are rewritten to the new numbering.
+  std::map<Index, Index> old_to_new;
+  for (Index k = 0; k < Index(seginfo.mapatoms.size()); k++) {
+    old_to_new[Result[seginfo.mapatoms[k].first].getId()] = k;
+  }
   AtomContainer filtered(seg.getType(), seg.getId());
   for (const atom_id& id : seginfo.mapatoms) {
     mapAtom atom_copy = Result[id.first];
     atom_copy.setID(filtered.size());
+    RemapBondedPartners(atom_copy, old_to_new);
     filtered.push_back(atom_copy);
   }
   filtered.calcPos();

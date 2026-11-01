@@ -162,13 +162,19 @@ class EwaldBlockJacobiPreconditioner {
             const PolarSite& site_j = segment[j];
             const Eigen::Vector3d r_vec = site_i.getPos() - site_j.getPos();
             const double r = r_vec.norm();
+            // The operator couples an intramolecular pair through its
+            // explicit term l*B_erfc + (l-1)*B_erf plus the B_erf part of
+            // the reciprocal sum, in total the Thole-damped bare coupling
+            // l*(B_erfc + B_erf), which is used here.
             const EwaldRealSpaceInteractor::BFunctions b =
                 intra_interactor_->ComputeB(r);
+            const EwaldRealSpaceInteractor::BFunctions berf =
+                intra_interactor_->ComputeErfB(r);
             const EwaldRealSpaceInteractor::TholeFactors t =
                 intra_interactor_->ComputeThole(r, site_j, site_i);
             const Eigen::Matrix3d coupling =
-                t.l5 * b.B2 * (r_vec * r_vec.transpose()) -
-                t.l3 * b.B1 * Eigen::Matrix3d::Identity();
+                t.l5 * (b.B2 + berf.B2) * (r_vec * r_vec.transpose()) -
+                t.l3 * (b.B1 + berf.B1) * Eigen::Matrix3d::Identity();
             // Subtracted, as in A = P^-1 - C. With the wrong sign
             // (P^-1 + C_intra) a 5000-site solve needed 29 instead of 16
             // PCG iterations.

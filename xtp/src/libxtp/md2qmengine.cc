@@ -78,6 +78,16 @@ Index Md2QmEngine::DetermineAtomNumOffset(
   }
   std::sort(IDs.begin(), IDs.end());
 
+  if (atom_ids_map.empty()) {
+    throw std::runtime_error("Molecule " + mol->getName() +
+                             " is not defined in the mapping file.");
+  }
+  if (atom_ids_map.size() != IDs.size()) {
+    throw std::runtime_error(
+        "Molecule " + mol->getName() + " has " + std::to_string(IDs.size()) +
+        " atoms in the MD topology but " + std::to_string(atom_ids_map.size()) +
+        " in the mapping file.");
+  }
   Index offset = IDs[0] - atom_ids_map[0];
   for (Index i = 1; i < Index(IDs.size()); i++) {
     if (IDs[i] - atom_ids_map[i] != offset) {
@@ -236,6 +246,8 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
         << std::endl;
   }
 
+  std::vector<Index> atoms_with_several_external_bonds;
+
   // go through all molecules in MD topology
   for (const csg::Molecule& mol : top.Molecules()) {
 
@@ -269,9 +281,11 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
           // e.g. an unmapped atom) marks a bond crossing the segment
           // boundary. Its direction is stored on the atom (in MD
           // orientation; SegmentMapper rotates it with the QM template)
-          // for later H-saturation. Only the first such partner is stored.
+          // for later H-saturation. Only the first such partner is stored;
+          // atoms with more are counted and reported below.
           auto it = bead_bonded_partners.find(bead->getId());
           if (it != bead_bonded_partners.end()) {
+            Index n_external = 0;
             for (Index partner_id : it->second) {
               const csg::Bead* partner_bead = top.getBead(partner_id);
               // MoleculeByIndex() is not const, so the partner's molecule
@@ -293,12 +307,20 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
                   MolToSegMap[partner_mol->getName()]
                              [partner_bead->getId() - partner_offset];
               if (partner_segname != segname) {
-                Eigen::Vector3d direction =
-                    (partner_bead->getPos() - bead->getPos()) *
-                    tools::conv::nm2bohr;
-                atom.setExternalBondDirection(direction, partner_bead->getId());
-                break;
+                if (n_external == 0) {
+                  // Minimum image: the bond may cross the box boundary.
+                  Eigen::Vector3d direction =
+                      top.BCShortestConnection(bead->getPos(),
+                                               partner_bead->getPos()) *
+                      tools::conv::nm2bohr;
+                  atom.setExternalBondDirection(direction,
+                                                partner_bead->getId());
+                }
+                n_external++;
               }
+            }
+            if (n_external > 1) {
+              atoms_with_several_external_bonds.push_back(bead->getId());
             }
           }
 
@@ -318,6 +340,19 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
       // add segment to topology
       topology_segments.push_back(this_segment);
     }
+  }
+
+  if (!atoms_with_several_external_bonds.empty()) {
+    std::cout << "\nWARNING: " << atoms_with_several_external_bonds.size()
+              << " atom(s) have bonds into more than one other segment (first: "
+                 "MD atom "
+              << atoms_with_several_external_bonds.front()
+              << "). Only one external bond per atom is stored, so "
+                 "H-saturation of cut segment boundaries (e.g. ipodcoupling) "
+                 "and the search for linking segments use only that one. "
+                 "Choose segment boundaries that cut at most one bond per "
+                 "atom.\n"
+              << std::endl;
   }
 
   // Second pass: resolve the MD atom ID of each external-bond partner

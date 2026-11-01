@@ -288,7 +288,7 @@ BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
     auto trace_displaced = [&](Index atom_index, int axis, double delta) {
       QMMolecule mol = BuildCO(bond_length);
       Eigen::Vector3d pos = mol[atom_index].getPos();
-      pos(axis) += delta * 1.8897259886;  // Angstrom -> Bohr
+      pos(axis) += delta * votca::tools::conv::ang2bohr;
       mol[atom_index].setPos(pos);
       AOBasis full_basis;
       full_basis.Fill(basisset, mol);
@@ -302,7 +302,7 @@ BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
       return density.cwiseProduct(W).sum();
     };
 
-    double h_bohr = h * 1.8897259886;
+    double h_bohr = h * votca::tools::conv::ang2bohr;
     double max_mismatch = 0.0;
     // Both atoms (C is the target, which takes the 1_{A==target} branch
     // of EvaluateWeightGradient; O is not) and all three axes: for the

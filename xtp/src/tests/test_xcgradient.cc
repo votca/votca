@@ -158,8 +158,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
 
   double analytic = total_grad(displaced_atom, 2);  // z-component
   bool matches =
@@ -266,8 +266,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
   double analytic = total_grad(1, 2);
   std::cout << "H2 test -- analytic dE_xc/dz(atom1)=" << analytic
             << " finite-difference=" << finite_diff_deriv << std::endl;
@@ -354,8 +354,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXCSpin(dmat_alpha, dmat_beta).energy;
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
   double analytic = total_grad(1, 2);
   std::cout << "H2 UKS test -- analytic dE_xc/dz(atom1)=" << analytic
             << " finite-difference=" << finite_diff_deriv << std::endl;
@@ -444,8 +444,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_gga) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
   double analytic = total_grad(1, 2);
   std::cout << "H2 GGA test -- analytic dE_xc/dz(atom1)=" << analytic
             << " finite-difference=" << finite_diff_deriv << std::endl;
@@ -526,8 +526,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_gga) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
 
   double analytic = total_grad(displaced_atom, 2);  // z-component
   bool matches =
@@ -626,8 +626,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks_gga) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXCSpin(dmat_alpha, dmat_beta).energy;
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
   double analytic = total_grad(1, 2);
   std::cout << "H2 UKS GGA test -- analytic dE_xc/dz(atom1)=" << analytic
             << " finite-difference=" << finite_diff_deriv << std::endl;

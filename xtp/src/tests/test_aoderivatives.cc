@@ -151,8 +151,8 @@ BOOST_AUTO_TEST_CASE(overlap_derivative_finite_difference) {
   Eigen::MatrixXd finite_diff_deriv =
       (overlap_plus.Matrix() - overlap_minus.Matrix()) / (2.0 * h);
   // h is in Angstrom, the analytic derivative per Bohr.
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  finite_diff_deriv *= kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  finite_diff_deriv *= kAngstromPerBohr;
 
   // observed relative deviation ~2.4e-5, the O(h^2) error at h = 1e-4
   bool matches = finite_diff_deriv.isApprox(deriv[1][2], 1e-4);
@@ -217,8 +217,8 @@ BOOST_AUTO_TEST_CASE(kinetic_derivative_finite_difference) {
   Eigen::MatrixXd finite_diff_deriv =
       (kinetic_plus.Matrix() - kinetic_minus.Matrix()) / (2.0 * h);
   // per Bohr, see overlap test
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  finite_diff_deriv *= kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  finite_diff_deriv *= kAngstromPerBohr;
 
   // same tolerance as the overlap test
   bool matches = finite_diff_deriv.isApprox(deriv[1][2], 1e-4);
@@ -277,8 +277,8 @@ BOOST_AUTO_TEST_CASE(coulomb_metric_derivative_finite_difference) {
 
   Eigen::MatrixXd finite_diff_deriv =
       (coulomb_plus.Matrix() - coulomb_minus.Matrix()) / (2.0 * h);
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  finite_diff_deriv *= kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  finite_diff_deriv *= kAngstromPerBohr;
 
   bool matches = finite_diff_deriv.isApprox(deriv[1][2], 1e-4);
   if (!matches) {
@@ -375,11 +375,11 @@ BOOST_AUTO_TEST_CASE(three_center_derivative_finite_difference) {
   std::vector<Eigen::MatrixXd> tensor_minus =
       build_3c_tensor(auxbasis_minus, dftbasis_minus);
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
   bool all_match = true;
   for (Index k = 0; k < n_aux_bf; ++k) {
     Eigen::MatrixXd finite_diff_deriv =
-        (tensor_plus[k] - tensor_minus[k]) / (2.0 * h) * kBohrPerAngstrom;
+        (tensor_plus[k] - tensor_minus[k]) / (2.0 * h) * kAngstromPerBohr;
     bool matches = finite_diff_deriv.isApprox(deriv[1][2][k], 1e-4);
     if (!matches) {
       all_match = false;
@@ -449,8 +449,8 @@ BOOST_AUTO_TEST_CASE(nuclear_attraction_derivative_finite_difference) {
 
   Eigen::MatrixXd finite_diff_deriv =
       (esp_plus.Matrix() - esp_minus.Matrix()) / (2.0 * h);
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  finite_diff_deriv *= kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  finite_diff_deriv *= kAngstromPerBohr;
 
   bool matches = finite_diff_deriv.isApprox(deriv[1][2], 1e-4);
   if (!matches) {
