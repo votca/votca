@@ -237,7 +237,7 @@ namespace {
 // A small closed-shell model SCF on methane/3-21G with an on-site
 // interaction: F(D) = h + lambda diag(D), E(D) = tr(D h) + lambda/2
 // sum_mu D_mumu^2. Cheap, deterministic, and -- unlike a term such as
-// S D S, which commutes with every idempotent density -- genuinely
+// S D S, which commutes with every idempotent density --
 // self-consistent, so the extrapolation matters.
 struct ModelSCF {
   AOOverlap overlap;

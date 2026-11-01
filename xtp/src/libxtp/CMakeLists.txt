@@ -41,25 +41,10 @@ target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost
 # takes over include directories, definitions and options from these)
 target_link_libraries(votca_xtp_libint2 PRIVATE VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen Libxc::xc Libint2_system ECPINT::ecpint Boost::program_options Boost::timer openbabel)
 
-# OpenBabel3's own "openbabel" target is an older-style, unnamespaced
-# target (confirmed directly, from OpenBabel's own official CMake
-# example, doc/examples/static_executable/CMakeLists.txt, which links
-# against it this same way) -- unlike a modern imported target, it may
-# not automatically carry its own include directories, so these are
-# added explicitly here too, matching that same official example's own
-# separate include_directories(${OpenBabel3_INCLUDE_DIRS}) call.
-#
-# Real, direct, genuine fix, confirmed directly from a real CI compile
-# failure (Ubuntu, gcc 16): SYSTEM added here -- the exact same,
-# already-established pattern this same file already uses, right
-# above, for Libint2_system, and for the exact same real reason ("to
-# treat libint as system to not trigger -Werror for library internal
-# warnings") -- OpenBabel3's own real headers (atom.h/base.h/
-# forcefield.h/plugin.h) trigger multiple, real -Werror-promoted
-# warnings of their own (unused-parameter/conversion/
-# deprecated-declarations/shadow) that are entirely OpenBabel3's own,
-# not this project's own code at all, and genuinely out of this
-# project's own control to fix directly.
+# The unnamespaced "openbabel" target may not carry its include directories,
+# so they are added explicitly (as in OpenBabel's own CMake example). SYSTEM,
+# as for libint2, keeps warnings from the OpenBabel3 headers from failing
+# -Werror builds.
 target_include_directories(votca_xtp SYSTEM PRIVATE ${OpenBabel3_INCLUDE_DIRS})
 target_include_directories(votca_xtp_libint2 SYSTEM PRIVATE ${OpenBabel3_INCLUDE_DIRS})
 

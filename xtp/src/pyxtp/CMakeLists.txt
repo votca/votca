@@ -35,34 +35,10 @@ message(STATUS "Python install libriary to: ${CMAKE_INSTALL_PYTHON_LIBDIR}")
 install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp_binds)
 add_library(VOTCA::xtp_binds ALIAS xtp_binds)
 
-# Real, direct, genuine detection of all five of pyxtp's own real,
-# actual runtime dependencies (xtp/src/pyxtp/pyproject.toml's own
-# dependencies list), worked through directly with the user, following
-# a real, direct rawhide CI failure: pyxtp's own real pyproject.toml
-# genuinely lists rdkit as a hard dependency, but this file's own pip
-# install step below used to run unconditionally at install time,
-# regardless of whether rdkit was genuinely importable at all on this
-# real system -- so it genuinely failed outright whenever rdkit itself
-# was not actually installable (confirmed directly, this same session,
-# that rdkit is currently genuinely blocked in Fedora rawhide's own
-# build system, and has no real PyPI wheel for python3.15 either).
-# Worked through directly with the user afterward: extended to all
-# five real dependencies together, deliberately all-or-nothing rather
-# than per-package -- pip install either proceeds with every real
-# dependency genuinely present, or is skipped entirely; never silently
-# partial, which would otherwise leave a real, broken pyxtp install
-# that looks installed but fails later, less obviously, the moment
-# something actually imports whichever dependency was genuinely
-# missing. Matches the same, already-established real detection
-# pattern this whole repo already uses elsewhere for exactly this
-# purpose (xtp/scripts/CMakeLists.txt's own PY${_pkg}_FOUND cache
-# variable, checked via the same real execute_process(COMMAND
-# ${Python_EXECUTABLE} -c "import ${_pkg}") pattern) -- reused
-# directly here rather than duplicated, since PY${_pkg}_FOUND is a
-# real CACHE INTERNAL variable already, shared across this whole real
-# CMake configure run regardless of directory. All five real package
-# names here genuinely match their own real import names, confirmed
-# directly before reusing the same string for both.
+# pip-install pyxtp only if all its runtime dependencies (pyproject.toml)
+# are importable; a partial install would fail later at import time (e.g.
+# rdkit is not available on Fedora rawhide). Uses the PY<pkg>_FOUND cache
+# variables shared with xtp/scripts/CMakeLists.txt.
 set(PYXTP_ALL_DEPS_FOUND TRUE)
 foreach(_pkg ase xmltodict h5py lxml rdkit)
   if(NOT PY${_pkg}_FOUND)
@@ -89,7 +65,7 @@ if(PYXTP_ALL_DEPS_FOUND)
     endif()"
   )
 else()
-  message(STATUS "Skipping pyxtp pip install (not every one of its own required python modules -- ase, xmltodict, h5py, lxml, rdkit -- was found)")
+  message(STATUS "Skipping pyxtp pip install (needs the python modules ase, xmltodict, h5py, lxml and rdkit)")
 endif()
 
 # copy pyxtp to build dir as well.

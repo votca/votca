@@ -30,17 +30,9 @@
 namespace votca {
 namespace xtp {
 
-// Standalone tool wrapping PODCoupling -- direct, low-risk first piece
-// of the calculator integration discussed with the user, matching the
-// established QMTool pattern (Coupling, Diabatization) rather than
-// either of those tools' own, structurally different input shapes:
-// unlike Coupling (three separate quantum-chemistry outputs: two
-// monomers + a dimer) or Diabatization (one or two ADIABATIC states,
-// with a state_idx each), this tool consumes a SINGLE, already-
-// converged .orb file for the intact supermolecule, plus two explicit
-// atom-index fragment definitions -- matching PODCoupling's own,
-// genuinely different input shape directly rather than forcing it
-// into either existing tool's own convention.
+// QMTool wrapping PODCoupling. Unlike Coupling (monomer and dimer outputs)
+// or Diabatization (adiabatic states), it reads a single converged .orb file
+// of the supermolecule plus two atom-index fragment definitions.
 class PodCouplingTool final : public QMTool {
  public:
   PodCouplingTool() = default;

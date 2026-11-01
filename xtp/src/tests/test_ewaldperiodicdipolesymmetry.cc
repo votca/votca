@@ -31,21 +31,9 @@
 using namespace votca::xtp;
 using namespace votca;
 
-// This is not a test of any one class in isolation; it is a check on
-// whether the *combination* of EwaldRealSpaceSum and
-// EwaldReciprocalSpaceSum, used as a periodic dipole-dipole interaction
-// operator (given a trial set of induced dipoles, return the field that
-// set produces at every site), is symmetric -- a hard requirement for
-// using Eigen::ConjugateGradient on it later, and one that had not
-// actually been checked anywhere before this test, only assumed from the
-// underlying physics (interaction tensors are pairwise symmetric, and
-// that ought to survive summing over periodic images, but "ought to" is
-// not evidence).
-//
-// This also doubles as the first working exercise of the mechanism the
-// eventual PCG-based induction solve will need: temporarily writing a
-// trial induced-dipole vector into the registry, evaluating the periodic
-// field it produces, and reading that back out as a plain vector.
+// Checks that EwaldRealSpaceSum + EwaldReciprocalSpaceSum, used as the
+// periodic dipole-dipole operator A (induced dipoles -> field at every
+// site), is symmetric (u.Av = v.Au), as conjugate gradients require.
 
 BOOST_AUTO_TEST_SUITE(ewaldperiodicdipolesymmetry_test)
 
@@ -59,18 +47,15 @@ PolarSegment MakeSegment(Index id, const Eigen::Vector3d& pos) {
   return seg;
 }
 
-// Sets every registered site's induced dipole from a flat 3N vector
-// (segment order given by ids, 3 components per id, in that order),
-// clears every site's field accumulators, applies the real+reciprocal
-// periodic field from every *other* segment, and reads the result back
-// out into a flat 3N vector -- i.e. this computes A*v for the periodic
-// dipole-dipole operator A implied by real_sum/recip_sum.
+// Writes v (3 components per segment, in the order of ids) into the
+// induced dipoles, clears the field accumulators, applies the real- and
+// reciprocal-space field and returns it as a flat vector, i.e. A*v. The
+// real-space sum excludes each segment's own zero translation; the
+// reciprocal sum excludes nothing.
 Eigen::VectorXd Apply(EwaldRegistry& registry, const std::vector<Index>& ids,
                       const EwaldRealSpaceSum& real_sum,
                       const EwaldReciprocalSpaceSum& recip_sum,
                       const Eigen::VectorXd& v) {
-  // Write v into the registry's induced dipoles, and collect (id, site*)
-  // pairs for the batched reciprocal-space call.
   std::vector<std::pair<Index, PolarSite*>> targets;
   for (std::size_t n = 0; n < ids.size(); ++n) {
     PolarSegment& seg = registry.Get(ids[n], EwaldChargeState::Neutral);
@@ -87,9 +72,6 @@ Eigen::VectorXd Apply(EwaldRegistry& registry, const std::vector<Index>& ids,
     real_sum.AddFieldAt<Estatic::V>(entry.first, *entry.second,
                                     EwaldChargeState::Neutral);
   }
-  // EwaldReciprocalSpaceSum no longer takes a segment id (it never
-  // excludes anything -- see its own class documentation), so only the
-  // bare site pointers are needed here.
   std::vector<PolarSite*> recip_targets;
   recip_targets.reserve(targets.size());
   for (const auto& entry : targets) {
@@ -122,9 +104,8 @@ BOOST_AUTO_TEST_CASE(periodic_dipole_operator_is_symmetric) {
 
   EwaldRealSpaceSum real_sum(box, registry, /*alpha=*/0.35, /*thole_a=*/0.39,
                              /*r_min=*/6.0, /*field_tol=*/1e-12);
-  // 12*alpha = 4.2, same convergence rule as the other Ewald tests:
-  // neglected weight exp(-36) = 2.3e-16. 2,108 k-vectors in this 12
-  // bohr box instead of 233,576 at a flat k_max = 20.0.
+  // k_max = 12*alpha: neglected weight exp(-36) = 2.3e-16 (2108
+  // k-vectors in this box).
   EwaldReciprocalSpaceSum recip_sum(box, registry, /*alpha=*/0.35,
                                     /*k_max=*/12.0 * 0.35);
 

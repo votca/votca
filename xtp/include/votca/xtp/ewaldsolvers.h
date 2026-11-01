@@ -41,88 +41,50 @@
  * \brief Iterative solvers for the periodic induced-dipole equation
  *        A*mu = F_perm, with A = EwaldPeriodicDipoleOperator.
  *
- * Extracted from EwaldBackground (where they began life as file-local
- * helpers in a calculator header) for two reasons: the MM/MM and QM/MM
- * calculators need the same solvers without including a calculator, and
- * a private calculator header cannot be unit-tested -- the test target
- * does not put xtp/src/libxtp on its include path, so the solvers went
- * untested while every other Ewald layer had its own test.
- *
- * Two solvers are provided, deliberately:
+ * Kept in a public header (rather than in the EwaldBackground calculator)
+ * so that both the MM/MM and QM/MM calculators can use them and so that
+ * they can be unit-tested.
  *
  *   SolveWithJOR   -- Jacobi over-relaxation, reproducing legacy
- *                     PolarBackground's own SOR scheme (same criterion,
- *                     same omega) so the two codes can be compared
- *                     iteration by iteration.
- *   SolveWithIndefinitenessCheck -- preconditioned conjugate gradient,
- *                     far fewer iterations on the same system, with a
- *                     per-iteration curvature check (see below).
+ *                     PolarBackground's SOR scheme (same criterion,
+ *                     same omega) for iteration-by-iteration comparison.
+ *   SolveWithIndefinitenessCheck -- preconditioned conjugate gradient
+ *                     with a per-iteration curvature check.
  *
- * Both converge to the same fixed point; that equivalence is asserted
- * directly in test_ewaldsolvers.cc rather than assumed.
+ * Both converge to the same fixed point (tested in test_ewaldsolvers.cc).
  */
 
 namespace votca {
 namespace xtp {
 
-// Runs the standard preconditioned CG algorithm directly (rather than via
-// Eigen::ConjugateGradient) so every iteration's own curvature,
-// p.dot(A*p), can be inspected. For a genuinely SPD operator this is
-// mathematically guaranteed positive for every nonzero p, at every
-// iteration -- CG's own convergence theory depends on it. If it is ever
-// <= 0, that is a direct proof (not an inference from residual behavior)
-// that the operator is NOT positive-definite, and this stops immediately
-// with a clear diagnostic rather than continue computing meaningless
-// iterations. This exists specifically to distinguish, for a real
-// divergence found this session (residual growing past its own starting
-// value with a plain PCG solve, on a system legacy's own SOR handles
-// fine at the same physics), between two genuinely different
-// explanations that could not be told apart from residual behavior
-// alone: the true global operator being indefinite (this check would
-// fire), versus a merely poorly-preconditioned but still SPD system
-// (this check would never fire, even on a slowly-converging or stalled
-// run). Templated on the preconditioner type for the same reason
-// EwaldBackground::Evaluate's own PCG solve needs two separate branches
-// below: the preconditioner type is a compile-time choice here too, and
-// this avoids writing the same loop out twice.
+// Preconditioned CG written out explicitly (rather than via
+// Eigen::ConjugateGradient) so that the curvature p.dot(A*p) of every
+// search direction can be inspected. For an SPD operator it is positive
+// for every nonzero p; a value <= 0 proves the operator is not positive
+// definite, and the solve stops with a diagnostic. This distinguishes a
+// truly indefinite operator from an SPD but poorly preconditioned one,
+// which cannot be told apart from the residual history alone.
+// Templated on the preconditioner, which is a compile-time choice.
 struct PcgIndefinitenessResult {
   Eigen::VectorXd x;
   Index iterations = 0;
   double residual = 0.0;
   bool converged = false;
-  // -1 if the operator was never found indefinite; otherwise the
-  // 1-based iteration number at which p.dot(A*p) <= 0 was first found.
-  // This is a real, unambiguous certificate whenever it fires (CG's own
-  // convergence theory strictly requires p.dot(A*p) > 0 for every
-  // nonzero p if the operator is genuinely SPD), but it can miss real
-  // indefiniteness for a "lucky" (or, from this test's own point of
-  // view, unlucky) b that happens not to excite the negative-eigenvalue
-  // direction at all -- confirmed directly with a deliberately
-  // constructed 3x3 counterexample (a genuinely indefinite matrix,
-  // eigenvalues -1/3/5, where b=[1,1,1] is EXACTLY orthogonal to the
-  // eigenvector for -1, letting CG converge to the exact right answer
-  // in 2 iterations without curvature ever going non-positive). See
-  // lanczos_min_eigenvalue below for a real (if still b-dependent, just
-  // less narrowly so) improvement on this.
+  // -1 if no non-positive curvature was found; otherwise the 1-based
+  // iteration at which p.dot(A*p) <= 0 first occurred. A positive result
+  // is a certificate of indefiniteness, but the check can miss it if b
+  // has no component along the negative-eigenvalue direction (e.g. the
+  // 3x3 matrix with eigenvalues -1/3/5 and b orthogonal to the eigenvector
+  // of -1, on which CG converges in 2 iterations).
   Index indefinite_at_iteration = -1;
   double indefinite_curvature = 0.0;
-  // The smallest eigenvalue of the (small, m x m, m = iterations run)
-  // Lanczos tridiagonal matrix built from every alpha_k/beta_k this CG
-  // run itself computed -- a standard result (the CG-Lanczos
-  // correspondence; verified directly here against known eigenvalues
-  // for both an SPD test matrix, exact match to 1e-14, and a genuinely
-  // indefinite one with a GENERIC right-hand side, exact match there
-  // too) that these Ritz values approximate the extreme eigenvalues of
-  // the (preconditioned) operator using the WHOLE accumulated Krylov
-  // subspace, not one iteration's own snapshot the way
-  // indefinite_at_iteration is. Still not a b-independent guarantee (the
-  // same 3x3 counterexample above, with its own adversarially exact
-  // orthogonality, defeats this too -- confirmed directly) but
-  // meaningfully more robust for any b that is not exactly orthogonal to
-  // the relevant eigenvector, which a genuine physical field vector,
-  // not an adversarially constructed one, essentially never is exactly.
-  // NaN if fewer than 2 iterations ran (need at least 2 alphas for a
-  // meaningful 2x2 tridiagonal matrix).
+  // Smallest eigenvalue of the m x m Lanczos tridiagonal matrix built from
+  // the CG coefficients alpha_k/beta_k (m = iterations run). By the
+  // CG-Lanczos correspondence these Ritz values approximate the extreme
+  // eigenvalues of the preconditioned operator over the whole Krylov
+  // subspace, which is more robust than the per-iteration curvature test,
+  // though still b-dependent (it fails on the same orthogonal-b example).
+  // NaN if fewer than 2 iterations ran.
   double lanczos_min_eigenvalue = std::numeric_limits<double>::quiet_NaN();
 };
 
@@ -144,27 +106,16 @@ PcgIndefinitenessResult SolveWithIndefinitenessCheck(
   const double threshold =
       std::max(tol * tol * rhs_norm2, std::numeric_limits<double>::min());
   double residual_norm2 = residual_vec.squaredNorm();
-  // rhs = 0 is a legitimate system, not a degenerate one: a background
-  // whose permanent moments are all zero has nothing to induce, and
-  // x = 0 solves it exactly. The convergence test just below already
-  // gets that right -- residual_norm2 = 0 is under threshold, which is
-  // max(tol^2 * 0, DBL_MIN) = DBL_MIN -- so the solve returns
-  // immediately with the correct answer and zero iterations.
-  //
-  // Only the REPORTED relative residual is 0/0. Reported as 0 rather
-  // than NaN because the absolute residual genuinely is zero, and a NaN
-  // here does more than look untidy: it reaches the log as "residual
-  // nan", and the !std::isnan guard downstream then suppresses the
-  // Lanczos eigenvalue line, so a perfectly correct solve reads like a
-  // failed one. Seen for real on a zeroed-multipole background.
-  //
-  // The in-loop recomputation needs no such guard: with rhs_norm2 = 0
-  // the loop below never runs.
+  // rhs = 0 (e.g. a background with all permanent moments zero) is solved
+  // exactly by x = 0: residual_norm2 = 0 is below the threshold DBL_MIN,
+  // so the solve returns with zero iterations. The relative residual
+  // would be 0/0 and is reported as 0 rather than NaN, which would
+  // otherwise make a correct solve look failed in the log. The loop
+  // below never runs in that case, so it needs no such guard.
   double tol_error =
       (rhs_norm2 > 0.0) ? std::sqrt(residual_norm2 / rhs_norm2) : 0.0;
   bool converged = (residual_norm2 < threshold);
-  // Every alpha_k/beta_k this run computes, in order -- see
-  // lanczos_min_eigenvalue's own documentation for what these build.
+  // CG coefficients, kept for the Lanczos estimate (lanczos_min_eigenvalue).
   std::vector<double> alphas;
   std::vector<double> betas;
 
@@ -185,11 +136,8 @@ PcgIndefinitenessResult SolveWithIndefinitenessCheck(
         XTP_LOG(Log::info, log)
             << TimeStamp() << "   PCG iter " << (i + 1)
             << ": p.A.p = " << curvature
-            << " <= 0 -- the operator is NOT positive-definite (this is a "
-               "direct algebraic certificate, not an inference from "
-               "residual behavior). Stopping here rather than continue "
-               "computing iterations that CG's own convergence theory no "
-               "longer covers."
+            << " <= 0 -- the operator is NOT positive-definite. Stopping "
+               "CG."
             << std::flush;
         break;
       }
@@ -219,12 +167,10 @@ PcgIndefinitenessResult SolveWithIndefinitenessCheck(
     result.iterations = 0;
   }
 
-  // Lanczos tridiagonal matrix from alphas/betas -- see
-  // lanczos_min_eigenvalue's own documentation for the derivation and
-  // its own direct numerical verification (both SPD and indefinite test
-  // cases, exact match to the true eigenvalues in both). Needs at least
-  // 2 alphas (i.e. 1 beta) for a meaningful 2x2 matrix; a 1x1 "matrix"
-  // is just 1/alphas[0], not a real eigenvalue ESTIMATE of anything.
+  // Lanczos tridiagonal matrix from the CG coefficients:
+  //   T_00 = 1/alpha_0, T_ii = 1/alpha_i + beta_{i-1}/alpha_{i-1},
+  //   T_{i,i-1} = sqrt(beta_{i-1})/alpha_{i-1}.
+  // Requires at least 2 alphas; a 1x1 matrix is not a useful estimate.
   if (alphas.size() >= 2) {
     const std::size_t m = alphas.size();
     Eigen::MatrixXd T = Eigen::MatrixXd::Zero(m, m);
@@ -246,25 +192,17 @@ PcgIndefinitenessResult SolveWithIndefinitenessCheck(
 }
 
 // Per-site polarizability blocks (P, not P^-1), used for the plain
-// Jacobi-Over-Relaxation (JOR) iteration below. Confirmed directly
-// against legacy PolarBackground's own source (not re-derived from
-// theory alone) that this, not EwaldBlockJacobiPreconditioner's own
-// larger (intramolecular-Thole-coupled) block, is the exact match to
-// legacy's own per-site update: APolarSite::Induce computes
-//   mu_new = (1-wSOR)*mu_old + wSOR*(-P)*(F_perm+F_induced)
-// which is a textbook weighted-Jacobi step once D = P^-1 is recognized
-// as this system's own diagonal block (EwaldPeriodicDipoleOperator's
-// own diagonal is built from getPInv() exactly) -- D^-1 = P follows
-// directly, with no re-derivation needed of the specific field-based
-// expression legacy itself uses internally.
+// Jacobi-Over-Relaxation (JOR) iteration below. These per-site blocks
+// (not the larger intramolecular-Thole-coupled blocks of
+// EwaldBlockJacobiPreconditioner) reproduce legacy APolarSite::Induce,
+//   mu_new = (1-wSOR)*mu_old + wSOR*(-P)*(F_perm+F_induced),
+// which is a weighted-Jacobi step with diagonal block D = P^-1 (the
+// diagonal of EwaldPeriodicDipoleOperator is built from getPInv()), so
+// D^-1 = P.
 //
-// Also confirmed directly (by tracing legacy's own PolarBackground::
-// Evaluate) that legacy's own "SOR" is Jacobi-style, not sequential
-// Gauss-Seidel-based SOR despite the shared name: legacy computes EVERY
-// site's own field in full (step III.B, "(Re-)generate induction
-// fields") before updating ANY site's own dipole (step III.C, "Induce
-// again") -- every field used in a given iteration is built entirely
-// from the PREVIOUS iteration's own induced dipoles.
+// Despite its name, legacy PolarBackground's "SOR" is Jacobi-style, not
+// Gauss-Seidel: all fields are computed from the previous iterate (step
+// III.B) before any dipole is updated (step III.C).
 class EwaldSitePolarizabilityBlocks {
  public:
   EwaldSitePolarizabilityBlocks(const EwaldRegistry& registry,
@@ -272,11 +210,8 @@ class EwaldSitePolarizabilityBlocks {
     for (Index id : ids) {
       const PolarSegment& segment = registry.Get(id, EwaldChargeState::Neutral);
       for (const PolarSite& site : segment) {
-        // getPInv() is this codebase's own stored quantity (see
-        // EwaldPeriodicDipoleOperator's own diagonal); P itself is not
-        // separately exposed anywhere, so recovering it needs a real
-        // 3x3 inverse here -- cheap and exact for a non-singular
-        // polarizability tensor.
+        // Only P^-1 is stored on PolarSite; invert the 3x3 block to
+        // recover P.
         blocks_.push_back(site.getPInv().inverse());
       }
     }
@@ -287,13 +222,9 @@ class EwaldSitePolarizabilityBlocks {
   // Exposes the per-site P block directly.
   const Eigen::Matrix3d& GetBlock(Index n) const { return blocks_[n]; }
 
-  // Returns P * v, applied per 3-DOF site block -- the D^-1 * v the
-  // JOR iteration below needs (see this class's own documentation for
-  // why D^-1 = P here specifically). Site ordering matches
-  // EwaldPeriodicDipoleOperator's own targets_ layout exactly (same
-  // registry, same ids, same per-segment site iteration order), so no
-  // separate offset bookkeeping is needed here: site n's own 3 DOF are
-  // always at [3n, 3n+3) for both this class and that operator.
+  // Returns P * v (= D^-1 * v) per 3-DOF site block. Site ordering
+  // matches the targets_ layout of EwaldPeriodicDipoleOperator (same
+  // registry, ids and site order), so site n occupies [3n, 3n+3) in both.
   Eigen::VectorXd Apply(const Eigen::VectorXd& v) const {
     Eigen::VectorXd result(size());
     for (std::size_t n = 0; n < blocks_.size(); ++n) {
@@ -315,24 +246,15 @@ struct JorResult {
   bool converged = false;
 };
 
-// Mirrors legacy APolarSite::HistdU() exactly (confirmed directly
-// against its own source, apolarsite.cc): per-site relative change in
-// induced dipole moment between successive iterates, with a small-
-// magnitude fallback so a near-zero dipole (e.g. this site's own first
-// iteration, starting from x=0) doesn't divide by ~zero. Legacy's own
-// "small" constant is documented there as "1e-10 e*nm" -- this
-// codebase uses atomic units (bohr) throughout, not nm (see e.g.
-// EwaldRealSpaceSum's own class documentation), so using legacy's raw
-// 1e-10 unconverted would apply the wrong ABSOLUTE threshold (1e-10 nm
-// and 1e-10 bohr are very different physical dipole magnitudes) --
-// tools::conv::nm2bohr is this codebase's own existing conversion
-// constant (already used elsewhere in this file for r_min), reused
-// here rather than a separately hardcoded factor. epstol itself (see
-// SolveWithJOR below) needs no such conversion: it's a ratio of two
-// same-unit quantities, genuinely dimensionless regardless of which
-// unit system U0/U1 happen to be expressed in.
-double SiteRelativeDipoleChange(const Eigen::Vector3d& U0,
-                                const Eigen::Vector3d& U1) {
+// Mirrors legacy APolarSite::HistdU(): per-site relative change of the
+// induced dipole between successive iterates, with a small-magnitude
+// fallback to avoid dividing by a near-zero dipole (e.g. on the first
+// iteration from x = 0). Legacy's threshold is 1e-10 e*nm; it is
+// converted to bohr since dipoles here are in atomic units. The
+// convergence tolerance epstol (SolveWithJOR) is a ratio and needs no
+// conversion.
+inline double SiteRelativeDipoleChange(const Eigen::Vector3d& U0,
+                                       const Eigen::Vector3d& U1) {
   const double small = 1e-10 * tools::conv::nm2bohr;
   const double abs_U0 = U0.norm();
   const double abs_U1 = U1.norm();
@@ -345,69 +267,36 @@ double SiteRelativeDipoleChange(const Eigen::Vector3d& U0,
 }
 
 // Plain weighted-Jacobi iteration for A*x=b (A = EwaldPeriodicDipoleOperator),
-// matching legacy PolarBackground's own SOR exactly in structure (see
-// EwaldSitePolarizabilityBlocks's own documentation for the direct
-// confirmation against legacy's own source). Iteration, in the general
-// weighted-Jacobi form for A = D + R:
+// in the structure of legacy PolarBackground's SOR (see
+// EwaldSitePolarizabilityBlocks). For A = D + R:
 //   x_new = x_old + omega * D^-1 * (b - A*x_old)
-// Unlike PCG, this makes no positive-definiteness assumption anywhere
-// in its own derivation -- its convergence instead depends on the
-// spectral radius of the iteration matrix (I - omega*D^-1*A) staying
-// below 1, a genuinely different (and empirically, for this kind of
-// system, more forgiving) condition. Verified directly, before writing
-// any of this, against a small SPD test system (exact match to the
-// direct solve) and against a genuinely indefinite one (the same 3x3
-// counterexample used to validate this session's own indefiniteness
-// checks) -- JOR converges on the indefinite case where CG structurally
-// cannot, matching the entire reason for using it here.
+// Unlike CG this does not require A to be positive definite; it
+// converges if the spectral radius of (I - omega*D^-1*A) is below 1,
+// and it does converge on the small indefinite test case where CG fails.
 //
-// Convergence criterion matches legacy PolarBackground's own exactly
-// (confirmed directly against its own source, step III.D) -- NOT the
-// global relative residual ||b-Ax||/||b|| this function's own first
-// version used (borrowed, incorrectly, from the PCG code path's own
-// stopping rule): legacy checks a per-site relative change in induced
-// dipole moment between successive iterates (SiteRelativeDipoleChange
-// above) against epstol=1e-3 (legacy's own hardcoded value, not this
-// codebase's own pcg_tolerance_) for EVERY site, with a looser
-// avgdU < epstol*0.1 fallback that can force convergence even if a few
-// individual sites remain just above epstol. The global residual is
-// still computed and logged every iteration (informational only -- it
-// is a genuinely different quantity, not proportional to max_dU/avg_dU
-// in general, and no longer decides when this function itself stops).
+// Convergence criterion as in legacy (step III.D): the per-site relative
+// dipole change (SiteRelativeDipoleChange) must be <= epstol = 1e-3 for
+// every site, or the average must be < 0.1*epstol. The global relative
+// residual ||b-Ax||/||b|| is logged for information only.
 //
-// match_legacy_first_step, when true, uses omega=1.0 (fully unrelaxed)
-// for iteration 0 only, then the configured omega for every iteration
-// after -- literally replicating legacy's own two-phase structure
-// (InduceDirect(), fully unrelaxed, THEN the main loop's own wSOR-
-// relaxed Induce() calls) rather than applying the same omega-relaxed
-// step from x=0 that legacy never does. Added after this session's own
-// attempt to algebraically relate the two codebases' differing
-// recursions (legacy: mu2 = mu1 - wSOR*P*FU(mu1), coefficient 1 on
-// mu1, since legacy's own mu1 is already fully unrelaxed; this
-// function's own un-adjusted recursion: x2 = (2-omega)*x1 +
-// omega*P*C*x1, a different coefficient, purely because THIS x1 was
-// only omega-relaxed to begin with) turned out to rest on an
-// unverified assumption (that C, this class's own leftover-from-D
-// coupling operator, equals legacy's own FU field) that was never
-// independently confirmed -- this flag sidesteps that assumption
-// entirely by making the two codebases' own x1/mu1 and x2/mu2 directly,
-// literally comparable (same relaxation history on both sides), so a
-// comparison needs only the same simple bohr<->nm dipole conversion
-// already validated for x1 vs mu1, not any field-specific conversion
-// or unverified operator decomposition.
-JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
-                       const EwaldSitePolarizabilityBlocks& site_p,
-                       const Eigen::VectorXd& b, Index max_iter, double omega,
-                       Logger& log,
-                       std::chrono::steady_clock::time_point t_start,
-                       bool match_legacy_first_step) {
+// match_legacy_first_step = true uses omega = 1 for the first iteration
+// and the configured omega afterwards, replicating legacy's unrelaxed
+// InduceDirect() followed by wSOR-relaxed Induce() calls. The iterates
+// are then directly comparable to legacy's (up to the bohr/nm dipole
+// conversion).
+inline JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
+                              const EwaldSitePolarizabilityBlocks& site_p,
+                              const Eigen::VectorXd& b, Index max_iter,
+                              double omega, Logger& log,
+                              std::chrono::steady_clock::time_point t_start,
+                              bool match_legacy_first_step) {
   auto elapsed_s = [&]() {
     return std::chrono::duration<double>(std::chrono::steady_clock::now() -
                                          t_start)
         .count();
   };
 
-  const double kEpsTol = 1e-3;  // legacy's own hardcoded value
+  const double kEpsTol = 1e-3;  // legacy's hardcoded value
 
   JorResult result;
   Eigen::VectorXd x = Eigen::VectorXd::Zero(b.size());
@@ -438,10 +327,7 @@ JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
     XTP_LOG(Log::info, log)
         << TimeStamp() << "   JOR iter " << (i + 1) << ": max_dU=" << max_dU
         << " avg_dU=" << avg_dU << " (residual=" << residual_norm / rhs_norm
-        << ", informational only -- see this function's own documentation "
-           "for why max_dU/avg_dU, not this, is the actual stopping "
-           "criterion) ("
-        << elapsed_s() << "s)" << std::flush;
+        << ", informational only) (" << elapsed_s() << "s)" << std::flush;
 
     result.residual = residual_norm / rhs_norm;
     result.max_dU = max_dU;

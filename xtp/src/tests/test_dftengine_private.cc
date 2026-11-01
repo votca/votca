@@ -52,8 +52,7 @@ namespace xtp {
 
 constexpr double kTol = 1e-10;
 
-// Defined in libint2_derivative_calls.cc, not yet in any header (same
-// pattern used throughout the branch this test file belongs to).
+// Defined in libint2_derivative_calls.cc (no header).
 using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
 std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
     const AOBasis& aobasis);
@@ -436,46 +435,17 @@ BOOST_AUTO_TEST_CASE(orthogonalize_guess_produces_s_orthonormal_vectors) {
   libint2::finalize();
 }
 
-// Validates DFTEngine::ComputeNonXCGradientUKS -- the four gradient
-// terms that generalize cleanly from RKS to UKS (nuclear repulsion,
-// one-electron [kinetic + nuclear attraction], overlap Pulay force, and
-// RI-J/RI-K) -- against a finite difference of the corresponding
-// non-XC part of the UKS total energy (E_nuc + E_one + E_coul + E_exx,
-// deliberately excluding E_xc, which is not yet implemented for UKS --
-// see the detailed STATUS note on ComputeAndStoreForcesUKS in
-// dftengine.h).
-//
-// Uses FIXED, arbitrary (not SCF-converged) alpha/beta MO coefficient
-// matrices, evaluated identically at each displaced geometry -- same
-// "arbitrary matrix" pattern already used for RIJGradient/RIKGradient
-// in test_dftgradient.cc, valid here for the same reason: the
-// stationarity argument underlying each of these gradient terms holds
-// for ANY fixed C, not just genuine SCF-converged orbitals.
-//
-// Runs TWICE: once with ScaHFX_=0 (checking nuclear repulsion +
-// one-electron + overlap Pulay + RI-J only) and once with ScaHFX_>0
-// (additionally checking the RI-K exact-exchange piece, including its
-// extra factor of 0.5 relative to the RKS case -- confirmed separately,
-// both algebraically and numerically in Python, but not yet checked
-// against the real, assembled C++ implementation before this test).
-//
-// STATUS: written but NOT yet run.
+// DFTEngine::ComputeNonXCGradientUKS minus the overlap Pulay term (nuclear
+// repulsion, one-electron, RI-J, RI-K) against a finite difference of
+// E_nuc + E_one + E_coul + E_exx for fixed, arbitrary alpha/beta MO
+// coefficients (valid for any fixed C, as in test_dftgradient.cc). Run with
+// ScaHFX_ = 0 and ScaHFX_ > 0, the latter checking the factor 0.5 of the UKS
+// RI-K term.
 BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
   libint2::initialize();
   try {
-    double h = 1e-3;  // Bohr -- matches test_dftengine_forces.cc's own
-                      // choice for an analogous reason: RI-fitted
-                      // integrals (LDLT solve precision, aux-basis
-                      // conditioning) introduce their own numerical noise
-                      // floor that a smaller h can be swamped by. A first
-                      // run at h=1e-4 with a 1e-4 relative tolerance
-                      // showed a small (~0.1-0.2%), consistent-sign
-                      // discrepancy in both the ScaHFX_=0 and
-                      // ScaHFX_=0.25 cases -- far smaller than the ~120%
-                      // discrepancy the missing overlap Pulay term caused
-                      // before that was isolated, consistent with
-                      // numerical noise rather than a remaining formula
-                      // error, but not yet directly confirmed.
+    double h = 1e-3;  // Bohr; RI fitting limits the precision of smaller
+                      // steps
 
     auto build_system = [](double bond_length_bohr, double sca_hfx,
                            const Eigen::MatrixXd& C_alpha_fixed,
@@ -487,21 +457,10 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
       AOBasis dftbasis;
       dftbasis.Fill(basisset, mol);
 
-      // Same basis used for both DFT and aux roles here, matching
-      // rij_gradient_finite_difference's setup in test_dftgradient.cc.
-      // NOTE: an earlier version of this test used a dedicated aux basis
-      // (diabatization/aux-def2-svp.xml) and showed a small, h-independent
-      // (~0.1-0.2%) discrepancy against finite differences -- confirmed
-      // via git history to be a numerical-precision artifact specific to
-      // that basis combined with this test's particular fixed, rank-2
-      // density matrix, NOT a bug in RIJGradient: the J matrix itself
-      // matched CalculateERIs_3c's output to machine precision regardless
-      // of aux basis choice, and switching to this same-basis setup makes
-      // the discrepancy disappear entirely, even at a tight 1e-4 relative
-      // tolerance. (test_dftengine_forces.cc separately confirms
-      // aux-def2-svp works correctly in production, with a real converged
-      // SCF density -- this was specific to the diagnostic setup here, not
-      // a general aux-def2-svp problem.)
+      // Same basis as DFT and auxiliary basis, as in test_dftgradient.cc.
+      // With aux-def2-svp and this rank-2 model density the finite
+      // difference deviated by an h-independent ~0.1-0.2% (fit precision,
+      // not an RIJGradient error).
       AOBasis auxbasis;
       auxbasis.Fill(basisset, mol);
 
@@ -610,19 +569,11 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
         Eigen::Vector3d sum = analytic_grad.colwise().sum();
         BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-6);
 
-        // The overlap Pulay term is deliberately EXCLUDED from this
-        // comparison -- confirmed directly (see git history: the first
-        // real run of this test failed by exactly the overlap Pulay
-        // term's own value, in both the ScaHFX_=0 and ScaHFX_=0.25 cases)
-        // that it is NOT checkable against a fixed-C finite difference: it
-        // specifically corrects for C's implicit R-dependence through the
-        // orthonormality constraint C^T S(R) C = I, valid only at a
-        // genuine SCF stationary point, which a fixed, arbitrary C held
-        // constant across displaced geometries never satisfies
-        // self-consistently. The other four terms (nuclear repulsion,
-        // one-electron, RI-J, RI-K) don't have this issue -- their
-        // stationarity arguments hold for ANY fixed C -- so this
-        // comparison still meaningfully validates them.
+        // The overlap Pulay term is excluded: it accounts for the implicit
+        // R-dependence of C through C^T S(R) C = I and is only valid at an
+        // SCF stationary point, so a fixed-C finite difference does not
+        // contain it. It is tested in
+        // overlap_pulay_gradient_uks_reduces_to_rks.
         Eigen::MatrixXd overlap_pulay =
             DFTEngineTestAccess::ComputeOverlapPulayGradientUKS(
                 engine, base.mol, MOs_alpha, MOs_beta);
@@ -673,17 +624,10 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
   libint2::finalize();
 }
 
-// Validates ComputeOverlapPulayGradientUKS the OTHER way, since it's
-// not checkable against a fixed-C finite difference (see the detailed
-// note in compute_non_xc_gradient_uks_finite_difference above and on
-// ComputeOverlapPulayGradientUKS's declaration in dftengine.h): checks
-// that it reduces to exactly the already-validated RKS overlap Pulay
-// formula (W_RKS = 2*C_occ*eps_occ*C_occ^T, dE/dR = -Tr[W_RKS.dS/dR])
-// in the alpha==beta limit (same occupied orbitals, same orbital
-// energies, for both spins) -- a real, meaningful mathematical
-// invariant that doesn't require self-consistency to check.
-//
-// STATUS: written but NOT yet run.
+// ComputeOverlapPulayGradientUKS (not testable by fixed-C finite
+// differences, see above) must reduce to the RKS formula,
+// W_RKS = 2 C_occ eps_occ C_occ^T, dE/dR = -Tr[W_RKS dS/dR], for identical
+// alpha and beta orbitals and energies.
 BOOST_AUTO_TEST_CASE(overlap_pulay_gradient_uks_reduces_to_rks) {
   libint2::initialize();
   try {

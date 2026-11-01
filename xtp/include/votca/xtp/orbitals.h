@@ -624,13 +624,9 @@ class Orbitals {
   /// energy.
   void OrderMOsbyEnergy();
 
-  /// Same as OrderMOsbyEnergy, but operating on the ALPHA channel of an
-  /// unrestricted (UKS) system specifically -- OrderMOsbyEnergy/
-  /// SortEnergies only ever touch mos_ (the single restricted object)
-  /// and SortEnergies actively throws for hasUnrestrictedOrbitals()==true,
-  /// so neither can be reused here. Needed for PrepareDimerGuessMixedSpin,
-  /// which builds a genuinely unrestricted dimer guess from two monomers
-  /// of independently arbitrary charge/spin.
+  /// OrderMOsbyEnergy for the alpha channel of unrestricted orbitals
+  /// (OrderMOsbyEnergy only handles mos_, and SortEnergies throws for
+  /// unrestricted orbitals). Used by PrepareDimerGuessMixedSpin.
   void OrderMOsbyEnergyAlpha();
 
   /// Same as OrderMOsbyEnergyAlpha, but for the BETA channel (mos_beta_).
@@ -640,31 +636,16 @@ class Orbitals {
   /// fragments.
   void PrepareDimerGuess(const Orbitals &orbitalsA, const Orbitals &orbitalsB);
 
-  /// Same purpose as PrepareDimerGuess, but for two monomers of
-  /// independently ARBITRARY charge and spin (restricted or unrestricted,
-  /// not just closed-shell singlets) -- e.g. a neutral singlet donor
-  /// paired with a charged doublet acceptor, exactly the case
-  /// PrepareDimerGuess itself explicitly refuses (it throws for any
-  /// input with spin != 1 or hasUnrestrictedOrbitals()==true).
+  /// PrepareDimerGuess for monomers of arbitrary charge and spin,
+  /// restricted or unrestricted (e.g. a neutral singlet donor and a charged
+  /// doublet acceptor); PrepareDimerGuess throws for spin != 1 or
+  /// unrestricted input and is kept unchanged for iqm.
   ///
-  /// Deliberately a separate, new function rather than a generalization
-  /// of PrepareDimerGuess itself -- that function is already used by the
-  /// existing, production iqm.cc calculator, and touching it risks that
-  /// code path for no benefit it needs (iqm's own use case genuinely is
-  /// always two neutral singlet monomers).
-  ///
-  /// Builds a genuinely unrestricted dimer: the alpha and beta MO
-  /// coefficient blocks are constructed SEPARATELY (block-diagonal from
-  /// each monomer's own alpha and beta blocks respectively -- a
-  /// restricted monomer contributes the SAME block to both, since its
-  /// alpha and beta MOs are identical by construction), giving the
-  /// dimer real, unequal alpha/beta occupied counts whenever the two
-  /// monomers' own electron counts don't happen to match. This is the
-  /// whole point: each monomer's own, already-converged electronic
-  /// structure (including which one is charged/open-shell) is embedded
-  /// directly into the dimer's starting guess, rather than relying on
-  /// a generic guess (SAD, independent-electron, Huckel) to somehow
-  /// discover that asymmetry on its own.
+  /// The dimer alpha and beta MO coefficients are built separately, block-
+  /// diagonal from the monomers' alpha and beta blocks (a restricted
+  /// monomer contributes the same block to both), so the dimer has the
+  /// monomers' combined alpha/beta occupations and the charge/spin
+  /// localization of the converged monomers.
   void PrepareDimerGuessMixedSpin(const Orbitals &orbitalsA,
                                   const Orbitals &orbitalsB);
 

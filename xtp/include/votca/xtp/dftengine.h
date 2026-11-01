@@ -67,19 +67,12 @@ struct DFTSetupCache {
 
 class DFTEngineTestAccess;
 
-/// True if the libint2 this was built against supports derivative
-/// integrals for every category the full forces pipeline needs
-/// (one-body, the two-center Coulomb metric, and three-center RI) --
-/// a compile-time check (LIBINT2_MAX_DERIV_ORDER and the
-/// LIBINT_INCLUDE_* guards, all resolved when libint2_derivative_calls.cc
-/// itself was compiled), not a runtime probe of the specific libint2
-/// library actually linked at runtime. Exposed here (defined in
-/// libint2_derivative_calls.cc) so callers -- including tests that want
-/// to skip force-dependent work cleanly, before running any expensive
-/// SCF/CDFT calculation, rather than discovering the lack of support
-/// only after Initialize() throws or a calculation completes without
-/// forces -- can check this directly, without needing compute_forces_
-/// already set and without needing to run anything first.
+/// True if libint2 supports first-derivative integrals for every category
+/// the forces need (one-body, two-centre Coulomb metric, three-centre RI).
+/// Compile-time check (LIBINT2_MAX_DERIV_ORDER and the LIBINT_INCLUDE_*
+/// guards in libint2_derivative_calls.cc), not a probe of the library linked
+/// at runtime. Lets callers, e.g. tests, skip force calculations before
+/// running an SCF.
 bool HasLibint2DerivativeSupport();
 
 /**
@@ -143,32 +136,18 @@ class DFTEngine {
   /// Lagrange multiplier lambda such that
   /// Tr[(P_alpha + P_beta) * constraint.weight_matrix] equals
   /// constraint.target_population, then converges the SCF at that
-  /// lambda -- the standard Wu-Van Voorhis outer loop, warm-started
-  /// (matching CP2K's own documented approach: each new trial's SCF is
-  /// restarted from the PREVIOUS trial's converged density, not a cold
-  /// start) via the existing "orbfile" initial-guess mechanism, reusing
-  /// it exactly as written rather than building new warm-start
-  /// machinery. Only ever wires through EvaluateUKS (never
-  /// EvaluateClosedShell) -- CDFT charge constraints are built on UKS
-  /// from the start, per the design discussion that preceded this: a
-  /// localized extra charge is almost always naturally an open-shell/
-  /// radical situation regardless of whether spin constraints are ever
-  /// added later.
+  /// lambda (Wu-Van Voorhis outer loop). Each trial SCF is warm-started
+  /// from the previous trial's converged density via the "orbfile"
+  /// initial guess, as in CP2K. Always uses EvaluateUKS, since a localized
+  /// extra charge is usually an open-shell situation.
   ///
-  /// constraint.lambda is used as the initial guess for the bisection
-  /// search (0.0 is a reasonable default for most systems) and is left
-  /// holding the converged value on return. Returns false (with
-  /// constraints_ left populated, holding the last-attempted lambda)
-  /// if EITHER a root cannot be bracketed at all, OR the outer
-  /// bisection loop exhausts max_cdft_iterations_ without reaching
-  /// cdft_population_tolerance_. If any individual INNER SCF call
-  /// itself fails to converge, this throws std::runtime_error instead
-  /// (does not return false) -- an inner SCF failure means something
-  /// more fundamental than "the outer loop needs more iterations" is
-  /// wrong (e.g. a genuinely bad initial guess, or too tight an SCF
-  /// convergence threshold for this system), and silently returning
-  /// false would look identical to the ordinary "ran out of outer
-  /// iterations" case, which it is not.
+  /// constraint.lambda is the initial guess for the bisection (0.0 is a
+  /// reasonable default) and holds the converged value on return. Returns
+  /// false if no root can be bracketed (constraints_ cleared, lambda
+  /// unchanged) or if the bisection exhausts max_cdft_iterations_ without
+  /// reaching cdft_population_tolerance_ (lambda set to the last bracket
+  /// midpoint). Throws std::runtime_error if an inner SCF does not converge,
+  /// to distinguish that from running out of outer iterations.
   bool RunCDFT(Orbitals& orb, HirshfeldPartition::Constraint& constraint);
 
   /// Run an embedded active-region DFT calculation for the supplied orbital
@@ -358,120 +337,62 @@ class DFTEngine {
       const Mat_p_Energy& H0, const QMMolecule& mol,
       const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
 
-  /// Build a dimer guess (both alpha and beta MOs, genuinely different
-  /// from each other in general) by loading two independently-converged
-  /// monomer .orb files (dimer_guess_orbA_name_/dimer_guess_orbB_name_)
-  /// and combining them via Orbitals::PrepareDimerGuessMixedSpin.
+  /// Build a dimer guess (separate alpha and beta MOs) from two converged
+  /// monomer .orb files (dimer_guess_orbA_name_/dimer_guess_orbB_name_),
+  /// combined via Orbitals::PrepareDimerGuessMixedSpin.
   ///
-  /// Runs two sanity checks against dimer_mol (this calculation's own,
-  /// real molecule) before trusting either monomer file at all:
-  /// (1) element-sequence match -- monomer A's own elements, in order,
-  /// must exactly match dimer_mol's first N_A atoms, and monomer B's
-  /// must match the remaining atoms; (2) internal-geometry match --
-  /// every pairwise interatomic distance WITHIN monomer A must match
-  /// the corresponding pairwise distance within dimer_mol's own first
-  /// N_A atoms, to a tight numerical tolerance (and likewise for
-  /// monomer B against the remaining atoms). Deliberately NOT an
-  /// absolute-position comparison: after being optimized as a
-  /// standalone monomer and then placed into the dimer, a monomer's
-  /// atoms are expected to be translated/rotated relative to their own,
-  /// independent optimization -- only the INTERNAL geometry (bond
-  /// lengths/angles, which no translation or rotation changes) should
-  /// still match if the supplied file genuinely corresponds to that
-  /// fragment.
+  /// Checks each monomer against dimer_mol: (1) its element sequence must
+  /// match the first N_A (monomer A) or the remaining (monomer B) atoms;
+  /// (2) all intra-monomer interatomic distances must match those of the
+  /// corresponding dimer atoms to a tight tolerance. Absolute positions are
+  /// not compared, since a monomer may be translated/rotated in the dimer.
   Orbitals BuildDimerGuessFromMonomerFiles(const QMMolecule& dimer_mol) const;
 
   /// Run an unrestricted atomic reference calculation used in open-shell atomic
   /// guesses.
   ///
-  /// use_hunds_rule_occupation (default false, preserving all EXISTING
-  /// callers' behavior exactly): when true, use a small, explicit
-  /// Hund's-rule ground-state alpha/beta electron-count table for
-  /// common main-group (s/p-block) elements, instead of the simpler
-  /// parity-based split (odd nuclear charge -> one extra alpha electron;
-  /// even -> alpha == beta) used by default. That default split is
-  /// wrong for many real ground states -- e.g. carbon (true ground
-  /// state alpha=4,beta=2, a triplet) gets alpha=beta=3 (an artificial
-  /// singlet) -- but this does not matter for a SAD initial-guess
-  /// starting DENSITY MATRIX SHAPE (AtomicGuess, this function's only
-  /// existing caller), since the full molecule's own SCF reshapes the
-  /// density regardless of the isolated reference atom's spin state.
-  /// It DOES matter for promolecular reference densities used in
-  /// Hirshfeld-based CDFT constraints, which is what this parameter
-  /// exists for. Falls back to the default, parity-based split (with a
-  /// logged warning) for any element not covered by the table --
-  /// currently d/f-block only, where the ground-state configuration is
-  /// genuinely ambiguous/functional-dependent rather than a simple,
-  /// textbook Hund's-rule case; see HundsRuleAlphaBetaElectrons's own
-  /// comment in dftengine.cc.
+  /// use_hunds_rule_occupation: if true, take the alpha/beta electron counts
+  /// from a Hund's-rule ground-state table for main-group (s/p-block)
+  /// elements instead of the default parity split (odd Z -> one extra alpha
+  /// electron, even Z -> alpha == beta). The parity split is wrong for e.g.
+  /// carbon (triplet, alpha=4, beta=2), which is irrelevant for the SAD guess
+  /// (AtomicGuess) but not for Hirshfeld reference densities in CDFT.
+  /// Elements not in the table (d/f-block, where the ground state is
+  /// functional-dependent) fall back to the parity split with a warning; see
+  /// HundsRuleAlphaBetaElectrons in dftengine.cc.
   Eigen::MatrixXd RunAtomicDFT_unrestricted(
       const QMAtom& uniqueAtom, bool use_hunds_rule_occupation = false) const;
 
-  /// Build one isolated-atom reference density per unique element in
-  /// mol, keyed by element symbol -- the promolecular densities
-  /// Hirshfeld-based CDFT constraints need. Mirrors AtomicGuess's own
-  /// "find unique elements, run RunAtomicDFT_unrestricted once each,
-  /// cache by element" structure exactly, but (a) always passes
-  /// use_hunds_rule_occupation=true (unlike AtomicGuess's own call,
-  /// which never does), and (b) returns the per-element densities
-  /// directly rather than assembling them into one combined,
-  /// molecule-sized AO-basis matrix -- Hirshfeld only ever needs each
-  /// reference density evaluated as a real-space scalar function,
-  /// using that element's own (small, atom-only) basis re-centered on
-  /// each real atom's actual position, never embedded into the full
-  /// molecule's AO basis at all, so there is no molecule-sized object
-  /// to assemble here in the first place.
+  /// Isolated-atom reference density (in the atom's own basis) for each
+  /// unique element in mol, keyed by element symbol: the promolecular
+  /// densities for Hirshfeld-based CDFT. Same structure as AtomicGuess, but
+  /// with use_hunds_rule_occupation=true, and the per-element densities are
+  /// returned instead of being assembled into a molecular AO matrix, since
+  /// Hirshfeld evaluates them in real space on each atom's position.
   std::map<std::string, Eigen::MatrixXd> ComputeHirshfeldReferenceDensities(
       const QMMolecule& mol) const;
 
-  /// Parsed directly from the \<cdft\> options block at Initialize()
-  /// time -- atom indices and target charge only, NOT yet a full
-  /// HirshfeldPartition::Constraint (which needs the reference
-  /// densities/weight matrix, neither of which exist until Evaluate()
-  /// actually has a real molecule to work with). BuildCDFTConstraint
-  /// (just below) does that later conversion. Deliberately defined
-  /// HERE, before BuildCDFTConstraint's own declaration -- a type must
-  /// already be visible before it is used as a parameter type in a
-  /// member function DECLARATION (unlike a function body, which can
-  /// freely reference members declared later in the same class, since
-  /// the whole class body is parsed first); this was a real compile
-  /// error caught directly (previously defined near
-  /// cdft_constraint_spec_ at the end of this class, well after this
-  /// point).
+  /// CDFT settings parsed from the \<cdft\> options block in Initialize():
+  /// atom indices and target charge only. The full
+  /// HirshfeldPartition::Constraint needs the molecule and is built later by
+  /// BuildCDFTConstraint.
   struct CDFTConstraintSpec {
     std::vector<Index> atom_indices;
-    // Relative to the fragment's own neutral reference state (the sum
-    // of its atoms' nuclear charges) -- e.g. +1.0 means one electron
-    // REMOVED (a cation). Converted to an absolute target electron
-    // count once, inside BuildCDFTConstraint, matching CP2K's own
-    // internal (absolute) TARGET convention exactly -- only the
-    // user-facing options syntax is charge-relative, per the earlier
-    // design discussion on this.
+    // Charge relative to the neutral fragment (sum of its nuclear charges);
+    // +1.0 means one electron removed. BuildCDFTConstraint converts it to an
+    // absolute electron count (CP2K's TARGET convention).
     double target_charge = 0.0;
     double initial_lambda = 0.0;
-    // "warmstart" (default) or "fresh" -- see this field's own XML
-    // help text (dftpackage.xml) for the full reasoning. Stored as
-    // the raw string, not a bool, so an invalid value (a typo, say)
-    // is caught by the XML schema's own choices="..." validation
-    // rather than silently defaulting to one behavior or the other.
+    // "warmstart" (default) or "fresh", see dftpackage.xml. Kept as a string
+    // so that invalid values are rejected by the XML choices validation.
     std::string guess_strategy = "warmstart";
   };
 
-  /// Converts a parsed CDFTConstraintSpec (atom indices + relative
-  /// target charge, from Initialize()'s own \<cdft\> options parsing)
-  /// into a fully-built HirshfeldPartition::Constraint, given the real
-  /// molecule this calculation is actually running on. Builds the
-  /// weight matrix as the SUM of BuildWeightMatrix over every atom in
-  /// spec.atom_indices -- Hirshfeld weights are additive across atoms
-  /// in a fragment (w_fragment(r) = sum_{i in fragment} w_i(r)), so
-  /// this generalizes correctly to a multi-atom region, not just a
-  /// single atom. The absolute target_population is computed as
-  /// (sum of the fragment atoms' own nuclear charges) -
-  /// spec.target_charge, matching CP2K's own internal (absolute)
-  /// TARGET convention -- only the OPTIONS-file syntax is
-  /// charge-relative, per the earlier design discussion on this; the
-  /// underlying Constraint/RunCDFT machinery itself was never changed
-  /// and still only ever deals in absolute populations.
+  /// Build the HirshfeldPartition::Constraint for spec on mol. The weight
+  /// matrix is the sum of BuildWeightMatrix over spec.atom_indices (Hirshfeld
+  /// weights are additive, w_fragment(r) = sum_{i in fragment} w_i(r)). The
+  /// absolute target population is sum_{i in fragment} Z_i -
+  /// spec.target_charge.
   HirshfeldPartition::Constraint BuildCDFTConstraint(
       const QMMolecule& mol, const CDFTConstraintSpec& spec) const;
 
@@ -524,109 +445,53 @@ class DFTEngine {
   /// force (-dE/dR, matching the convention external tools such as ASE
   /// expect from a Calculator's getForces()).
   ///
-  /// The one-electron term and the overlap Pulay force were initially
-  /// MISSING entirely -- discovered by the first genuine end-to-end
-  /// SCF+forces test (test_dftengine_forces.cc), since every earlier
-  /// gradient test in this branch validated individual terms against
-  /// fixed density matrices without ever checking the complete gradient
-  /// against a real total SCF energy. The overlap Pulay force (arising
-  /// because the MO orthonormality constraint C^T S C = I depends on
-  /// geometry through the moving basis functions, weighted by orbital
-  /// energies rather than occupation) is a standard part of any
-  /// Gaussian-basis SCF gradient, distinct from the "PulayGradient"
-  /// naming used elsewhere in this codebase for the XC-integral
-  /// basis-function term.
+  /// The overlap Pulay term, -tr(W dS/dR) with the energy-weighted density
+  /// W, arises because C^T S C = I depends on the geometry through the basis
+  /// functions; it is distinct from DFTGradient::PulayGradient, the
+  /// basis-function term of the XC integral.
   ///
-  /// RI-K/hybrid-functional support was added after DFTGradient::
-  /// RIKGradient's energy convention was fixed (a self-introduced
-  /// regression during that work: a plausible-looking hand-algebra
-  /// "correction" to a half-transformed structure was wrong, caught by
-  /// directly, numerically simulating ERIs::CalculateEXX_mos's real
-  /// algorithm before committing to it -- the original fully-MO-
-  /// transformed structure was correct, needing only a missing factor
-  /// of 2) and then verified via a real C++ finite-difference test
-  /// against ERIs::CalculateEXX_mos itself, not just a self-consistent
-  /// formula. Also confirmed (numerically, to machine precision):
-  /// CalculateEXX_mos's symmetric V^-1/2 RI fitting and RIKGradient's
-  /// simpler asymmetric V^-1 fitting give IDENTICAL exchange energies
-  /// (an exact algebraic identity for symmetric positive-definite V),
-  /// so no matrix square root derivative was ever actually needed.
+  /// The exchange gradient uses the asymmetric V^-1 RI fit, which gives the
+  /// same exchange energy as the symmetric V^-1/2 fit in
+  /// ERIs::CalculateEXX_mos (exact identity for positive-definite V), so no
+  /// derivative of V^-1/2 is needed.
   ///
-  /// SCOPE, explicitly checked and logged rather than silently producing
-  /// a wrong result: only supported when RI is actually in use for the
-  /// SCF (auxbasis_name_ non-empty -- DFTGradient::RIJGradient/RIKGradient
-  /// only implement the RI path, not conventional 4-center ERIs).
-  ///
-  /// OPT-IN: only called at all if compute_forces_ is true (see its
-  /// declaration below), settable via
-  /// \<xtpdft\>\<compute_forces\>true\</compute_forces\>\</xtpdft\> in
-  /// the options tree, defaulting to false.
-  /// Computing forces adds real, non-trivial cost to every converged
-  /// SCF, so this is deliberately not silently always-on -- added after
-  /// this was pointed out as an unflagged side effect of the original,
-  /// unconditional wiring.
+  /// Requires RI (auxbasis_name_ non-empty); RIJGradient/RIKGradient have no
+  /// 4-centre implementation. Only called if compute_forces_ is set
+  /// (\<xtpdft\>\<compute_forces\>true\</compute_forces\>\</xtpdft\>,
+  /// default false), since it adds non-trivial cost to every SCF.
   void ComputeAndStoreForces(Orbitals& orb, const Eigen::MatrixXd& Dmat,
                              const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
 
-  /// UKS overlap Pulay force -- W = W_alpha + W_beta, each WITHOUT the
-  /// factor of 2 RKS uses. Split out as its own method (rather than
-  /// inlined in ComputeNonXCGradientUKS) because it needs a genuinely
-  /// DIFFERENT validation strategy than the other four terms: it is NOT
-  /// checkable against a fixed-C finite difference (confirmed directly
-  /// by a failed attempt to do exactly that -- see git history), since
-  /// it specifically corrects for C's implicit R-dependence through the
-  /// orthonormality constraint, valid only at a genuine SCF stationary
-  /// point. See test_dftengine_private.cc for how this is actually
-  /// validated instead (reduction to the already-validated RKS formula
-  /// when alpha==beta).
+  /// UKS overlap Pulay gradient with W = W_alpha + W_beta (no factor of 2,
+  /// unlike RKS). Separate method because it cannot be checked against a
+  /// fixed-C finite difference: it accounts for the implicit R-dependence of
+  /// C through orthonormality and is only valid at an SCF stationary point.
+  /// test_dftengine_private.cc checks it against the RKS formula for
+  /// alpha == beta.
   Eigen::MatrixXd ComputeOverlapPulayGradientUKS(
       const QMMolecule& mol, const tools::EigenSystem& MOs_alpha,
       const tools::EigenSystem& MOs_beta) const;
 
-  /// The four non-XC-adjacent gradient terms that generalize cleanly to
-  /// UKS -- see the detailed derivation on ComputeAndStoreForcesUKS
-  /// below, which calls this and then decides whether/how to report the
-  /// result (currently: never stores it, since XC is missing). Returns
-  /// the (natoms x 3) dE/dR gradient directly (NOT negated to the
-  /// physical force convention -- that flip, if/when this becomes part
-  /// of a complete, storable UKS gradient, belongs at the point of
-  /// storage, same as the RKS path).
+  /// Non-XC part of the UKS gradient (nuclear repulsion, one-electron,
+  /// overlap Pulay, RI-J, RI-K), see ComputeAndStoreForcesUKS. Returns
+  /// dE/dR (natoms x 3), not the force; the sign flip is done on storage.
   Eigen::MatrixXd ComputeNonXCGradientUKS(
       const QMMolecule& mol, const UKSConvergenceAcc::SpinDensity& Dspin,
       const tools::EigenSystem& MOs_alpha,
       const tools::EigenSystem& MOs_beta) const;
 
-  /// UKS (open-shell) analog of ComputeAndStoreForces.
+  /// UKS (open-shell) analog of ComputeAndStoreForces; stores the force via
+  /// Orbitals::setForces().
   ///
-  /// STATUS: PARTIAL, deliberately. Four of the five non-XC-adjacent
-  /// terms generalize cleanly to UKS and are implemented here: nuclear
-  /// repulsion (unchanged), one-electron [kinetic + nuclear attraction]
-  /// (uses D_total = Dspin.alpha + Dspin.beta, exactly the same
-  /// convention RKS's Dmat already uses), the overlap Pulay force
-  /// (W = W_alpha + W_beta, each WITHOUT the factor of 2 RKS uses, since
-  /// UKS spin densities are not pre-doubled), and RI-K exact exchange
-  /// for hybrids (0.5 * ScaHFX_ * [RIKGradient(C_alpha_occ,...) +
-  /// RIKGradient(C_beta_occ,...)] -- the extra factor of 0.5 relative to
-  /// the naive guess of ScaHFX_*(...) confirmed both algebraically and
-  /// numerically: ERIs::CalculateEXX_dmat(P) == 0.5 *
-  /// ERIs::CalculateEXX_mos(C) when P = C*C^T, checked directly rather
-  /// than assumed, since UKS's exact exchange goes through
-  /// CalculateEXX_dmat, a different code path than the one
-  /// RIKGradient/CalculateEXX_mos were validated against).
-  ///
-  /// The XC gradient (PulayGradientUKS + GridWeightGradientUKS, LDA and
-  /// GGA) is now included too -- initially deferred as new derivation
-  /// work (spin-polarized rho_alpha/rho_beta, and for GGA a genuinely
-  /// new sigma_alpha-alpha/alpha-beta/beta-beta cross-term structure
-  /// with no analog in the spin-restricted case), then completed and
-  /// validated (Python-verified formulas first, then a real C++ finite-
-  /// difference test against IntegrateVXCSpin -- caught and fixed one
-  /// real transcription bug, a missing factor of 2 in the GGA sigma
-  /// term's Hessian contraction, found by careful line-by-line
-  /// comparison against the verified Python once the first real test
-  /// run showed a partial, non-catastrophic discrepancy). With XC now
-  /// included, this function DOES call Orbitals::setForces(), same as
-  /// the RKS ComputeAndStoreForces.
+  /// Terms: nuclear repulsion; one-electron [kinetic + nuclear attraction]
+  /// and RI-J with D_total = D_alpha + D_beta; overlap Pulay with
+  /// W = W_alpha + W_beta (spin densities are not pre-doubled); RI-K for
+  /// hybrids as 0.5 * ScaHFX_ * [RIKGradient(C_alpha_occ) +
+  /// RIKGradient(C_beta_occ)], the 0.5 because UKS exchange uses
+  /// ERIs::CalculateEXX_dmat(P) = 0.5 * ERIs::CalculateEXX_mos(C) for
+  /// P = C C^T; and XC (PulayGradientUKS + GridWeightGradientUKS, LDA and
+  /// GGA, including the sigma_aa/sigma_ab/sigma_bb terms), checked against
+  /// finite differences of IntegrateVXCSpin.
   void ComputeAndStoreForcesUKS(
       Orbitals& orb, const UKSConvergenceAcc::SpinDensity& Dspin,
       const tools::EigenSystem& MOs_alpha, const tools::EigenSystem& MOs_beta,
@@ -660,9 +525,8 @@ class DFTEngine {
 
   std::string initial_guess_;
 
-  // Only read from options / actually used when initial_guess_ ==
-  // "dimer_guess" -- see BuildDimerGuessFromMonomerFiles's own header
-  // comment for what this guess does and why it exists.
+  // Only used if initial_guess_ == "dimer_guess", see
+  // BuildDimerGuessFromMonomerFiles.
   std::string dimer_guess_orbA_name_;
   std::string dimer_guess_orbB_name_;
 
@@ -738,45 +602,19 @@ class DFTEngine {
   Index spin_ = 1;
   Index charge_ = 0;
   bool force_uks_path_ = false;
-  // Default false to preserve existing performance for callers not
-  // using this feature -- computing forces adds real, non-trivial cost
-  // (kinetic/nuclear-attraction/overlap derivatives, RI-J gradient, full
-  // XC gradient, RI-K for hybrids) to every converged SCF, so this must
-  // be explicit opt-in, not silently always-on. Settable via the
-  // \<xtpdft\> options block, which flows through unmodified from
-  // XTPDFT::RunDFT() (options_) straight into DFTEngine::Initialize --
-  // confirmed directly by reading XTPDFT::ParseSpecificOptions, which
-  // only extracts a single unrelated field (temporary_file) and does
-  // not filter/transform anything else -- so this option is
-  // automatically available through the full QMPackage/XTPDFT flow with
-  // no changes needed there.
+  // xtpdft.compute_forces: compute the nuclear gradient after the SCF.
+  // Off by default because of its cost (one-electron and overlap
+  // derivatives, RI-J, XC and, for hybrids, RI-K gradients).
   bool compute_forces_ = false;
 
-  // Empty by default -- the ONLY thing a standard, non-CDFT run needs
-  // to know about this member is that it is empty, checked via a
-  // single, cheap constraints_.empty() guard inside
-  // EvaluateUKS's own Fock-matrix assembly (see that function's own
-  // comment at the point the constraint potential term is added).
-  // When empty, that guard means the added term is a complete no-op:
-  // the Hamiltonian is built exactly as it always was, with no
-  // measurable overhead and no change in behavior whatsoever for any
-  // run that never touches this member. Populated only by the
-  // (not yet implemented) outer Lagrange-multiplier optimization loop,
-  // which is expected to modify each Constraint's own lambda field in
-  // place between successive, warm-started calls into EvaluateUKS --
-  // per the design discussion this grew out of (CP2K's own documented
-  // approach: restart the inner SCF from the previous trial's
-  // converged density at each new lambda, rather than a cold start).
+  // CDFT constraints added to the UKS Fock matrix; empty (no-op) for
+  // ordinary runs. Set by RunCDFT, which updates each lambda between
+  // warm-started EvaluateUKS calls.
   std::vector<HirshfeldPartition::Constraint> constraints_;
 
-  // CDFT outer-loop (Lagrange-multiplier) control, used only by
-  // RunCDFT below -- never read by the ordinary Evaluate/EvaluateUKS
-  // path at all, so these have no bearing on any standard run either.
-  // max_cdft_iterations_/cdft_population_tolerance_ are also settable
-  // from options (see Initialize()'s own cdft.max_iterations/
-  // cdft.population_tolerance parsing) when cdft.enabled=true; their
-  // defaults here are what a directly-constructed RunCDFT call (e.g.
-  // from a test, bypassing Initialize() entirely) gets instead.
+  // CDFT outer-loop control, used only by RunCDFT. Read from
+  // cdft.max_iterations/cdft.population_tolerance in Initialize() if
+  // cdft.enabled; the defaults apply when RunCDFT is called directly.
   Index max_cdft_iterations_ = 50;
   double cdft_population_tolerance_ = 1.e-4;
 

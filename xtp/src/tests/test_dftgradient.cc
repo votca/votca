@@ -14,24 +14,11 @@
  *
  */
 
-// ===========================================================================
-// STATUS: written but NOT yet run. Unlike everything in
-// test_aoderivatives.cc, this doesn't involve libint2 at all (nuclear
-// repulsion is pure geometry -- nuclear charges and positions, no
-// integrals) -- there is no reason to expect this to hit any of the
-// libint2-build-configuration issues encountered elsewhere in this
-// branch, but it is still an independent piece of new code and should
-// not be assumed correct without running it.
-//
-// The finite-difference reference below deliberately does NOT call
-// DFTEngine::NuclearRepulsion (it's private, not accessible from a
-// test) -- it's an independent reimplementation of the same elementary
-// Coulomb's-law formula. This is arguably slightly BETTER validation
-// than reusing shared code would be: two independently-written
-// implementations agreeing via finite difference is stronger evidence
-// than one implementation agreeing with itself, since a shared formula
-// bug couldn't hide from both.
-// ===========================================================================
+// Finite-difference tests of DFTGradient: NuclearRepulsionDerivative
+// against an independent implementation of E_nn, and RIJGradient/RIKGradient
+// against finite differences of the RI Coulomb and exchange energies
+// (ERIs::CalculateEXX_mos) for a fixed density matrix or MO coefficients.
+// All also check translational invariance.
 
 #include "xtp_libint2.h"
 #include <stdexcept>
@@ -58,11 +45,8 @@
 using namespace votca::xtp;
 using namespace votca;
 
-// Defined in libint2_derivative_calls.cc, not yet in any header; forward
-// declared here purely to build the finite-difference reference energy
-// (production code, DFTGradient::RIJGradient, already calls this
-// internally -- this is not duplicating the derivative logic, only the
-// energy-level integral used for the reference calculation).
+// Defined in libint2_derivative_calls.cc (no header); used for the reference
+// energies.
 namespace votca {
 namespace xtp {
 std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
@@ -72,10 +56,8 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
 
 BOOST_AUTO_TEST_SUITE(dftgradient_test)
 
-// Builds a simple three-atom test molecule (not collinear, so the
-// nuclear repulsion gradient has genuinely nonzero components in more
-// than one direction -- a collinear or two-atom system would exercise
-// less of the formula than a general geometry does).
+// Non-collinear three-atom molecule, so the gradient has several nonzero
+// components.
 QMMolecule BuildTestMolecule(double displacement_x = 0.0) {
   QMMolecule mol(" ", 0);
   std::string xyz_content =
@@ -92,10 +74,7 @@ QMMolecule BuildTestMolecule(double displacement_x = 0.0) {
   return mol;
 }
 
-// Independent reference implementation of the same nuclear repulsion
-// energy formula DFTGradient::NuclearRepulsionDerivative differentiates,
-// written separately (not calling any XTP code) as the energy reference
-// for the finite-difference check below.
+// Reference E_nn, independent of XTP code.
 double NuclearRepulsionEnergyReference(const QMMolecule& mol) {
   double energy = 0.0;
   for (Index a = 0; a < mol.size(); ++a) {
@@ -110,31 +89,16 @@ double NuclearRepulsionEnergyReference(const QMMolecule& mol) {
 }
 
 BOOST_AUTO_TEST_CASE(nuclear_repulsion_derivative_finite_difference) {
-  double h = 1e-4;  // finite-difference step, Angstrom -- matching
-                    // BuildH2's convention in test_aoderivatives.cc
-                    // (confirmed empirically there that a bare .xyz
-                    // file with no explicit units line is interpreted
-                    // as Angstrom by QMMolecule::LoadFromFile, via the
-                    // Bohr/Angstrom bug found and fixed in that file;
-                    // reusing that same confirmed assumption here rather
-                    // than re-deriving it from scratch).
+  double h = 1e-4;  // finite-difference step, Angstrom (.xyz input)
 
-  // NOTE: BuildTestMolecule's xyz file has no units line beyond the
-  // standard xyz format, and QMMolecule::LoadFromFile's default unit
-  // assumption was not independently re-checked here (assumed Angstrom,
-  // matching every other .xyz-based test in this codebase, e.g. BuildH2
-  // in test_aoderivatives.cc). If this test fails by a uniform factor
-  // across all entries the same way the overlap-derivative test once
-  // did, check that assumption first -- see the detailed note in
-  // test_aoderivatives.cc for exactly this failure signature.
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  // .xyz coordinates are read as Angstrom; a failure by a uniform factor
+  // 1.8897 would indicate a unit mismatch.
+  constexpr double kAngstromPerBohr = 0.52917721090380;
 
   QMMolecule mol0 = BuildTestMolecule(0.0);
   Eigen::MatrixXd deriv = DFTGradient::NuclearRepulsionDerivative(mol0);
 
-  // Sanity check independent of finite differences: net force-like sum
-  // over all atoms must vanish (translational invariance of the total
-  // energy -- shifting the whole molecule rigidly cannot change E_nn).
+  // translational invariance
   Eigen::Vector3d total = deriv.colwise().sum();
   BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-10);
 
@@ -144,14 +108,10 @@ BOOST_AUTO_TEST_CASE(nuclear_repulsion_derivative_finite_difference) {
   double e_plus = NuclearRepulsionEnergyReference(mol_plus);
   double e_minus = NuclearRepulsionEnergyReference(mol_minus);
   double finite_diff_deriv_ang = (e_plus - e_minus) / (2.0 * h);
-  double finite_diff_deriv_bohr = finite_diff_deriv_ang * kBohrPerAngstrom;
+  double finite_diff_deriv_bohr = finite_diff_deriv_ang * kAngstromPerBohr;
 
   double analytic = deriv(2, 0);  // atom index 2, x-component
-  // Tolerance matches the standard used throughout this branch (1e-4,
-  // e.g. the overlap/kinetic/coulomb-metric/three-center tests in
-  // test_aoderivatives.cc), rather than something tighter chosen without
-  // justification -- consistent with expected O(h^2) central-difference
-  // truncation error at h=1e-4.
+  // O(h^2) error at h = 1e-4
   bool matches =
       std::abs(finite_diff_deriv_bohr - analytic) < 1e-4 * std::abs(analytic);
   if (!matches) {
@@ -161,23 +121,9 @@ BOOST_AUTO_TEST_CASE(nuclear_repulsion_derivative_finite_difference) {
   BOOST_CHECK_EQUAL(matches, true);
 }
 
-// RI-J gradient assembly (DFTGradient::RIJGradient), validated against a
-// finite difference of the total RI-J energy computed with a FIXED,
-// arbitrary density matrix -- see the detailed "IMPORTANT" note on this
-// function in dftgradient.h for why an arbitrary (not necessarily
-// converged-SCF) density matrix is a legitimate way to validate the
-// assembly formula: the RI fitting coefficients' stationarity is a
-// property of the linear least-squares fit itself, not of electronic
-// self-consistency.
-//
-// STATUS: NOT yet run. This is the most integrative piece tested so far
-// in this branch -- it combines four previously-validated pieces
-// (ComputeThreeCenterIntegrals/Derivatives, AOCoulomb, and the
-// two-center metric derivative) through NEW contraction/assembly code
-// that has not itself been checked. A failure here would point to the
-// assembly logic (the c=V^-1 d solve, or the term1/term2 contraction),
-// not to any of the underlying integrals, which are already separately
-// confirmed correct.
+// RIJGradient against a finite difference of the RI-J energy for a fixed,
+// arbitrary density matrix (valid since the fit coefficients are stationary
+// for any density, see dftgradient.h).
 BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
   libint2::initialize();
   try {
@@ -208,13 +154,9 @@ BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
     AOBasis dftbasis0;
     dftbasis0.Fill(basisset, mol0);
     AOBasis auxbasis0;
-    auxbasis0.Fill(basisset, mol0);  // same basis used for both, as in the
-                                     // three-center integral test
+    auxbasis0.Fill(basisset, mol0);  // same basis as auxiliary basis
 
-    // Fixed, arbitrary, symmetric density matrix -- generated once and
-    // reused unchanged at every geometry. Its specific values don't
-    // matter for this test (see IMPORTANT note referenced above); what
-    // matters is that it stays FIXED while the geometry moves.
+    // fixed, arbitrary symmetric density matrix, the same at all geometries
     Index n_dft_bf = dftbasis0.AOBasisSize();
     Eigen::MatrixXd density_random =
         Eigen::MatrixXd::Random(n_dft_bf, n_dft_bf);
@@ -224,9 +166,7 @@ BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
     Eigen::MatrixXd analytic_grad =
         DFTGradient::RIJGradient(density, auxbasis0, dftbasis0);
 
-    // Sanity check independent of finite differences, same reasoning as
-    // the nuclear repulsion test: translational invariance of the total
-    // energy means the gradient must sum to zero across all atoms.
+    // translational invariance
     Eigen::Vector3d total = analytic_grad.colwise().sum();
     BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
 
@@ -258,9 +198,9 @@ BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
     auxbasis_minus.Fill(basisset, mol_minus);
     double e_minus = rij_energy(auxbasis_minus, dftbasis_minus);
 
-    constexpr double kBohrPerAngstrom = 0.52917721090380;
+    constexpr double kAngstromPerBohr = 0.52917721090380;
     double finite_diff_deriv =
-        (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+        (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
 
     double analytic = analytic_grad(1, 2);  // atom 1 (second H), z-component
     bool matches =
@@ -286,21 +226,10 @@ BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
   libint2::finalize();
 }
 
-// RI-K (exchange) gradient assembly (DFTGradient::RIKGradient), validated
-// the same way as RI-J: finite difference of the total (self-defined,
-// internally-consistent -- see the energy-convention note on
-// RIKGradient in dftgradient.h) exchange energy, using a FIXED, arbitrary
-// (nbf x 2) coefficient matrix rather than genuine converged/orthonormal
-// occupied orbitals -- valid for the same reason as RIJGradient's
-// density argument (per-pair fitting-coefficient stationarity is a
-// linear-algebra property, not a consequence of SCF self-consistency or
-// orthonormality).
-//
-// STATUS: NOT yet run. Structurally similar to the RI-J test but with an
-// extra (i,j) double sum over coefficient-matrix columns -- a failure
-// here would most likely point at that double-sum bookkeeping rather
-// than the underlying integrals, which are shared with (and already
-// validated by) the RI-J test above.
+// RIKGradient against a finite difference of the exchange energy of
+// ERIs::CalculateEXX_mos for a fixed, arbitrary (nbf x 2) coefficient matrix
+// (not orthonormal; valid since the per-pair fit coefficients are
+// stationary for any C).
 BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
   libint2::initialize();
   try {
@@ -333,11 +262,8 @@ BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
     AOBasis auxbasis0;
     auxbasis0.Fill(basisset, mol0);
 
-    // Fixed, arbitrary (nbf x 2) coefficient matrix -- generated once,
-    // reused unchanged at every geometry. Not orthonormal, not from any
-    // SCF -- deliberately, per the reasoning in the header comment (valid
-    // for testing the gradient FORMULA's correctness, even though it
-    // would not be physically meaningful as real occupied MOs).
+    // fixed, arbitrary (nbf x 2) coefficient matrix, the same at all
+    // geometries
     Index n_dft_bf = dftbasis0.AOBasisSize();
     Eigen::MatrixXd mo_coeffs = Eigen::MatrixXd::Random(n_dft_bf, 2);
 
@@ -347,12 +273,8 @@ BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
     Eigen::Vector3d total = analytic_grad.colwise().sum();
     BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
 
-    // Reference energy via the REAL, production ERIs::CalculateEXX_mos --
-    // not a separately-defined, self-consistent-but-possibly-wrong toy
-    // formula. This is the decisive check: RIKGradient's energy
-    // convention (E_K = -sum_ij c_ij.d_ij, confirmed via direct numerical
-    // simulation of CalculateEXX_mos's own algorithm -- see the detailed
-    // history in dftgradient.h/.cc) should match this exactly.
+    // Reference energy from ERIs::CalculateEXX_mos; should equal
+    // RIKGradient's E_K = -sum_ij c_ij.d_ij.
     auto rik_energy = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
       ERIs eris;
       eris.Initialize(dftbasis, auxbasis);
@@ -378,9 +300,9 @@ BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
     auxbasis_minus.Fill(basisset, mol_minus);
     double e_minus = rik_energy(auxbasis_minus, dftbasis_minus);
 
-    constexpr double kBohrPerAngstrom = 0.52917721090380;
+    constexpr double kAngstromPerBohr = 0.52917721090380;
     double finite_diff_deriv =
-        (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+        (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
 
     double analytic = analytic_grad(1, 2);  // atom 1 (second H), z-component
     bool matches =
@@ -388,16 +310,11 @@ BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
     if (!matches) {
       std::cout << "Analytic dE_K/dz(atom1): " << analytic << std::endl;
       std::cout << "Finite-difference: " << finite_diff_deriv << std::endl;
-      std::cout << "NOTE: this compares against the REAL, production "
-                   "ERIs::CalculateEXX_mos energy (symmetric V^-1/2 RI "
-                   "fitting), not a self-consistent toy formula -- if this "
-                   "fails, first double check the factor of 2 and sign in "
-                   "RIKGradient's energy convention (E_K = "
-                   "-sum_ij c_ij.d_ij, see the detailed history in "
-                   "dftgradient.h/.cc, confirmed via a SEPARATE numerical "
-                   "simulation in Python before this C++ test was written -- "
-                   "worth re-checking that simulation's assumptions if this "
-                   "C++ test disagrees with it)."
+      std::cout << "NOTE: the reference is the ERIs::CalculateEXX_mos "
+                   "energy (symmetric V^-1/2 RI fitting); if this fails, "
+                   "check the factor of 2 and the sign of RIKGradient's "
+                   "energy convention E_K = -sum_ij c_ij.d_ij (see "
+                   "dftgradient.h)."
                 << std::endl;
     }
     BOOST_CHECK_EQUAL(matches, true);

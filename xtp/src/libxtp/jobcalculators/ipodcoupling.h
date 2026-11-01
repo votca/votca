@@ -35,23 +35,14 @@ namespace xtp {
 /**
  * \brief H-saturated, DFT + POD2-based electronic coupling calculator
  *
- * A new, separate jobcalculator (deliberately not a modification of
- * IQM itself -- IQM already has an established, widely-used role, and
- * directly entangling this genuinely different workflow into it would
- * risk breaking existing behavior for everyone who already relies on
- * it, per the design worked through directly with the user before
- * starting this implementation).
+ * Kept separate from IQM so that IQM's existing behavior is unchanged.
  *
- * For each neighbor-list pair: maps both segments (plus, in future,
- * any linking segments -- see this class's own EvalJob header comment
- * for the current, still-open status of that piece), combines them
- * into one supermolecule, saturates any remaining covalently-cut
- * fragment boundaries with new H atoms (FragmentSaturator::
- * SaturateExternalBonds, geometric placement, then RelaxNewAtoms, a
- * constrained OpenBabel MMFF94/UFF relaxation -- both already built
- * and tested earlier this session), runs the actual DFT calculation
- * on the resulting, H-saturated geometry, then runs PODCoupling on
- * the resulting orbitals.
+ * For each neighbor-list pair: maps both segments (and, optionally, the
+ * linking segments between them) into one supermolecule, saturates the
+ * remaining covalently cut boundaries with H atoms
+ * (FragmentSaturator::SaturateExternalBonds, then RelaxNewAtoms, a
+ * constrained OpenBabel MMFF94/UFF relaxation), runs DFT on the saturated
+ * geometry and evaluates PODCoupling on the resulting orbitals.
  *
  * Callname: ipodcoupling
  */
@@ -70,59 +61,31 @@ class IPodCoupling final : public ParallelXJobCalc<std::vector<Job> > {
                       const std::string& errormessage);
   void WriteLoggerToFile(const std::string& logfile, Logger& logger);
 
-  // Finds, within podprop (the same "podcoupling" node EvalJob writes
-  // via podcoupling_summary), the <coupling> element with the given,
-  // exact levelA/levelB, and returns its own "j" value converted back
-  // to Hartree (podprop's own "j" is written in eV -- see EvalJob's
-  // own comment for exactly why) -- NaN if no such element exists at
-  // all (e.g. this specific pair was never actually within the
-  // requested numberofstatesA_/B_ range at the time the job was
-  // originally run). Same, established pattern as IQM::
-  // GetDFTCouplingFromProp (iqm.cc), confirmed directly by reading it
-  // before writing this.
+  // Returns the "j" value (stored in eV) of the coupling element of podprop
+  // with the given levelA/levelB, converted to Hartree; NaN if the levels
+  // were outside the range computed in EvalJob. As in
+  // IQM::GetDFTCouplingFromProp (iqm.cc).
   double GetPODCouplingFromProp(const tools::Property& podprop, Index levelA,
                                 Index levelB) const;
 
-  // Finds, within seg, the specific atom whose own external bond
-  // points toward target_segment_id -- genuinely different from just
-  // "any atom with hasExternalBond()", since a segment can, in
-  // principle, have external bonds toward more than one other
-  // segment at all (only the one specifically bonded toward
-  // target_segment_id is wanted here). Throws directly (per direct
-  // agreement with the user) if no such atom exists at all -- this
-  // would mean seg and the segment target_segment_id refers to are
-  // NOT actually, directly bonded, despite FindLinkingSegments()
-  // itself already having reported a real bond path between them; a
-  // silent skip/fallback here would produce a geometrically wrong
-  // supermolecule with no warning at all, worse than failing loudly.
+  // Returns the atom of seg whose external bond points to segment
+  // target_segment_id (a segment may have external bonds to several
+  // segments). Throws if there is none, i.e. if the bond path reported by
+  // FindLinkingSegments() does not exist at the atom level; a silent
+  // fallback would produce a wrong supermolecule geometry.
   const Atom& FindBoundaryAtomTowardSegment(const Segment& seg,
                                             Index target_segment_id) const;
 
-  // Returns PBC-correctly-positioned COPIES of every segment in
-  // linkers (never the originals stored in Topology, matching
-  // QMPair::Seg2PbCopy()'s own, established "return a fresh copy"
-  // convention exactly) -- walks the real, actual covalent chain
-  // seg1_positioned -> linkers[0] -> linkers[1] -> ... ->
-  // seg2_positioned one bond at a time (see this method's own .cc
-  // implementation for exactly why one bond at a time, not any
-  // single, whole-chain shift, is needed), using
-  // Topology::PbShortestConnect() at each hop, anchored on each
-  // hop's own, specific FindBoundaryAtomTowardSegment result -- not
-  // any segment's own, whole-molecule center of mass, unlike
-  // QMPair::Seg2PbCopy() itself, since a large segment's own center
-  // can be genuinely far from its own, specific bonded atom.
+  // Returns PBC-corrected copies of the linker segments (the Topology is
+  // not modified, as for QMPair::Seg2PbCopy()). Walks the covalent chain
+  // seg1_positioned -> linkers[0] -> ... -> seg2_positioned one bond at a
+  // time with Topology::PbShortestConnect(), anchored on the bonded
+  // boundary atoms (FindBoundaryAtomTowardSegment) rather than on centers
+  // of mass, which can be far from the bond in large segments.
   //
-  // seg1_positioned/seg2_positioned are assumed to already be
-  // correctly positioned themselves (this walk's own two, fixed
-  // anchors) -- typically seg1 itself (unmoved, the pair's own,
-  // established anchor) and pair->Seg2PbCopy() (already
-  // PBC-corrected, via the existing, established pair-level
-  // mechanism) respectively. The very last hop
-  // (linkers.back() -> seg2_positioned) is validated the exact same
-  // way as every other hop -- if FindLinkingSegments() reported a
-  // real chain but the very last linker turns out not to be actually
-  // bonded to seg2 at all, this throws too, for the exact same
-  // reason.
+  // seg1_positioned and seg2_positioned must already be positioned
+  // (typically seg1 and pair->Seg2PbCopy()). The last hop to
+  // seg2_positioned is validated like all others and throws if broken.
   std::vector<Segment> PositionLinkersAlongChain(
       const Topology& top, const Segment& seg1_positioned,
       const std::vector<const Segment*>& linkers,
@@ -131,32 +94,19 @@ class IPodCoupling final : public ParallelXJobCalc<std::vector<Job> > {
   tools::Property dftpackage_options_;
   tools::Property podcoupling_options_;
 
-  // PODCoupling::CalculateCouplings's own numberofstatesA/B --
-  // matches podcoupling.xml's own, established "levA"/"levB" option
-  // names exactly (already used by the standalone podcoupling tool,
-  // podcouplingtool.cc), for user familiarity -- unlike that tool,
-  // fragment_A/fragment_B themselves are never parsed as options at
-  // all here; they are computed directly from the segment mapping
-  // itself (IPodCoupling::EvalJob), not user-supplied.
+  // numberofstatesA/B of PODCoupling::CalculateCouplings, read from the
+  // "levA"/"levB" options as in the podcoupling tool. Unlike that tool,
+  // the fragments are derived from the segment mapping, not user input.
   Index numberofstatesA_ = 1;
   Index numberofstatesB_ = 1;
 
-  // Whether to look for, and include, linking segments at all (via
-  // Topology::FindLinkingSegments) -- deliberately a simple,
-  // real toggle, per direct agreement with the user (default off,
-  // matching IQM's own default-off linker behavior). Unlike IQM's
-  // own linker_names (a segment-TYPE whitelist), this graph-based
-  // design needs no such whitelist at all -- inclusion is already,
-  // entirely determined by real bond connectivity alone (is there an
-  // actual, real covalent path between seg_A and seg_B at all).
-  // Deliberately no cap on the number of linker segments included at
-  // all either, per direct agreement with the user.
+  // Include linking segments found by Topology::FindLinkingSegments
+  // (default off, as in IQM). Selection is by covalent connectivity
+  // between seg_A and seg_B, not by a segment-type list as in IQM's
+  // linker_names; the number of linkers is not capped.
   bool include_linkers_ = false;
 
-  // What to do -- same, established "tasks" pattern as IQM's own
-  // do_dft_input_/do_dft_run_/do_dft_parse_ (matching option names,
-  // deliberately, for user familiarity), plus a new task specific to
-  // this calculator's own, additional purpose.
+  // Tasks, as in IQM, plus "podcoupling".
   bool do_dft_input_ = false;
   bool do_dft_run_ = false;
   bool do_dft_parse_ = false;

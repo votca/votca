@@ -27,6 +27,7 @@
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
+#include <sstream>
 
 // Local VOTCA includes
 #include "votca/xtp/citations.h"
@@ -82,6 +83,27 @@ BOOST_AUTO_TEST_CASE(calculator_report) {
   BOOST_CHECK(text.find("Depending") == std::string::npos);
   const std::string qmmm = citations::CalculatorReport("qmmm");
   BOOST_CHECK(qmmm.find("Depending on the options") != std::string::npos);
+}
+
+BOOST_AUTO_TEST_CASE(report_lines_are_wrapped) {
+  citations::Reset();
+  for (const char* key : {"Baumeier:2024", "Chen:2025a", "Ghan:2020"}) {
+    citations::Cite(key);
+  }
+  std::istringstream report(citations::Report());
+  std::string line;
+  while (std::getline(report, line)) {
+    // Only a single unbreakable word (e.g. a long DOI) may exceed 78.
+    if (line.size() > 78) {
+      BOOST_CHECK(line.find(' ', line.find_first_not_of(' ')) ==
+                  std::string::npos);
+    }
+  }
+  citations::Reset();
+  std::istringstream calc(citations::CalculatorReport("qmmm"));
+  while (std::getline(calc, line)) {
+    BOOST_CHECK_LE(line.size(), 78);
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

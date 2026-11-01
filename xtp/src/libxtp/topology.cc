@@ -183,15 +183,10 @@ std::vector<const Segment *> Topology::FindLinkingSegments(
     const Segment &seg1, const Segment &seg2) const {
   std::vector<const Segment *> results;
 
-  // Real, direct segment-id adjacency graph -- built once, here, from
-  // every atom's own, already-known, real external-bond partner
-  // segment (Atom::getExternalBondPartnerSegmentId(), built and
-  // tested earlier this session). Deliberately built fresh, on every
-  // call, rather than cached anywhere on Topology itself -- this is
-  // not expected to be called often enough (once per genuinely
-  // linker-including pair, not once per ordinary pair at all) for
-  // this to matter, and avoids any risk of a stale cache if segments_
-  // itself is ever mutated after Topology is first constructed.
+  // Segment adjacency graph from Atom::getExternalBondPartnerSegmentId().
+  // Rebuilt on every call instead of cached: the function is called rarely
+  // (only for pairs with linkers) and a cache could become stale if
+  // segments_ changes.
   std::map<Index, std::vector<Index>> segment_adjacency;
   for (const Segment &seg : segments_) {
     for (const Atom &atom : seg) {
@@ -206,11 +201,8 @@ std::vector<const Segment *> Topology::FindLinkingSegments(
     }
   }
 
-  // Real, direct, standard breadth-first search -- guarantees the
-  // SHORTEST real bond path is found, if any exists at all (not just
-  // any path). predecessor tracks, for every segment id visited, the
-  // segment id it was reached from, to reconstruct the actual path
-  // afterward.
+  // Breadth-first search, which yields the shortest bond path. predecessor
+  // stores for each visited segment the segment it was reached from.
   std::map<Index, Index> predecessor;
   std::set<Index> visited;
   std::queue<Index> to_visit;
@@ -235,22 +227,13 @@ std::vector<const Segment *> Topology::FindLinkingSegments(
   }
 
   if (!found) {
-    // Either genuinely unconnected (e.g. different molecules
-    // entirely), or connected but not via a real, direct bond path at
-    // all -- either way, matches FindAllSegmentsOnMolecule's own,
-    // established "empty means none" convention.
+    // Not connected by bonds; empty result as in FindAllSegmentsOnMolecule.
     return results;
   }
 
-  // Reconstruct the real path, walking backward from seg2 to seg1 via
-  // predecessor -- excludes seg2 itself (the starting point of this
-  // walk) and, via the loop condition below, seg1 itself too (the
-  // walk stops once it reaches seg1, without ever pushing it). This
-  // walk itself produces the path in REVERSE order (closest to seg2
-  // first) -- reversed below, so the final result is in genuine
-  // seg1-to-seg2 chain order instead, which the still-open,
-  // planned PBC-correction design (walking the chain one covalent
-  // bond at a time, from seg1 toward seg2) will genuinely need.
+  // Walk back from seg2 to seg1 via predecessor, excluding both ends, and
+  // reverse to get the segments in seg1-to-seg2 chain order (needed for a
+  // planned PBC correction that follows the chain bond by bond).
   std::vector<Index> path_segment_ids;
   Index current = predecessor.at(seg2.getId());
   while (current != seg1.getId()) {

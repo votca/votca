@@ -14,34 +14,15 @@
  *
  */
 
-// ===========================================================================
-// STATUS: written but NOT yet run. This is the combined validation of the
-// two XC gradient pieces (Vxc_Potential::PulayGradient and
-// ::GridWeightGradient) -- neither piece can be checked against the real
-// total XC energy in isolation (see the commit history for both), so
-// this test sums them and compares against a genuine finite difference
-// of IntegrateVXC's real energy output.
-//
-// Reuses the EXISTING, already-validated test data from
-// test_vxc_potential.cc (methane/3-21G/dmat.mm) rather than a toy
-// molecule, specifically because it's a real multi-atom (5-atom) case --
-// a good test of the SSW weight derivative's multi-atom bookkeeping,
-// which a 2-atom system exercises much less of.
-//
-// Uses an LDA functional (XC_LDA_X + XC_LDA_C_VWN, standard, should
-// exist in any LibXC install) rather than the existing test's GGA
-// (XC_GGA_X_PBE + XC_GGA_C_PBE), since PulayGradient/GridWeightGradient
-// are explicitly scoped to LDA only -- the additional GGA df_dsigma-driven
-// Pulay term is not implemented (see PulayGradient's header comment).
-// Using the GGA functional here would compare against a formula that's
-// deliberately incomplete for that case and should be expected to fail
-// for reasons unrelated to whether the LDA-scoped code itself is correct.
-//
-// Uses a coarser grid quality ("coarse") than the existing test's
-// "medium" (53404 points) to keep runtime reasonable, given
-// GridWeightGradient's O(Natoms^3)-per-point cost flagged in its own
-// header comment.
-// ===========================================================================
+// Finite-difference tests of the XC nuclear gradient at fixed density
+// matrix: PulayGradient + GridWeightGradient (RKS) and PulayGradientUKS +
+// GridWeightGradientUKS, compared with central differences of the XC energy
+// of IntegrateVXC/IntegrateVXCSpin, rebuilding basis and grid at each
+// displaced geometry. Neither term alone matches the energy derivative, so
+// their sum is tested, plus translational invariance. Systems: methane
+// (3-21G, dmat.mm from test_vxc_potential.cc, "coarse" grid) and H2 (fixed
+// model densities, "medium" grid), with LDA (XC_LDA_X XC_LDA_C_VWN) and GGA
+// (XC_GGA_X_PBE XC_GGA_C_PBE).
 
 #define BOOST_TEST_MAIN
 
@@ -67,9 +48,7 @@ using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(xcgradient_combined_test)
 
-// Base methane geometry, read once from the existing test data, so the
-// displaced-geometry builder below only needs to shift one coordinate
-// rather than hardcode the whole molecule a second time.
+// Methane geometry from the test data, displaced by the builder below.
 std::vector<std::pair<std::string, Eigen::Vector3d>> LoadBaseGeometry() {
   std::ifstream in(std::string(XTP_TEST_DATA_FOLDER) +
                    "/vxc_potential/molecule.xyz");
@@ -85,9 +64,8 @@ std::vector<std::pair<std::string, Eigen::Vector3d>> LoadBaseGeometry() {
   return atoms;
 }
 
-// Builds a QMMolecule with atom `atom_idx`'s z-coordinate shifted by
-// `dz` (Angstrom, matching the plain .xyz convention already confirmed
-// elsewhere in this branch), all other atoms unchanged.
+// Copy of the base geometry with atom atom_idx shifted by dz (Angstrom)
+// along z.
 QMMolecule BuildDisplacedMethane(
     const std::vector<std::pair<std::string, Eigen::Vector3d>>& base_atoms,
     Index atom_idx, double dz) {
@@ -132,12 +110,6 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   QMMolecule mol0 = BuildDisplacedMethane(base_atoms, displaced_atom, 0.0);
   AOBasis aobasis0 = BuildBasis(mol0);
 
-  // Diagnostic random-matrix swap (previous commit) served its
-  // purpose and is no longer needed: the root cause turned out to be
-  // the missing C_p factor in GridWeightGradient itself (see that
-  // fix's commit message), not anything specific to dmat.mm or a
-  // basis-ordering mismatch. Restoring the real, physically meaningful
-  // density matrix for this test.
   Eigen::MatrixXd dmat = tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/vxc_potential/dmat.mm");
 
@@ -150,11 +122,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   Eigen::MatrixXd weight_grad = vxc0.GridWeightGradient(dmat, mol0);
   Eigen::MatrixXd total_grad = pulay_grad + weight_grad;
 
-  // Check translational invariance on EACH term separately, not just
-  // the total -- H2's weight term alone satisfied this exactly; if
-  // methane's weight term alone does NOT, that's definitive evidence of
-  // a real bug specific to this case, rather than something in the
-  // shared formula (which H2 didn't expose).
+  // translational invariance of each term separately
   Eigen::Vector3d pulay_sum_check = pulay_grad.colwise().sum();
   Eigen::Vector3d weight_sum_check = weight_grad.colwise().sum();
   std::cerr << "[xc_gradient_finite_difference diagnostic] "
@@ -162,9 +130,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
             << "\nWeight alone t.i. sum = " << weight_sum_check.transpose()
             << std::endl;
 
-  // Sanity check independent of finite differences, same reasoning as
-  // every other gradient in this branch: translational invariance means
-  // the total must sum to zero across all atoms.
+  // translational invariance of the total
   Eigen::Vector3d sum = total_grad.colwise().sum();
   if (sum.cwiseAbs().maxCoeff() > 1e-4) {
     std::cout << "WARNING: translational invariance check failed, sum="
@@ -174,11 +140,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   }
   BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
 
-  // Finite-difference reference: real total XC energy (IntegrateVXC),
-  // fixed density matrix, displaced geometry rebuilt from scratch each
-  // time (fresh grid, fresh basis) -- exactly mirroring how a genuine
-  // geometry change would be evaluated, not an isolated/artificial
-  // construction.
+  // Finite-difference reference: XC energy of IntegrateVXC at fixed
+  // density matrix, with basis and grid rebuilt at each displaced geometry.
   QMMolecule mol_plus = BuildDisplacedMethane(base_atoms, displaced_atom, h);
   AOBasis aobasis_plus = BuildBasis(mol_plus);
   Vxc_Grid grid_plus;
@@ -195,8 +158,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
 
   double analytic = total_grad(displaced_atom, 2);  // z-component
   bool matches =
@@ -229,16 +192,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   libint2::finalize();
 }
 
-// Much smaller reproduction case: H2 instead of methane. Methane's
-// per-point formula has now been cross-checked against an independent
-// Python implementation for THREE diverse points (different owners,
-// including the previously-untested owner==A case) with exact
-// agreement every time -- yet the aggregate result is still off by
-// ~400x. Continuing to sample individual points at the 5-atom,
-// ~28000-point scale isn't converging; H2 has far fewer points and
-// only 2 atoms, small enough to reason about (or dump) exhaustively
-// rather than by sample, the same way reducing to a minimal case
-// resolved the libint2 buffer-ordering question earlier in this branch.
+// H2 (2 atoms, few grid points) with LDA.
 BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   libint2::initialize();
 
@@ -275,19 +229,12 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   Vxc_Potential<Vxc_Grid> vxc0(grid0);
   vxc0.setXCfunctional(functional);
 
-  // No real converged density for bare H2 at hand here -- reuse the
-  // SAME "arbitrary fixed matrix" reasoning already used throughout
-  // this branch (RI-J/RI-K): PulayGradient/GridWeightGradient only need
-  // A fixed density matrix, not a converged one, to test the gradient
-  // ASSEMBLY formula itself. Build a simple fixed, symmetric one.
+  // Fixed symmetric model density; the gradient formulas hold for any fixed
+  // density matrix.
   Index n_bf = aobasis0.AOBasisSize();
   Eigen::MatrixXd dmat_random = Eigen::MatrixXd::Random(n_bf, n_bf);
-  // NOTE: dmat = 0.5*(dmat+dmat.transpose()) is a classic Eigen aliasing
-  // trap -- assigning an expression that reads from dmat while
-  // simultaneously overwriting it can give a result that's only
-  // approximately (not exactly) symmetric, tripping PulayGradient's
-  // exact isApprox symmetry assertion. Using a separate source variable
-  // (dmat_random) for the RHS avoids the aliasing entirely.
+  // Symmetrize from a separate matrix: dmat = 0.5*(dmat+dmat.transpose())
+  // aliases and need not be exactly symmetric (PulayGradient asserts it).
   Eigen::MatrixXd dmat = 0.5 * (dmat_random + dmat_random.transpose());
 
   Eigen::MatrixXd pulay_grad = vxc0.PulayGradient(dmat, aobasis0);
@@ -319,8 +266,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
   double analytic = total_grad(1, 2);
   std::cout << "H2 test -- analytic dE_xc/dz(atom1)=" << analytic
             << " finite-difference=" << finite_diff_deriv << std::endl;
@@ -332,25 +279,9 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   libint2::finalize();
 }
 
-// UKS (spin-polarized) analog of xc_gradient_finite_difference_h2 above.
-// Same "arbitrary fixed matrix" reasoning -- PulayGradientUKS/
-// GridWeightGradientUKS only need FIXED density matrices, not converged
-// ones, to test the gradient assembly formula itself. Uses TWO
-// independent, arbitrary, symmetric density matrices (alpha and beta),
-// and IntegrateVXCSpin (the real, production spin-polarized XC energy)
-// as the finite-difference reference directly, matching this branch's
-// established pattern of testing against real production code rather
-// than a hand-built formula.
-//
-// LDA only, matching PulayGradientUKS/GridWeightGradientUKS's own
-// current scope (both throw for GGA functionals).
-//
-// STATUS: written but NOT yet run. The underlying basis-type and
-// translation-type formulas were verified numerically in Python
-// (~1e-11, toy multi-atom system) before any C++ was written; two real
-// bugs were then found and fixed while transcribing into C++ (see git
-// history) -- this is the first check of the corrected implementation
-// against a real finite difference.
+// UKS analogue of xc_gradient_finite_difference_h2 (LDA): PulayGradientUKS +
+// GridWeightGradientUKS for fixed alpha and beta density matrices against
+// finite differences of IntegrateVXCSpin.
 BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks) {
   libint2::initialize();
 
@@ -384,22 +315,9 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks) {
   vxc0.setXCfunctional(functional);
 
   Index n_bf = aobasis0.AOBasisSize();
-  // POSITIVE-SEMIDEFINITE (C*C^T), not just arbitrary symmetric --
-  // confirmed necessary directly: an earlier arbitrary-symmetric version
-  // of this test produced a NEGATIVE rho_a at the diagnostic point
-  // (rho_a=-4.317e-05 while rho_a+rho_b was still positive, passing the
-  // rho*weight<1e-20 cutoff meant for the TOTAL density). Unlike the
-  // restricted case (where that same cutoff, applied to the single total
-  // rho, automatically excludes every point ever passed to the
-  // functional), UKS's individual rho_a/rho_b can be negative even while
-  // their SUM passes the cutoff -- and libxc's LDA functional is not
-  // expected to be smoothly differentiable (or even well-defined) for a
-  // negative spin density, which would break a finite-difference
-  // comparison regardless of whether the analytic gradient formula
-  // itself is correct. A genuine C*C^T density matrix keeps rho_a/rho_b
-  // non-negative everywhere, matching a physically valid density and
-  // matching how the (already-passing) non-XC UKS test builds its own
-  // density matrices.
+  // Positive semidefinite (C*C^T) spin densities: for arbitrary symmetric
+  // matrices rho_a or rho_b can be negative at points that pass the cutoff
+  // on rho_a + rho_b, where libxc is not differentiable.
   Eigen::MatrixXd C_alpha = Eigen::MatrixXd::Random(n_bf, 1);
   Eigen::MatrixXd dmat_alpha = C_alpha * C_alpha.transpose();
   Eigen::MatrixXd C_beta = Eigen::MatrixXd::Random(n_bf, 1);
@@ -436,8 +354,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXCSpin(dmat_alpha, dmat_beta).energy;
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
   double analytic = total_grad(1, 2);
   std::cout << "H2 UKS test -- analytic dE_xc/dz(atom1)=" << analytic
             << " finite-difference=" << finite_diff_deriv << std::endl;
@@ -458,19 +376,9 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks) {
   libint2::finalize();
 }
 
-// Same H2 setup and validation pattern as the LDA test above, but with a
-// real GGA functional (XC_GGA_X_PBE XC_GGA_C_PBE, the same combination
-// already used successfully elsewhere in this codebase -- see
-// test_vxc_potential.cc). This is the first genuine test of the GGA
-// sigma-dependent terms added to PulayGradient (basis-type and
-// grid-translation-type, using AOShell::EvalAOspaceHessian) -- the LDA
-// tests above cannot exercise this code at all, since xc.df_dsigma is
-// exactly zero for LDA functionals by construction.
-//
-// STATUS: written but NOT yet run. The underlying dsigma/dR formula was
-// verified numerically in Python (~1e-12, toy multi-atom system) before
-// any of the C++ was written, but this is the first check of the actual
-// assembled implementation against a real finite difference.
+// As xc_gradient_finite_difference_h2 with GGA (XC_GGA_X_PBE XC_GGA_C_PBE):
+// tests the sigma terms of PulayGradient (basis and grid-translation terms,
+// using AOShell::EvalAOspaceHessian), which vanish for LDA.
 BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_gga) {
   libint2::initialize();
 
@@ -536,8 +444,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_gga) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
   double analytic = total_grad(1, 2);
   std::cout << "H2 GGA test -- analytic dE_xc/dz(atom1)=" << analytic
             << " finite-difference=" << finite_diff_deriv << std::endl;
@@ -559,18 +467,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_gga) {
   libint2::finalize();
 }
 
-// Same methane setup as the LDA methane test above, but with a real GGA
-// functional (XC_GGA_X_PBE XC_GGA_C_PBE, same combination as the H2 GGA
-// test). The H2 GGA test only has 2 atoms with a single bond -- it
-// cannot exercise cases where SEVERAL atoms' basis functions and
-// Hessians interact simultaneously (e.g. two different atoms' basis
-// functions overlapping at the same grid point, or a grid point sitting
-// near the boundary between more than two atoms' SSW partition
-// regions), the way the LDA methane test did for the rho-only terms.
-// This is the corresponding check for the sigma-dependent terms on a
-// genuinely multi-atom system.
-//
-// STATUS: written but NOT yet run.
+// As xc_gradient_finite_difference with GGA: the sigma terms for several
+// atoms whose basis functions and SSW partitions overlap.
 BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_gga) {
   libint2::initialize();
 
@@ -583,9 +481,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_gga) {
   QMMolecule mol0 = BuildDisplacedMethane(base_atoms, displaced_atom, 0.0);
   AOBasis aobasis0 = BuildBasis(mol0);
 
-  // Same real, physically meaningful density matrix as the LDA methane
-  // test (not an arbitrary random one) -- already confirmed compatible
-  // with this exact geometry/basis by that test passing.
+  // same density matrix as the LDA methane test
   Eigen::MatrixXd dmat = tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/vxc_potential/dmat.mm");
 
@@ -630,8 +526,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_gga) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
 
   double analytic = total_grad(displaced_atom, 2);  // z-component
   bool matches =
@@ -658,21 +554,9 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_gga) {
   libint2::finalize();
 }
 
-// GGA analog of xc_gradient_finite_difference_h2_uks above. Tests the
-// sigma_aa/sigma_ab/sigma_bb cross-term extension to PulayGradientUKS/
-// GridWeightGradientUKS specifically -- the LDA test above cannot
-// exercise this code at all, since vsigma_aa/ab/bb are exactly zero for
-// LDA functionals by construction.
-//
-// Same positive-semidefinite (C*C^T) density matrix reasoning as the
-// LDA UKS test -- still necessary here, and for the same reason
-// (negative individual rho_a/rho_b feeding an unphysical input to
-// libxc, independent of LDA vs GGA).
-//
-// STATUS: written but NOT yet run. The underlying V_a/V_b-combined
-// formula was verified numerically in Python (~1e-12) before any C++
-// was written, but this is the first check of the actual assembled
-// implementation.
+// GGA analogue of xc_gradient_finite_difference_h2_uks: tests the
+// sigma_aa/sigma_ab/sigma_bb terms of PulayGradientUKS/GridWeightGradientUKS.
+// Positive semidefinite spin densities, as in the LDA UKS test.
 BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks_gga) {
   libint2::initialize();
 
@@ -742,8 +626,8 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks_gga) {
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXCSpin(dmat_alpha, dmat_beta).energy;
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  constexpr double kAngstromPerBohr = 0.52917721090380;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kAngstromPerBohr;
   double analytic = total_grad(1, 2);
   std::cout << "H2 UKS GGA test -- analytic dE_xc/dz(atom1)=" << analytic
             << " finite-difference=" << finite_diff_deriv << std::endl;

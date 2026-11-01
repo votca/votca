@@ -101,88 +101,57 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
         top.InsertExclusion(top.getBead(iatom + ifirstatom), excl_list);
       }
 
-      // Real, direct, honest correction of a real, genuine mistake of
-      // my own, caught directly by a real Ubuntu CI compile failure,
-      // then refined further directly with the user: InteractionFunction
-      // (an enum class) and F_BONDS/F_CONSTR (plain, traditional enum
-      // values) are NOT both available on any single GROMACS version at
-      // all -- confirmed directly, by fetching ifunc.h from GROMACS's
-      // own real GitHub mirror, across five real branches:
-      //   release-2026 (2026.4, a real, already-released version as of
-      //     today) -- has InteractionFunction only; no F_BONDS/F_CONSTR
-      //     at all
-      //   release-2025/2024/2023                -- have F_BONDS/F_CONSTR
-      //     only; no InteractionFunction at all
-      //   main (2027.0, GROMACS's own unreleased, in-development branch)
-      //     -- has InteractionFunction only, same as release-2026
-      //
-      // A first version of this fix used InteractionFunction
-      // unconditionally -- compiled wherever it was first written and
-      // tested, but was never actually portable to any pre-2026 GROMACS
-      // at all (confirmed directly, this same session, via a real
-      // Ubuntu CI failure against GROMACS 2025.4). A second version
-      // switched to F_BONDS/F_CONSTR unconditionally instead -- fixing
-      // that, but silently reintroducing the exact same real problem
-      // for GROMACS 2026 itself, a real, already-released version, not
-      // a hypothetical future one at all, as the user directly pointed
-      // out. Genuinely need both, version-guarded.
-      //
-      // gromacs/version.h, already #included at the top of this file,
-      // defines the real, direct GMX_VERSION macro used here -- the
-      // same one, and the same real YYYYPPPP-style integer format,
-      // already used, confirmed working, elsewhere in this same repo
-      // (gmxtrajectoryreader.cc's own "#if GMX_VERSION >= 20230000").
+      // GROMACS 2026 and later only provide the enum class
+      // InteractionFunction; 2023-2025 only provide the plain enum values.
+      // GMX_VERSION is from gromacs/version.h. Read are the two-atom bond
+      // types that define chemical connectivity, constraints (which replace
+      // bonds with "constraints = h-bonds/all-bonds") and SETTLE (rigid
+      // water). Restraint, harmonic-potential and non-connecting constraint
+      // types are not bonds and are skipped.
 #if GMX_VERSION >= 20260000
-      std::array<int, 2> ftypes = {
+      std::array<int, 8> bond_ftypes = {
           static_cast<int>(InteractionFunction::Bonds),
+          static_cast<int>(InteractionFunction::GROMOS96Bonds),
+          static_cast<int>(InteractionFunction::MorsePotential),
+          static_cast<int>(InteractionFunction::CubicBonds),
+          static_cast<int>(InteractionFunction::ConnectBonds),
+          static_cast<int>(InteractionFunction::FENEBonds),
+          static_cast<int>(InteractionFunction::TabulatedBonds),
           static_cast<int>(InteractionFunction::Constraints)};
+      int settle_ftype = static_cast<int>(InteractionFunction::SETTLE);
 #else
-      std::array<int, 2> ftypes = {F_BONDS, F_CONSTR};
+      std::array<int, 8> bond_ftypes = {F_BONDS,      F_G96BONDS,  F_MORSE,
+                                        F_CUBICBONDS, F_CONNBONDS, F_FENEBONDS,
+                                        F_TABBONDS,   F_CONSTR};
+      int settle_ftype = F_SETTLE;
 #endif
 
-      // mol->ilist (InteractionLists, a real GROMACS type) holds one
-      // real, flat InteractionList per interaction type, indexed by
-      // plain int (ftypes itself, above) -- each real, individual
-      // interaction occupies interaction_function[ftype].nratoms + 1
-      // consecutive int entries within its own list's own iatoms
-      // array: the interaction TYPE index first, then nratoms real
-      // atom indices. Only bonds and constraints are read here --
-      // covers ordinary bonds (regardless of any .mdp constraints
-      // setting; "constraints = h-bonds"/"all-bonds" converts some
-      // real bonds into constraint entries specifically instead of
-      // bond entries, so both are checked) -- but NOT every other,
-      // less common, force-field-specific "bond-like" interaction
-      // type GROMACS itself supports (e.g. G96 bonds, Morse, cubic
-      // bonds, connections) -- a real, direct, honest limitation,
-      // worth being aware of for force fields that use one of those
-      // instead of ordinary harmonic bonds.
-      for (int ftype : ftypes) {
+      // getGroup() asserts a non-empty group, which a new IBond does not
+      // have; use "BONDS" as in lammpsdatareader.cc and pdbreader.cc.
+      const Index first = Index(ifirstatom);
+      auto add_bond = [&top, first](Index a, Index b) {
+        Interaction *ic = new IBond(a + first, b + first);
+        ic->setGroup("BONDS");
+        top.AddBondedInteraction(ic);
+      };
+
+      // mol->ilist holds one flat list per interaction type; each entry
+      // occupies interaction_function[ftype].nratoms + 1 ints: the
+      // parameter type index followed by the atom indices.
+      for (int ftype : bond_ftypes) {
         const InteractionList &ilist = mol->ilist[ftype];
-        Index nratoms = interaction_function[ftype].nratoms;
-        Index stride = nratoms + 1;
+        Index stride = interaction_function[ftype].nratoms + 1;
         for (Index i = 0; i < Index(ilist.size()); i += stride) {
-          // ilist.iatoms[i] itself is the interaction TYPE index
-          // (into mtop.ffparams.iparams) -- not an atom index at
-          // all, and not needed here, since only real connectivity
-          // (which atoms are bonded), not the real bond's own force
-          // constant/equilibrium length, is wanted at this level.
-          Index atom1 = ilist.iatoms[i + 1];
-          Index atom2 = ilist.iatoms[i + 2];
-          // Real, direct bug fix -- confirmed directly, from a real CI
-          // failure report (a fatal assert inside getGroup(),
-          // interaction.h, hit as soon as AddBondedInteraction below
-          // called it): a freshly-constructed IBond's own group_
-          // starts out empty by default, and getGroup() itself
-          // directly asserts this is non-empty -- so setGroup() must
-          // always be called before AddBondedInteraction, matching
-          // the same "BONDS" group name convention already used by
-          // every other reader that constructs an IBond this way
-          // (confirmed directly, by reading them, before writing
-          // this: lammpsdatareader.cc, pdbreader.cc).
-          Interaction *ic =
-              new IBond(Index(atom1 + ifirstatom), Index(atom2 + ifirstatom));
-          ic->setGroup("BONDS");
-          top.AddBondedInteraction(ic);
+          add_bond(ilist.iatoms[i + 1], ilist.iatoms[i + 2]);
+        }
+      }
+      // SETTLE entries list O, H1, H2.
+      {
+        const InteractionList &ilist = mol->ilist[settle_ftype];
+        Index stride = interaction_function[settle_ftype].nratoms + 1;
+        for (Index i = 0; i < Index(ilist.size()); i += stride) {
+          add_bond(ilist.iatoms[i + 1], ilist.iatoms[i + 2]);
+          add_bond(ilist.iatoms[i + 1], ilist.iatoms[i + 3]);
         }
       }
 

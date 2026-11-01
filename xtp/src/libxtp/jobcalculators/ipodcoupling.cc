@@ -47,10 +47,8 @@ namespace xtp {
 void IPodCoupling::ParseSpecificOptions(const tools::Property& options) {
   QMPackageFactory{};
 
-  // job tasks -- same, established "tasks" pattern as IQM's own
-  // (ParseSpecificOptions, iqm.cc), matching its own option names
-  // deliberately, for user familiarity, plus one new task specific to
-  // this calculator's own, additional purpose (podcoupling).
+  // Task names follow IQM::ParseSpecificOptions (iqm.cc), plus the
+  // additional "podcoupling" task.
   std::string tasks_string = options.get(".tasks").as<std::string>();
 
   // We split either on a space or a comma
@@ -81,11 +79,7 @@ void IPodCoupling::ParseSpecificOptions(const tools::Property& options) {
 }
 
 void IPodCoupling::WriteJobFile(const Topology& top) {
-  // Reuses IQM::WriteJobFile's own, exact "one job per neighbor-list
-  // pair" logic directly (iqm.cc) -- this calculator's own job
-  // generation is identical at this level: which pairs to evaluate is
-  // entirely a property of the neighbor list itself, independent of
-  // what EvalJob actually does with each pair.
+  // One job per neighbor-list pair, as in IQM::WriteJobFile (iqm.cc).
   std::cout << std::endl
             << "... ... Writing job file " << jobfile_ << std::flush;
   std::ofstream ofs;
@@ -147,11 +141,10 @@ const Atom& IPodCoupling::FindBoundaryAtomTowardSegment(
   throw std::runtime_error(
       "IPodCoupling::FindBoundaryAtomTowardSegment: segment " +
       std::to_string(seg.getId()) +
-      " has no atom with a real, direct external bond toward segment " +
+      " has no atom with an external bond toward segment " +
       std::to_string(target_segment_id) +
-      " -- FindLinkingSegments() reported a bond path that does not "
-      "actually exist at the atom level. This should not be possible in "
-      "practice -- check the underlying mapping/checkpoint data.");
+      ", although FindLinkingSegments() reported a bond path between them. "
+      "Check the underlying mapping/checkpoint data.");
 }
 
 std::vector<Segment> IPodCoupling::PositionLinkersAlongChain(
@@ -162,21 +155,15 @@ std::vector<Segment> IPodCoupling::PositionLinkersAlongChain(
   if (linkers.empty()) {
     return results;
   }
-  // Reserved up front, to its own, exact final size -- genuinely
-  // necessary, not just an optimization: previous_positioned, below,
-  // holds a direct pointer into results itself, and a
-  // std::vector::push_back() that triggers a reallocation would
-  // silently invalidate it on the very next iteration.
+  // Required, not an optimization: previous_positioned points into
+  // results, and a reallocating push_back() would invalidate it.
   results.reserve(linkers.size());
 
-  // Real, direct, one-covalent-bond-at-a-time walk (design worked
-  // through directly with the user) -- deliberately NOT any single,
-  // whole-chain shift, since each individual linker segment could,
-  // in principle, be wrapped to a genuinely different periodic image
-  // than its own neighbors in the chain; only walking hop by hop,
-  // each one short (a real bond length, far smaller than any
-  // realistic PBC box), guarantees the minimum-image convention is
-  // unambiguous at every single step.
+  // Walk the chain one covalent bond at a time instead of applying a
+  // single whole-chain shift: each linker may be wrapped into a different
+  // periodic image than its neighbors. Each hop is a bond length, far
+  // shorter than the box, so the minimum-image convention is unambiguous
+  // at every step.
   const Segment* previous_positioned = &seg1_positioned;
   for (const Segment* current_raw : linkers) {
     const Atom& prev_boundary = FindBoundaryAtomTowardSegment(
@@ -184,27 +171,18 @@ std::vector<Segment> IPodCoupling::PositionLinkersAlongChain(
     const Atom& curr_boundary = FindBoundaryAtomTowardSegment(
         *current_raw, previous_positioned->getId());
 
-    // Same, real bond-length-based expected-partner-position
-    // calculation FragmentSaturator::SaturateExternalBonds already
-    // uses (fragmentsaturator.cc) -- where, physically, the current
-    // segment's own boundary atom is actually expected to be,
-    // according to the previous, already-positioned segment's own
-    // side of this same, real bond.
+    // Approximate position of the current segment's boundary atom, seen
+    // from the already positioned previous segment's side of the bond
+    // (same construction as FragmentSaturator::SaturateExternalBonds).
     Eigen::Vector3d expected_partner_pos =
         prev_boundary.getPos() +
         FragmentSaturator::kDefaultCHBondLengthAngstrom *
             tools::conv::ang2bohr * prev_boundary.getExternalBondDirection();
 
-    // The real, direct shift to apply to the WHOLE current segment,
-    // so its own boundary atom ends up at (the closest periodic
-    // image of) expected_partner_pos -- confirmed directly, by
-    // reading BCShortestConnection's own actual implementation
-    // (orthorhombicbox.cc: r_j - r_i) before writing this, that
-    // PbShortestConnect(r_i, r_j) returns the shift FROM r_i TO r_j,
-    // so r_i here must be the atom's own, current position
-    // (curr_boundary), and r_j the position it needs to end up at
-    // (expected_partner_pos) -- not the other way around, which would
-    // silently give the exact opposite, negated shift instead.
+    // Shift for the whole current segment that moves its boundary atom
+    // to the closest periodic image of expected_partner_pos.
+    // PbShortestConnect(r_i, r_j) returns r_j - r_i (minimum image), so
+    // the argument order matters.
     Eigen::Vector3d shift =
         top.PbShortestConnect(curr_boundary.getPos(), expected_partner_pos);
 
@@ -214,15 +192,9 @@ std::vector<Segment> IPodCoupling::PositionLinkersAlongChain(
     previous_positioned = &results.back();
   }
 
-  // Validates the very last hop too, into seg2_positioned -- if
-  // FindLinkingSegments() reported a real chain but the very last
-  // linker turns out not to actually be bonded to seg2 at all, this
-  // throws too, for the exact same reason as every other hop (see
-  // FindBoundaryAtomTowardSegment's own header comment). No shift is
-  // applied to seg2_positioned itself here -- it is already,
-  // separately, correctly positioned (typically via
-  // QMPair::Seg2PbCopy(), the existing, established mechanism for
-  // the main pair itself).
+  // Validate the last hop into seg2_positioned as well (throws if the
+  // last linker is not bonded to it). seg2_positioned itself is not
+  // shifted; it is already positioned, typically via QMPair::Seg2PbCopy().
   FindBoundaryAtomTowardSegment(*previous_positioned, seg2_positioned.getId());
   FindBoundaryAtomTowardSegment(seg2_positioned, previous_positioned->getId());
 
@@ -241,10 +213,8 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
   QMMapper mapper(pLog);
   mapper.LoadMappingFile(mapfile_);
 
-  // Get the pair's own two segment ids from the job -- same,
-  // established pattern as IQM::EvalJob (iqm.cc), reused directly,
-  // including the optional "qm_geometry" attribute (defaulting to the
-  // ground state, "n", when absent).
+  // Segment ids and optional "qm_geometry" states (default: ground
+  // state "n"), as in IQM::EvalJob (iqm.cc).
   tools::Property job_input = job.getInput();
   std::vector<tools::Property*> segment_list = job_input.Select("segment");
   Index ID_A = segment_list.front()->getAttribute<Index>("id");
@@ -274,16 +244,10 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
     return jres;
   }
 
-  // Same, established path-naming pattern as IQM::EvalJob (iqm.cc),
-  // reused directly -- but without orbFileA/orbFileB or eqm_work_dir
-  // at all, since those only ever existed to support the dimer-guess
-  // mechanism, deliberately skipped entirely here (design confirmed
-  // directly with the user: genuinely not useful for this
-  // calculator's own use case, where individual fragment/monomer
-  // calculations are not wanted or not possible at all). Uses
-  // "pairs_ipodcoupling", not IQM's own "pairs_iqm", so the two
-  // calculators' own output files never collide if both are run on
-  // the same morphology.
+  // Path naming as in IQM::EvalJob (iqm.cc), but without the monomer
+  // orbital files (orbFileA/orbFileB, eqm_work_dir): there is no dimer
+  // guess, since monomer calculations are not wanted or not possible here.
+  // "pairs_ipodcoupling" avoids collisions with IQM's "pairs_iqm".
   std::string pair_dir =
       (boost::format("%1%%2%%3%%4%%5%") % "pair" % "_" % ID_A % "_" % ID_B)
           .str();
@@ -298,28 +262,16 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
       (arg_path / ipodcoupling_work_dir / package_append / frame_dir / pair_dir)
           .generic_string();
 
-  // Real, direct, PBC-correct positioning for the two, real pair
-  // segments -- reuses QMPair::Seg2PbCopy() directly (qmpair.cc),
-  // matching the same, established, PBC-correct path IQM::EvalJob
-  // itself already uses when no linkers are involved.
+  // PBC-correct positioning of the pair via QMPair::Seg2PbCopy(), as in
+  // IQM::EvalJob.
   const Segment* seg1 = pair->Seg1();
   Segment seg2 = pair->Seg2PbCopy();
 
-  // Real, direct, always-visible companion to Md2QmEngine::map's own,
-  // new, real warning (md2qmengine.cc) -- worked through directly
-  // with the user: that one fires once, at xtp_map time, and is easy
-  // to miss (terminal output only, not persisted anywhere else at
-  // all) by the time a user is actually running ipodcoupling itself,
-  // much later, and potentially separately at all. Checked here
-  // again, directly, right at the point it actually matters most --
-  // if neither seg1 nor seg2 has any real, actual MD-level bonded
-  // connectivity at all (Atom::getBondedPartnerIds(), the same, real
-  // underlying data external-bond detection itself, further above in
-  // Md2QmEngine::map, genuinely depends on), H-saturation for this
-  // specific pair can never actually fire at all, no matter what --
-  // real, direct, dangling valences may silently reach the DFT
-  // calculation instead, with no other, direct signal of this at all
-  // otherwise.
+  // Repeats the check of Md2QmEngine::map (md2qmengine.cc), whose warning
+  // is printed only once at xtp_map time and is easily missed: without
+  // MD-level bond data (Atom::getBondedPartnerIds()) no external bonds are
+  // detected, so H-saturation does nothing and dangling valences reach the
+  // DFT calculation.
   bool seg1_has_any_bonds = false;
   for (const Atom& atom : *seg1) {
     if (atom.getBondedPartnerIds()[0] != -1) {
@@ -338,23 +290,15 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
     XTP_LOG(Log::error, pLog)
         << "WARNING: neither segment " << seg1->getId() << " nor segment "
         << seg_B.getId()
-        << " has any real, actual MD-level bond connectivity at all -- "
-           "H-saturation of cut segment boundaries cannot detect anything "
-           "to saturate at all for this pair, and will silently do nothing. "
-           "This usually means the underlying topology reader used at "
-           "xtp_map time provided no real bond data at all -- check that "
-           "directly."
+        << " has any MD-level bond connectivity; H-saturation of cut "
+           "segment boundaries will do nothing for this pair. The topology "
+           "reader used at xtp_map time probably provided no bond data."
         << std::flush;
   }
 
-  // LINKER SEGMENTS -- real, direct discovery + PBC-correct
-  // positioning, per the design worked through directly with the
-  // user (Topology::FindLinkingSegments/IPodCoupling::
-  // PositionLinkersAlongChain, both already built and confirmed
-  // compiling earlier this session). Declared here, BEFORE segments
-  // itself below, since segments will hold direct pointers into
-  // positioned_linkers -- positioned_linkers itself must genuinely
-  // outlive every use of segments for the rest of this function.
+  // Linker segments: discovery (Topology::FindLinkingSegments) and
+  // PBC-correct positioning (PositionLinkersAlongChain). Declared before
+  // segments, which holds pointers into positioned_linkers.
   std::vector<Segment> positioned_linkers;
   if (include_linkers_) {
     std::vector<const Segment*> linkers = top.FindLinkingSegments(*seg1, seg_B);
@@ -369,39 +313,21 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
   }
 
   QMMolecule qmmol = mapper.map(*seg1, stateA);
-  // Real, direct mapped atom count for fragment A -- captured here
-  // directly, rather than re-derived later from seg1->size() (the
-  // MD-level segment's own atom count), since nothing guarantees
-  // these are equal: SegmentMapper::map()'s own size check only
-  // confirms the mapping file's own expected atom count matches the
-  // mapped result, not that every MD-level atom is mapped at all.
+  // Mapped atom count of fragment A. Not taken from seg1->size(): the
+  // mapping need not map every MD atom.
   Index n_fragment_A_atoms = qmmol.size();
   qmmol.AddContainer(mapper.map(seg2, stateB));
-  // Real, direct mapped atom count for fragment A + fragment B
-  // together, WITHOUT any linker atoms at all -- genuinely different
-  // from n_original_atoms below (which does include linker atoms,
-  // once mapped) -- needed to correctly bound fragment B's own atom
-  // range once linker atoms are also present, since "everything at
-  // or past fragment A's own atoms" is no longer synonymous with
-  // "fragment B" at all once linkers exist too.
+  // Mapped atom count of fragments A and B without linker atoms (unlike
+  // n_original_atoms below); upper bound of fragment B's atom range.
   Index n_fragment_AB_atoms = qmmol.size();
 
-  // Linker segments are mapped at the ground state ("n") always --
-  // deliberately no per-linker-segment-type state map at all (unlike
-  // IQM's own linker_names, which pairs each linker TYPE with its own
-  // QMState) -- this graph-based design needs no such per-type
-  // configuration at all, since inclusion itself is already,
-  // entirely determined by real bond connectivity alone, not
-  // segment type. The ground state is the most physically sensible
-  // default for a genuinely neutral, bridging unit not itself
-  // directly involved in the actual charge transfer.
+  // Linkers are always mapped in the ground state ("n"): they are
+  // selected by bond connectivity, not by segment type, so no per-type
+  // state map as in IQM's linker_names is needed, and they are treated
+  // as neutral bridges not involved in the charge transfer.
   //
-  // linker_atom_ids tracks every atom id (within the ORIGINAL,
-  // pre-saturation qmmol -- i.e. the same "owning atom id" space
-  // fragment_A_atoms/fragment_B_atoms are computed in, below) that
-  // belongs to any linker segment -- per direct agreement with the
-  // user, linker atoms belong to NEITHER fragment_A_atoms NOR
-  // fragment_B_atoms at all.
+  // linker_atom_ids holds the pre-saturation atom ids of all linker
+  // atoms; these belong to neither fragment_A_atoms nor fragment_B_atoms.
   std::set<Index> linker_atom_ids;
   for (const Segment& linker : positioned_linkers) {
     Index linker_start_atom_id = qmmol.size();
@@ -411,30 +337,17 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
     }
   }
 
-  // Which of this supermolecule's own segment ids are already
-  // present -- an external bond whose own partner segment is among
-  // these is already satisfied within the supermolecule itself (both
-  // sides are already present together), and must NOT be saturated
-  // with a new H at all -- this is exactly the check
-  // getExternalBondPartnerSegmentId() was built for, earlier this
-  // session, together with the user.
+  // An external bond whose partner segment is part of this supermolecule
+  // is satisfied internally and must not be saturated with H.
   std::set<Index> present_segment_ids;
   for (const Segment* seg : segments) {
     present_segment_ids.insert(seg->getId());
   }
 
-  // FragmentSaturator::SaturateExternalBonds() itself, unconditionally,
-  // saturates every hasExternalBond()==true atom in whatever molecule
-  // it is given -- it has no notion of "this one is already satisfied,
-  // skip it" at all. Reconciled here, on this call's own local copy
-  // only (never the underlying, persisted MD-level data -- see
-  // QMAtom::clearExternalBond()'s own header comment for exactly why
-  // this is safe, worked through directly with the user before
-  // implementing this): any atom whose own external-bond partner
-  // segment already turns out to be present in this specific
-  // supermolecule has its own external bond cleared directly, before
-  // SaturateExternalBonds() ever sees it -- at that point, the bond
-  // genuinely is no longer external to THIS supermolecule at all.
+  // SaturateExternalBonds() saturates every atom with hasExternalBond().
+  // Clear the external bonds that are internal to this supermolecule
+  // beforehand. This only modifies the local QMMolecule copy, not the
+  // MD-level data (see QMAtom::clearExternalBond()).
   Index n_original_atoms = qmmol.size();
   for (QMAtom& atom : qmmol) {
     if (!atom.hasExternalBond()) {
@@ -450,19 +363,12 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
   QMMolecule relaxed =
       FragmentSaturator::RelaxNewAtoms(saturation_result.mol, n_original_atoms);
 
-  // fragment_A_atoms/fragment_B_atoms for PODCoupling's own
-  // constructor -- every ORIGINAL atom's own fragment is already
-  // known directly from its own id (seg1's own atoms were mapped
-  // first, so ids 0..n_fragment_A_atoms-1 are fragment A;
-  // n_fragment_A_atoms..n_fragment_AB_atoms-1 are fragment B; any
-  // linker atoms, mapped after those two, are excluded from both
-  // entirely -- per direct agreement with the user, they belong to
-  // NEITHER fragment at all). Every new, saturating H atom must
-  // inherit the SAME classification as whichever original atom it is
-  // saturating -- not recoverable from its own final position/index
-  // alone (a real gap surfaced and worked through directly with the
-  // user before extending SaturateExternalBonds's own return type to
-  // track this explicitly, saturation_result.new_atom_parent_ids).
+  // Fragment atom lists for PODCoupling. Original atoms are classified by
+  // id: [0, n_fragment_A_atoms) is fragment A,
+  // [n_fragment_A_atoms, n_fragment_AB_atoms) fragment B, linker atoms
+  // (mapped last) belong to neither. A saturating H atom inherits the
+  // fragment of the atom it saturates
+  // (saturation_result.new_atom_parent_ids).
   std::vector<Index> fragment_A_atoms;
   std::vector<Index> fragment_B_atoms;
   for (const QMAtom& atom : relaxed) {
@@ -500,25 +406,16 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
 
     if (do_dft_input_) {
       std::filesystem::create_directories(qmpackage_work_dir);
-      // Deliberately, always the plain "no guess, start from the DFT
-      // package's own default starting guess" path -- the dimer-guess
-      // mechanism IQM::EvalJob itself optionally uses (combining two,
-      // separately pre-computed monomer orbital files) is skipped
-      // entirely here, on purpose (design confirmed directly with the
-      // user): our own orbitalsAB is not a simple two-monomer
-      // combination at all -- it is the RELAXED, H-SATURATED
-      // supermolecule, and the new H atom(s) have no corresponding
-      // monomer orbitals to guess from in the first place. If the DFT
-      // package's own options actually requested a guess anyway, warn
-      // directly rather than silently ignoring the request.
+      // Always use the DFT package's default starting guess. The dimer
+      // guess of IQM::EvalJob does not apply: orbitalsAB is the relaxed,
+      // H-saturated supermolecule, and the added H atoms have no monomer
+      // orbitals. A requested guess is ignored with a warning.
       if (qmpackage->GuessRequested()) {
         XTP_LOG(Log::warning, pLog)
             << "A DFT guess was requested in the dftpackage options, but "
-               "IPodCoupling does not support this at all (its own "
-               "supermolecule is not a simple monomer combination, given "
-               "the new, saturating H atom(s) have no corresponding "
-               "monomer orbitals to guess from) -- proceeding with the "
-               "DFT package's own default starting guess instead."
+               "IPodCoupling does not support it (the saturating H atoms "
+               "have no monomer orbitals). Using the DFT package's default "
+               "starting guess instead."
             << std::flush;
       }
       qmpackage->WriteInputFile(orbitalsAB);
@@ -564,42 +461,17 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
     orbitalsAB.WriteToCpt(orbFileAB);
   }
 
-  // Real PODCoupling calculation, on the real, converged orbitalsAB
-  // (either freshly computed above, via do_dft_parse_, or read back
-  // from a previously-stored orbFileAB) -- final piece of the
-  // six-step design worked through directly with the user at the
-  // very start of this whole calculator.
-  //
-  // Real, direct bug fix: this whole block used to run
-  // unconditionally, with no do_podcoupling_ guard at all -- caught
-  // directly by the user's own real, direct run (tasks="input" only,
-  // to inspect the DFT input file directly): PODCoupling's own
-  // constructor genuinely needs a real, converged orbitalsAB with an
-  // actual basis set name set on it, which simply does not exist yet
-  // at all when only the DFT input file has been written (do_dft_run_/
-  // do_dft_parse_ both false) -- attempting it anyway threw a real,
-  // confusing "basis_sets/.xml" error (an empty basis set name) even
-  // though podcoupling was never requested as a task at all.
+  // POD coupling on the converged orbitalsAB (parsed above or read from
+  // orbFileAB). Guarded by do_podcoupling_: PODCoupling needs converged
+  // orbitals with a basis set name, which do not exist after the "input"
+  // task alone (an empty name gives a "basis_sets/.xml" error).
   tools::Property job_summary;
   tools::Property& job_output = job_summary.add("output", "");
   if (do_podcoupling_) {
     try {
-      // Real, direct debug-level output, worked through directly with
-      // the user -- fragment_A_atoms/fragment_B_atoms (PODCoupling's
-      // own terminology for the same thing VOTCA itself calls a
-      // "segment") are otherwise entirely internal: unlike the DFT
-      // input file's own, directly-visible written coordinates, there
-      // is no other, direct way for a user to confirm which real atom
-      // indices actually ended up in which fragment at all, short of
-      // running a real, full, genuinely expensive DFT calculation
-      // first (do_podcoupling_ itself already requires a real,
-      // converged orbitalsAB with a real basis set name set on it --
-      // confirmed directly, earlier this same session, per the
-      // do_podcoupling_ guard fix). Printed at Log::debug specifically
-      // (not error/warning/info) -- confirmed directly, from
-      // application.cc, that this is exactly the level -v/--verbose2
-      // itself raises current_level to; the two milder --verbose/
-      // --verbose1 flags only ever reach warning/info, not this.
+      // The fragment assignment is otherwise not visible in any output.
+      // Printed at Log::debug, i.e. only with -v/--verbose2
+      // (application.cc).
       XTP_LOG(Log::debug, pLog)
           << "PODCoupling: fragment_A_atoms (" << fragment_A_atoms.size()
           << " atoms):" << std::flush;
@@ -624,33 +496,18 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
       PODCoupling pod(orbitalsAB, &pLog, fragment_A_atoms, fragment_B_atoms);
       pod.CalculateCouplings(numberofstatesA_, numberofstatesB_);
 
-      // Same, established per-pair output format as DFTcoupling's own
-      // WriteToProperty (dftcoupling.cc), confirmed directly by reading
-      // it before writing this, rather than invented separately --
-      // <coupling levelA="..." levelB="..." j="..."/> for every
-      // (levelA, levelB) pair within the requested range, matching
-      // DFTcoupling's own, backward-compatible core format exactly.
-      // Unlike DFTcoupling's own, more elaborate Addoutput (monomer
-      // energies, raw TB matrices, diagnostics), none of that is added
-      // here at all -- it genuinely does not apply to POD2 at all,
-      // which has no separate, isolated monomer calculation to compare
-      // against in the first place (the whole point of POD2, per this
-      // class's own header comment, podcoupling.h).
+      // Output format of DFTcoupling::WriteToProperty (dftcoupling.cc):
+      // one coupling element with levelA, levelB and j attributes per
+      // level pair. The monomer data of DFTcoupling::Addoutput does not
+      // exist for POD2, which has no isolated monomer calculations.
       tools::Property& podcoupling_summary = job_output.add(Identify(), "");
       Index homoA = pod.getFragmentAHomoIndex();
       Index lumoA = pod.getFragmentALumoIndex();
       Index homoB = pod.getFragmentBHomoIndex();
       Index lumoB = pod.getFragmentBLumoIndex();
-      // homoA/homoB (lumoA/lumoB = homoA/homoB + 1, always -- see
-      // PODCoupling::getFragmentALumoIndex's own header comment,
-      // podcoupling.h) written directly as attributes on this same
-      // node, matching DFTcoupling::Addoutput's own, established
-      // pattern (dftcoupling.cc: dftcoupling.setAttribute("homoA",
-      // orbitalsA.getHomo())) exactly -- genuinely needed for
-      // ReadJobFile to be able to translate "the hole/electron
-      // coupling" into the actual, specific levelA/levelB pair among
-      // the (potentially many, if numberofstatesA_/B_ > 1) <coupling>
-      // elements written below.
+      // homoA/homoB attributes (lumo = homo + 1), as in
+      // DFTcoupling::Addoutput; ReadJobFile uses them to select the hole
+      // and electron couplings among the coupling elements below.
       podcoupling_summary.setAttribute("homoA", homoA);
       podcoupling_summary.setAttribute("homoB", homoB);
       for (Index levelA = homoA - numberofstatesA_ + 1;
@@ -658,15 +515,8 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
         for (Index levelB = homoB - numberofstatesB_ + 1;
              levelB <= lumoB + numberofstatesB_ - 1; ++levelB) {
           double J_hartree = pod.getCouplingElement(levelA, levelB);
-          // Written in eV, not Hartree -- matching IQM::WriteToProperty's
-          // own, established convention exactly (confirmed directly by
-          // reading GetDFTCouplingFromProp, iqm.cc, which converts the
-          // read-back "j" value FROM eV back TO Hartree via
-          // tools::conv::ev2hrt -- meaning IQM's own "j" is written in
-          // eV, even though PODCoupling::getCouplingElement's own
-          // documented return unit, podcoupling.h, is Hartree). More
-          // human-readable too -- typical couplings are meV-scale, not
-          // the much smaller numbers raw Hartree would give.
+          // getCouplingElement() returns Hartree; "j" is written in eV,
+          // as in IQM (GetDFTCouplingFromProp, iqm.cc, converts back).
           double J_ev = J_hartree * tools::conv::hrt2ev;
           tools::Property& coupling = podcoupling_summary.add("coupling", "");
           coupling.setAttribute("levelA", levelA);
@@ -698,17 +548,10 @@ double IPodCoupling::GetPODCouplingFromProp(const tools::Property& podprop,
 }
 
 void IPodCoupling::ReadJobFile(Topology& top) {
-  // Same, established structure as IQM::ReadJobFile (iqm.cc),
-  // confirmed directly by reading it in full before writing this,
-  // rather than guessed -- but reads back a single, simpler
-  // "podcoupling" node instead of IQM's own separate dftcoupling/
-  // bsecoupling nodes, and, unlike IQM, has no hole_levels_/
-  // electron_levels_-style, user-configurable state map at all: the
-  // HOMO-HOMO coupling is always written back as the hole coupling,
-  // and LUMO-LUMO as the electron coupling -- the most direct,
-  // standard headline result, matching PODCoupling's own
-  // getFragmentAHomoIndex()/getFragmentALumoIndex() (podcoupling.h)
-  // convention exactly (lumo = homo + 1, always).
+  // Structure as in IQM::ReadJobFile (iqm.cc), but with a single
+  // podcoupling node and no configurable level map: the HOMO-HOMO
+  // coupling is stored as the hole coupling, LUMO-LUMO (lumo = homo + 1)
+  // as the electron coupling.
   QMNBList& nblist = top.NBList();
   Index number_of_pairs = nblist.size();
   Index updated_h = 0;

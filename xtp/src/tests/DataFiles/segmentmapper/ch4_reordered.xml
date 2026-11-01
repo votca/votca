@@ -1,0 +1,25 @@
+<topology>
+  <molecules>
+    <molecule>
+      <name>Methane</name>
+      <mdname>Methane</mdname>
+      <segments>
+        <segment>
+          <name>Methane</name>
+          <qmcoords>molecule.xyz</qmcoords>
+          <map2md>0</map2md>
+          <fragments>
+            <fragment>
+              <name>CH4</name>
+              <mdatoms>1:CB:0 1:HB1:1 1:HB2:2 1:HB3:3 1:HB4:4</mdatoms>
+              <qmatoms>0:C 2:H 1:H 4:H 3:H</qmatoms>
+              <mpoles>0:C 2:H 1:H 4:H 3:H</mpoles>
+              <weights>12 1 1 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+          </fragments>
+        </segment>
+      </segments>
+    </molecule>
+  </molecules>
+</topology>

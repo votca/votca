@@ -49,60 +49,27 @@
  *   E(r)   = (4*pi/V) * sum_{k!=0} (k/k^2) * exp(-k^2/4a^2) *
  *            Im[ S(k) * exp(i*k.r) ]
  *
- * summed over the *full* set of k!=0 (not a k/-k half-space with an extra
- * factor of 2) -- pairing k and -k terms is exactly what makes this sum
- * real by construction, and is worth stating explicitly since getting it
- * wrong (e.g. by introducing a spurious factor of 2, or its inverse) would
- * not be caught by compilation, only by a numerical check against a known
- * reference. See the project notes on validating this class for exactly
- * that reason.
+ * summed over the full set of k!=0 (not a k/-k half-space with a factor
+ * of 2); pairing k and -k makes the sum real. A wrong factor of 2 would only
+ * show up in a numerical check against a reference.
  *
- * k-vector truncation is a simple |k| < k_max spherical cutoff, not the
- * legacy code's per-vector "graded" adaptive truncation. That grading is
- * self-contained (depends only on structure-factor magnitude, not on any
- * real-space convergence state -- confirmed by tracing the legacy code
- * directly), so it is addable later as a genuinely separable enhancement
- * to the truncation strategy, on top of this simple-cutoff implementation,
- * without needing to revisit the underlying k-vector definitions or field
- * formula above.
+ * k-vectors are truncated with a spherical cutoff |k| < k_max, not the
+ * graded per-vector truncation of the legacy code. That grading depends only
+ * on the structure-factor magnitude and could be added later without
+ * changing the k-vectors or the field formula.
  *
- * Scope: unlike EwaldRealSpaceSum, this includes EVERY registered site --
- * no exclusion of the target's own segment at all, even for the
- * intramolecular case. This was not always true of this class: an
- * earlier version excluded the target's own segment entirely, modeled on
- * EwaldRealSpaceSum's own real-space exclusion, based on a mistaken
- * assumption that the two sums should treat exclusion the same way.
- * Tracing legacy PolarBackground's own reciprocal-space code directly
- * (PolarBackground::KThread::SP_SFactorCalc/FP_KFieldCalc for the
- * permanent case, SU_SFactorCalc/FU_KFieldCalc for the induced case)
- * shows it never excludes anything from its own global structure factor
- * -- every registered site contributes, and the resulting field is
- * applied back to every site with no segment-awareness at all. This
- * matters specifically because of how the Ewald split works: erfc(a*r)/r
- * + [this class's own reciprocal-space contribution] = 1/r EXACTLY (no
- * approximation) -- so if EwaldRealSpaceSum's own real-space sum
- * legitimately excludes a pair (as it does for same-segment,
- * zero-translation pairs), the reciprocal-space contribution to that
- * SAME pair must still be included here for the two Ewald halves to
- * combine correctly wherever they're meant to (see
- * EwaldPeriodicDipoleOperator's own AddIntraSegmentCoupling for the
- * intramolecular case this enables, and its own class documentation for
- * the fuller account of how this was discovered).
+ * Scope: unlike EwaldRealSpaceSum, every registered site contributes; the
+ * target's own segment is not excluded, as in legacy PolarBackground
+ * (KThread::SP_SFactorCalc/FP_KFieldCalc, SU_SFactorCalc/FU_KFieldCalc).
+ * Since erfc(a*r)/r plus the reciprocal-space term is exactly 1/r, a pair
+ * excluded from the real-space sum (same segment, zero translation) must
+ * still be included here for the two halves to combine correctly; see
+ * EwaldPeriodicDipoleOperator::AddIntraSegmentCoupling.
  *
- * Performance note: S(k) is a sum over every registered site, and is
- * identical for every target sharing the same source_state -- no
- * per-target correction of any kind is needed now (there is nothing
- * target-specific left to correct for), so AddFieldAtMany's own benefit
- * over repeated AddFieldAt calls is now simply computing S(k) once
- * per k-vector and reusing it across every target in the batch, rather
- * than once per (k-vector, target) pair. This is an O(N_k * N) batch,
- * rather than the O(N_targets * N_k * N) that repeated single-target
- * AddFieldAt calls would cost -- the difference that matters once this
- * is driven from an iterative solve calling it once per site per
- * iteration. AddFieldAt (single target) is kept for convenience/testing
- * and simply delegates to AddFieldAtMany with a one-element batch; it
- * does not itself get the batching benefit, since there's nothing to
- * share it with.
+ * Performance: S(k) is the same for all targets with the same source_state,
+ * so AddFieldAtMany computes it once per k-vector, O(N_k * N) per batch
+ * instead of O(N_targets * N_k * N) for repeated AddFieldAt calls.
+ * AddFieldAt delegates to AddFieldAtMany with a one-element batch.
  *
  * Units: bohr, Hartree atomic units throughout.
  */
@@ -123,59 +90,36 @@ class EwaldReciprocalSpaceSum {
                           const EwaldRegistry& registry, double alpha,
                           double k_max);
 
-  // Number of k-vectors this instance will sum over (fixed at
-  // construction) -- useful for logging/progress reporting before or
-  // during a call to AddFieldAt/AddFieldAtMany, since this count (not
-  // k_max itself) is what actually determines the cost of a call: it
-  // scales with the cube of k_max relative to the box's own reciprocal
-  // lattice spacing, so a k_max that looks modest can still generate an
-  // unexpectedly large count for a large box.
+  // Number of k-vectors (fixed at construction). This, not k_max, sets the
+  // cost of a call: it grows with the cube of k_max relative to the
+  // reciprocal lattice spacing, so it can be large for a large box.
   std::size_t NumKVectors() const { return kvectors_.size(); }
 
-  // The position-independent 3x3 matrix M such that a site's own dipole
-  // moment mu produces a spurious reciprocal-space "self-field" -M*mu at
-  // its own position -- a known Ewald-summation artifact: since this
-  // class's own structure factor S(k) never excludes any site, not even
-  // the one a field is being evaluated at (see class documentation), a
-  // site with a nonzero dipole moment feels a nonzero contribution from
-  // itself. This does NOT happen for a pure charge (monopole) term --
-  // that self-contribution is exactly zero by construction (a charge's
-  // own term in S(k), evaluated back at its own position, is purely real
-  // -- q*exp(-i*k.r)*exp(i*k.r) = q -- and this class's own field formula
-  // only ever keeps the imaginary part) -- so this matrix, and the
-  // correction it enables, only ever matters for dipoles (static or
-  // induced), never for bare charges.
+  // Position-independent 3x3 matrix M such that a site's dipole mu produces
+  // a spurious reciprocal-space self-field -M*mu at its own position, because
+  // S(k) includes the site itself. A charge has no such term: its own
+  // contribution at its position is real, and only the imaginary part enters
+  // the field.
   //
   // M_ab = (4/3) * alpha^3 / sqrt(pi) * delta_ab
   //
-  // -- the standard analytic Ewald self-term, i.e. the r -> 0 limit of
-  // the erf-screened dipole field, and hence isotropic. Legacy applies
-  // exactly this too (EwdInteractor::FU12_ERF_At_By's own R1 < 1e-2
-  // branch), though it does so in REAL space, as a separate "atomic ERF
-  // self-interaction correction" pass rather than anywhere in its
-  // reciprocal-space code -- worth knowing, since an earlier version of
-  // this comment concluded from a reciprocal-space-only trace that
-  // legacy applied no self-correction at all, which is false.
+  // the standard analytic Ewald self-term (r -> 0 limit of the erf-screened
+  // dipole field). Legacy applies the same correction in real space
+  // (EwdInteractor::FU12_ERF_At_By, R1 < 1e-2 branch).
   //
-  // This deliberately is NOT the discrete k-lattice sum over this
-  // class's own k-vector set, even though that sum is what AddFieldAtMany
-  // numerically produces at r = 0. That sum is the site's erf-screened
-  // field from itself AND all its own periodic images; only the n = 0
-  // part is the artifact to remove, and the image terms are real physics.
-  // See SelfFieldMatrix's own definition for the measured size of the
-  // difference (1.63% in a realistic box) and why tightening k_max does
-  // not reduce it.
+  // This is not the discrete k-lattice sum at r = 0, which also contains the
+  // field of the site's periodic images (physical, not an artifact); see the
+  // definition for the size of the difference (1.63% in a realistic box).
   //
-  // Neither this class nor EwaldRealSpaceSum subtracts this contribution
-  // automatically anywhere. A caller wanting the physically-corrected
-  // (self-interaction-free) field must subtract SelfFieldMatrix()*mu
-  // itself, for whichever site's own dipole moment mu is being evaluated.
+  // Neither this class nor EwaldRealSpaceSum subtracts the self-field; a
+  // caller wanting the self-interaction-free field subtracts
+  // SelfFieldMatrix()*mu itself.
   Eigen::Matrix3d SelfFieldMatrix() const;
 
   // Progress callback signature: called as (k_vectors_done,
   // k_vectors_total) periodically (not necessarily every single
   // k-vector) during the expensive part of AddFieldAtMany. Pass an empty
-  // std::function (the default) for no callback at all.
+  // std::function (the default) for no callback.
   using ProgressCallback = std::function<void(std::size_t, std::size_t)>;
 
   // Accumulates the total reciprocal-space field into target's own
