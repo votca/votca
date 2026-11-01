@@ -2,7 +2,7 @@ Workflow and Calculator Structure
 #################################
 
 A typical workflow for a morphology from molecular dynamics (see the
-QMMM_GROMACS tutorial) is
+tutorials ``MAPPING`` and ``CHARGE_TRANSPORT``) is
 
 #. ``xtp_map -t topol.tpr -c conf.gro -s system.xml -f state.hdf5``: map the
    MD configuration to molecules (segments) with the mapping file
@@ -13,8 +13,7 @@ QMMM_GROMACS tutorial) is
 
    Other MD formats work the same way, only the input files differ. For
    LAMMPS, give the data file as topology and a dump file as trajectory, e.g.
-   ``xtp_map -t system.data -c traj.dump -s system.xml -f state.hdf5 -i 99``
-   for frame 99. The LAMMPS reader derives names that the mapping file has to
+   ``xtp_map -t system.data -c traj.dump -s system.xml -f state.hdf5``. The LAMMPS reader derives names that the mapping file has to
    use: atom types are the element (recognized from the mass) followed by
    the LAMMPS type number (``C63``, ``S23``), and molecules are named by
    their composition in alphabetical order (``C4H4S1`` for thiophene; a
