@@ -36,6 +36,7 @@ Version 2026-dev
 -  exact and KMC time-of-flight (grw, kmctof), new KMC engine for kmcmultiple and kmclifetime with exact single-carrier values, stochastic network model (networkfit, networkgen) with trap identification, transport docs and tutorials (#1265)
 -  per-run citations, documentation overhaul (#1266)
 -  updated readme (#1267)
+-  new XTP tutorials (#1268)
    
 Version 2026 (released 09.03.26)
 ================================
