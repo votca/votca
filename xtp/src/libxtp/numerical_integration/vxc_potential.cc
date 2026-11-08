@@ -32,6 +32,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/gridboxaccumulator.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/vxc_functionals.h"
 #include "votca/xtp/vxc_grid.h"
@@ -507,6 +508,13 @@ std::vector<std::array<Eigen::MatrixXd, 2>>
     EvaluateFXCSpinBatch(1, rho, sigma, vs, rr, rs, ss);
   }
 
+  // targets in the order alpha_0, beta_0, alpha_1, beta_1, ...
+  std::vector<Eigen::MatrixXd*> targets;
+  for (std::array<Eigen::MatrixXd, 2>& m : result) {
+    targets.push_back(&m[0]);
+    targets.push_back(&m[1]);
+  }
+  GridBoxAccumulator acc(targets);
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
     const GridBox& box = grid_[i];
@@ -637,14 +645,14 @@ std::vector<std::array<Eigen::MatrixXd, 2>>
         fxc_b[std::size_t(k)].noalias() += ab.leftCols(nk) * phik.transpose();
       }
     }
-#pragma omp critical
-    {
-      for (Index k = 0; k < n_resp; ++k) {
-        box.AddtoBigMatrix(result[std::size_t(k)][0], fxc_a[std::size_t(k)]);
-        box.AddtoBigMatrix(result[std::size_t(k)][1], fxc_b[std::size_t(k)]);
-      }
+    std::vector<const Eigen::MatrixXd*> blocks;
+    for (Index k = 0; k < n_resp; ++k) {
+      blocks.push_back(&fxc_a[std::size_t(k)]);
+      blocks.push_back(&fxc_b[std::size_t(k)]);
     }
+    acc.Add(box, blocks);
   }
+  acc.Finish();
   for (std::array<Eigen::MatrixXd, 2>& m : result) {
     m[0] = (m[0] + m[0].transpose()).eval();
     m[1] = (m[1] + m[1].transpose()).eval();
@@ -685,6 +693,11 @@ std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::IntegrateFXC(
     EvaluateFXCBatch(1, &rho, &sigma, &vs, &rr, &rs, &ss);
   }
 
+  std::vector<Eigen::MatrixXd*> targets;
+  for (Eigen::MatrixXd& m : result) {
+    targets.push_back(&m);
+  }
+  GridBoxAccumulator acc(targets);
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
     const GridBox& box = grid_[i];
@@ -772,13 +785,13 @@ std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::IntegrateFXC(
         fxc_here[std::size_t(k)].noalias() += a.leftCols(nk) * phik.transpose();
       }
     }
-#pragma omp critical
-    {
-      for (Index k = 0; k < n_resp; ++k) {
-        box.AddtoBigMatrix(result[std::size_t(k)], fxc_here[std::size_t(k)]);
-      }
+    std::vector<const Eigen::MatrixXd*> blocks;
+    for (const Eigen::MatrixXd& m : fxc_here) {
+      blocks.push_back(&m);
     }
+    acc.Add(box, blocks);
   }
+  acc.Finish();
   for (Eigen::MatrixXd& m : result) {
     m = (m + m.transpose()).eval();
   }

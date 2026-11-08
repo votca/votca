@@ -30,6 +30,7 @@
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/chargeresponsefit.h"
 #include "votca/xtp/dftengine.h"
+#include "votca/xtp/gridboxaccumulator.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
 
@@ -37,6 +38,10 @@ namespace votca {
 namespace xtp {
 
 namespace {
+// relative size below which an atom's Hirshfeld weights in a grid box are
+// dropped from its weight matrix (see WeightMatrices)
+constexpr double kWeightCutoff = 1e-14;
+
 // Hirshfeld weights of all atoms at a point (rows: atoms), zero where the
 // promolecule density is negligible (as HirshfeldPartition::EvaluateWeight)
 Eigen::VectorXd Weights(
@@ -63,6 +68,13 @@ std::vector<Eigen::MatrixXd> ChargeResponseFit::WeightMatrices(
   const Index n_ao = basis.AOBasisSize();
   std::vector<Eigen::MatrixXd> W(std::size_t(n_atoms),
                                  Eigen::MatrixXd::Zero(n_ao, n_ao));
+  std::vector<Eigen::MatrixXd*> targets;
+  for (Eigen::MatrixXd& m : W) {
+    targets.push_back(&m);
+  }
+  // one lock per atom matrix, or thread-local copies (no single critical
+  // section around all n_atoms scatter-adds of every box)
+  GridBoxAccumulator acc(targets);
   std::exception_ptr eptr = nullptr;
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid.getBoxesSize(); ++i) {
@@ -81,21 +93,27 @@ std::vector<Eigen::MatrixXd> ChargeResponseFit::WeightMatrices(
         w.row(p) = weights[std::size_t(p)] *
                    Weights(atoms, points[std::size_t(p)]).transpose();
       }
+      // Hirshfeld weights decay exponentially with the distance to their
+      // atom: an atom whose weighted share in this box is below
+      // kWeightCutoff of the box's largest grid weight contributes nothing
+      // measurable (checked by max |sum_k W_k - S| in Fit)
+      const double wmax =
+          Eigen::Map<const Eigen::VectorXd>(weights.data(), n_points)
+              .cwiseAbs()
+              .maxCoeff();
       std::vector<Eigen::MatrixXd> local(static_cast<std::size_t>(n_atoms));
       for (Index k = 0; k < n_atoms; ++k) {
-        if (w.col(k).cwiseAbs().maxCoeff() == 0.0) {
+        if (w.col(k).cwiseAbs().maxCoeff() <= kWeightCutoff * wmax) {
           continue;
         }
-        local[std::size_t(k)] = ao * w.col(k).asDiagonal() * ao.transpose();
+        local[std::size_t(k)].noalias() =
+            ao * w.col(k).asDiagonal() * ao.transpose();
       }
-#pragma omp critical
-      {
-        for (Index k = 0; k < n_atoms; ++k) {
-          if (local[std::size_t(k)].size() > 0) {
-            box.AddtoBigMatrix(W[std::size_t(k)], local[std::size_t(k)]);
-          }
-        }
+      std::vector<const Eigen::MatrixXd*> blocks;
+      for (const Eigen::MatrixXd& m : local) {
+        blocks.push_back(&m);
       }
+      acc.Add(box, blocks);
     } catch (...) {
 #pragma omp critical
       {
@@ -108,6 +126,7 @@ std::vector<Eigen::MatrixXd> ChargeResponseFit::WeightMatrices(
   if (eptr) {
     std::rethrow_exception(eptr);
   }
+  acc.Finish();
   for (Eigen::MatrixXd& m : W) {
     m = 0.5 * (m + m.transpose()).eval();
   }
