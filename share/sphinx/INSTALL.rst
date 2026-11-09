@@ -29,7 +29,8 @@ Requirements
 -  GROMACS 2021 or newer (optional; needed for reading GROMACS files)
 -  HDF5 (optional for CSG, where it enables h5md trajectories; required for XTP)
 -  For XTP (``-DBUILD_XTP=ON``) additionally: libint 2.6 or newer, libecpint,
-   libxc, HDF5 with C++ bindings and Open Babel 3
+   libxc, HDF5 with C++ bindings and Open Babel 3. Analytic DFT forces need a
+   libint with derivative integrals; see `libint`_ below.
 
 Dependency Installation
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,9 +39,46 @@ Dependency Installation
 
 `Fedora <https://github.com/votca/buildenv/blob/master/fedora#L10-L15>`_
 
-If your distribution's libint is too old, cmake can be run with the ``-DBUILD_OWN_LIBINT=ON`` flag to build a suitable libint version.
-
 If your distribution has no libecpint package, build it from `source <https://github.com/robashaw/libecpint>`_.
+
+libint
+^^^^^^
+
+XTP's analytic DFT forces (``dftpackage.xtpdft.compute_forces``, used for
+geometry optimizations) need libint with first derivatives of the one-body,
+two-centre and three-centre integrals. The libint packages of most
+distributions and of Homebrew, and the official libint release tarballs, do
+not have them; XTP then builds and runs, but without analytic forces. The
+configure step reports which libint it uses and what it supports::
+
+    -- libint2 derivative integrals: ONEBODY=1, ERI2=1, ERI3=1 (.../libint2/config.h) -> analytic DFT forces ON
+
+With ``-DBUILD_OWN_LIBINT=ON``, VOTCA uses a libint with these derivatives
+instead (libint 2.13.1, generated for VOTCA and hosted at
+`votca/libint-export <https://github.com/votca/libint-export/releases>`__). It
+is built once per machine and compiler into a cache outside the build
+directory (``~/.cache/votca``, on macOS ``~/Library/Caches/votca``), which
+other build directories and branches reuse:
+
+-  configure downloads the libint export (about 130 MB, checksum-verified)
+   and unpacks it into the cache;
+-  the first ``cmake --build`` compiles libint before the rest of VOTCA
+   (once; about 15–30 min on a few cores) and installs it into the cache;
+-  later configures use the installed libint and add no build step.
+
+With ``BUILD_OWN_LIBINT`` the derivatives are always required: the configure
+step fails if the export lacks them (only possible with a different
+``VOTCA_LIBINT_EXPORT_URL``). Delete the cache directory to rebuild libint.
+
+Without ``BUILD_OWN_LIBINT``, the libint found on the system is used whether
+or not it has derivatives, and XTP is built without analytic forces if it
+does not. ``-DREQUIRE_LIBINT_FORCES=ON`` makes that a configure error
+instead, e.g. for builds that must support geometry optimizations
+(``-DCMAKE_PREFIX_PATH`` pointing to a libint with derivatives, or CI).
+
+If another libint is installed where the compiler finds it first (for
+example Homebrew's libint in ``/opt/homebrew/include``), compilation stops
+with an error naming the conflict; uninstall it, or ``brew unlink libint``.
 
 macOS (Homebrew)
 ^^^^^^^^^^^^^^^^
@@ -51,13 +89,16 @@ Xcode command line tools and the dependencies from `Homebrew <https://brew.sh>`_
 ::
 
     xcode-select --install
-    brew install cmake eigen boost libint libecpint libxc hdf5 fftw libomp gromacs open-babel pybind11
+    brew install cmake eigen boost libecpint libxc hdf5 fftw libomp gromacs open-babel pybind11
     cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} \
-          -DCMAKE_PREFIX_PATH="$(brew --prefix libint)"
+          -DBUILD_OWN_LIBINT=ON
     cmake --build builddir --parallel $(sysctl -n hw.ncpu)
 
 Notes:
 
+-  Homebrew's ``libint`` has no derivative integrals and is not needed with
+   ``-DBUILD_OWN_LIBINT=ON``; if it is installed, ``brew unlink libint``
+   keeps its headers out of the way (see `libint`_).
 -  Linear algebra uses Apple's Accelerate framework, which ``CMake`` finds
    by itself (``-- Found APPLE_ACCELERATE``). Do **not** install Homebrew's
    ``lapack`` or ``lapacke`` for VOTCA: they are not needed.
@@ -149,7 +190,19 @@ Other CMake Flags
    package called ``<name>`` (ON/OFF)
 -  ``CMAKE_DISABLE_FIND_PACKAGE_HDF5`` - Disable using ``HDF5`` in CSG
    (h5md support; ON/OFF, Default OFF; not possible with ``BUILD_XTP=ON``)
--  ``BUILD_OWN_LIBINT`` - build an internal libint (ON/OFF, Default OFF)
+-  ``BUILD_OWN_LIBINT`` - use a libint with derivative integrals, built once
+   per machine into a cache (ON/OFF, Default OFF; see `libint`_)
+-  ``REQUIRE_LIBINT_FORCES`` - fail if the system libint has no derivative
+   integrals for analytic DFT forces (ON/OFF, Default OFF; always on with
+   ``BUILD_OWN_LIBINT``)
+-  ``VOTCA_LIBINT_CACHE_DIR`` - cache directory of ``BUILD_OWN_LIBINT``
+   (also read from the environment; Default ``~/.cache/votca``, on macOS
+   ``~/Library/Caches/votca``)
+-  ``VOTCA_LIBINT_BUILD_JOBS`` - parallel jobs of the one-time libint build
+   (Default: all cores)
+-  ``VOTCA_LIBINT_EXPORT_URL``, ``VOTCA_LIBINT_EXPORT_SHA256`` - another libint
+   export (URL or local file) for ``BUILD_OWN_LIBINT``; generate one with
+   ``CMakeModules/make_libint_export.sh``
 -  ``REQUIRE_MKL`` - fail if Intel's MKL is not found (ON/OFF, Default OFF)
 -  ``MKL_THREADING`` - MKL threading layer (``sequential``, ``intel_thread``,
    ``gnu_thread`` or ``tbb_thread``; Default ``gnu_thread`` with ``g++``)

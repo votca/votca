@@ -28,8 +28,11 @@ Installation
     cmake --build builddir --target install
     source ${prefix}/bin/VOTCARC.bash
 
-Requirements, distribution packages and performance advice (MKL, Apple
-Accelerate) are in the `installation guide <share/sphinx/INSTALL.rst>`__.
+For analytic DFT forces in XTP (geometry optimizations), add
+``-DBUILD_OWN_LIBINT=ON``: it builds a libint with derivative integrals once
+per machine (see the guide). Requirements, distribution packages and
+performance advice (MKL, Apple Accelerate) are in the `installation guide
+<share/sphinx/INSTALL.rst>`__.
 VOTCA is also available as a Docker image::
 
     docker run -it votca/votca /bin/bash

@@ -10,9 +10,11 @@
 # Sets VOTCA_LIBINT_FORCES (ON/OFF), VOTCA_LIBINT_CONFIG_H (also cached, for
 # reference) and VOTCA_LIBINT_EXPECT_DEFS (compile definitions for the
 # header check in libint2_derivative_calls.cc).
-# With -DREQUIRE_LIBINT_FORCES=ON, missing derivatives are a configure error.
+# Missing derivatives are a configure error with -DREQUIRE_LIBINT_FORCES=ON,
+# and always with BUILD_OWN_LIBINT (its only purpose is a libint2 with them;
+# the default export has them, so this catches a wrong VOTCA_LIBINT_EXPORT_URL).
 
-option(REQUIRE_LIBINT_FORCES "Fail at configure time if libint2 lacks the derivative integrals for analytic DFT forces" OFF)
+option(REQUIRE_LIBINT_FORCES "Fail at configure time if the system libint2 lacks the derivative integrals for analytic DFT forces (always required with BUILD_OWN_LIBINT)" OFF)
 
 function(votca_check_libint_features)
   set(_cfg "")
@@ -108,26 +110,23 @@ function(votca_check_libint_features)
   endif()
   if(_missing)
     set(VOTCA_LIBINT_FORCES OFF PARENT_SCOPE)
+    string(REPLACE ";" ", " _missing "${_missing}")
     if(BUILD_OWN_LIBINT)
-      set(_hint "the export in VOTCA_LIBINT_EXPORT_URL lacks them; leave it empty for the VOTCA default export")
-    else()
-      set(_hint "-DBUILD_OWN_LIBINT=ON builds a libint2 with them")
+      message(FATAL_ERROR
+        "libint2 derivative integrals: ${_summary}. BUILD_OWN_LIBINT=ON, but the libint2 export "
+        "${VOTCA_LIBINT_EXPORT_URL} has no 1st derivatives for: ${_missing}. Leave "
+        "VOTCA_LIBINT_EXPORT_URL empty to use the VOTCA default export, or generate one with "
+        "CMakeModules/make_libint_export.sh.")
     endif()
-    message(STATUS "libint2 derivative integrals: ${_summary} (${_cfg}) -> analytic DFT forces OFF (${_hint})")
+    message(STATUS "libint2 derivative integrals: ${_summary} (${_cfg}) -> analytic DFT forces OFF "
+                   "(-DBUILD_OWN_LIBINT=ON builds a libint2 with them)")
     if(REQUIRE_LIBINT_FORCES)
-      if(BUILD_OWN_LIBINT)
-        message(FATAL_ERROR
-          "REQUIRE_LIBINT_FORCES=ON, but the libint2 export ${VOTCA_LIBINT_EXPORT_URL} has no "
-          "1st derivatives for: ${_missing}. Leave VOTCA_LIBINT_EXPORT_URL empty to use the VOTCA "
-          "default export, or generate one with CMakeModules/make_libint_export.sh.")
-      else()
-        message(FATAL_ERROR
-          "REQUIRE_LIBINT_FORCES=ON, but the libint2 found (${_cfg}) has no 1st derivatives for: "
-          "${_missing}. Configure with -DBUILD_OWN_LIBINT=ON instead: it downloads the VOTCA libint "
-          "export (with derivatives) and builds it once per machine into ${_hint_cache}. "
-          "Alternatively, point CMAKE_PREFIX_PATH to a libint2 configured with "
-          "LIBINT2_ENABLE_ONEBODY=1, LIBINT2_ENABLE_ERI2=1 and LIBINT2_ENABLE_ERI3=1.")
-      endif()
+      message(FATAL_ERROR
+        "REQUIRE_LIBINT_FORCES=ON, but the libint2 found (${_cfg}) has no 1st derivatives for: "
+        "${_missing}. Configure with -DBUILD_OWN_LIBINT=ON instead: it downloads the VOTCA libint "
+        "export (with derivatives) and builds it once per machine into ${_hint_cache}. "
+        "Alternatively, point CMAKE_PREFIX_PATH to a libint2 configured with "
+        "LIBINT2_ENABLE_ONEBODY=1, LIBINT2_ENABLE_ERI2=1 and LIBINT2_ENABLE_ERI3=1.")
     endif()
   else()
     set(VOTCA_LIBINT_FORCES ON PARENT_SCOPE)
