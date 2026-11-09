@@ -7,7 +7,9 @@
 # try_compile. libint <= 2.9 names the macros INCLUDE_ONEBODY/_ERI2/_ERI3,
 # later versions LIBINT_INCLUDE_ONEBODY/_ERI2/_ERI3; both are recognised.
 #
-# Sets VOTCA_LIBINT_FORCES (ON/OFF) and VOTCA_LIBINT_CONFIG_H.
+# Sets VOTCA_LIBINT_FORCES (ON/OFF), VOTCA_LIBINT_CONFIG_H (also cached, for
+# reference) and VOTCA_LIBINT_EXPECT_DEFS (compile definitions for the
+# header check in libint2_derivative_calls.cc).
 # With -DREQUIRE_LIBINT_FORCES=ON, missing derivatives are a configure error.
 
 option(REQUIRE_LIBINT_FORCES "Fail at configure time if libint2 lacks the derivative integrals for analytic DFT forces" OFF)
@@ -42,6 +44,7 @@ function(votca_check_libint_features)
   endif()
 
   set(VOTCA_LIBINT_CONFIG_H "${_cfg}" PARENT_SCOPE)
+  set(VOTCA_LIBINT_CONFIG_H "${_cfg}" CACHE INTERNAL "libint2/config.h of the libint2 used by XTP")
   if(NOT _cfg)
     set(VOTCA_LIBINT_FORCES OFF PARENT_SCOPE)
     message(STATUS "libint2 derivative integrals: unknown (libint2/config.h not found in ${_incs}); "
@@ -52,9 +55,10 @@ function(votca_check_libint_features)
     return()
   endif()
 
-  file(STRINGS "${_cfg}" _lines REGEX "^#define[ \t]+(LIBINT_)?INCLUDE_(ONEBODY|ERI2|ERI3)[ \t]")
+  file(STRINGS "${_cfg}" _lines REGEX "^#define[ \t]+(LIBINT_)?INCLUDE_(ONEBODY|ERI|ERI2|ERI3)[ \t]")
   set(_missing "")
   set(_summary "")
+  set(_expect_orders "")
   foreach(_k ONEBODY ERI2 ERI3)
     set(_order -1)
     foreach(_l IN LISTS _lines)
@@ -63,11 +67,39 @@ function(votca_check_libint_features)
       endif()
     endforeach()
     list(APPEND _summary "${_k}=${_order}")
+    list(APPEND _expect_orders "VOTCA_LIBINT_EXPECT_${_k}=${_order}")
     if(_order LESS 1)
       list(APPEND _missing ${_k})
     endif()
   endforeach()
   string(REPLACE ";" ", " _summary "${_summary}")
+  # 4-centre ERIs: not needed for forces (XTP uses RI), but their derivative
+  # order decides which libint functions the headers reference, so it is part
+  # of the header check below
+  set(_eri4 -1)
+  foreach(_l IN LISTS _lines)
+    if(_l MATCHES "^#define[ \t]+(LIBINT_)?INCLUDE_ERI[ \t]+(-?[0-9]+)")
+      set(_eri4 ${CMAKE_MATCH_2})
+    endif()
+  endforeach()
+  list(APPEND _expect_orders "VOTCA_LIBINT_EXPECT_ERI=${_eri4}")
+
+  # version and derivative orders, for the compile-time check in
+  # libint2_derivative_calls.cc that the compiler sees the same headers
+  file(STRINGS "${_cfg}" _vlines REGEX "^#define[ \t]+LIBINT_(MAJOR|MINOR|MICRO)_VERSION[ \t]")
+  set(_defs "")
+  foreach(_p MAJOR MINOR MICRO)
+    foreach(_l IN LISTS _vlines)
+      if(_l MATCHES "^#define[ \t]+LIBINT_${_p}_VERSION[ \t]+([0-9]+)")
+        list(APPEND _defs "VOTCA_LIBINT_EXPECT_${_p}=${CMAKE_MATCH_1}")
+      endif()
+    endforeach()
+  endforeach()
+  list(LENGTH _defs _nv)
+  if(_nv EQUAL 3)
+    list(APPEND _defs ${_expect_orders})
+    set(VOTCA_LIBINT_EXPECT_DEFS "${_defs}" PARENT_SCOPE)
+  endif()
 
   if(APPLE)
     set(_hint_cache "~/Library/Caches/votca")
