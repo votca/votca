@@ -92,6 +92,18 @@ BOOST_AUTO_TEST_CASE(gaussianwriter_test) {
   bool diff2gs = false;
   writer.WriteFile("methane", orbitals, QMState("n"), diff2gs);
 
+  // 3.0 Line 2 must follow Gaussian's fixed (A10,A30,A30) layout, readers
+  // take the method (and R/U) from column 11
+  {
+    std::ifstream in("methane.fchk");
+    std::string line;
+    std::getline(in, line);
+    std::getline(in, line);
+    BOOST_REQUIRE(line.size() >= 13);
+    BOOST_CHECK_EQUAL(line.substr(0, 10), "SP        ");
+    BOOST_CHECK_EQUAL(line.substr(10, 3), "RHF");
+  }
+
   // 3.1 Check everything except density matrix
   Index linesToSkip = 2;  // basisset names will be different due to test folder
   std::pair<std::string, std::vector<double>> testFile =

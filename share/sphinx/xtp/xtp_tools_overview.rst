@@ -23,6 +23,7 @@ The following tools are available:
    molpol
    networkfit
    networkgen
+   orb2diabat
    orb2fchk
    orb2mol
    partialcharges

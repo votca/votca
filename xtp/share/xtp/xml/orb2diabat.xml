@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<options>
+  <orb2diabat help="Writes BSE excitations for Diabat 2.0: an fchk with the BSE orbitals (mofile) and Diabat's native electronic-state file (statefile).">
+    <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
+    <spin help="BSE spin type(s) to write; one statefile per type" default="singlet" choices="singlet,triplet,all"/>
+    <nstates help="Number of lowest states to write, 0 writes all stored states" default="0" choices="int+"/>
+  </orb2diabat>
+</options>
