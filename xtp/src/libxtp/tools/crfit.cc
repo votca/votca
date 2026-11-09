@@ -185,7 +185,6 @@ std::string JsonVector(const Eigen::VectorXd& v) {
 
 void CRFit::WriteJson(const QMMolecule& mol,
                       const ChargeResponseFit::Result& r) const {
-  // the keys of xtp_cr_fit, so that xtp_cr_mps reads both
   const std::string file = output_ + ".json";
   std::ofstream ofs(file);
   if (!ofs.is_open()) {
