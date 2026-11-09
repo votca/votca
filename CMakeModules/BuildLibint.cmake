@@ -7,15 +7,18 @@
 # --enable-eri3=1); the official release exports do not have them. See
 # CMakeModules/make_libint_export.sh for how the VOTCA export is generated.
 #
-# The library is built at configure time and installed into a per-machine
-# cache outside the build tree:
+# Configure only downloads (SHA256-checked) and extracts the export into a
+# per-machine cache outside the build tree:
 #   ${VOTCA_LIBINT_CACHE_DIR}/libint-<export sha256 prefix>-<compiler>-<arch>
-# Every later configure, in any build directory and on any VOTCA branch,
-# finds the installed library there and builds nothing. The cache key
-# contains only the export's checksum, the compiler and the architecture, so
-# changing VOTCA sources or switching branches never rebuilds libint.
-# A file lock serialises concurrent configures; a stamp file marks a complete
-# install, so an interrupted build is redone on the next configure.
+# and defines Libint2::int2 at its install location there. The library itself
+# is compiled by the first `cmake --build` (target votca_libint, which runs
+# before the rest of VOTCA, so the outputs do not interleave). Once it is
+# installed, every later configure, in any build directory and on any VOTCA
+# branch, uses the installed library and adds no build step. The cache key contains only the
+# export's checksum, the compiler and the architecture, so changing VOTCA
+# sources or switching branches never rebuilds libint. A file lock serialises
+# concurrent configures and builds; a stamp file marks a complete install, so
+# an interrupted build is redone by the next build.
 #
 # Variables:
 #   VOTCA_LIBINT_EXPORT_URL     URL or local path of the export tarball (default: VOTCA release asset)
@@ -83,93 +86,100 @@ string(TOLOWER "libint-${_sha12}-${CMAKE_CXX_COMPILER_ID}${_cxx_major}-${CMAKE_S
 set(VOTCA_LIBINT_PREFIX "${VOTCA_LIBINT_CACHE_DIR}/${_key}")
 set(_stamp "${VOTCA_LIBINT_PREFIX}/.votca-libint-complete")
 
-# ---- build once -------------------------------------------------------------
-if(NOT EXISTS "${_stamp}")
-  file(MAKE_DIRECTORY "${VOTCA_LIBINT_CACHE_DIR}")
-  file(LOCK "${VOTCA_LIBINT_CACHE_DIR}/${_key}.lock" GUARD FILE TIMEOUT 7200 RESULT_VARIABLE _lockres)
-  if(NOT _lockres EQUAL 0)
-    message(FATAL_ERROR "Could not lock ${VOTCA_LIBINT_CACHE_DIR}/${_key}.lock: ${_lockres}")
-  endif()
-  # another configure may have finished the build while we waited for the lock
-  if(NOT EXISTS "${_stamp}")
-    set(_work "${VOTCA_LIBINT_CACHE_DIR}/${_key}.work")
-    file(REMOVE_RECURSE "${_work}" "${VOTCA_LIBINT_PREFIX}")
-    file(MAKE_DIRECTORY "${_work}/src")
-    if(NOT _tarball)
-      set(_tarball "${_work}/libint-export.tgz")
-      message(STATUS "libint2: downloading ${VOTCA_LIBINT_EXPORT_URL}")
-      file(DOWNLOAD "${VOTCA_LIBINT_EXPORT_URL}" "${_tarball}"
-        EXPECTED_HASH SHA256=${_sha} TLS_VERIFY ON STATUS _dl)
-      list(GET _dl 0 _dlcode)
-      if(NOT _dlcode EQUAL 0)
-        message(FATAL_ERROR "libint2: download failed: ${_dl}")
-      endif()
-    endif()
-    file(ARCHIVE_EXTRACT INPUT "${_tarball}" DESTINATION "${_work}/src")
-    # exports made on macOS can carry AppleDouble metadata files (._*); drop them
-    file(GLOB_RECURSE _appledouble "${_work}/src/._*" "${_work}/src/*/._*")
-    if(_appledouble)
-      file(REMOVE ${_appledouble})
-    endif()
-    file(GLOB _srcdir LIST_DIRECTORIES true "${_work}/src/*")
-    list(LENGTH _srcdir _n)
-    if(NOT _n EQUAL 1 OR NOT EXISTS "${_srcdir}/CMakeLists.txt")
-      message(FATAL_ERROR "libint2: ${_tarball} is not a libint export (expected one top-level directory with a CMakeLists.txt)")
-    endif()
+set(_srcroot "${VOTCA_LIBINT_CACHE_DIR}/${_key}.src")
+set(_lock "${VOTCA_LIBINT_CACHE_DIR}/${_key}.lock")
 
-    if(VOTCA_LIBINT_BUILD_JOBS)
-      set(_jobs ${VOTCA_LIBINT_BUILD_JOBS})
-    else()
-      cmake_host_system_information(RESULT _jobs QUERY NUMBER_OF_LOGICAL_CORES)
-    endif()
-    message(STATUS "libint2: one-time build into ${VOTCA_LIBINT_PREFIX} (${_jobs} jobs; "
-                   "log in ${_work}/build.log). Later configures reuse it.")
-    set(_args
-      -S "${_srcdir}" -B "${_work}/build"
-      -G "${CMAKE_GENERATOR}"
-      -DCMAKE_BUILD_TYPE=Release
-      -DCMAKE_INSTALL_PREFIX=${VOTCA_LIBINT_PREFIX}
-      -DCMAKE_INSTALL_LIBDIR=lib
-      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-      -DBUILD_SHARED_LIBS=OFF
-      -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      -DLIBINT2_REQUIRE_CXX_API=ON
-      -DLIBINT2_REQUIRE_CXX_API_COMPILED=OFF
-      -DLIBINT2_ENABLE_FORTRAN=OFF
-      -DLIBINT2_ENABLE_PYTHON=OFF
-      -DBUILD_TESTING=OFF)
-    # list-valued settings go through an initial-cache file, which keeps the ';'
-    set(_init "")
-    foreach(_v CMAKE_C_COMPILER CMAKE_PREFIX_PATH Eigen3_DIR Boost_DIR CMAKE_OSX_ARCHITECTURES CMAKE_OSX_DEPLOYMENT_TARGET)
-      if(${_v})
-        string(APPEND _init "set(${_v} \"${${_v}}\" CACHE STRING \"\")\n")
-      endif()
-    endforeach()
-    file(WRITE "${_work}/init.cmake" "${_init}")
-    list(APPEND _args -C "${_work}/init.cmake")
-    function(_votca_libint_step)
-      execute_process(COMMAND ${ARGN} RESULT_VARIABLE _rc
-        OUTPUT_FILE "${_work}/step.log" ERROR_FILE "${_work}/step.log")
-      file(READ "${_work}/step.log" _log)
-      file(APPEND "${_work}/build.log" "${_log}")
-      if(NOT _rc EQUAL 0)
-        message(FATAL_ERROR "libint2: build step failed (${_rc}); see ${_work}/build.log")
-      endif()
-    endfunction()
-    _votca_libint_step(${CMAKE_COMMAND} ${_args})
-    _votca_libint_step(${CMAKE_COMMAND} --build "${_work}/build" --parallel ${_jobs} --config Release)
-    _votca_libint_step(${CMAKE_COMMAND} --install "${_work}/build" --config Release)
-    file(WRITE "${_stamp}" "export=${VOTCA_LIBINT_EXPORT_URL}\nsha256=${_sha}\ncompiler=${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_VERSION}\n")
-    file(REMOVE_RECURSE "${_work}")
-  else()
-    message(STATUS "libint2: another configure built ${VOTCA_LIBINT_PREFIX}; using it")
-  endif()
-  file(LOCK "${VOTCA_LIBINT_CACHE_DIR}/${_key}.lock" RELEASE)
-else()
+if(EXISTS "${_stamp}")
+  # ---- installed: use libint's own CMake package ---------------------------
   message(STATUS "libint2: using the cached build in ${VOTCA_LIBINT_PREFIX}")
+  find_package(Libint2 CONFIG REQUIRED PATHS "${VOTCA_LIBINT_PREFIX}" NO_DEFAULT_PATH)
+  if(NOT TARGET Libint2::int2)
+    message(FATAL_ERROR "libint2 in ${VOTCA_LIBINT_PREFIX} provides no Libint2::int2 target")
+  endif()
+  return()
 endif()
 
-find_package(Libint2 CONFIG REQUIRED PATHS "${VOTCA_LIBINT_PREFIX}" NO_DEFAULT_PATH)
-if(NOT TARGET Libint2::int2)
-  message(FATAL_ERROR "libint2 in ${VOTCA_LIBINT_PREFIX} provides no Libint2::int2 target")
+# ---- not installed yet: download + extract now (seconds), compile at build time
+file(MAKE_DIRECTORY "${VOTCA_LIBINT_CACHE_DIR}")
+file(LOCK "${_lock}" GUARD FILE TIMEOUT 7200 RESULT_VARIABLE _lockres)
+if(NOT _lockres EQUAL 0)
+  message(FATAL_ERROR "Could not lock ${_lock}: ${_lockres}")
 endif()
+if(NOT EXISTS "${_srcroot}/.extracted")
+  file(REMOVE_RECURSE "${_srcroot}")
+  file(MAKE_DIRECTORY "${_srcroot}")
+  if(NOT _tarball)
+    set(_tarball "${_srcroot}/libint-export.tgz")
+    message(STATUS "libint2: downloading ${VOTCA_LIBINT_EXPORT_URL} (once per machine)")
+    file(DOWNLOAD "${VOTCA_LIBINT_EXPORT_URL}" "${_tarball}"
+      EXPECTED_HASH SHA256=${_sha} TLS_VERIFY ON SHOW_PROGRESS STATUS _dl)
+    list(GET _dl 0 _dlcode)
+    if(NOT _dlcode EQUAL 0)
+      message(FATAL_ERROR "libint2: download failed: ${_dl}")
+    endif()
+  endif()
+  file(ARCHIVE_EXTRACT INPUT "${_tarball}" DESTINATION "${_srcroot}")
+  if(_tarball STREQUAL "${_srcroot}/libint-export.tgz")
+    file(REMOVE "${_tarball}")
+  endif()
+  # exports made on macOS can carry AppleDouble metadata files (._*); drop them
+  file(GLOB_RECURSE _appledouble "${_srcroot}/._*" "${_srcroot}/*/._*")
+  if(_appledouble)
+    file(REMOVE ${_appledouble})
+  endif()
+  file(GLOB _dirs LIST_DIRECTORIES true "${_srcroot}/*")
+  list(LENGTH _dirs _n)
+  if(NOT _n EQUAL 1 OR NOT EXISTS "${_dirs}/CMakeLists.txt")
+    message(FATAL_ERROR "libint2: ${VOTCA_LIBINT_EXPORT_URL} is not a libint export "
+                        "(expected one top-level directory with a CMakeLists.txt)")
+  endif()
+  file(WRITE "${_srcroot}/.extracted" "${_dirs}\n")
+endif()
+file(LOCK "${_lock}" RELEASE)
+file(STRINGS "${_srcroot}/.extracted" _srcdir LIMIT_COUNT 1)
+
+# the export ships its generated config.h; CheckLibintFeatures reads it from
+# here because the install location is still empty at configure time
+set(VOTCA_LIBINT_PENDING_CONFIG_H "${_srcdir}/include/libint2/config.h")
+
+if(VOTCA_LIBINT_BUILD_JOBS)
+  set(_jobs ${VOTCA_LIBINT_BUILD_JOBS})
+else()
+  cmake_host_system_information(RESULT _jobs QUERY NUMBER_OF_LOGICAL_CORES)
+endif()
+
+# settings for the libint build, passed through an initial-cache file (keeps lists intact)
+set(_init "")
+foreach(_v CMAKE_CXX_COMPILER CMAKE_C_COMPILER CMAKE_PREFIX_PATH Eigen3_DIR Boost_DIR
+           CMAKE_OSX_ARCHITECTURES CMAKE_OSX_DEPLOYMENT_TARGET CMAKE_OSX_SYSROOT)
+  if(${_v})
+    string(APPEND _init "set(${_v} \"${${_v}}\" CACHE STRING \"\")\n")
+  endif()
+endforeach()
+file(WRITE "${CMAKE_BINARY_DIR}/libint/init.cmake" "${_init}")
+
+message(STATUS "libint2: will be compiled by the first build (target votca_libint) and installed into "
+               "${VOTCA_LIBINT_PREFIX}; later configures reuse it")
+add_custom_command(
+  OUTPUT "${_stamp}"
+  BYPRODUCTS "${VOTCA_LIBINT_PREFIX}/lib/libint2.a"
+  COMMAND ${CMAKE_COMMAND}
+    "-DSRC=${_srcdir}" "-DPREFIX=${VOTCA_LIBINT_PREFIX}" "-DSTAMP=${_stamp}" "-DLOCK=${_lock}"
+    "-DWORK=${VOTCA_LIBINT_CACHE_DIR}/${_key}.build" "-DINIT=${CMAKE_BINARY_DIR}/libint/init.cmake"
+    "-DGENERATOR=${CMAKE_GENERATOR}" "-DJOBS=${_jobs}" "-DSHA=${_sha}"
+    -P "${CMAKE_CURRENT_LIST_DIR}/BuildLibintStep.cmake"
+  DEPENDS "${CMAKE_CURRENT_LIST_DIR}/BuildLibintStep.cmake"
+  USES_TERMINAL
+  COMMENT "libint2: one-time build for this machine (${_jobs} jobs); VOTCA builds afterwards")
+add_custom_target(votca_libint DEPENDS "${_stamp}")
+
+# Libint2::int2 at its future install location, with the properties libint's
+# own package gives Libint2::int-static
+file(MAKE_DIRECTORY "${VOTCA_LIBINT_PREFIX}/include")
+add_library(Libint2::int2 STATIC IMPORTED)
+set_target_properties(Libint2::int2 PROPERTIES
+  IMPORTED_LOCATION "${VOTCA_LIBINT_PREFIX}/lib/libint2.a"
+  IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
+  INTERFACE_INCLUDE_DIRECTORIES "${VOTCA_LIBINT_PREFIX}/include"
+  INTERFACE_COMPILE_FEATURES "cxx_std_11")
+add_dependencies(Libint2::int2 votca_libint)
