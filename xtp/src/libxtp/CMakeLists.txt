@@ -35,6 +35,17 @@ target_link_libraries(Libint2_system INTERFACE Libint2::int2)
 
 get_target_property(_libint_incs Libint2::int2 INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(Libint2_system SYSTEM INTERFACE ${_libint_incs})
+# Put libint's include directories first, so that a different libint2 next to
+# other dependencies' headers (e.g. Homebrew's /opt/homebrew/include, which
+# Boost brings in) cannot shadow it. PUBLIC: votca_xtp's headers include libint2.
+foreach(_d IN LISTS _libint_incs)
+  target_include_directories(votca_xtp SYSTEM BEFORE PUBLIC $<BUILD_INTERFACE:${_d}>)
+endforeach()
+target_include_directories(votca_xtp_libint2 SYSTEM BEFORE PRIVATE ${_libint_incs})
+# compile-time check that these headers are the configured libint2's
+if(VOTCA_LIBINT_EXPECT_DEFS)
+  target_compile_definitions(votca_xtp_libint2 PRIVATE ${VOTCA_LIBINT_EXPECT_DEFS})
+endif()
 
 target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE Libxc::xc Libint2_system ECPINT::ecpint Boost::program_options Boost::timer openbabel)
 # same usage requirements for the libint2 objects (an object library only

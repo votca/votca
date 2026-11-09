@@ -38,6 +38,7 @@ Version 2026-dev
 -  updated readme (#1267)
 -  new XTP tutorials (#1268)
 -  improve parallel reductions (#1269)
+-  cached libint2 build with analytic-force support; remove PySCF charge-response tools (#1270)
    
 Version 2026 (released 09.03.26)
 ================================

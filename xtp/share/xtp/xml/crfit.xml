@@ -9,6 +9,6 @@
     <scf_error help="Every SCF is converged to at least this DIIS error (and 1/100 of it in the energy): the ground state for both methods, and the perturbed SCFs, whose densities are differenced, for finite_differences" default="1e-9" choices="float+"/>
     <inversion help="If the geometry has an inversion centre (equivalent atoms within 1e-4 bohr), perturb only one atom of each pair and obtain the other response by symmetry" default="true" choices="bool"/>
     <mpsfile help="Template .mps of the molecule with the permanent multipoles (same atoms in the same order); if given, output.mps is written with the residual polarizabilities on its P lines, rotated into the template frame" default="OPTIONAL"/>
-    <output help="Output prefix: output.crm, output.json (the keys of xtp_cr_fit, readable by xtp_cr_mps) and, with mpsfile, output.mps" default="OPTIONAL"/>
+    <output help="Output prefix: output.crm, output.json (Pi, polarizabilities, residual tensors, settings) and, with mpsfile, output.mps" default="OPTIONAL"/>
   </crfit>
 </options>

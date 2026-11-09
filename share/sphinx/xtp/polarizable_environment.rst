@@ -289,17 +289,16 @@ Parametrization of charge-response molecules
 
 :math:`\Pi` is the static linear response of the molecule, obtained once
 per molecule type from a DFT calculation, like the target polarizability of
-``molpol``: natively with ``xtp_tools -e crfit`` (xtpdft), or with the
-python tool ``xtp_cr_fit`` (PySCF); see `Tools`_ below. The procedure:
+``molpol``: with ``xtp_tools -e crfit`` (xtpdft); see `Tools`_ below. The
+procedure:
 
 1. **Perturbations.** An external potential localized on atom :math:`k`
    with Hirshfeld weights [Hirshfeld:1977]_, :math:`v_k(\mathbf{r}) =
    w_k(\mathbf{r})` with :math:`\sum_k w_k = 1` (free spherical atoms in the
    same basis), plus three uniform fields.
 2. **Response.** The first-order density matrices of all :math:`N + 3`
-   perturbations from analytic coupled-perturbed Kohn–Sham (``crfit``,
-   ``xtp_cr_fit``) or central finite differences of SCFs (``crfit``
-   ``method=finite_differences``); with diffuse
+   perturbations from analytic coupled-perturbed Kohn–Sham or central
+   finite differences of SCFs (``method=finite_differences``); with diffuse
    functions in the basis (for example def2-SVPD or def2-TZVPD) and the
    functional of the QM region.
 3. **Induced charges.** Measured with the same Hirshfeld weights:
@@ -368,10 +367,13 @@ ground state, and takes :math:`\Delta P = (P_+ - P_-)/(2s)` with :math:`s`
 on), only one atom of each pair is perturbed. The free-atom references of the Hirshfeld weights
 are those of xtpdft's CDFT (spherically averaged, Hund's-rule spin, the
 functional of the calculation). It writes ``output.crm``, ``output.json``
-(the keys of ``xtp_cr_fit``) and, with ``mpsfile`` (a template ``.mps``
-with the permanent multipoles), ``output.mps`` with the residual
-polarizabilities on the ``P`` lines, rotated into the template frame as
-``xtp_cr_mps`` does. Example::
+(:math:`\Pi`, :math:`\alpha_\text{DFT}`, the charge-flow and residual
+parts, the residual tensors per atom, the settings) and, with ``mpsfile``
+(a template ``.mps`` with the permanent multipoles of the same atoms in the
+same order), ``output.mps``: the permanent multipoles of the template with
+the residual polarizabilities on the ``P`` lines, rotated into the template
+frame. Use the same functional as the QM region and a basis with diffuse
+functions; the geometry should be that of the template. Example::
 
     xtp_tools -e crfit -c job_name=water output=water_cr_n \
       mpsfile=water_n.mps dftpackage.basisset=def2-svpd \
@@ -382,40 +384,9 @@ Both methods agree: for pentacene (PBE0/def2-SVPD) :math:`\Pi` to
 :math:`10^{-6}`; the polarizability differs by :math:`2 \times 10^{-4}`,
 the hyperpolarizability contribution of the finite field step (the analytic
 response agrees with SCFs at step :math:`10^{-4}` to :math:`10^{-7}`).
-Compared with ``xtp_cr_fit`` at the same functional and basis, the
-polarizability agrees to a few :math:`10^{-4}`, and the elements of
-:math:`\Pi` are 3 % (water) to 5–7 % (pentacene) larger; the difference in
-:math:`\Pi` is the choice of free-atom references (``xtp_cr_fit`` uses
-spherical Hartree–Fock atoms). Pentacene on two cores: 23 min analytic, 44
-min with finite differences, 2 h with ``xtp_cr_fit``.
+Pentacene on two cores: 23 min analytic, 44 min with finite differences.
 
-The python tools are installed with XTP when their modules are found at
-configure time: ``xtp_cr_fit`` needs PySCF and numpy, ``xtp_cr_mps`` numpy
-only.
-
-* ``xtp_cr_fit -x mol.xyz -o mol`` runs steps 1–4 for one molecule
-  (restricted Kohn–Sham, i.e. closed shell; ``--charge`` for closed-shell
-  ions) and writes ``mol_cr.json`` (:math:`\Pi`,
-  :math:`\alpha_\text{DFT}`, the charge-flow and residual parts, the
-  residual tensors per atom, the settings) and ``mol.crm``. Defaults:
-  ``--xc pbe0``, ``--basis def2-svpd``, density fitting with
-  ``--auxbasis def2-universal-jkfit``; ``--grid`` sets the DFT grid and
-  ``--response-grid`` (default 1) the coarser grid of the response kernel.
-  An inversion centre of the geometry, if present, is used to halve the
-  number of responses (``--no-inversion`` switches this off). The fit stops
-  with an error if :math:`\Pi` is not positive semidefinite or
-  :math:`\alpha^\text{res}` not positive definite. Use the same functional
-  as the QM region and a basis with diffuse functions; the geometry should
-  be that of the ``.mps`` template (e.g. the ``molpol`` input).
-* ``xtp_cr_mps -m template.mps -j mol_cr.json -o mol_cr_n`` writes the pair
-  of files for the map file: ``mol_cr_n.mps`` keeps the permanent
-  multipoles of the template and replaces its ``P`` lines by the residual
-  polarizabilities, ``mol_cr_n.crm`` holds :math:`\Pi`. The template must
-  list the same atoms in the same order as the fit; if it is in another
-  frame, the residual tensors are rotated into it (a warning is printed if
-  the geometries differ by more than 0.05 Å rms after alignment).
-
-For water in def2-SVPD either fit takes seconds. The permanent
+For water in def2-SVPD the fit takes seconds. The permanent
 multipoles of other states come from the template ``.mps`` files of those
 states as usual.
 

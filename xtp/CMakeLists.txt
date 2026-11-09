@@ -14,15 +14,13 @@ if(NOT TARGET Libint2::int2)
   endif()
 endif()
 
-# libint2 derivative integrals (needed for compute_forces) require libint2
-# to be configured with --enable-1body, --enable-eri2 and --enable-eri3. This
-# is not checked here: try_compile-based checks gave wrong answers with some
-# libint2 discovery modes. libint2_derivative_calls.cc checks the macros at
-# compile time, and DFTEngine::Initialize reports missing support at runtime.
-message(STATUS
-  "Note: the compute_forces option of the DFT engine needs libint2 "
-  "configured with --enable-1body, --enable-eri2 and --enable-eri3; "
-  "this is not checked at configure time.")
+# libint2 derivative integrals (needed for the compute_forces option of the
+# DFT engine) require libint2 configured with --enable-1body, --enable-eri2
+# and --enable-eri3. Checked by reading libint2/config.h;
+# libint2_derivative_calls.cc checks the same macros at compile time.
+include(CheckLibintFeatures)
+votca_check_libint_features()
+add_feature_info(LIBINT_FORCES VOTCA_LIBINT_FORCES "libint2 derivative integrals for analytic DFT forces")
 
 find_package(ecpint REQUIRED)
 set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculates Gaussian integrals over pseudo potentials")

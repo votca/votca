@@ -216,6 +216,11 @@ configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMA
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 add_subdirectory(tools)
+# BUILD_OWN_LIBINT before its first build: compile libint before anything of
+# VOTCA, so that the two builds' output does not interleave
+if(TARGET votca_libint)
+  add_dependencies(votca_tools votca_libint)
+endif()
 add_subdirectory(csg)
 if(BUILD_XTP)
   add_subdirectory(xtp)

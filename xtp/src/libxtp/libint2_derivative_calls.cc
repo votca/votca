@@ -64,6 +64,61 @@
 #pragma GCC diagnostic pop
 #endif
 
+// libint2 releases up to 2.9 (autotools-generated config.h) name the
+// per-category derivative orders INCLUDE_ONEBODY/_ERI2/_ERI3; newer CMake
+// builds use the LIBINT_ prefix. Without this mapping an older libint2 with
+// derivative integrals (e.g. the conda-forge build, 2.9.0, orders 2) is
+// treated as having none, and compute_forces is rejected.
+#if !defined(LIBINT_INCLUDE_ONEBODY) && defined(INCLUDE_ONEBODY)
+#define LIBINT_INCLUDE_ONEBODY INCLUDE_ONEBODY
+#endif
+#if !defined(LIBINT_INCLUDE_ERI2) && defined(INCLUDE_ERI2)
+#define LIBINT_INCLUDE_ERI2 INCLUDE_ERI2
+#endif
+#if !defined(LIBINT_INCLUDE_ERI) && defined(INCLUDE_ERI)
+#define LIBINT_INCLUDE_ERI INCLUDE_ERI
+#endif
+#if !defined(LIBINT_INCLUDE_ERI3) && defined(INCLUDE_ERI3)
+#define LIBINT_INCLUDE_ERI3 INCLUDE_ERI3
+#endif
+
+// The libint2 headers compiled here must be those of the libint2 that CMake
+// found and links (CheckLibintFeatures.cmake passes its version and
+// derivative orders). Another libint2 earlier in the include path (e.g. a
+// Homebrew or conda one next to Boost's headers) would otherwise compile
+// against mismatched headers without any diagnostic.
+#ifdef VOTCA_LIBINT_EXPECT_MAJOR
+#ifdef LIBINT_INCLUDE_ONEBODY
+#define VOTCA_LIBINT_HAVE_ONEBODY LIBINT_INCLUDE_ONEBODY
+#else
+#define VOTCA_LIBINT_HAVE_ONEBODY -1
+#endif
+#ifdef LIBINT_INCLUDE_ERI
+#define VOTCA_LIBINT_HAVE_ERI LIBINT_INCLUDE_ERI
+#else
+#define VOTCA_LIBINT_HAVE_ERI -1
+#endif
+#ifdef LIBINT_INCLUDE_ERI2
+#define VOTCA_LIBINT_HAVE_ERI2 LIBINT_INCLUDE_ERI2
+#else
+#define VOTCA_LIBINT_HAVE_ERI2 -1
+#endif
+#ifdef LIBINT_INCLUDE_ERI3
+#define VOTCA_LIBINT_HAVE_ERI3 LIBINT_INCLUDE_ERI3
+#else
+#define VOTCA_LIBINT_HAVE_ERI3 -1
+#endif
+#if LIBINT_MAJOR_VERSION != VOTCA_LIBINT_EXPECT_MAJOR ||   \
+    LIBINT_MINOR_VERSION != VOTCA_LIBINT_EXPECT_MINOR ||   \
+    LIBINT_MICRO_VERSION != VOTCA_LIBINT_EXPECT_MICRO ||   \
+    VOTCA_LIBINT_HAVE_ONEBODY != VOTCA_LIBINT_EXPECT_ONEBODY || \
+    VOTCA_LIBINT_HAVE_ERI != VOTCA_LIBINT_EXPECT_ERI ||    \
+    VOTCA_LIBINT_HAVE_ERI2 != VOTCA_LIBINT_EXPECT_ERI2 ||  \
+    VOTCA_LIBINT_HAVE_ERI3 != VOTCA_LIBINT_EXPECT_ERI3
+#error "The libint2 headers found by the compiler are not those of the libint2 CMake configured (VOTCA_LIBINT_CONFIG_H in CMakeCache.txt). Another libint2 is earlier in the include path; remove it from there or uninstall it."
+#endif
+#endif
+
 namespace votca {
 namespace xtp {
 
