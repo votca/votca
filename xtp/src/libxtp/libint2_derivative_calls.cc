@@ -64,6 +64,21 @@
 #pragma GCC diagnostic pop
 #endif
 
+// libint2 releases up to 2.9 (autotools-generated config.h) name the
+// per-category derivative orders INCLUDE_ONEBODY/_ERI2/_ERI3; newer CMake
+// builds use the LIBINT_ prefix. Without this mapping an older libint2 with
+// derivative integrals (e.g. the conda-forge build, 2.9.0, orders 2) is
+// treated as having none, and compute_forces is rejected.
+#if !defined(LIBINT_INCLUDE_ONEBODY) && defined(INCLUDE_ONEBODY)
+#define LIBINT_INCLUDE_ONEBODY INCLUDE_ONEBODY
+#endif
+#if !defined(LIBINT_INCLUDE_ERI2) && defined(INCLUDE_ERI2)
+#define LIBINT_INCLUDE_ERI2 INCLUDE_ERI2
+#endif
+#if !defined(LIBINT_INCLUDE_ERI3) && defined(INCLUDE_ERI3)
+#define LIBINT_INCLUDE_ERI3 INCLUDE_ERI3
+#endif
+
 namespace votca {
 namespace xtp {
 
