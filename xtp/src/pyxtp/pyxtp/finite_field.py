@@ -1,31 +1,29 @@
-"""
-Excited-state dipole moments and polarizabilities by finite fields.
+"""Excited-state dipole moments and polarizabilities by finite fields."""
 
-The excitation energies Omega_n of GW-BSE (or the DFT ground-state energy)
-are computed in small uniform electric fields with ``dftgwbse``
-(``dftpackage.externalfield``) and differentiated numerically. This gives
-the *relaxed* change of the dipole moment on excitation, including the
-response of the orbitals, of the quasiparticle energies and of the
-screened interaction W -- unlike the excited-state density of
-``Orbitals::DensityMatrixFull``, which is unrelaxed.
-
-Conventions: VOTCA adds -F.r to the one-electron Hamiltonian for a field
-F given in ``externalfield`` (Hartree/bohr). With E(F) = E(0) + mu.F -
-1/2 F.alpha.F one gets
-
-    mu_el   = dE_DFT/dF       (electronic dipole w.r.t. the centre of mass)
-    dmu_n   = dOmega_n/dF     (change of the dipole on excitation)
-    dalpha_n,ii = -d2 Omega_n/dF_i^2
-
-Everything is in atomic units (e bohr, bohr^3) unless stated otherwise.
-
-States are matched between the field calculations and the zero-field
-calculation by the overlap of their BSE amplitudes, after transforming
-the amplitudes into the zero-field molecular orbitals. States that mix in
-the field (near degeneracies) are reported as groups; the derivative of
-the sum of their energies is reliable even when the individual ones are
-not.
-"""
+# The excitation energies Omega_n of GW-BSE (or the DFT ground-state energy)
+# are computed in small uniform electric fields with ``dftgwbse``
+# (``dftpackage.externalfield``) and differentiated numerically. This gives
+# the *relaxed* change of the dipole moment on excitation, including the
+# response of the orbitals, of the quasiparticle energies and of the
+# screened interaction W -- unlike the excited-state density of
+# ``Orbitals::DensityMatrixFull``, which is unrelaxed.
+#
+# Conventions: VOTCA adds -F.r to the one-electron Hamiltonian for a field
+# F given in ``externalfield`` (Hartree/bohr). With E(F) = E(0) + mu.F -
+# 1/2 F.alpha.F one gets
+#
+#     mu_el   = dE_DFT/dF       (electronic dipole w.r.t. the centre of mass)
+#     dmu_n   = dOmega_n/dF     (change of the dipole on excitation)
+#     dalpha_n,ii = -d2 Omega_n/dF_i^2
+#
+# Everything is in atomic units (e bohr, bohr^3) unless stated otherwise.
+#
+# States are matched between the field calculations and the zero-field
+# calculation by the overlap of their BSE amplitudes, after transforming
+# the amplitudes into the zero-field molecular orbitals. States that mix in
+# the field (near degeneracies) are reported as groups; the derivative of
+# the sum of their energies is reliable even when the individual ones are
+# not.
 
 from __future__ import annotations
 
