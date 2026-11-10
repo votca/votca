@@ -366,7 +366,7 @@ ground state, and takes :math:`\Delta P = (P_+ - P_-)/(2s)` with :math:`s`
 = ``step``. If the geometry has an inversion centre (``inversion``, default
 on), only one atom of each pair is perturbed. The free-atom references of the Hirshfeld weights
 are those of xtpdft's CDFT (spherically averaged, Hund's-rule spin, the
-functional of the calculation). It writes ``output.crm``, ``output.json``
+functional of the calculation). It writes ``output.crm``, ``output.xml``
 (:math:`\Pi`, :math:`\alpha_\text{DFT}`, the charge-flow and residual
 parts, the residual tensors per atom, the settings) and, with ``mpsfile``
 (a template ``.mps`` with the permanent multipoles of the same atoms in the

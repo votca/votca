@@ -38,7 +38,15 @@ PYBIND11_MODULE(xtp_binds, module) {
             std::cout, py::module_::import("sys").attr("stdout"));
         py::scoped_ostream_redirect redirect_cerr(
             std::cerr, py::module_::import("sys").attr("stderr"));
-        pyxtp::call_calculator(name, dict);
+        // Release the GIL while VOTCA runs: OpenMP worker threads that
+        // write to std::cout go through the redirect above, whose sync()
+        // acquires the GIL. If this thread kept it while waiting for them
+        // (e.g. at a critical section), nthreads > 1 would deadlock. The
+        // redirects are destroyed after the GIL is re-acquired.
+        {
+          py::gil_scoped_release release;
+          pyxtp::call_calculator(name, dict);
+        }
       },
       R"pbdoc(
         Invoke a Votca XTP calculator
@@ -58,7 +66,15 @@ PYBIND11_MODULE(xtp_binds, module) {
             std::cout, py::module_::import("sys").attr("stdout"));
         py::scoped_ostream_redirect redirect_cerr(
             std::cerr, py::module_::import("sys").attr("stderr"));
-        pyxtp::call_tool(name, nthreads, xml_file);
+        // Release the GIL while VOTCA runs: OpenMP worker threads that
+        // write to std::cout go through the redirect above, whose sync()
+        // acquires the GIL. If this thread kept it while waiting for them
+        // (e.g. at a critical section), nthreads > 1 would deadlock. The
+        // redirects are destroyed after the GIL is re-acquired.
+        {
+          py::gil_scoped_release release;
+          pyxtp::call_tool(name, nthreads, xml_file);
+        }
       },
       R"pbdoc(
         Invoke a Votca XTP Tool

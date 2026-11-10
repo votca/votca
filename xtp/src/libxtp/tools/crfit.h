@@ -49,8 +49,8 @@ class CRFit final : public QMTool {
   std::string MethodLabel() const;
   void WriteCrm(const QMMolecule& mol,
                 const ChargeResponseFit::Result& r) const;
-  void WriteJson(const QMMolecule& mol,
-                 const ChargeResponseFit::Result& r) const;
+  void WriteXml(const QMMolecule& mol,
+                const ChargeResponseFit::Result& r) const;
   void WriteMps(const QMMolecule& mol,
                 const ChargeResponseFit::Result& r) const;
 

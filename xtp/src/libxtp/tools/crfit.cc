@@ -116,7 +116,7 @@ bool CRFit::Run() {
       << r.pi_eigenvalues(n_atoms - 1) << " e^2/Hartree" << std::flush;
 
   WriteCrm(mol, r);
-  WriteJson(mol, r);
+  WriteXml(mol, r);
   if (!mpsfile_.empty()) {
     WriteMps(mol, r);
   }
@@ -161,68 +161,77 @@ void CRFit::WriteCrm(const QMMolecule& mol,
 }
 
 namespace {
-std::string Json(const Eigen::MatrixXd& m) {
-  std::stringstream s;
-  s << std::setprecision(15) << "[";
-  for (Index i = 0; i < m.rows(); ++i) {
-    s << (i ? ", [" : "[");
-    for (Index j = 0; j < m.cols(); ++j) {
-      s << (j ? ", " : "") << m(i, j);
-    }
-    s << "]";
-  }
-  return s.str() + "]";
-}
-std::string JsonVector(const Eigen::VectorXd& v) {
-  std::stringstream s;
-  s << std::setprecision(15);
+std::string Number(double x) { return (boost::format("%.10e") % x).str(); }
+
+std::string Numbers(const Eigen::VectorXd& v) {
+  std::string s;
   for (Index i = 0; i < v.size(); ++i) {
-    s << (i ? ", " : "") << v(i);
+    s += (i ? " " : "") + Number(v(i));
   }
-  return s.str();
+  return s;
+}
+
+// symmetric 3x3 tensor as attributes xx xy xz yy yz zz
+void AddTensor(tools::Property& parent, const std::string& name,
+               const Eigen::Matrix3d& m, const std::string& units) {
+  tools::Property& t = parent.add(name, "");
+  t.setAttribute("units", units);
+  const char* labels[3] = {"x", "y", "z"};
+  for (Index i = 0; i < 3; ++i) {
+    for (Index j = i; j < 3; ++j) {
+      t.setAttribute(std::string(labels[i]) + labels[j],
+                     Number(0.5 * (m(i, j) + m(j, i))));
+    }
+  }
 }
 }  // namespace
 
-void CRFit::WriteJson(const QMMolecule& mol,
-                      const ChargeResponseFit::Result& r) const {
-  const std::string file = output_ + ".json";
+void CRFit::WriteXml(const QMMolecule& mol,
+                     const ChargeResponseFit::Result& r) const {
+  const std::string file = output_ + ".xml";
   std::ofstream ofs(file);
   if (!ofs.is_open()) {
     throw std::runtime_error("crfit: cannot write " + file);
   }
   const double A3 = std::pow(tools::conv::bohr2ang, 3);
-  Eigen::MatrixXd coords(mol.size(), 3);
-  std::string elements;
+  tools::Property root;
+  tools::Property& out = root.add("crfit", "");
+  out.setAttribute("xyz", xyzfile_);
+  out.setAttribute("functional",
+                   dftoptions_.get("functional").as<std::string>());
+  out.setAttribute("basisset", dftoptions_.get("basisset").as<std::string>());
+  out.setAttribute("charge", dftoptions_.get("charge").as<Index>());
+  out.setAttribute("method", "xtp_tools -e crfit (" + MethodLabel() + ")");
+
+  tools::Property& atoms = out.add("atoms", "");
+  atoms.setAttribute("units", "bohr");
   for (Index k = 0; k < mol.size(); ++k) {
-    coords.row(k) = mol[k].getPos().transpose();
-    elements += (k ? ", \"" : "\"") + mol[k].getElement() + "\"";
+    tools::Property& atom = atoms.add("atom", "");
+    atom.setAttribute("index", k);
+    atom.setAttribute("element", mol[k].getElement());
+    const Eigen::Vector3d p = mol[k].getPos();
+    atom.setAttribute("x", Number(p(0)));
+    atom.setAttribute("y", Number(p(1)));
+    atom.setAttribute("z", Number(p(2)));
+    atom.setAttribute("residual_weight", Number(r.res_weights(k)));
+    AddTensor(atom, "alpha_res", r.alpha_res_atoms[std::size_t(k)], "bohr^3");
   }
-  std::string res_atoms;
-  for (std::size_t k = 0; k < r.alpha_res_atoms.size(); ++k) {
-    res_atoms += (k ? ", " : "") + Json(r.alpha_res_atoms[k]);
+
+  AddTensor(out, "alpha_dft", r.alpha, "bohr^3");
+  AddTensor(out, "alpha_dft", r.alpha * A3, "Angstrom^3");
+  AddTensor(out, "alpha_ct", r.alpha_ct * A3, "Angstrom^3");
+  AddTensor(out, "alpha_res", r.alpha_res * A3, "Angstrom^3");
+
+  tools::Property& pi = out.add("Pi", "");
+  pi.setAttribute("units", "e^2/Hartree");
+  pi.setAttribute("asymmetry", Number(r.pi_asymmetry));
+  pi.setAttribute("eigenvalues", Numbers(r.pi_eigenvalues));
+  for (Index j = 0; j < r.pi.rows(); ++j) {
+    tools::Property& row =
+        pi.add("row", Numbers(Eigen::VectorXd(r.pi.row(j).transpose())));
+    row.setAttribute("atom", j);
   }
-  ofs << "{\n"
-      << " \"xyz\": \"" << xyzfile_ << "\",\n"
-      << " \"xc\": \"" << dftoptions_.get("functional").as<std::string>()
-      << "\",\n"
-      << " \"basis\": \"" << dftoptions_.get("basisset").as<std::string>()
-      << "\",\n"
-      << " \"charge\": " << dftoptions_.get("charge").as<Index>() << ",\n"
-      << " \"method\": \"xtp_tools -e crfit (" << MethodLabel() << ")\",\n"
-      << " \"units\": \"atomic (bohr, e, Hartree); Pi in e^2/Hartree\",\n"
-      << " \"elements\": [" << elements << "],\n"
-      << " \"coords_bohr\": " << Json(coords) << ",\n"
-      << " \"alpha_dft_au\": " << Json(r.alpha) << ",\n"
-      << " \"alpha_dft_A3\": " << Json(r.alpha * A3) << ",\n"
-      << " \"Pi\": " << Json(r.pi) << ",\n"
-      << " \"Pi_eigenvalues\": [" << JsonVector(r.pi_eigenvalues) << "],\n"
-      << std::setprecision(6) << " \"Pi_asymmetry\": " << r.pi_asymmetry
-      << ",\n"
-      << " \"alpha_ct_A3\": " << Json(r.alpha_ct * A3) << ",\n"
-      << " \"alpha_res_A3\": " << Json(r.alpha_res * A3) << ",\n"
-      << " \"alpha_res_weights\": [" << JsonVector(r.res_weights) << "],\n"
-      << " \"alpha_res_atoms_au\": [" << res_atoms << "]\n"
-      << "}\n";
+  ofs << out;
   XTP_LOG(Log::error, log_) << TimeStamp() << " Wrote " << file << std::flush;
 }
 
