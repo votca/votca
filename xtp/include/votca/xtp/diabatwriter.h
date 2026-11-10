@@ -43,7 +43,7 @@ namespace xtp {
  * Conventions (closed-shell, restricted, as in Diabat's own TDDFT files):
  *  - only alpha amplitudes are listed; spin-adapted singlet/triplet vectors
  *    are scaled by 1/sqrt(2), so that sum x^2 - sum y^2 = 1/2,
- *  - "i --> a" lines carry the resonant part X, "i <-- a" lines the
+ *  - `i --> a` lines carry the resonant part X, `i <-- a` lines the
  *    anti-resonant part Y (full BSE only); method label is TDA or TDDFT,
  *  - energies: reference = DFT total energy, state = reference + Omega_BSE.
  *

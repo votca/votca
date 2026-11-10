@@ -29,8 +29,9 @@ namespace votca {
 namespace xtp {
 
 /// Exports BSE states for the external diabatization code Diabat 2.0:
-/// <job_name>.fchk (BSE orbitals, Diabat `mofile`) and
-/// <job_name>_<spin>.diabat (Diabat native `statefile`).
+/// `job_name.fchk` (BSE orbitals, Diabat `mofile`) and
+/// `job_name_singlet.diabat` / `job_name_triplet.diabat` (Diabat native
+/// `statefile`).
 class Orb2Diabat final : public QMTool {
  public:
   Orb2Diabat() = default;
