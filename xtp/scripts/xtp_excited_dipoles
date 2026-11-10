@@ -1,0 +1,145 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+import argparse
+import sys
+
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
+# the interpreter VOTCA installed pyxtp for (set at configure time)
+PYXTP_PYTHON = '@Python_EXECUTABLE@'
+PROGTITLE = 'THE VOTCA::XTP finite-field excited-state dipoles'
+PROGDESCR = ('Relaxed excited-state dipole moments (and diagonal '
+             'polarizabilities) from GW-BSE excitation energies in small '
+             'uniform electric fields (dftgwbse with dftpackage.externalfield), '
+             'with state tracking by the overlap of the BSE amplitudes. '
+             'Needs pyxtp.')
+VOTCAHEADER = f"""
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{PROGTITLE}
+
+please read and cite: @PROJECT_CITATION@
+and submit bugs to @PROJECT_CONTACT@
+xtp_excited_dipoles, version {VERSION}
+
+"""
+
+
+class XtpHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
+
+
+def apply_options_file(options, filename):
+    """Set the options given in a dftgwbse options file
+    (<options><dftgwbse>...</dftgwbse></options>) on a pyxtp Options."""
+    import xmltodict
+
+    with open(filename) as f:
+        data = xmltodict.parse(f.read())
+    try:
+        tree = data["options"]["dftgwbse"]
+    except (KeyError, TypeError):
+        sys.exit(f"{filename}: expected <options><dftgwbse>...</dftgwbse></options>")
+
+    def walk(node, obj, path):
+        for key, value in node.items():
+            if key.startswith("@") or key.startswith("#"):
+                continue
+            if not hasattr(obj, key):
+                sys.exit(f"{filename}: unknown option {'.'.join(path + [key])}")
+            if isinstance(value, dict):
+                walk(value, getattr(obj, key), path + [key])
+            else:
+                setattr(obj, key, "" if value is None else value)
+
+    walk(tree, options, [])
+
+
+parser = argparse.ArgumentParser(prog='xtp_excited_dipoles',
+                                 formatter_class=lambda prog: XtpHelpFormatter(
+                                     prog, max_help_position=70),
+                                 description=PROGDESCR)
+parser.add_argument("-x", "--xyz", required=True,
+                    help="Molecular geometry (xyz file, Angstrom)")
+parser.add_argument("-o", "--options",
+                    help="dftgwbse options file to start from "
+                         "(<options><dftgwbse>...</dftgwbse></options>)")
+parser.add_argument("-s", "--spin", default="singlet",
+                    choices=["singlet", "triplet"], help="BSE spin type")
+parser.add_argument("-n", "--nstates", type=int, default=5,
+                    help="Number of lowest states to report")
+parser.add_argument("--extra-states", type=int, default=4,
+                    help="Additional BSE states computed for the state matching")
+parser.add_argument("-f", "--field", type=float, default=1e-3,
+                    help="Field step in Hartree/bohr")
+parser.add_argument("-c", "--components", default="xyz",
+                    help="Field directions, any combination of x, y, z")
+parser.add_argument("--order", type=int, default=2, choices=[2, 4],
+                    help="Order of the central differences: 2 (2 runs per "
+                         "direction) or 4 (4 runs, plus a linearity check)")
+parser.add_argument("--overlap-threshold", type=float, default=0.9,
+                    help="Flag states matched with a lower amplitude overlap")
+parser.add_argument("-t", "--threads", type=int, default=1,
+                    help="Threads per dftgwbse run")
+parser.add_argument("-w", "--workdir", default="finite_field",
+                    help="Directory for the individual runs; existing runs "
+                         "are reused")
+parser.add_argument("--xml", help="Write the results to this XML file")
+
+
+def main():
+    args = parser.parse_args()
+    print(VOTCAHEADER)
+
+    try:
+        from ase.io import read
+        from pyxtp import xtp
+        from pyxtp.finite_field import FiniteFieldDipoles, write_xml
+    except ImportError as err:
+        sys.exit(f"xtp_excited_dipoles needs pyxtp, which could not be "
+                 f"imported with {sys.executable}: {err}\n"
+                 f"VOTCA installs pyxtp for {PYXTP_PYTHON} (into its user "
+                 "site-packages, or CMAKE_INSTALL_PYTHON_LIBDIR if set). Run "
+                 "the script with that interpreter, or add the install "
+                 "directory to PYTHONPATH.")
+
+    atoms = read(args.xyz)
+    options = xtp().options
+    if args.options:
+        apply_options_file(options, args.options)
+
+    ff = FiniteFieldDipoles(atoms, options=options, nthreads=args.threads,
+                            field=args.field, components=args.components,
+                            order=args.order, spin=args.spin,
+                            nstates=args.nstates,
+                            extra_states=args.extra_states,
+                            overlap_threshold=args.overlap_threshold,
+                            workdir=args.workdir)
+    npoints = 1 + len(ff.components) * (4 if args.order == 4 else 2)
+    print(f"...{npoints} dftgwbse runs in {ff.workdir}")
+    result = ff.run()
+    print(result.table())
+    if args.xml:
+        write_xml(result, args.xml)
+        print(f"\n...results written to {args.xml}")
+
+
+if __name__ == "__main__":
+    main()

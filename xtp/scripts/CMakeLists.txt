@@ -1,6 +1,6 @@
 set(XTP_RST_FILES)
 set(XTP_SCRIPTS)
-foreach(_pkg lxml h5py rdkit scipy numpy)
+foreach(_pkg lxml h5py rdkit scipy numpy ase xmltodict)
   if(NOT PY${_pkg}_FOUND)
     execute_process(COMMAND ${Python_EXECUTABLE} -c "import ${_pkg}" RESULT_VARIABLE IMPORT_py${_pkg})
     if(IMPORT_py${_pkg} EQUAL 0)
@@ -20,6 +20,18 @@ if(PYh5py_FOUND)
 endif()
 if(PYscipy_FOUND AND PYlxml_FOUND AND PYh5py_FOUND)
   list(APPEND XTP_SCRIPTS xtp_tightbinding)
+endif()
+# xtp_excited_dipoles runs on pyxtp, so it is installed only when pyxtp is:
+# the same conditions as in xtp/src/pyxtp (bindings: pybind11 and the Python
+# development files; pip install: the python modules below)
+find_package(Python 3.5 COMPONENTS Interpreter Development QUIET)
+find_package(pybind11 QUIET)
+if(pybind11_FOUND AND Python_Development_FOUND AND PYase_FOUND AND PYxmltodict_FOUND
+   AND PYh5py_FOUND AND PYlxml_FOUND AND PYrdkit_FOUND)
+  list(APPEND XTP_SCRIPTS xtp_excited_dipoles)
+else()
+  message(STATUS "Skipping xtp_excited_dipoles (needs pyxtp: pybind11, the Python "
+                 "development files and the python modules ase, xmltodict, h5py, lxml, rdkit)")
 endif()
 
 if(SPHINX_FOUND)

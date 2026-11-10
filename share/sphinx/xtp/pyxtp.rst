@@ -101,6 +101,62 @@ All energies except ``'energy'`` use finite differences of the total energy
 (displacement ``eps=0.001`` Å in ``get_forces``), i.e. one full DFT and
 GW-BSE calculation per displaced coordinate.
 
+Excited-state dipoles by finite fields
+**************************************
+
+``pyxtp.finite_field.FiniteFieldDipoles`` computes the change of the dipole
+moment on excitation, :math:`\Delta\mu_n = \mathrm{d}\Omega_n/\mathrm{d}F`,
+and the diagonal of :math:`\Delta\alpha_n = -\mathrm{d}^2\Omega_n/\mathrm{d}F^2`
+from GW-BSE excitation energies :math:`\Omega_n` in small uniform fields
+(``dftpackage.externalfield``), together with the ground-state dipole and
+polarizability from the DFT energy. Unlike the dipole of the excited-state
+density (``Orbitals::DensityMatrixFull``, which is the unrelaxed difference
+density :math:`XX^T + YY^T`), these are *relaxed*: they include the response
+of the orbitals, of the quasiparticle energies and of the screened
+interaction. For charge-transfer states the two can differ by a factor of
+about two.
+
+.. code-block:: python
+
+   from ase.io import read
+   from pyxtp import xtp
+   from pyxtp.finite_field import FiniteFieldDipoles, write_xml
+
+   calc = xtp()
+   calc.set(basis='def2-tzvp', **{'dftpackage/auxbasisset': 'aux-def2-tzvp'})
+   ff = FiniteFieldDipoles(read('molecule.xyz'), options=calc.options,
+                           nthreads=4, components='xyz', nstates=5)
+   result = ff.run()
+   print(result.table())
+   write_xml(result, "dipoles.xml")
+
+* Each field component needs two ``dftgwbse`` runs (``order=2``, field step
+  ``field=1e-3`` Hartree/bohr) or four (``order=4``, which also reports a
+  linearity check), plus one run without field. The runs are kept in
+  ``workdir`` and reused if the calculation is repeated, e.g. with more
+  components.
+* The SCF is converged with ``convergence_tightness=verytight``; the field
+  changes the energies by only about :math:`10^{-4}` Hartree. Self-consistent
+  GW (evGW) must be well converged, too: a GW window whose highest levels
+  have two quasiparticle solutions can make the differences noisy (use an
+  explicit ``qpmax``/``bsemax`` below such levels).
+* States are matched between the runs by the overlap of their BSE amplitudes,
+  after transforming them into the zero-field orbitals, so that states which
+  cross in the field are followed correctly. States that mix with others, or
+  that are matched with an overlap below ``overlap_threshold``, are marked;
+  for groups of mixing states the derivative of the sum of their energies is
+  given as well, which is reliable even when the individual values are not.
+* Conventions: atomic units; ``externalfield`` adds :math:`-\mathbf{F}\cdot\mathbf{r}`
+  to the one-electron Hamiltonian, so that :math:`\mathrm{d}E/\mathrm{d}\mathbf{F}`
+  is the dipole moment. The ground-state dipole is given with respect to the
+  centre of mass (the origin of the field operator).
+
+The command-line script ``xtp_excited_dipoles`` wraps this class. It is
+installed only together with ``pyxtp`` (see Installation) and has to run with
+the Python interpreter ``pyxtp`` was installed for. Example:
+``xtp_excited_dipoles -x molecule.xyz -o options.xml -t 4 --xml result.xml``,
+where ``options.xml`` holds ``dftgwbse`` options as for ``xtp_tools``.
+
 Examples
 ********
 
