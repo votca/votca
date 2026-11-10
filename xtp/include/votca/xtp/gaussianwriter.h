@@ -41,9 +41,17 @@ class GaussianWriter {
                                                0, false),
                  bool diff2gs = false) const;
 
+  /// If true, write the orbitals the BSE was solved in (Orbitals::BSEOrbitals,
+  /// i.e. the QSGW-rotated orbitals and QP energies in the qp window for a
+  /// QSGW run) instead of the DFT orbitals. Identical for G0W0/evGW.
+  void UseBSEOrbitals(bool flag) { use_bse_orbitals_ = flag; }
+
  private:
   Logger& log_;
+  bool use_bse_orbitals_ = false;
   Index toGaussianL(L l) const;
+  Eigen::MatrixXd moCoefficients(const Orbitals& orbitals) const;
+  Eigen::VectorXd moEnergies(const Orbitals& orbitals) const;
   std::string reorderedMOCoefficients(const Orbitals& orbitals) const;
   std::string densityMatrixToString(const Orbitals& orbitals,
                                     const QMState& state, bool diff2gs) const;

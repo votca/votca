@@ -39,6 +39,7 @@ Version 2026-dev
 -  new XTP tutorials (#1268)
 -  improve parallel reductions (#1269)
 -  cached libint2 build with analytic-force support; remove PySCF charge-response tools (#1270)
+-  orb2diabat tool for Diabat 2.0, fchk writer fixes (#1271)
    
 Version 2026 (released 09.03.26)
 ================================

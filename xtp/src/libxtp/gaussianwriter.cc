@@ -42,10 +42,27 @@ Index GaussianWriter::toGaussianL(L l) const {
   }
 }
 
+Eigen::MatrixXd GaussianWriter::moCoefficients(const Orbitals& orbitals) const {
+  if (use_bse_orbitals_) {
+    return orbitals.BSEOrbitals();
+  }
+  return orbitals.MOs().eigenvectors();
+}
+
+Eigen::VectorXd GaussianWriter::moEnergies(const Orbitals& orbitals) const {
+  Eigen::VectorXd energies = orbitals.MOs().eigenvalues();
+  if (use_bse_orbitals_ && orbitals.isQSGW() && orbitals.hasQPdiag()) {
+    const Index qpmin = orbitals.getGWAmin();
+    const Index qptotal = orbitals.QPdiag().eigenvalues().size();
+    energies.segment(qpmin, qptotal) = orbitals.QPdiag().eigenvalues();
+  }
+  return energies;
+}
+
 std::string GaussianWriter::reorderedMOCoefficients(
     const Orbitals& orbitals) const {
   OrbReorder reorder(gaussianOrder, gaussianMultipliers, true);
-  Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
+  Eigen::MatrixXd moCoefficients = this->moCoefficients(orbitals);
   reorder.reorderOrbitals(moCoefficients, orbitals.getDftBasis());
 
   // put the reordered mos in a string
@@ -105,6 +122,11 @@ void GaussianWriter::WriteFile(const std::string& basename,
   if (!orbitals.hasDFTbasisName()) {
     throw std::runtime_error(".orb file does not contain a basisset name");
   }
+  if (orbitals.hasUnrestrictedOrbitals()) {
+    throw std::runtime_error(
+        "fchk writer supports restricted closed-shell orbitals only; "
+        "unrestricted (beta) orbitals would be silently dropped.");
+  }
 
   AOBasis basis = orbitals.getDftBasis();
 
@@ -116,12 +138,15 @@ void GaussianWriter::WriteFile(const std::string& basename,
     int temp_int;
     // job description
     outFile << basename << ", fchk created by VOTCA-XTP\n";
-    outFile << "SP    RHF    " << orbitals.getDFTbasisName() << "\n";
+    // Gaussian fixed format (A10,A30,A30): readers take the method from
+    // column 11, its first letter (R/U/RO) decides restricted vs unrestricted
+    outFile << boost::format("%-10s%-30s%-30s\n") % "SP" % "RHF" %
+                   orbitals.getDFTbasisName();
 
     // clang-format off
     outFile << boost::format("%-43s%-2s%15d\n") % "Number of atoms" % "I" % orbitals.QMAtoms().size();
-    outFile << boost::format("%-43s%-2s%15d\n") % "Charge" % "I" % 0;
-    outFile << boost::format("%-43s%-2s%15d\n") % "Multiplicity" % "I" % 1;
+    outFile << boost::format("%-43s%-2s%15d\n") % "Charge" % "I" % orbitals.getCharge();
+    outFile << boost::format("%-43s%-2s%15d\n") % "Multiplicity" % "I" % orbitals.getSpin();
     outFile << boost::format("%-43s%-2s%15d\n") % "Number of electrons" % "I" % (2*orbitals.getNumberOfAlphaElectrons());
     outFile << boost::format("%-43s%-2s%15d\n") % "Number of alpha electrons" % "I" % orbitals.getNumberOfAlphaElectrons();
     outFile << boost::format("%-43s%-2s%15d\n") % "Number of beta electrons" % "I" % orbitals.getNumberOfAlphaElectrons();
@@ -275,15 +300,16 @@ void GaussianWriter::WriteFile(const std::string& basename,
                    "Alpha Orbital Energies" % "R" %
                    orbitals.MOs().eigenvalues().size();
     temp_int = 1;
-    for (Index i = 0; i < orbitals.MOs().eigenvalues().size(); ++i) {
-      outFile << boost::format("%16.8e") % orbitals.MOs().eigenvalues()[i];
+    const Eigen::VectorXd mo_energies = moEnergies(orbitals);
+    for (Index i = 0; i < mo_energies.size(); ++i) {
+      outFile << boost::format("%16.8e") % mo_energies[i];
       if (temp_int % 5 == 0) {
         outFile << "\n";
       }
       temp_int++;
     }
     outFile << ((temp_int - 1) % 5 == 0 ? "" : "\n");
-    // ALPHA ORBITAL ENERGIES
+    // ALPHA MO COEFFICIENTS
     outFile << boost::format("%-43s%-2s N=  %10d\n") % "Alpha MO coefficients" %
                    "R" %
                    (orbitals.MOs().eigenvalues().size() *
