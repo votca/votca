@@ -1,4 +1,5 @@
-"""Excited-state dipole moments and polarizabilities by finite fields.
+"""
+Excited-state dipole moments and polarizabilities by finite fields.
 
 The excitation energies Omega_n of GW-BSE (or the DFT ground-state energy)
 are computed in small uniform electric fields with ``dftgwbse``
@@ -30,8 +31,9 @@ from __future__ import annotations
 
 import contextlib
 import os
-import xml.etree.ElementTree as ET
-from dataclasses import dataclass, field
+# only used to write XML, never to parse it
+import xml.etree.ElementTree as ET  # nosec B405
+import dataclasses
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -45,7 +47,7 @@ _AXES = {"x": 0, "y": 1, "z": 2}
 # --------------------------------------------------------------------------
 # reading the orb files
 # --------------------------------------------------------------------------
-@dataclass
+@dataclasses.dataclass
 class OrbData:
     """The parts of an orb (HDF5) file needed here (atomic units)."""
 
@@ -102,7 +104,8 @@ def read_orb(filename: os.PathLike, spin: str = "singlet") -> OrbData:
 # state matching
 # --------------------------------------------------------------------------
 def mo_rotation(c_ref: np.ndarray, c_new: np.ndarray) -> np.ndarray:
-    """U with C_new = C_ref U.
+    """
+    Return U with C_new = C_ref U.
 
     For a complete MO set the AO overlap is S = (C C^T)^-1, so that
     U = C_ref^T S C_new = C_ref^-1 C_new needs no integrals.
@@ -111,7 +114,8 @@ def mo_rotation(c_ref: np.ndarray, c_new: np.ndarray) -> np.ndarray:
 
 
 def state_overlaps(ref: OrbData, new: OrbData) -> np.ndarray:
-    """|<n_ref|m_new>| for all pairs of states, amplitudes normalized.
+    """
+    Return |<n_ref|m_new>| for all pairs of states (normalized amplitudes).
 
     The amplitudes of `new` are expressed in the MOs of `ref` (occupied
     and virtual BSE windows) before the overlap is taken.
@@ -134,10 +138,19 @@ def state_overlaps(ref: OrbData, new: OrbData) -> np.ndarray:
 
 
 def match_states(overlap: np.ndarray, nref: int) -> Tuple[np.ndarray, np.ndarray]:
-    """Assign each of the first `nref` reference states a state of the
-    other calculation (maximum total overlap, one-to-one).
+    """
+    Assign a state of the other calculation to each reference state.
 
-    Returns the assigned indices and their overlaps.
+    The first `nref` reference states are assigned one-to-one with maximum
+    total overlap.
+
+    Returns
+    -------
+    cols : np.ndarray
+        Index of the assigned state for each reference state.
+    overlaps : np.ndarray
+        The overlaps of the assigned pairs.
+
     """
     sub = overlap[:nref]
     try:
@@ -159,7 +172,8 @@ def match_states(overlap: np.ndarray, nref: int) -> Tuple[np.ndarray, np.ndarray
 
 def mixing_groups(overlaps: Sequence[np.ndarray], nref: int,
                   threshold: float) -> List[List[int]]:
-    """Group reference states that mix in any of the field calculations.
+    """
+    Group reference states that mix in any of the field calculations.
 
     Two reference states belong to the same group if a state of a field
     calculation has an overlap above (1 - threshold) with both, i.e. if
@@ -205,8 +219,12 @@ def central_second(values: Dict[int, float], h: float, order: int) -> float:
 
 
 def center_of_mass(elements: Sequence[str], positions: np.ndarray) -> np.ndarray:
-    """Centre of mass (as VOTCA's QMMolecule::getPos, the origin of the
-    dipole operator coupled to externalfield)."""
+    """
+    Return the centre of mass.
+
+    As VOTCA's QMMolecule::getPos, this is the origin of the dipole
+    operator coupled to externalfield.
+    """
     from ase.data import atomic_masses, atomic_numbers
 
     m = np.array([atomic_masses[atomic_numbers[e]] for e in elements])
@@ -216,10 +234,14 @@ def center_of_mass(elements: Sequence[str], positions: np.ndarray) -> np.ndarray
 # --------------------------------------------------------------------------
 # driver
 # --------------------------------------------------------------------------
-@dataclass
+@dataclasses.dataclass
 class FiniteFieldResult:
-    """Results in atomic units; vectors are full 3-vectors with NaN for
-    components that were not computed."""
+    """
+    Results of a finite-field calculation in atomic units.
+
+    Vectors are full 3-vectors with NaN for components that were not
+    computed.
+    """
 
     components: str
     field: float
@@ -232,17 +254,23 @@ class FiniteFieldResult:
     delta_alpha: np.ndarray  # (nstates, 3) diagonal
     min_overlap: np.ndarray  # (nstates,) smallest matching overlap
     groups: List[List[int]]
-    group_delta_dipole: List[np.ndarray] = field(default_factory=list)
+    group_delta_dipole: List[np.ndarray] = dataclasses.field(
+        default_factory=list)
     linearity: Optional[np.ndarray] = None  # (nstates, 3), order 4 only
     overlap_threshold: float = 0.9
 
     @property
     def excited_dipole(self) -> np.ndarray:
+        """Total excited-state dipoles, (nstates, 3)."""
         return self.ground_dipole[None, :] + self.delta_dipole
 
     def reliable(self, threshold: Optional[float] = None) -> np.ndarray:
-        """States that are isolated and matched with overlap >= threshold
-        (default: the threshold of the calculation)."""
+        """
+        Flag the states that can be trusted individually.
+
+        These are states that are isolated and matched with an overlap of
+        at least `threshold` (default: the threshold of the calculation).
+        """
         if threshold is None:
             threshold = self.overlap_threshold
         single = {g[0] for g in self.groups if len(g) == 1}
@@ -250,8 +278,12 @@ class FiniteFieldResult:
                          for n in range(self.omega.size)])
 
     def to_xml(self) -> ET.Element:
-        """Results as an XML tree (atomic units; only the computed field
-        components appear)."""
+        """
+        Return the results as an XML tree.
+
+        Values are in atomic units; only the computed field components
+        appear.
+        """
         comp = [_AXES[c] for c in self.components]
 
         def vec(tag, v, names=("x", "y", "z")):
@@ -330,10 +362,11 @@ class FiniteFieldResult:
 
 
 def clone_options(options):
-    """Independent copy of a pyxtp Options object of dftgwbse.
+    """
+    Return an independent copy of a pyxtp Options object of dftgwbse.
 
-    (Options cannot be deep-copied; the values are transferred through
-    their flat dictionary onto fresh defaults.)
+    Options cannot be deep-copied; the values are transferred through
+    their flat dictionary onto fresh defaults.
     """
     from .options import Options
 
@@ -363,31 +396,46 @@ def _working_directory(path: Path):
 
 
 class FiniteFieldDipoles:
-    """Excited-state dipoles from dftgwbse runs in uniform fields.
-
-    Args:
-        atoms: ``ase.Atoms`` of the molecule (Angstrom).
-        options: ``pyxtp.options.Options`` of ``dftgwbse`` to start from
-            (copied; e.g. ``xtp().options`` after setting basis etc.).
-            The field and the excited-state settings below are added.
-        nthreads: threads per dftgwbse run.
-        field: step of the field in Hartree/bohr (default 1e-3).
-        components: field directions, any of "xyz" (default "xyz").
-        order: 2 (two runs per direction) or 4 (four runs per direction,
-            also gives a linearity check).
-        spin: "singlet" or "triplet".
-        nstates: number of states to report.
-        extra_states: additional BSE states computed for the matching.
-        overlap_threshold: states matched with a lower overlap, or mixing
-            with others, are flagged and grouped.
-        workdir: directory for the individual runs (kept for inspection).
-    """
+    """Excited-state dipoles from dftgwbse runs in uniform fields."""
 
     def __init__(self, atoms, options=None, nthreads: int = 1,
                  field: float = 1e-3, components: str = "xyz",
                  order: int = 2, spin: str = "singlet", nstates: int = 5,
                  extra_states: int = 4, overlap_threshold: float = 0.9,
                  workdir: os.PathLike = "finite_field"):
+        """
+        Set up the calculation; nothing is run yet.
+
+        Parameters
+        ----------
+        atoms : ase.Atoms
+            The molecule (Angstrom).
+        options : pyxtp.options.Options, optional
+            Options of ``dftgwbse`` to start from (copied; e.g.
+            ``xtp().options`` after setting basis etc.). The field and the
+            excited-state settings below are added.
+        nthreads : int
+            Threads per dftgwbse run.
+        field : float
+            Step of the field in Hartree/bohr.
+        components : str
+            Field directions, any combination of "x", "y", "z".
+        order : int
+            2 (two runs per direction) or 4 (four runs per direction, also
+            gives a linearity check).
+        spin : str
+            "singlet" or "triplet".
+        nstates : int
+            Number of states to report.
+        extra_states : int
+            Additional BSE states computed for the matching.
+        overlap_threshold : float
+            States matched with a lower overlap, or mixing with others, are
+            flagged and grouped.
+        workdir : os.PathLike
+            Directory for the individual runs (kept for inspection).
+
+        """
         if order not in (2, 4):
             raise ValueError("order must be 2 or 4")
         if not components or any(c not in _AXES for c in components):

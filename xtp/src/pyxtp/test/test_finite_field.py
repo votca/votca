@@ -80,7 +80,8 @@ def test_mixing_groups():
 
 
 def test_xml_output(tmp_path):
-    import xml.etree.ElementTree as ET
+    # parses the file written just above, not untrusted input
+    import xml.etree.ElementTree as ET  # nosec B405
 
     nan = np.nan
     r = FiniteFieldResult(
@@ -91,7 +92,7 @@ def test_xml_output(tmp_path):
         np.array([1.0, 0.5]), [[0], [1]], [np.array([nan, nan, -0.4]),
                                            np.array([nan, nan, 1.2])])
     write_xml(r, tmp_path / "ff.xml")
-    root = ET.parse(tmp_path / "ff.xml").getroot()
+    root = ET.parse(tmp_path / "ff.xml").getroot()  # nosec B314
     assert root.tag == "finite_field" and root.get("components") == "z"
     assert float(root.find("ground_state/dipole").get("z")) == pytest.approx(0.9)
     assert root.find("ground_state/dipole").get("x") is None
