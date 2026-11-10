@@ -1,29 +1,30 @@
-"""Excited-state dipole moments and polarizabilities by finite fields."""
+"""Excited-state dipole moments and polarizabilities by finite fields.
 
-# The excitation energies Omega_n of GW-BSE (or the DFT ground-state energy)
-# are computed in small uniform electric fields with ``dftgwbse``
-# (``dftpackage.externalfield``) and differentiated numerically. This gives
-# the *relaxed* change of the dipole moment on excitation, including the
-# response of the orbitals, of the quasiparticle energies and of the
-# screened interaction W -- unlike the excited-state density of
-# ``Orbitals::DensityMatrixFull``, which is unrelaxed.
-#
-# Conventions: VOTCA adds -F.r to the one-electron Hamiltonian for a field
-# F given in ``externalfield`` (Hartree/bohr). With E(F) = E(0) + mu.F -
-# 1/2 F.alpha.F one gets
-#
-#     mu_el   = dE_DFT/dF       (electronic dipole w.r.t. the centre of mass)
-#     dmu_n   = dOmega_n/dF     (change of the dipole on excitation)
-#     dalpha_n,ii = -d2 Omega_n/dF_i^2
-#
-# Everything is in atomic units (e bohr, bohr^3) unless stated otherwise.
-#
-# States are matched between the field calculations and the zero-field
-# calculation by the overlap of their BSE amplitudes, after transforming
-# the amplitudes into the zero-field molecular orbitals. States that mix in
-# the field (near degeneracies) are reported as groups; the derivative of
-# the sum of their energies is reliable even when the individual ones are
-# not.
+The excitation energies Omega_n of GW-BSE (or the DFT ground-state energy)
+are computed in small uniform electric fields with ``dftgwbse``
+(``dftpackage.externalfield``) and differentiated numerically. This gives
+the *relaxed* change of the dipole moment on excitation, including the
+response of the orbitals, of the quasiparticle energies and of the
+screened interaction W -- unlike the excited-state density of
+``Orbitals::DensityMatrixFull``, which is unrelaxed.
+
+Conventions: VOTCA adds -F.r to the one-electron Hamiltonian for a field
+F given in ``externalfield`` (Hartree/bohr). With E(F) = E(0) + mu.F -
+1/2 F.alpha.F one gets
+
+    mu_el   = dE_DFT/dF       (electronic dipole w.r.t. the centre of mass)
+    dmu_n   = dOmega_n/dF     (change of the dipole on excitation)
+    dalpha_n,ii = -d2 Omega_n/dF_i^2
+
+Everything is in atomic units (e bohr, bohr^3) unless stated otherwise.
+
+States are matched between the field calculations and the zero-field
+calculation by the overlap of their BSE amplitudes, after transforming
+the amplitudes into the zero-field molecular orbitals. States that mix in
+the field (near degeneracies) are reported as groups; the derivative of
+the sum of their energies is reliable even when the individual ones are
+not.
+"""
 
 from __future__ import annotations
 
@@ -102,8 +103,7 @@ def read_orb(filename: os.PathLike, spin: str = "singlet") -> OrbData:
 # state matching
 # --------------------------------------------------------------------------
 def mo_rotation(c_ref: np.ndarray, c_new: np.ndarray) -> np.ndarray:
-    """
-    Return U with C_new = C_ref U.
+    """Return U with C_new = C_ref U.
 
     For a complete MO set the AO overlap is S = (C C^T)^-1, so that
     U = C_ref^T S C_new = C_ref^-1 C_new needs no integrals.
@@ -112,8 +112,7 @@ def mo_rotation(c_ref: np.ndarray, c_new: np.ndarray) -> np.ndarray:
 
 
 def state_overlaps(ref: OrbData, new: OrbData) -> np.ndarray:
-    """
-    Return |<n_ref|m_new>| for all pairs of states (normalized amplitudes).
+    """Return |<n_ref|m_new>| for all pairs of states (normalized amplitudes).
 
     The amplitudes of `new` are expressed in the MOs of `ref` (occupied
     and virtual BSE windows) before the overlap is taken.
@@ -136,8 +135,7 @@ def state_overlaps(ref: OrbData, new: OrbData) -> np.ndarray:
 
 
 def match_states(overlap: np.ndarray, nref: int) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Assign a state of the other calculation to each reference state.
+    """Assign a state of the other calculation to each reference state.
 
     The first `nref` reference states are assigned one-to-one with maximum
     total overlap.
@@ -170,8 +168,7 @@ def match_states(overlap: np.ndarray, nref: int) -> Tuple[np.ndarray, np.ndarray
 
 def mixing_groups(overlaps: Sequence[np.ndarray], nref: int,
                   threshold: float) -> List[List[int]]:
-    """
-    Group reference states that mix in any of the field calculations.
+    """Group reference states that mix in any of the field calculations.
 
     Two reference states belong to the same group if a state of a field
     calculation has an overlap above (1 - threshold) with both, i.e. if
@@ -217,8 +214,7 @@ def central_second(values: Dict[int, float], h: float, order: int) -> float:
 
 
 def center_of_mass(elements: Sequence[str], positions: np.ndarray) -> np.ndarray:
-    """
-    Return the centre of mass.
+    """Return the centre of mass.
 
     As VOTCA's QMMolecule::getPos, this is the origin of the dipole
     operator coupled to externalfield.
@@ -234,8 +230,7 @@ def center_of_mass(elements: Sequence[str], positions: np.ndarray) -> np.ndarray
 # --------------------------------------------------------------------------
 @dataclasses.dataclass
 class FiniteFieldResult:
-    """
-    Results of a finite-field calculation in atomic units.
+    """Results of a finite-field calculation in atomic units.
 
     Vectors are full 3-vectors with NaN for components that were not
     computed.
@@ -263,8 +258,7 @@ class FiniteFieldResult:
         return self.ground_dipole[None, :] + self.delta_dipole
 
     def reliable(self, threshold: Optional[float] = None) -> np.ndarray:
-        """
-        Flag the states that can be trusted individually.
+        """Flag the states that can be trusted individually.
 
         These are states that are isolated and matched with an overlap of
         at least `threshold` (default: the threshold of the calculation).
@@ -276,8 +270,7 @@ class FiniteFieldResult:
                          for n in range(self.omega.size)])
 
     def to_xml(self) -> ET.Element:
-        """
-        Return the results as an XML tree.
+        """Return the results as an XML tree.
 
         Values are in atomic units; only the computed field components
         appear.
@@ -360,8 +353,7 @@ class FiniteFieldResult:
 
 
 def clone_options(options):
-    """
-    Return an independent copy of a pyxtp Options object of dftgwbse.
+    """Return an independent copy of a pyxtp Options object of dftgwbse.
 
     Options cannot be deep-copied; the values are transferred through
     their flat dictionary onto fresh defaults.
@@ -401,8 +393,7 @@ class FiniteFieldDipoles:
                  order: int = 2, spin: str = "singlet", nstates: int = 5,
                  extra_states: int = 4, overlap_threshold: float = 0.9,
                  workdir: os.PathLike = "finite_field"):
-        """
-        Set up the calculation; nothing is run yet.
+        """Set up the calculation; nothing is run yet.
 
         Parameters
         ----------
