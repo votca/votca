@@ -19,6 +19,8 @@ import argparse
 import sys
 
 VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
+# the interpreter VOTCA installed pyxtp for (set at configure time)
+PYXTP_PYTHON = '@Python_EXECUTABLE@'
 PROGTITLE = 'THE VOTCA::XTP finite-field excited-state dipoles'
 PROGDESCR = ('Relaxed excited-state dipole moments (and diagonal '
              'polarizabilities) from GW-BSE excitation energies in small '
@@ -106,9 +108,17 @@ def main():
     args = parser.parse_args()
     print(VOTCAHEADER)
 
-    from ase.io import read
-    from pyxtp import xtp
-    from pyxtp.finite_field import FiniteFieldDipoles, write_xml
+    try:
+        from ase.io import read
+        from pyxtp import xtp
+        from pyxtp.finite_field import FiniteFieldDipoles, write_xml
+    except ImportError as err:
+        sys.exit(f"xtp_excited_dipoles needs pyxtp, which could not be "
+                 f"imported with {sys.executable}: {err}\n"
+                 f"VOTCA installs pyxtp for {PYXTP_PYTHON} (into its user "
+                 "site-packages, or CMAKE_INSTALL_PYTHON_LIBDIR if set). Run "
+                 "the script with that interpreter, or add the install "
+                 "directory to PYTHONPATH.")
 
     atoms = read(args.xyz)
     options = xtp().options

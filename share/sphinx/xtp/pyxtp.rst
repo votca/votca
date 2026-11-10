@@ -151,9 +151,11 @@ about two.
   is the dipole moment. The ground-state dipole is given with respect to the
   centre of mass (the origin of the field operator).
 
-The command-line script ``xtp_excited_dipoles`` wraps this class
-(``xtp_excited_dipoles -x molecule.xyz -o options.xml -t 4 --xml result.xml``,
-where ``options.xml`` holds ``dftgwbse`` options as for ``xtp_tools``).
+The command-line script ``xtp_excited_dipoles`` wraps this class. It is
+installed only together with ``pyxtp`` (see Installation) and has to run with
+the Python interpreter ``pyxtp`` was installed for. Example:
+``xtp_excited_dipoles -x molecule.xyz -o options.xml -t 4 --xml result.xml``,
+where ``options.xml`` holds ``dftgwbse`` options as for ``xtp_tools``.
 
 Examples
 ********
