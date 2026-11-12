@@ -1146,6 +1146,7 @@ void Orbitals::WriteToCpt(CheckpointWriter& w) const {
   w(mos_beta_, "mos_beta");
   w(occupations_, "occupations");
   w(active_electrons_, "active_electrons");
+  w(active_core_levels_, "active_core_levels");
   w(mos_embedding_, "mos_embedding");
   w(lmos_, "LMOs");
   w(lmos_energies_, "LMOs_energies");
@@ -1268,6 +1269,8 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
   r(qm_package_, "qm_package");
   // optional: only written if computed; older files have none
   r_optional(polarizability_, "polarizability");
+  // optional: older files have none (-1: not set)
+  r_optional(active_core_levels_, "active_core_levels");
   try {
     r(lmos_, "LMOs");
     r(lmos_energies_, "LMOs_energies");

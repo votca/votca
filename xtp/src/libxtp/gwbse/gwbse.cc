@@ -50,6 +50,13 @@ namespace xtp {
 
 Index GWBSE::CountCoreLevels() {
   Index ignored_corelevels = 0;
+  // projection-based embedding: the active space holds only the cores of
+  // the active atoms, counted when the active region was set up
+  if (orbitals_.getActiveCoreLevels() >= 0 &&
+      2 * orbitals_.getNumberOfAlphaElectrons() ==
+          orbitals_.getNumOfActiveElectrons()) {
+    return orbitals_.getActiveCoreLevels();
+  }
   if (!orbitals_.hasECPName()) {
     ECPBasisSet basis;
     basis.Load("corelevels");

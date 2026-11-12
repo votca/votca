@@ -187,6 +187,8 @@ BOOST_AUTO_TEST_CASE(dft_active) {
   activedft.Initialize(prop.get("dftpackage"));
   orb.setChargeAndSpin(0, 1);
   activedft.EvaluateActiveRegion(orb);
+  // one hydrogen active: the oxygen core belongs to the inactive region
+  BOOST_CHECK_EQUAL(orb.getActiveCoreLevels(), 0);
 
   Eigen::VectorXd MOs_energy_ref =
       votca::tools::EigenIO_MatrixMarket::ReadVector(

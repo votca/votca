@@ -4,6 +4,7 @@ endif()
 # Please place additional tests in alphabetical order
 list(APPEND test_cases test_activedensitymatrix)
 list(APPEND test_cases test_activedftengine)
+list(APPEND test_cases test_activeregion)
 list(APPEND test_cases test_adiis)
 list(APPEND test_cases test_anderson)
 # finite-difference checks of the libint2 derivative integrals; skipped if

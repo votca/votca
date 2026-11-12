@@ -273,6 +273,15 @@ void DFTEngine::Initialize(tools::Property& options) {
         options.get(key_xtpdft + ".dft_in_dft.levelshift").as<double>();
     truncate_ =
         options.get(key_xtpdft + ".dft_in_dft.truncate_basis").as<bool>();
+    active_growth_.grow = options.ifExistsReturnElseReturnDefault<bool>(
+        key_xtpdft + ".dft_in_dft.grow", false);
+    active_growth_.window = options.ifExistsReturnElseReturnDefault<double>(
+                                key_xtpdft + ".dft_in_dft.grow_window", 0.1) *
+                            tools::conv::ev2hrt;
+    active_growth_.threshold = options.ifExistsReturnElseReturnDefault<double>(
+        key_xtpdft + ".dft_in_dft.grow_threshold", 0.0025);
+    // without a truncated basis the embedded virtual space is the full one
+    active_growth_.include_virtuals = truncate_;
     if (truncate_) {
       truncation_threshold_ =
           options.get(key_xtpdft + ".dft_in_dft.truncation_threshold")
