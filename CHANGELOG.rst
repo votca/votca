@@ -41,6 +41,7 @@ Version 2026-dev
 -  cached libint2 build with analytic-force support; remove PySCF charge-response tools (#1270)
 -  orb2diabat tool for Diabat 2.0, fchk writer fixes (#1271)
 -  finite-field excited-state dipoles in pyxtp (xtp_excited_dipoles), crfit XML output, fix pyxtp deadlock with several threads (#1272)
+-  PbE active region: connectivity check, frontier-orbital coverage report, optional growth; frozen core in PbE GW-BSE (#1273)
    
 Version 2026 (released 09.03.26)
 ================================
