@@ -1146,7 +1146,10 @@ void Orbitals::WriteToCpt(CheckpointWriter& w) const {
   w(mos_beta_, "mos_beta");
   w(occupations_, "occupations");
   w(active_electrons_, "active_electrons");
-  w(active_core_levels_, "active_core_levels");
+  // only PbE runs set it; other files keep their layout
+  if (active_core_levels_ >= 0) {
+    w(active_core_levels_, "active_core_levels");
+  }
   w(mos_embedding_, "mos_embedding");
   w(lmos_, "LMOs");
   w(lmos_energies_, "LMOs_energies");
