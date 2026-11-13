@@ -704,6 +704,12 @@ class Orbitals {
     active_electrons_ = active_electrons;
   }
 
+  /// Core levels (as GWBSE::CountCoreLevels counts them) of the atoms of the
+  /// active region of a projection-based embedding; -1 if not set. The
+  /// embedded active space holds only these cores, not those of all atoms.
+  Index getActiveCoreLevels() const { return active_core_levels_; }
+  void setActiveCoreLevels(Index n) { active_core_levels_ = n; }
+
   /// Return the inactive-region density matrix used in embedding workflows.
   const Eigen::MatrixXd &getInactiveDensity() const { return inactivedensity_; }
   /// Store the inactive-region density matrix used in embedding workflows.
@@ -831,6 +837,7 @@ class Orbitals {
   Eigen::MatrixXd lmos_;
   Eigen::VectorXd lmos_energies_;
   Index active_electrons_ = 0;
+  Index active_core_levels_ = -1;
   Eigen::MatrixXd inactivedensity_;
   Eigen::MatrixXd expandedMOs_;
 

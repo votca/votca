@@ -29,6 +29,7 @@
 
 // Local VOTCA includes
 #include "ERIs.h"
+#include "activeregion.h"
 #include "convergenceacc.h"
 #include "dfttimings.h"
 #include "hirshfeldpartition.h"
@@ -575,6 +576,7 @@ class DFTEngine {
   Eigen::MatrixXd ext_potential_matrix_;
 
   std::string active_atoms_as_string_;
+  ActiveRegion::Options active_growth_;
   double active_threshold_;
   double levelshift_;
 

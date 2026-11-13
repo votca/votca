@@ -26,6 +26,9 @@
       <levelshift help="Levelshift energy for the projection operator" default="10000.0"/>
       <truncate_basis help="Truncate the basis-set to active atoms only" default="false" choices="bool" />
       <truncation_threshold help="Threshold to convert an inactive atom to a border atom" default="1e-4" choices="float+"/>
+      <grow help="Grow the active region from activeatoms: add neighbouring atoms whose Mulliken population in a frontier orbital of the full calculation (occupied levels within grow_window of the HOMO; with truncate_basis also virtual levels above the LUMO) exceeds grow_threshold, until no more qualify; all hydrogens of active atoms come along. The coverage of the frontier orbitals by the active region is printed either way" default="false" choices="bool"/>
+      <grow_window help="Frontier orbitals for grow: levels within this energy of the HOMO (and of the LUMO with truncate_basis)" unit="eV" default="0.1" choices="float+"/>
+      <grow_threshold help="Per-atom Mulliken population of a frontier orbital above which a neighbouring atom is added by grow" default="0.0025" choices="float+"/>
     </dft_in_dft>
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
     <overlap_tolerance help="Eigenvalues of the AO overlap matrix below this value are removed from the orthogonalization (near linear dependencies; the removed directions become zero orbitals at the top of the spectrum). Raise to 1e-7 to 1e-6 if the log reports a nearly singular overlap and the SCF is unstable." default="1e-8" choices="float+" />

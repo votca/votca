@@ -37,6 +37,7 @@
 // Third party includes
 #include <algorithm>
 #include <boost/format.hpp>
+#include <sstream>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -51,6 +52,7 @@
 #include "votca/xtp/citations.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/dftengine.h"
+#include "votca/xtp/ecpbasisset.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
@@ -89,6 +91,36 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   XTP_LOG(Log::error, *pLog_)
       << "Indices of active atoms selected are: " << active_atoms_as_string_
       << std::flush;
+  {
+    // connectivity check, frontier-orbital coverage and optional growth
+    // (dft_in_dft.grow) from the full reference MOs
+    const ActiveRegion::Report region =
+        ActiveRegion::Evaluate(orb, activeatoms, active_growth_);
+    XTP_LOG(Log::error, *pLog_) << region.Format() << std::flush;
+    // the cores of the active atoms are the only ones in the active space
+    // (their localized core orbitals are assigned to the active region)
+    Index active_core_levels = 0;
+    if (!orb.hasECPName()) {
+      ECPBasisSet corelevels;
+      corelevels.Load("corelevels");
+      Index core_electrons = 0;
+      for (Index a : region.atoms) {
+        core_electrons +=
+            corelevels.getElement(orb.QMAtoms()[a].getElement()).getNcore();
+      }
+      active_core_levels = core_electrons / 2;
+    }
+    orb.setActiveCoreLevels(active_core_levels);
+    if (!region.added.empty()) {
+      activeatoms = region.atoms;
+      std::ostringstream list;
+      for (Index a : activeatoms) {
+        list << a << " ";
+      }
+      XTP_LOG(Log::error, *pLog_)
+          << "Active atoms after growing: " << list.str() << std::flush;
+    }
+  }
   ActiveDensityMatrix DMAT_A(orb, activeatoms, active_threshold_);
   const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A()[0];
   Eigen::MatrixXd InitialInactiveMOs = DMAT_A.compute_Dmat_A()[2];
