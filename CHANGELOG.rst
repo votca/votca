@@ -43,6 +43,7 @@ Version 2026-dev
 -  finite-field excited-state dipoles in pyxtp (xtp_excited_dipoles), crfit XML output, fix pyxtp deadlock with several threads (#1272)
 -  PbE active region: connectivity check, frontier-orbital coverage report, optional growth; frozen core in PbE GW-BSE (#1273)
 -  Stepwise Libint build (#1274)
+-  inactive region screening with PbE (#1275)
    
 Version 2026 (released 09.03.26)
 ================================
