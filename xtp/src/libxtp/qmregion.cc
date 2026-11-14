@@ -36,11 +36,13 @@
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
+#include <votca/tools/constants.h>
 
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 namespace votca {
 namespace xtp {
@@ -164,13 +166,43 @@ void QMRegion::Initialize(const tools::Property& prop) {
   }
 }
 
-void QMRegion::PrepareOrbitalsForGWBSE() {
+void QMRegion::SaveReferenceOrbitals() {
+  if (!do_dft_in_dft_ || orb_.isOpenShell()) {
+    return;
+  }
+  reference_.mos = orb_.MOs();
+  reference_.occupied = orb_.getNumberOfAlphaElectrons();
+  reference_.set = true;
+}
+
+void QMRegion::RestoreReferenceOrbitals() {
+  if (!reference_.set) {
+    return;
+  }
+  orb_.MOs() = reference_.mos;
+  orb_.setNumberOfOccupiedLevels(reference_.occupied);
+  orb_.setNumberOfOccupiedLevelsBeta(reference_.occupied);
+  orb_.setNumberOfAlphaElectrons(reference_.occupied);
+  orb_.setNumberOfBetaElectrons(reference_.occupied);
+}
+
+InactiveScreeningInput QMRegion::PrepareOrbitalsForGWBSE() {
   citations::Cite("Baumeier:2014");
   citations::Cite("Tirimbo:2020b");
   citations::Cite("Tirimbo:2024a");
   if (orb_.isOpenShell()) {
     throw std::runtime_error("GWBSE not implemented for open-shell systems");
   }
+  const InactiveScreeningInput::Mode inactive_mode =
+      InactiveScreeningInput::Parse(
+          gwbseoptions_.ifExistsReturnElseReturnDefault<std::string>(
+              "inactive_screening", "none"));
+  if (inactive_mode != InactiveScreeningInput::Mode::None && !do_dft_in_dft_) {
+    throw std::runtime_error(
+        "gwbse.inactive_screening needs a projection-based embedding "
+        "(dftpackage.xtpdft.dft_in_dft).");
+  }
+  InactiveScreeningInput inactive;
   if (do_dft_in_dft_) {
     Index active_electrons = orb_.getNumOfActiveElectrons();
 
@@ -180,9 +212,24 @@ void QMRegion::PrepareOrbitalsForGWBSE() {
           "active spaces with an even number of electrons");
     }
 
+    // from the full MOs of this iteration's reference calculation, which
+    // the embedded ones replace below
+    inactive = InactiveScreening::Prepare(
+        orb_, inactive_mode,
+        gwbseoptions_.ifExistsReturnElseReturnDefault<bool>(
+            "inactive_screening_complete_g", false),
+        gwbseoptions_.ifExistsReturnElseReturnDefault<double>(
+            "inactive_screening_radius", 0.0) *
+            tools::conv::ang2bohr);
     orb_.MOs() = orb_.getEmbeddedMOs();
 
-    const Index active_occ = active_electrons / 2;
+    Index active_occ = active_electrons / 2;
+    if (inactive.complete_g) {
+      // inactive occupied levels in front of the active ones
+      orb_.MOs() = InactiveScreening::CompleteGOrbitals(orb_.getEmbeddedMOs(),
+                                                        active_occ, inactive);
+      active_occ += inactive.n_inactive;
+    }
 
     // Restricted closed-shell rewrite of the embedded orbital object
     orb_.setNumberOfOccupiedLevels(active_occ);
@@ -191,6 +238,7 @@ void QMRegion::PrepareOrbitalsForGWBSE() {
     orb_.setNumberOfBetaElectrons(active_occ);
     orb_.setChargeAndSpin(orb_.getCharge(), 1);
   }
+  return inactive;
 }
 
 double QMRegion::StateEnergy(const QMState& state) const {
@@ -338,9 +386,11 @@ void QMRegion::EvaluateScreenedGWBSE(
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Running environment-screened GW-BSE" << std::flush;
   const double e_dft = orb_.getDFTTotalEnergy();
-  PrepareOrbitalsForGWBSE();
+  RestoreReferenceOrbitals();
+  InactiveScreeningInput inactive = PrepareOrbitalsForGWBSE();
   GWBSE gwbse(orb_);
   gwbse.setLogger(&log_);
+  gwbse.setInactiveScreening(std::move(inactive));
   gwbse.Initialize(gwbseoptions_);
   gwbse.setScreeningEnvironment(env);
   gwbse.Evaluate();
@@ -491,6 +541,8 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   }
   qmpackage_->setCharge(crg);
   qmpackage_->setRunDir(workdir_);
+  // PbE: start from the previous full reference, not the embedded MOs
+  RestoreReferenceOrbitals();
   qmpackage_->WriteInputFile(orb_);
 
   // Attach the periodic background to xtpdft as a potential sampled on
@@ -552,6 +604,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     errormsg_ = "Parsing DFT orbfile failed.";
     return;
   }
+  SaveReferenceOrbitals();
   if (do_localize_) {
     if (orb_.isOpenShell()) {
       throw std::runtime_error(
@@ -641,9 +694,10 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   // With environment screening the loop converges the ground state only;
   // GW-BSE runs once afterwards (EvaluateScreenedGWBSE).
   if (do_gwbse_ && !screening_) {
-    PrepareOrbitalsForGWBSE();
+    InactiveScreeningInput inactive = PrepareOrbitalsForGWBSE();
     GWBSE gwbse(orb_);
     gwbse.setLogger(&log_);
+    gwbse.setInactiveScreening(std::move(inactive));
     gwbse.Initialize(gwbseoptions_);
     gwbse.Evaluate();
     state = statetracker_.CalcStateAndUpdate(orb_);

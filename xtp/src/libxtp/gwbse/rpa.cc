@@ -23,8 +23,10 @@
 #include "votca/xtp/screening_kernels.h"
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 
 namespace votca {
 namespace xtp {
@@ -58,11 +60,14 @@ void RPA::VisitHoleVirtualRows(Index m_level,
 Eigen::MatrixXd RPA::ResponseSum(const WeightedGram::WeightsFn& weights) const {
   const Index size = Mmn_.auxsize();
   const Index n_occ = homo_ + 1 - rpamin_;
+  // holes left out of the response (TCMatrix_gwbse::ExcludedHoles)
+  const Index skip = std::min(Mmn_.ExcludedHoles(), n_occ);
   OptionalTiming timing(timings_, "screening: epsilon (RPA)");
   return WeightedGram::Compute(
-      n_occ, size, weights,
-      [this](Index m, const WeightedGram::RowsVisitor& use) {
-        VisitHoleVirtualRows(m, use);
+      n_occ - skip, size,
+      [&weights, skip](Index m, Eigen::VectorXd& w) { weights(m + skip, w); },
+      [this, skip](Index m, const WeightedGram::RowsVisitor& use) {
+        VisitHoleVirtualRows(m + skip, use);
       });
 }
 
@@ -86,6 +91,22 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
         }
       });
   result.diagonal().array() += 1.0;
+  if (Mmn_.HasAdditionalResponse()) {
+    result += Mmn_.AdditionalResponse(imag, frequency);
+  }
+  if (Mmn_.AdditionalPoleCount() > 0) {
+    // the poles as transitions, with the weights above
+    const Eigen::ArrayXd& W = Mmn_.AdditionalPoleEnergies().array();
+    Eigen::ArrayXd w;
+    if (imag) {
+      w = 4 * W / (W.square() + freq2);
+    } else {
+      w = 2 * ((W - frequency) / ((W - frequency).square() + eta2) +
+               (W + frequency) / ((W + frequency).square() + eta2));
+    }
+    const Eigen::MatrixXd C = Mmn_.AdditionalPoleVectors();
+    result.noalias() += C * w.matrix().asDiagonal() * C.transpose();
+  }
   return result;
 }
 
@@ -93,6 +114,12 @@ template Eigen::MatrixXd RPA::calculate_epsilon<true>(double frequency) const;
 template Eigen::MatrixXd RPA::calculate_epsilon<false>(double frequency) const;
 
 Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
+  if (Mmn_.HasAdditionalResponse()) {
+    throw std::runtime_error(
+        "RPA: an additional response (inactive_screening with the "
+        "plasmon-pole model) is only available at the plasmon-pole fitting "
+        "points, not for complex frequencies (sigma_integrator cda).");
+  }
   const Index n_unocc = rpamax_ - homo_;
   const double sigma_1 = std::pow(frequency.imag() + eta_, 2);
   const double sigma_2 = std::pow(frequency.imag() - eta_, 2);
@@ -106,18 +133,25 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
         chi = -2.0 * (deltaEm * (deltaEm.abs2() + sigma_1).inverse() -
                       deltaEp * (deltaEp.abs2() + sigma_2).inverse());
       });
+  if (Mmn_.AdditionalPoleCount() > 0) {
+    const Eigen::ArrayXd W = Mmn_.AdditionalPoleEnergies().array();
+    const Eigen::ArrayXd deltaEm = frequency.real() - W;
+    const Eigen::ArrayXd deltaEp = frequency.real() + W;
+    const Eigen::VectorXd chi =
+        -2.0 * (deltaEm * (deltaEm.square() + sigma_1).inverse() -
+                deltaEp * (deltaEp.square() + sigma_2).inverse());
+    const Eigen::MatrixXd C = Mmn_.AdditionalPoleVectors();
+    result.noalias() += C * chi.asDiagonal() * C.transpose();
+  }
   result.diagonal().array() += 1.0;
   return result;
 }
 
 RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
-  const Index lumo = homo_ + 1;
-  const Index n_occ = lumo - rpamin_;
-  const Index n_unocc = rpamax_ - lumo + 1;
-  const Index rpasize = n_occ * n_unocc;
-
+  // transitions of M, then the additional poles (TCMatrix_gwbse)
   Eigen::VectorXd AmB = Calculate_H2p_AmB();
   Eigen::MatrixXd ApB = Calculate_H2p_ApB();
+  const Index rpasize = AmB.size();
 
   RPA::rpa_eigensolution sol;
   sol.ERPA_correlation = -0.25 * (ApB.trace() + AmB.sum());
@@ -176,14 +210,18 @@ Eigen::VectorXd RPA::Calculate_H2p_AmB() const {
   const Index lumo = homo_ + 1;
   const Index n_occ = lumo - rpamin_;
   const Index n_unocc = rpamax_ - lumo + 1;
-  const Index rpasize = n_occ * n_unocc;
-  vc2index vc = vc2index(0, 0, n_unocc);
-  Eigen::VectorXd AmB = Eigen::VectorXd::Zero(rpasize);
-  for (Index v = 0; v < n_occ; v++) {
+  // excluded holes (TCMatrix_gwbse::ExcludedHoles) have no transitions
+  const Index skip = std::min(Mmn_.ExcludedHoles(), n_occ);
+  const Index rpasize = (n_occ - skip) * n_unocc;
+  const Index npoles = Mmn_.AdditionalPoleCount();
+  vc2index vc = vc2index(skip, 0, n_unocc);
+  Eigen::VectorXd AmB = Eigen::VectorXd::Zero(rpasize + npoles);
+  for (Index v = skip; v < n_occ; v++) {
     Index i = vc.I(v, 0);
     AmB.segment(i, n_unocc) =
         energies_.segment(n_occ, n_unocc).array() - energies_(v);
   }
+  AmB.tail(npoles) = Mmn_.AdditionalPoleEnergies();
   return AmB;
 }
 
@@ -191,11 +229,14 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
   const Index lumo = homo_ + 1;
   const Index n_occ = lumo - rpamin_;
   const Index n_unocc = rpamax_ - lumo + 1;
-  const Index rpasize = n_occ * n_unocc;
-  vc2index vc = vc2index(0, 0, n_unocc);
-  Eigen::MatrixXd ApB = Eigen::MatrixXd::Zero(rpasize, rpasize);
+  const Index skip = std::min(Mmn_.ExcludedHoles(), n_occ);
+  const Index rpasize = (n_occ - skip) * n_unocc;
+  const Index npoles = Mmn_.AdditionalPoleCount();
+  vc2index vc = vc2index(skip, 0, n_unocc);
+  Eigen::MatrixXd ApB =
+      Eigen::MatrixXd::Zero(rpasize + npoles, rpasize + npoles);
 #pragma omp parallel for schedule(guided)
-  for (Index v2 = 0; v2 < n_occ; v2++) {
+  for (Index v2 = skip; v2 < n_occ; v2++) {
     Index i2 = vc.I(v2, 0);
     const Eigen::MatrixXd Mmn_v2T =
         Mmn_[v2].middleRows(n_occ, n_unocc).transpose();
@@ -204,6 +245,16 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
       // Multiply with factor 2 to sum over both (identical) spin states
       ApB.block(i1, i2, n_unocc, n_unocc) =
           2 * 2 * Mmn_[v1].middleRows(n_occ, n_unocc) * Mmn_v2T;
+    }
+  }
+  if (npoles > 0) {
+    // the poles couple like transitions with integrals c_k (same factor 4)
+    const Eigen::MatrixXd C = Mmn_.AdditionalPoleVectors();
+    ApB.bottomRightCorner(npoles, npoles) = 4 * C.transpose() * C;
+#pragma omp parallel for schedule(dynamic)
+    for (Index v = skip; v < n_occ; v++) {
+      ApB.block(rpasize, vc.I(v, 0), npoles, n_unocc) =
+          4 * C.transpose() * Mmn_[v].middleRows(n_occ, n_unocc).transpose();
     }
   }
   ApB.diagonal() += Calculate_H2p_AmB();

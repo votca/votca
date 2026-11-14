@@ -21,6 +21,7 @@
 // Standard includes
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <stdexcept>
 #include <string>
 
@@ -71,9 +72,19 @@ void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
   // vector has mtotal elements
   // largest object should be allocated in multithread fashion
   matrix_ = std::vector<Eigen::MatrixXd>(mtotal_);
+  const Index skip = std::min(excluded_holes_, mtotal_);
 #pragma omp parallel for schedule(dynamic, 4)
   for (Index i = 0; i < mtotal_; i++) {
-    matrix_[i] = Eigen::MatrixXd::Zero(ntotal_, auxbasissize_);
+    matrix_[i] = (i < skip) ? Eigen::MatrixXd(0, auxbasissize_)
+                            : Eigen::MatrixXd::Zero(ntotal_, auxbasissize_);
+  }
+}
+
+void TCMatrix_gwbse::setExcludedHoles(Index k) {
+  excluded_holes_ = k;
+  // the excluded slices are not stored
+  for (Index i = 0; i < std::min(k, Index(matrix_.size())); i++) {
+    matrix_[i].resize(0, auxbasissize_);
   }
 }
 
@@ -106,6 +117,9 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixLeading(const Eigen::MatrixXd& U,
   full_slices = std::clamp<Index>(full_slices, 0, lead_slices);
 #pragma omp parallel for schedule(dynamic)
   for (Index i = 0; i < lead_slices; i++) {
+    if (matrix_[i].rows() == 0) {
+      continue;  // excluded hole, not stored
+    }
     const Index rows = (i < full_slices) ? nsize() : lead_rows;
     Eigen::MatrixXd rotated = matrix_[i].topRows(rows) * U;
     matrix_[i].topRows(rows) = rotated;
@@ -175,6 +189,42 @@ void TCMatrix_gwbse::UndressAuxIndex() {
   dressing_.resize(0, 0);
 }
 
+Eigen::MatrixXd TCMatrix_gwbse::AdditionalResponse(bool imaginary,
+                                                   double frequency) const {
+  for (const ResponsePoint& p : additional_response_) {
+    if (p.imaginary == imaginary && std::abs(p.frequency - frequency) <=
+                                        1e-12 * (1.0 + std::abs(frequency))) {
+      if (!aux_frame_known_) {
+        throw std::runtime_error(
+            "TCMatrix_gwbse::AdditionalResponse: the auxiliary frame is not "
+            "known (non-square MultiplyRightWithAuxMatrix).");
+      }
+      if (aux_frame_.size() == 0) {
+        return p.Y;
+      }
+      return aux_frame_.transpose() * p.Y * aux_frame_;
+    }
+  }
+  throw std::runtime_error(
+      "TCMatrix_gwbse: an additional response (e.g. inactive_screening with "
+      "the plasmon-pole model) is set, but not at " +
+      std::string(imaginary ? "imaginary" : "real") + " frequency " +
+      std::to_string(frequency) +
+      " Ha; only the plasmon-pole fitting points are supported.");
+}
+
+Eigen::MatrixXd TCMatrix_gwbse::AdditionalPoleVectors() const {
+  if (!aux_frame_known_) {
+    throw std::runtime_error(
+        "TCMatrix_gwbse::AdditionalPoleVectors: the auxiliary frame is not "
+        "known (non-square MultiplyRightWithAuxMatrix).");
+  }
+  if (aux_frame_.size() == 0) {
+    return pole_vectors_;
+  }
+  return aux_frame_.transpose() * pole_vectors_;
+}
+
 Eigen::MatrixXd TCMatrix_gwbse::ToCurrentAuxFrame(
     const Eigen::MatrixXd& K) const {
   if (!aux_frame_known_) {
@@ -240,6 +290,21 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
   return;
 }
 
+void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
+                          const Eigen::MatrixXd& dft_orbitals,
+                          const Eigen::MatrixXd& inv_sqrt) {
+  auxbasis_ = &auxbasis;
+  dftbasis_ = &dftbasis;
+  dft_orbitals_ = &dft_orbitals;
+  Fill3cMO(auxbasis, dftbasis, dft_orbitals);
+  inv_sqrt_ = inv_sqrt;
+  MultiplyRightWithAuxMatrix(inv_sqrt_);
+  aux_frame_.resize(0, 0);
+  aux_frame_known_ = true;
+  partially_rotated_ = false;
+  dressing_.resize(0, 0);
+}
+
 void TCMatrix_gwbse::RotateOrbitals(const Eigen::MatrixXd& U, Index first,
                                     Index last) {
   const Index window = last - first + 1;
@@ -248,13 +313,17 @@ void TCMatrix_gwbse::RotateOrbitals(const Eigen::MatrixXd& U, Index first,
   assert(U.rows() == window && U.cols() == window);
   const Index row0 = first - nmin_;
   const Index slice0 = first - mmin_;
-  const Index rows = matrix_.empty() ? 0 : Index(matrix_[0].rows());
-  const Index aux = matrix_.empty() ? 0 : Index(matrix_[0].cols());
+  const Index rows = ntotal_;
+  const Index aux = auxbasissize_;
+  assert(slice0 >= std::min(excluded_holes_, mtotal_));
 
   // second index, every slice
   const Eigen::MatrixXd Ut = U.transpose();
 #pragma omp parallel for schedule(dynamic)
   for (Index m = 0; m < Index(matrix_.size()); m++) {
+    if (matrix_[m].rows() == 0) {
+      continue;  // excluded hole, not stored
+    }
     auto block = matrix_[m].middleRows(row0, window);
     block = Ut * block;
   }

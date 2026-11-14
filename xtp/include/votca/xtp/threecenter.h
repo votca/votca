@@ -22,6 +22,9 @@
 #define VOTCA_XTP_THREECENTER_H
 
 // Local VOTCA includes
+#include <utility>
+#include <vector>
+
 #include "aobasis.h"
 #include "eigen.h"
 #include "symmetric_matrix.h"
@@ -182,6 +185,11 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
             const Eigen::MatrixXd& dft_orbitals);
+  /// Fill with a metric V^-1/2 already computed for `auxbasis` (InvSqrt()
+  /// of another Fill), for repeated fills of the same auxiliary basis.
+  void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
+            const Eigen::MatrixXd& dft_orbitals,
+            const Eigen::MatrixXd& inv_sqrt);
   // Rebuilds ThreeCenterIntegrals, only works if the original basisobjects
   // still exist
   void Rebuild() { Fill(*auxbasis_, *dftbasis_, *dft_orbitals_); }
@@ -278,6 +286,63 @@ class TCMatrix_gwbse final : public TCMatrix {
   // Back to M_fill (times whatever rotations happened since), bare v.
   void UndressAuxIndex();
   bool Dressed() const { return dressing_.size() > 0; }
+  /// S of the current dressing (empty if bare).
+  const Eigen::MatrixXd& Dressing() const { return dressing_; }
+
+  /**
+   * \brief A response the RPA adds to its own sum over these integrals,
+   * epsilon(w) = 1 + X[M](w) + F^T Y(w) F, given in the fill-time frame
+   * (F = AuxFrame()) at fixed frequencies: the static response of a part
+   * of the system that is not in M, e.g. the inactive region of a
+   * projection-based embedding (InactiveScreening). Survives Fill and
+   * Rebuild (same auxiliary basis, same metric). The RPA throws when it is
+   * asked for epsilon at a frequency that has no Y.
+   */
+  struct ResponsePoint {
+    bool imaginary = false;
+    double frequency = 0.0;
+    Eigen::MatrixXd Y;
+  };
+  void setAdditionalResponse(std::vector<ResponsePoint> points) {
+    additional_response_ = std::move(points);
+  }
+  bool HasAdditionalResponse() const { return !additional_response_.empty(); }
+  /// F^T Y F at this frequency, in the frame operator[] is in now.
+  Eigen::MatrixXd AdditionalResponse(bool imaginary, double frequency) const;
+
+  /**
+   * \brief A response given as poles, in the form of transitions:
+   * Y(i w) = sum_k 4 W_k/(W_k^2 + w^2) c_k c_k^T, with energies W_k and
+   * vectors c_k (columns, fill-time frame). The RPA treats each pole as one
+   * more transition with energy W_k and integrals c_k: in epsilon at any
+   * frequency, and in the two-particle Hamiltonian of Sigma_Exact, where
+   * the poles couple to the transitions of M through the Coulomb
+   * interaction. E.g. the inactive region of a projection-based embedding,
+   * fitted to its response at two frequencies (InactiveScreening::FitPoles).
+   */
+  void setAdditionalPoles(Eigen::VectorXd energies, Eigen::MatrixXd vectors) {
+    pole_energies_ = std::move(energies);
+    pole_vectors_ = std::move(vectors);
+  }
+  Index AdditionalPoleCount() const { return pole_energies_.size(); }
+  const Eigen::VectorXd& AdditionalPoleEnergies() const {
+    return pole_energies_;
+  }
+  /// The pole vectors in the frame operator[] is in now: F^T c_k.
+  Eigen::MatrixXd AdditionalPoleVectors() const;
+
+  /**
+   * \brief The first k occupied slices (levels rpamin .. rpamin+k-1) are
+   * left out of the RPA response sums, but stay in the integrals, so the
+   * self-energy still sums over them in G. For a projection-based
+   * embedding whose inactive occupied orbitals were put in front of the
+   * active ones (InactiveScreening, complete G): the inactive region then
+   * screens only through its additional response or poles. Survives Fill.
+   * Their slices are not stored (only their rows in the other slices,
+   * which G needs): set it before Fill. Nothing may read those slices.
+   */
+  void setExcludedHoles(Index k);
+  Index ExcludedHoles() const { return excluded_holes_; }
 
   /**
    * \brief Change the orbital basis of levels [first, last] for QSGW:
@@ -313,6 +378,10 @@ class TCMatrix_gwbse final : public TCMatrix {
   bool aux_frame_known_ = true;
   bool partially_rotated_ = false;
   Eigen::MatrixXd dressing_;  // S of DressAuxIndex; empty: bare
+  std::vector<ResponsePoint> additional_response_;
+  Eigen::VectorXd pole_energies_;
+  Index excluded_holes_ = 0;
+  Eigen::MatrixXd pole_vectors_;
 
   // M_fill -> M_fill A, whatever frame the integrals are in.
   void MultiplyInFillFrame(const Eigen::MatrixXd& A);

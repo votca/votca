@@ -828,7 +828,10 @@ Eigen::MatrixXd MultiplyLeftRight(const Eigen::MatrixXd& L,
 void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
                               const Eigen::MatrixXd& dft_orbitals) {
 
-  const Eigen::MatrixXd dftm = dft_orbitals.middleCols(mmin_, mtotal_);
+  // excluded holes (TCMatrix_gwbse::setExcludedHoles) have no slices
+  const Index skip = std::min(excluded_holes_, mtotal_);
+  const Eigen::MatrixXd dftm =
+      dft_orbitals.middleCols(mmin_ + skip, mtotal_ - skip);
   const Eigen::MatrixXd dftn =
       dft_orbitals.middleCols(nmin_, ntotal_).transpose();
 
@@ -863,8 +866,8 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
       const Index aux0 = auxshell2bf[aux];
       for (Index k = 0; k < dim; ++k) {
         ao3c[k] = MultiplyLeftRight(dftn, ao3c[k], dftm);
-        for (Index m_level = 0; m_level < mtotal_; m_level++) {
-          matrix_[m_level].col(aux0 + k) = ao3c[k].col(m_level);
+        for (Index m_level = skip; m_level < mtotal_; m_level++) {
+          matrix_[m_level].col(aux0 + k) = ao3c[k].col(m_level - skip);
         }
         ao3c[k].resize(0, 0);
       }

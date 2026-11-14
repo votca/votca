@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<options>
+<dftgwbse>
+  <job_name>molecule_pbe_exact</job_name>
+<dftpackage>
+<spin>1</spin>
+<name>xtp</name>
+<charge>0</charge>
+<!--functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional-->
+<functional>XC_HYB_GGA_XC_PBEH</functional>
+<basisset>3-21G</basisset>
+<initial_guess>huckel</initial_guess>
+<xtpdft>
+<screening_eps>1e-9</screening_eps>
+<fock_matrix_reset>5</fock_matrix_reset>
+<convergence>
+  <energy>1e-5</energy>
+  <method>DIIS</method>
+  <DIIS_start>0.002</DIIS_start>
+  <ADIIS_start>0.8</ADIIS_start>
+  <DIIS_length>20</DIIS_length>
+  <levelshift>0.0</levelshift>
+  <levelshift_end>0.2</levelshift_end>
+  <max_iterations>100</max_iterations>
+  <error>1e-6</error>
+  <DIIS_maxout>false</DIIS_maxout>
+  <mixing>0.7</mixing>
+  <mixing_max>0.98</mixing_max>
+  <mixing_end>0.8</mixing_end>
+</convergence>
+<integration_grid>medium</integration_grid>
+<dft_in_dft>
+  <activeatoms>0:3</activeatoms>
+  <threshold>0.4</threshold>
+  <levelshift>100000</levelshift>
+  <truncate_basis>false</truncate_basis>
+</dft_in_dft>
+</xtpdft>
+</dftpackage>
+  <tasks>input,dft,parse,localize,dft_in_dft,gwbse</tasks>
+  <gwbse>
+  <tasks>gw,singlets</tasks>
+  <auxbasisset>aux-def2-svp</auxbasisset>
+  <inactive_screening>exact</inactive_screening>
+  <inactive_screening_complete_g>true</inactive_screening_complete_g>
+  <gw>
+    <mode>G0W0</mode>
+    <sigma_integrator>ppm</sigma_integrator>
+  </gw>
+  <bse>
+      <useTDA>false</useTDA>
+  </bse>
+  </gwbse>
+<localize><method>jacobi-sweeps</method></localize>
+</dftgwbse>
+</options>
