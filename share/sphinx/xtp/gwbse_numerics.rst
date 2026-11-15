@@ -1010,6 +1010,23 @@ of the GW window dominate for large systems (D5M dimer: about 200 GB).
 Exact :math:`\Sigma` needs the RPA pair matrix
 (:math:`(N_\mathrm{occ}N_\mathrm{virt})^2`) and the residues.
 
+Most of the stored integrals belong to occupied levels below the QP and
+BSE windows, which only enter the dielectric matrix. With
+``gwbse.stream_rpa`` they are not stored: their part of the RPA response
+is built in chunks of the size ``--memory`` leaves (at least 1 GB) and
+added to the dielectric matrix at the two plasmon-pole frequencies, and
+once more at zero frequency for the BSE. The results are the same. The
+stored integrals shrink roughly by the fraction of such levels; each
+chunk costs one more pass over the AO integrals. For a DPP molecule with
+two 2-hexyldecyl side chains (def2-SVP, windows of :math:`\pm 4` eV, 128
+of 163 occupied levels below the windows) the stored integrals go from
+3.9 to 1.1 GB and the peak from 6.0 to 4.4 GB, at 10 % more time with
+``--memory 6`` (one chunk) and 45 % more with ``--memory 3`` (three
+chunks). In evGW the stream is repeated at every build of the screening
+(``screening_update``): for the same system, 6 builds made the run 40 %
+longer (574 to 803 s) at the same memory saving. Implemented for G0W0 and
+evGW with ``sigma_integrator ppm``.
+
 Platforms
 =========
 

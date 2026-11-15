@@ -151,6 +151,8 @@ void GWBSE::Initialize(tools::Property& options) {
   // 0: from the --memory budget when the response is built
   inactive_chunk_bytes_ = 1e9 * options.ifExistsReturnElseReturnDefault<double>(
                                     ".inactive_screening_memory", 0.0);
+  stream_rpa_ =
+      options.ifExistsReturnElseReturnDefault<bool>(".stream_rpa", false);
   inactive_virtual_cutoff_ = options.ifExistsReturnElseReturnDefault<double>(
                                  ".inactive_screening_virtual_cutoff", 0.0) *
                              tools::conv::ev2hrt;
@@ -1145,6 +1147,26 @@ bool GWBSE::Evaluate() {
           << " inactive occupied levels enter the self-energy (and Vxc), "
           << "not the RPA; their own slices are not stored" << flush;
     }
+    if (stream_rpa_) {
+      if (!do_gw_ || gwopt_.do_qsgw || gwopt_.sigma_integration != "ppm" ||
+          inactive_mode_ != InactiveScreeningInput::Mode::None) {
+        throw std::runtime_error(
+            "GWBSE: stream_rpa is implemented for G0W0 and evGW with "
+            "sigma_integrator ppm, without QSGW and inactive_screening.");
+      }
+      // occupied levels below the QP and BSE windows: only in the RPA
+      Index first_needed = gwopt_.qpmin;
+      if (do_bse_singlets_ || do_bse_triplets_) {
+        first_needed = std::min(first_needed, bseopt_.vmin);
+      }
+      streamed_holes_ = std::clamp<Index>(first_needed - gwopt_.rpamin, 0,
+                                          gwopt_.homo + 1 - gwopt_.rpamin);
+      Mmn.setExcludedHoles(streamed_holes_);
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " stream_rpa: " << streamed_holes_
+          << " occupied levels below the windows are not stored; their "
+          << "response is streamed" << flush;
+    }
     Mmn.Initialize(auxbasis.AOBasisSize(), gwopt_.rpamin, max_3c, gwopt_.rpamin,
                    gwopt_.rpamax);
     XTP_LOG(Log::error, *pLog_)
@@ -1455,6 +1477,20 @@ bool GWBSE::Evaluate() {
       gw.configure(gwopt_);
       gw.setKeepScreeningData(do_sigma_dump_);
       gw.setReactionField(reaction_field);
+      if (streamed_holes_ > 0) {
+        // the response of the levels not stored, at the plasmon-pole
+        // fitting points, with the RPA energies of each screening build
+        // (G0W0: once; evGW: every rebuild)
+        gw.setScreeningHook([&](const Eigen::VectorXd& rpa_energies) {
+          const PPM ppm;
+          const double w_i = ppm.ImaginaryFittingFrequency();
+          std::vector<Eigen::MatrixXd> Y;
+          StreamedResponse(auxbasis, dftbasis, Mmn, rpa_energies,
+                           {RPA(*pLog_, Mmn).getEta(), w_i}, Y);
+          Mmn.setAdditionalResponse(
+              {{false, ppm.RealFittingFrequency(), Y[0]}, {true, w_i, Y[1]}});
+        });
+      }
       if (gwopt_.rpamin > 0 && core_exchange_) {
         gw.setCoreExchange(TCMatrix_gwbse::CoreExchange(
             auxbasis, dftbasis, orbitals_.MOs().eigenvectors(), gwopt_.rpamin,
@@ -1652,6 +1688,13 @@ bool GWBSE::Evaluate() {
       // zero frequency, the environment through its reaction field (so the
       // integrals keep GW's dressing)
       Mmn.setAdditionalPoles(Eigen::VectorXd(), Eigen::MatrixXd());
+      if (streamed_holes_ > 0) {
+        // again with the energies the BSE screens with
+        std::vector<Eigen::MatrixXd> Y;
+        StreamedResponse(auxbasis, dftbasis, Mmn, orbitals_.RPAInputEnergies(),
+                         {RPA(*pLog_, Mmn).getEta()}, Y);
+        inactive_static_bse = Y[0];
+      }
       BSE bse = BSE(*pLog_, Mmn);
       if (inactive_static_bse.size() > 0) {
         Mmn.setAdditionalResponse({{false, 0.0, inactive_static_bse}});
@@ -1700,6 +1743,41 @@ bool GWBSE::Evaluate() {
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " GWBSE calculation finished " << flush;
   return true;
+}
+
+Eigen::MatrixXd GWBSE::StreamedResponse(const AOBasis& auxbasis,
+                                        const AOBasis& dftbasis,
+                                        const TCMatrix_gwbse& Mmn,
+                                        const Eigen::VectorXd& rpa_energies,
+                                        const std::vector<double>& frequencies,
+                                        std::vector<Eigen::MatrixXd>& Y) const {
+  std::chrono::time_point<std::chrono::system_clock> start =
+      std::chrono::system_clock::now();
+  const Eigen::MatrixXd& C = orbitals_.MOs().eigenvectors();
+  const Index nh = streamed_holes_;
+  const Index nv = gwopt_.rpamax - gwopt_.homo;
+  const Index lumo = gwopt_.homo + 1 - gwopt_.rpamin;  // in rpa_energies
+  double chunk_bytes = inactive_chunk_bytes_;
+  if (chunk_bytes <= 0.0) {
+    chunk_bytes = std::max(1e9, MemoryBudget::AvailableBytes());
+  }
+  Y = InactiveScreening::Responses(
+      auxbasis, dftbasis, C.middleCols(gwopt_.rpamin, nh),
+      rpa_energies.head(nh), C.middleCols(gwopt_.homo + 1, nv),
+      rpa_energies.segment(lumo, nv), chunk_bytes, frequencies, Mmn.InvSqrt());
+  for (Eigen::MatrixXd& y : Y) {
+    y = 0.5 * (y + y.transpose()).eval();
+  }
+  const double total =
+      8.0 * double(nh) * double(nv) * double(auxbasis.AOBasisSize());
+  std::chrono::duration<double> t = std::chrono::system_clock::now() - start;
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Streamed the response of " << nh
+      << " occupied levels at " << frequencies.size() << " frequencies ("
+      << total / 1e9 << " GB of integrals in "
+      << Index(std::ceil(total / chunk_bytes)) << " pass(es)) in " << t.count()
+      << " seconds" << flush;
+  return Y.front();
 }
 
 }  // namespace xtp
