@@ -44,6 +44,7 @@ Version 2026-dev
 -  PbE active region: connectivity check, frontier-orbital coverage report, optional growth; frozen core in PbE GW-BSE (#1273)
 -  Stepwise Libint build (#1274)
 -  inactive region screening with PbE (#1275)
+-  streamed RPA for PPM (#1276)
    
 Version 2026 (released 09.03.26)
 ================================
