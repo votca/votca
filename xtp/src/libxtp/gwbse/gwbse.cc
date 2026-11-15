@@ -19,6 +19,10 @@
  *
  */
 
+// Standard includes
+#include <algorithm>
+#include <cmath>
+
 // Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
@@ -38,6 +42,7 @@
 #include "votca/xtp/logger.h"
 #include "votca/xtp/memorybudget.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/ppm.h"
 #include "votca/xtp/rpa_uks.h"
 #include "votca/xtp/screening_kernels.h"
 #include "votca/xtp/screening_update.h"
@@ -139,6 +144,24 @@ void GWBSE::Initialize(tools::Property& options) {
   }
   std::string ignore_corelevels =
       options.get(".ignore_corelevels").as<std::string>();
+
+  inactive_mode_ = InactiveScreeningInput::Parse(
+      options.ifExistsReturnElseReturnDefault<std::string>(
+          ".inactive_screening", "none"));
+  // 0: from the --memory budget when the response is built
+  inactive_chunk_bytes_ = 1e9 * options.ifExistsReturnElseReturnDefault<double>(
+                                    ".inactive_screening_memory", 0.0);
+  inactive_virtual_cutoff_ = options.ifExistsReturnElseReturnDefault<double>(
+                                 ".inactive_screening_virtual_cutoff", 0.0) *
+                             tools::conv::ev2hrt;
+  if (inactive_mode_ != InactiveScreeningInput::Mode::None &&
+      ignore_corelevels != "none") {
+    // CountCoreLevels counts the cores of all atoms, the embedded active
+    // space holds only those of the active region
+    throw std::runtime_error(
+        "inactive_screening is not implemented together with "
+        "ignore_corelevels.");
+  }
 
   if (ignore_corelevels == "RPA" || ignore_corelevels == "GW" ||
       ignore_corelevels == "BSE") {
@@ -266,6 +289,22 @@ void GWBSE::Initialize(tools::Property& options) {
       report("BSE window bottom", "bse_emin", bse_emin, bse_vmin, cap);
       bse_vmin = cap;
     }
+  }
+
+  if (inactive_.complete_g) {
+    // the inactive occupied levels in front belong to G only: no QP
+    // energies, no BSE holes for them
+    const Index nB = inactive_.n_inactive;
+    if (rpamin != 0) {
+      throw std::runtime_error(
+          "inactive_screening_complete_g needs all levels in the RPA range "
+          "(rpamin 0)");
+    }
+    qpmin = std::max(qpmin, nB);
+    bse_vmin = std::max(bse_vmin, nB);
+    XTP_LOG(Log::error, *pLog_)
+        << " Complete G: GW and BSE windows start at level " << nB
+        << " (the first active occupied level)" << flush;
   }
 
   if (rpamin < 0 || rpamax < 0 || rpamin > rpamax) {
@@ -1097,6 +1136,15 @@ bool GWBSE::Evaluate() {
         << TimeStamp() << " Calculating beta spin Mmn " << flush;
     Mmn_spin.beta.Fill(auxbasis, dftbasis, orbitals_.MOs_beta().eigenvectors());
   } else {
+    if (inactive_.complete_g) {
+      // the inactive occupied levels in front stay in G, not in the RPA;
+      // only their rows in the other slices are stored
+      Mmn.setExcludedHoles(inactive_.n_inactive);
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Complete G: the " << inactive_.n_inactive
+          << " inactive occupied levels enter the self-energy (and Vxc), "
+          << "not the RPA; their own slices are not stored" << flush;
+    }
     Mmn.Initialize(auxbasis.AOBasisSize(), gwopt_.rpamin, max_3c, gwopt_.rpamin,
                    gwopt_.rpamax);
     XTP_LOG(Log::error, *pLog_)
@@ -1151,6 +1199,158 @@ bool GWBSE::Evaluate() {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Built environment reaction field in "
         << elapsed_time.count() << " seconds." << flush;
+  }
+
+  // Screening by the inactive region of a projection-based embedding
+  // (InactiveScreening): its response Y at the two plasmon-pole fitting
+  // points enters epsilon (ppm: TCMatrix_gwbse::setAdditionalResponse;
+  // exact Sigma: fitted poles as pseudo-transitions), so that the inactive
+  // region screens dynamically in GW. The BSE adds the static Y to its
+  // epsilon. An environment keeps its own reaction field in both.
+  Eigen::MatrixXd inactive_static_bse;  // empty without inactive screening
+  if (inactive_mode_ != InactiveScreeningInput::Mode::None) {
+    if (gwopt_.do_qsgw) {
+      throw std::runtime_error(
+          "GWBSE: inactive_screening is not implemented for QSGW.");
+    }
+    if (do_dynamical_screening_bse_) {
+      throw std::runtime_error(
+          "GWBSE: dynamical screening in the BSE is not implemented with "
+          "inactive_screening (the BSE has the inactive response only at "
+          "zero frequency).");
+    }
+    if (is_uks) {
+      throw std::runtime_error(
+          "GWBSE: inactive_screening is implemented for closed-shell "
+          "systems only.");
+    }
+    if (inactive_.mode != inactive_mode_) {
+      throw std::runtime_error(
+          "GWBSE: inactive_screening=" +
+          InactiveScreeningInput::Name(inactive_mode_) +
+          " needs the inactive region of a projection-based embedding "
+          "(dft_in_dft) prepared by the caller.");
+    }
+    if (inactive_.n_inactive == 0) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Warning: the inactive region holds no occupied "
+          << "orbitals; inactive_screening has nothing to add" << flush;
+    }
+    std::chrono::time_point<std::chrono::system_clock> start =
+        std::chrono::system_clock::now();
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Inactive-region screening ("
+        << InactiveScreeningInput::Name(inactive_mode_)
+        << "): " << inactive_.n_inactive
+        << " inactive occupied orbitals, response over "
+        << inactive_.occupied.cols() << " occupied"
+        << (inactive_.n_far > 0
+                ? " (" + std::to_string(inactive_.n_far) +
+                      " inactive orbitals beyond " +
+                      std::to_string(inactive_.radius * tools::conv::bohr2ang) +
+                      " Angstrom left out)"
+                : std::string())
+        << " x " << inactive_.virtuals.cols() << " virtual levels; projector "
+        << "idempotency error " << inactive_.idempotency_error << flush;
+    // the static point with the RPA's broadening, as calculate_epsilon_r(0),
+    // and the PPM's imaginary fitting point, from one integral pass
+    const PPM ppm;
+    const double w_i = ppm.ImaginaryFittingFrequency();
+    const std::vector<double> frequencies{RPA(*pLog_, Mmn).getEta(), w_i};
+    double chunk_bytes = inactive_chunk_bytes_;
+    if (chunk_bytes <= 0.0) {
+      // what the budget leaves after the stored integrals (default
+      // allowance without --memory), at least 1 GB
+      chunk_bytes = std::max(1e9, MemoryBudget::AvailableBytes());
+    }
+    {
+      Index nv = std::min(gwopt_.rpamax - orbitals_.getHomo(),
+                          inactive_.virtuals.cols());
+      if (inactive_virtual_cutoff_ > 0.0 && nv > 0) {
+        nv = std::min(
+            nv, Index((inactive_.virtual_energies.head(nv).array() <=
+                       inactive_.virtual_energies(0) + inactive_virtual_cutoff_)
+                          .count()));
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Inactive response: " << nv
+            << " virtual levels up to "
+            << inactive_virtual_cutoff_ * tools::conv::hrt2ev
+            << " eV above the LUMO" << flush;
+      }
+      const double nvirt = double(nv);
+      const double total = 8.0 * double(inactive_.occupied.cols()) * nvirt *
+                           double(auxbasis.AOBasisSize());
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Inactive response integrals: " << total / 1e9
+          << " GB in chunks of at most " << chunk_bytes / 1e9 << " GB ("
+          << Index(std::ceil(total / chunk_bytes))
+          << " pass(es) over the AO integrals)" << flush;
+    }
+    const std::vector<Eigen::MatrixXd> Ys = InactiveScreening::Kernels(
+        auxbasis, dftbasis, inactive_, Mmn,
+        orbitals_.MOs().eigenvalues().segment(
+            gwopt_.rpamin, gwopt_.rpamax - gwopt_.rpamin + 1),
+        orbitals_.getHomo(), gwopt_.rpamin, gwopt_.rpamax, chunk_bytes,
+        frequencies, inactive_virtual_cutoff_);
+    const Eigen::MatrixXd& Y = Ys.front();
+    {
+      std::chrono::duration<double> t =
+          std::chrono::system_clock::now() - start;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Inactive response at " << frequencies.size()
+          << " frequencies in " << t.count() << " seconds" << flush;
+    }
+    const Eigen::VectorXd y = SymmetricEigen(Y, false).values;
+    if (y.minCoeff() < -1e-6 * std::max(1.0, y.maxCoeff())) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Warning: the inactive response has a negative "
+          << "eigenvalue " << y.minCoeff() << " (max " << y.maxCoeff()
+          << "); is the embedding converged?" << flush;
+    }
+    {
+      const Eigen::MatrixXd& Y_i = Ys[1];
+      // the BSE: epsilon_BSE = 1 + X_A + Y at zero frequency, which gives
+      // the same W as the combined reaction field, without redressing the
+      // integrals; the environment keeps its reaction field
+      inactive_static_bse = Y;
+      if (gwopt_.sigma_integration == "ppm") {
+        // exactly at the two points the PPM fits
+        Mmn.setAdditionalResponse(
+            {{false, ppm.RealFittingFrequency(), Y}, {true, w_i, Y_i}});
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Inactive region enters the plasmon-pole "
+            << "model of W (responses at 0 and " << w_i
+            << "i Ha); GW keeps only the environment's reaction field" << flush;
+      } else {
+        // exact Sigma: the inactive region as poles fitted at the same
+        // two points, which become pseudo-transitions of the RPA
+        const InactiveScreening::PoleFit fit =
+            InactiveScreening::FitPoles(Y, Y_i, w_i);
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Inactive region as " << fit.energies.size()
+            << " poles fitted at 0 and " << w_i << "i Ha (energies "
+            << (fit.energies.size() ? fit.energies.minCoeff() : 0.0) << " to "
+            << (fit.energies.size() ? fit.energies.maxCoeff() : 0.0) << " Ha; "
+            << fit.dropped << " directions below tolerance, " << fit.clipped
+            << " modes clipped); they enter the RPA of "
+            << gwopt_.sigma_integration << " Sigma as pseudo-transitions"
+            << flush;
+        if (fit.clipped > 0) {
+          XTP_LOG(Log::error, *pLog_)
+              << TimeStamp() << " Warning: " << fit.clipped
+              << " inactive modes have no real pole frequency (expected "
+              << "only for inactive_screening exact); the fit is then not "
+              << "exact at the two points" << flush;
+        }
+        Mmn.setAdditionalPoles(fit.energies, fit.vectors);
+      }
+    }
+    std::chrono::duration<double> elapsed_time =
+        std::chrono::system_clock::now() - start;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Built inactive-region response in "
+        << elapsed_time.count() << " seconds; eigenvalues of the static Y in ["
+        << y.minCoeff() << ", " << y.maxCoeff() << "]" << flush;
   }
 
   Eigen::MatrixXd Hqp;
@@ -1448,7 +1648,16 @@ bool GWBSE::Evaluate() {
         }
       }
     } else {
+      // the BSE screens statically: the inactive region enters epsilon at
+      // zero frequency, the environment through its reaction field (so the
+      // integrals keep GW's dressing)
+      Mmn.setAdditionalPoles(Eigen::VectorXd(), Eigen::MatrixXd());
       BSE bse = BSE(*pLog_, Mmn);
+      if (inactive_static_bse.size() > 0) {
+        Mmn.setAdditionalResponse({{false, 0.0, inactive_static_bse}});
+      } else {
+        Mmn.setAdditionalResponse({});
+      }
       bse.setReactionField(reaction_field, environment_.include_kreac);
       bse.configure(bseopt_, orbitals_.RPAInputEnergies(), Hqp);
 

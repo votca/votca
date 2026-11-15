@@ -18,6 +18,7 @@
  */
 
 #include "sigma_cda.h"
+#include "scaled_erfc.h"
 #include "votca/xtp/gw.h"
 #include <votca/tools/constants.h>
 
@@ -141,9 +142,8 @@ double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
 double Sigma_CDA::CalcDiagContributionValue_tail(double row_term, double delta,
                                                  double alpha) const {
 
-  double erfc_factor = 0.5 * std::copysign(1.0, delta) *
-                       std::exp(std::pow(alpha * delta, 2)) *
-                       std::erfc(std::abs(alpha * delta));
+  double erfc_factor =
+      0.5 * std::copysign(1.0, delta) * ScaledErfc(std::abs(alpha * delta));
 
   return row_term * erfc_factor;
 }

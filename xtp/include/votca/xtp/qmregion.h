@@ -24,6 +24,7 @@
 // Local VOTCA includes
 #include "environmentscreening.h"
 #include "hist.h"
+#include "inactivescreening.h"
 #include "orbitals.h"
 #include "qmpackagefactory.h"
 #include "region.h"
@@ -167,11 +168,26 @@ class QMRegion : public Region {
   bool screened_done_ = false;
   QMState screened_state_;
   // DFT-in-DFT rewrite of orb_ and closed-shell check, before any GW-BSE
-  void PrepareOrbitalsForGWBSE();
+  // Replaces the MOs by the embedded ones for a PbE run; returns the
+  // inactive-region screening input (gwbse.inactive_screening), which needs
+  // the full MOs and is built before they are replaced.
+  InactiveScreeningInput PrepareOrbitalsForGWBSE();
   // state energy of the tracked state, added to the DFT total energy
   double StateEnergy(const QMState& state) const;
   bool do_localize_ = false;
   bool do_dft_in_dft_ = false;
+  // PbE: the full reference MOs and occupation of the last iteration. The
+  // embedding and the GW-BSE preparation leave other MOs and electron
+  // counts in orb_; the next iteration's warm start and the inactive
+  // screening need these.
+  struct ReferenceOrbitals {
+    tools::EigenSystem mos;
+    Index occupied = 0;
+    bool set = false;
+  };
+  ReferenceOrbitals reference_;
+  void SaveReferenceOrbitals();
+  void RestoreReferenceOrbitals();
 
   tools::Property dftoptions_;
   tools::Property gwbseoptions_;

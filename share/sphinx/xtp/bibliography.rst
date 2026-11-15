@@ -7,6 +7,8 @@ Bibliography
 
 .. [Anderson:1965] Anderson, J. ACM 12, 547 (1965)
 
+.. [Barnes:2013] Barnes, Goodpaster, Manby, and Miller, J. Chem. Phys. 139, 024103 (2013)
+
 .. [Baumeier:2010] Baumeier, Kirkpatrick, and Andrienko, Phys. Chem. Chem. Phys. 12, 11103 (2010)
 
 .. [Baumeier:2012] Baumeier, Stenzel, Poelking, Andrienko, and Schmidt, Phys. Rev. B 86, 184202 (2012)
@@ -14,6 +16,8 @@ Bibliography
 .. [Baumeier:2014] Baumeier, Rohlfing, and Andrienko, J. Chem. Theory Comput. 10, 3104 (2014)
 
 .. [Baumeier:2024] Baumeier, Wehner, Renaud, Zapata Ruiz, Halver, Madhikar, Gerritsen, Tirimbo, Sijen, Rosenberger, Brown, Sundaram, Krajniak, Bernhardt, and Junghans, J. Open Source Softw. 9, 6864 (2024)
+
+.. [Bennie:2015] Bennie, Stella, Miller, and Manby, J. Chem. Phys. 143, 024105 (2015)
 
 .. [Bortz:1975] Bortz, Kalos, and Lebowitz, J. Comput. Phys. 17, 10 (1975)
 
@@ -70,6 +74,8 @@ Bibliography
 .. [Neese:2012] Neese, WIREs Comput. Mol. Sci. 2, 73 (2012)
 
 .. [Oberhofer:2009] Oberhofer and Blumberger, J. Chem. Phys. 131, 064101 (2009)
+
+.. [Pipek:1989] Pipek and Mezey, J. Chem. Phys. 90, 4916 (1989)
 
 .. [Poelking:2015] Poelking, Tietze, Elschner, Olthof, Hertel, Baumeier, Würthner, Meerholz, Leo, and Andrienko, Nat. Mater. 14, 434 (2015)
 

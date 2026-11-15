@@ -153,7 +153,11 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   }
   Eigen::MatrixXd result = this->DensityMatrixGroundState();
 
-  if (getCalculationType() != "NoEmbedding") {
+  // PbE: the inactive density belongs to the embedded MOs (active
+  // occupation). After the embedding the object may also hold the full
+  // reference MOs with the full occupation, whose density is complete.
+  if (getCalculationType() != "NoEmbedding" &&
+      2 * number_alpha_electrons_ == active_electrons_) {
     result += getInactiveDensity();
   }
   if (state.Type().isExciton()) {

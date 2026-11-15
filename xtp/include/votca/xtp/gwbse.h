@@ -23,6 +23,7 @@
 
 // Standard includes
 #include <fstream>
+#include <utility>
 
 // VOTCA includes
 #include <votca/tools/property.h>
@@ -34,6 +35,7 @@
 #include "environmentscreening.h"
 #include "gw.h"
 #include "gw_uks.h"
+#include "inactivescreening.h"
 #include "logger.h"
 #include "qmfragment.h"
 
@@ -70,6 +72,13 @@ class GWBSE {
   // metric exist. Closed shell only.
   void setScreeningEnvironment(const ScreeningEnvironment& env) {
     environment_ = env;
+  }
+
+  /// Static screening by the inactive region of a projection-based
+  /// embedding (InactiveScreening::Prepare, from the full reference MOs).
+  /// Its mode must match the gwbse option inactive_screening.
+  void setInactiveScreening(InactiveScreeningInput input) {
+    inactive_ = std::move(input);
   }
 
   bool Evaluate();
@@ -116,6 +125,11 @@ class GWBSE {
   std::vector<QMFragment<BSE_Population> > fragments_;
 
   ScreeningEnvironment environment_;
+  InactiveScreeningInput::Mode inactive_mode_ =
+      InactiveScreeningInput::Mode::None;
+  double inactive_chunk_bytes_ = 0.0;     // 0: from the --memory budget
+  double inactive_virtual_cutoff_ = 0.0;  // Ha above the LUMO; 0: all
+  InactiveScreeningInput inactive_;
 };
 }  // namespace xtp
 }  // namespace votca

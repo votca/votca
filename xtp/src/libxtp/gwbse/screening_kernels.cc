@@ -194,6 +194,14 @@ Eigen::MatrixXd WeightedGram::Compute(Index nblocks, Index ncols,
 
 SymmetricEigenSystem SymmetricEigen(const Eigen::MatrixXd& A, bool vectors) {
   SymmetricEigenSystem result;
+  if (A.rows() == 0) {
+    // empty problem (Eigen's solver does not accept it)
+    result.values.resize(0);
+    if (vectors) {
+      result.vectors.resize(0, 0);
+    }
+    return result;
+  }
   const char jobz = vectors ? 'V' : 'N';
   // the routines overwrite their copy of A with the eigenvectors
   auto finish = [&](Eigen::MatrixXd& work) {

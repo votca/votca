@@ -42,6 +42,10 @@ class PPM {
   /// Modes with weight > 0 whose fit gives a negative squared frequency
   /// (their frequency is taken from the absolute value).
   Index InvalidModes() const { return invalid_modes_; }
+  /// The frequencies epsilon is evaluated at for the fit (Ha): real and
+  /// imaginary.
+  double RealFittingFrequency() const { return screening_r; }
+  double ImaginaryFittingFrequency() const { return screening_i; }
 
   void FreeMatrix() { ppm_phi_.resize(0, 0); }
 

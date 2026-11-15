@@ -14,6 +14,7 @@ software and manual versions match.
 
    xtp_introduction
    elstruc_theory
+   projection_embedding
    implementation_notes
    gwbse_numerics
    transfer_theory
@@ -75,7 +76,8 @@ running it, including those that depend on its options
      - [Wehner:2017]_; [Tirimbo:2024b]_
    * - DFT options
      - constrained DFT [Wu:2005]_; second-order SCF [Helmich-Paris:2021]_;
-       projection-based embedding [Manby:2012]_, [Sundaram:2024]_
+       projection-based embedding [Manby:2012]_, [Sundaram:2024]_,
+       basis truncation [Barnes:2013]_, [Bennie:2015]_
    * - Embedded GW-BSE (``qmmm``)
      - [Baumeier:2014]_, [Tirimbo:2020b]_, [Tirimbo:2024a]_; polar region
        [Thole:1981]_; Ewald region and ``ewaldbackground``

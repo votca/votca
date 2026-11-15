@@ -85,6 +85,7 @@ list(APPEND test_cases test_gw)
 list(APPEND test_cases test_hdf5)
 list(APPEND test_cases test_hirshfeldpartition)
 list(APPEND test_cases test_hist)
+list(APPEND test_cases test_inactivescreening)
 list(APPEND test_cases test_incrementalfockbuilder)
 list(APPEND test_cases test_indexparser)
 list(APPEND test_cases test_jobtopology)
@@ -482,6 +483,32 @@ if(RUN_XTP_INTEGRATIONTESTS)
     set_tests_properties(integration_Compare_xtp_tools_dftgwbse_neutral_output PROPERTIES DEPENDS integration_Run_xtp_tools_dftgwbse_neutral)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_tools_dftgwbse_neutral (votca_compare_hdf5 not found)")
+  endif()
+
+  # xtp_tools -e dftgwbse, projection-based embedding with inactive-region
+  # screening (formaldehyde + 2 waters, formaldehyde active): with exact
+  # screening and complete G the virtual QP energies must equal those of
+  # the full calculation; block mode (exact Sigma, spatial cutoff) is
+  # checked for sane results.
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/DataFiles/xtp_tools_integration_tests)
+  foreach(pbe_case full exact block)
+    set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_pbe_${pbe_case})
+    file(MAKE_DIRECTORY ${RUNPATH})
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/formaldehyde_water.xyz ${RUNPATH}/molecule_pbe_${pbe_case}.xyz)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/dftgwbse_pbe_${pbe_case}.xml ${RUNPATH}/dftgwbse_pbe_${pbe_case}.xml)
+    add_test(NAME integration_Run_xtp_tools_dftgwbse_pbe_${pbe_case} COMMAND xtp_tools -e dftgwbse -o dftgwbse_pbe_${pbe_case}.xml WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_xtp_tools_dftgwbse_pbe_${pbe_case} PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  endforeach()
+  if(HAS_HDF5_COMPARE)
+    add_test(NAME integration_Check_xtp_tools_dftgwbse_pbe_exact COMMAND ${Python_EXECUTABLE} ${REFPATH}/check_pbe_inactive.py
+      ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_pbe_exact/molecule_pbe_exact.orb
+      --full ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_pbe_full/molecule_pbe_full.orb)
+    set_tests_properties(integration_Check_xtp_tools_dftgwbse_pbe_exact PROPERTIES DEPENDS "integration_Run_xtp_tools_dftgwbse_pbe_exact;integration_Run_xtp_tools_dftgwbse_pbe_full")
+    add_test(NAME integration_Check_xtp_tools_dftgwbse_pbe_block COMMAND ${Python_EXECUTABLE} ${REFPATH}/check_pbe_inactive.py
+      ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_pbe_block/molecule_pbe_block.orb)
+    set_tests_properties(integration_Check_xtp_tools_dftgwbse_pbe_block PROPERTIES DEPENDS integration_Run_xtp_tools_dftgwbse_pbe_block)
+  else()
+    message(STATUS "Skipping the checks of integration_Run_xtp_tools_dftgwbse_pbe_* (h5py not found)")
   endif()
 
   # xtp_tools -e dftgwbse cation water TDA

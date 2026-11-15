@@ -20,8 +20,11 @@
 // Third party includes
 #include <boost/format.hpp>
 #include <string>
+#include <utility>
 
 // Local VOTCA includes
+#include <votca/tools/constants.h>
+
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/gwbseengine.h"
 #include "votca/xtp/logger.h"
@@ -196,7 +199,19 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   tools::Property& output_summary = summary_.add("output", "");
 
   if (do_gwbse_) {
+    const InactiveScreeningInput::Mode inactive_mode =
+        InactiveScreeningInput::Parse(
+            gwbse_options_.ifExistsReturnElseReturnDefault<std::string>(
+                "inactive_screening", "none"));
     if (do_dft_in_dft_ || orbitals.getEmbeddedMOs().eigenvectors().size() > 0) {
+      // from the full reference MOs, before the embedded ones replace them
+      InactiveScreeningInput inactive = InactiveScreening::Prepare(
+          orbitals, inactive_mode,
+          gwbse_options_.ifExistsReturnElseReturnDefault<bool>(
+              "inactive_screening_complete_g", false),
+          gwbse_options_.ifExistsReturnElseReturnDefault<double>(
+              "inactive_screening_radius", 0.0) *
+              tools::conv::ang2bohr);
       Orbitals orb_embedded = orbitals;
       orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
 
@@ -207,7 +222,13 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
             "spaces with an even number of electrons");
       }
 
-      const Index active_occ = active_electrons / 2;
+      Index active_occ = active_electrons / 2;
+      if (inactive.complete_g) {
+        // inactive occupied levels in front of the active ones
+        orb_embedded.MOs() = InactiveScreening::CompleteGOrbitals(
+            orb_embedded.getEmbeddedMOs(), active_occ, inactive);
+        active_occ += inactive.n_inactive;
+      }
 
       // Restricted closed-shell rewrite of the embedded orbital object
       orb_embedded.setNumberOfOccupiedLevels(active_occ);
@@ -218,6 +239,7 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
 
       GWBSE gwbse = GWBSE(orb_embedded);
       gwbse.setLogger(logger);
+      gwbse.setInactiveScreening(std::move(inactive));
       gwbse.Initialize(gwbse_options_);
       gwbse.Evaluate();
       gwbse.addoutput(output_summary);

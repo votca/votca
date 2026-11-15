@@ -425,3 +425,74 @@ QM-only value (cut-off environment), the ground-state embedding contributes
 scheme. These two are common to both schemes. The embedded scheme adds :math:`-0.104` eV from the correlated electron-hole pair and
 :math:`-0.116` eV from :math:`K^\text{reac}`, which the logged first-order
 estimate reproduces to about 10%.
+
+.. _pbe-inactive-screening:
+
+Projection-based embedding: screening by the inactive region
+************************************************************
+
+After a projection-based DFT-in-DFT calculation
+(:doc:`projection_embedding`), GW-BSE works with the active orbitals only. The
+response function then contains only transitions out of the active
+occupied orbitals, and the inactive region does not screen at all. The QP
+gap comes out too large (by 0.2 to 0.6 eV in [Sundaram:2024]_) and the
+direct term of the BSE too strong; the two errors partly cancel in the
+excitation energies.
+
+``gwbse.inactive_screening`` adds the response of the inactive region
+:math:`Y` to the dielectric matrix of the active one. In the metric of the
+stored three-centre integrals,
+
+.. math::
+
+   \epsilon(\omega) = 1 + X_A(\omega) + Y(\omega),
+
+with
+
+* ``exact``: :math:`Y = X_\text{full} - X_A`, the response of all occupied
+  orbitals of the full reference calculation minus that of the active ones.
+  :math:`\epsilon` is then the one of the full system.
+* ``block``: :math:`Y = X_B`, the response of the inactive occupied
+  orbitals in semicanonical form. It misses terms of first order in the
+  Fock coupling between active and inactive orbitals, but needs only the
+  inactive orbitals.
+
+Without a truncated basis both share the full virtual space. In GW,
+:math:`Y` enters at the two fitting frequencies of the plasmon-pole model
+(``sigma_integrator ppm``), or as poles fitted at the same two frequencies
+that enter the RPA of the exact self-energy (``exact``) and the
+dielectric matrices of the contour deformation (``cda``) as additional
+transitions. The BSE uses :math:`Y` at zero frequency. A polarizable
+environment (:ref:`embedded-usage`) works alongside: it keeps its reaction
+field, and the inactive region screens through :math:`\epsilon`.
+
+When the active region is cut out of a conjugated system, screening alone
+is not enough: the QP energies also need the exchange with the inactive
+occupied orbitals. ``inactive_screening_complete_g`` puts the inactive
+occupied orbitals into the Green's function as well (:math:`\Sigma_x`,
+:math:`\Sigma_c`, and :math:`V_{xc}` of the full density). The QP and BSE
+windows stay in the active region, and the inactive orbitals are left out
+of the response of the active one (they are in :math:`Y`). With ``exact``
+and the plasmon-pole model, the virtual QP energies are then those of the
+full calculation.
+
+The cost of the inactive response is about that of the RPA of the
+inactive region (``block``) or of the full system (``exact``). The memory
+and the BSE stay those of the active region: the response is built in
+chunks of the size ``--memory`` leaves (or ``inactive_screening_memory``).
+Two options reduce the cost:
+
+* ``inactive_screening_virtual_cutoff`` (eV above the LUMO) keeps only the
+  lower virtual levels in :math:`Y`. The high transitions screen nearly
+  statically and shift all QP levels alike, so the gap and the excitation
+  energies converge faster than the absolute levels. On a DPP molecule with
+  two 2-hexyldecyl side chains (def2-SVP), 20 to 40 eV keep the QP levels
+  within 40 meV and the gap within 6 meV of the uncut result, at a half to
+  a third of the cost.
+* ``inactive_screening_radius`` (Å, ``block`` only) keeps only the inactive
+  localized orbitals whose centre lies within the radius of an active one.
+  On a chromophore with an extended C16 chain, 8 Å changes the gap by
+  6 meV and the lowest excitation by 2 meV.
+
+Not available with a truncated basis (``truncate_basis``), for open-shell
+systems, with QSGW, or with dynamical screening in the BSE.

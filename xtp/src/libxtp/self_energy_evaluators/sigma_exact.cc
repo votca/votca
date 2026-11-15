@@ -140,13 +140,20 @@ Eigen::MatrixXd Sigma_Exact::ScreeningModes(const Eigen::MatrixXd& XpY) const {
   const Index lumo = opt_.homo + 1;
   const Index n_occ = lumo - opt_.rpamin;
   const Index n_unocc = opt_.rpamax - opt_.homo;
-  const Index rpasize = n_occ * n_unocc;
-  vc2index vc = vc2index(0, 0, n_unocc);
-  // rows (v, c) of the virtual rows of the hole slices
-  Eigen::MatrixXd M(rpasize, Mmn_.auxsize());
+  // excluded holes (TCMatrix_gwbse::ExcludedHoles) are not in the RPA
+  const Index skip = std::min(Mmn_.ExcludedHoles(), n_occ);
+  const Index rpasize = (n_occ - skip) * n_unocc;
+  const Index npoles = Mmn_.AdditionalPoleCount();
+  vc2index vc = vc2index(skip, 0, n_unocc);
+  // rows (v, c) of the virtual rows of the hole slices, then the vectors of
+  // the additional poles (pseudo-transitions, TCMatrix_gwbse)
+  Eigen::MatrixXd M(rpasize + npoles, Mmn_.auxsize());
 #pragma omp parallel for schedule(dynamic)
-  for (Index v = 0; v < n_occ; v++) {
+  for (Index v = skip; v < n_occ; v++) {
     M.middleRows(vc.I(v, 0), n_unocc) = Mmn_[v].middleRows(n_occ, n_unocc);
+  }
+  if (npoles > 0) {
+    M.bottomRows(npoles) = Mmn_.AdditionalPoleVectors().transpose();
   }
   return M.transpose() * XpY;
 }

@@ -229,6 +229,14 @@ void BSE::MatchDressingToRoute() {
   // below is the environment-screened one and Kx carries K_reac. Bare:
   // Kx stays v, and W_tot is assembled explicitly below. GW may have left
   // the integrals either way.
+  if (dressed_route && Mmn_.Dressed() &&
+      (Mmn_.Dressing().rows() != dressing_.rows() ||
+       !Mmn_.Dressing().isApprox(dressing_, 1e-14))) {
+    // GW dressed with another reaction field (e.g. inactive_screening in the
+    // plasmon-pole model: GW with the environment only, BSE with
+    // environment and inactive region together)
+    Mmn_.UndressAuxIndex();
+  }
   if (dressed_route && !Mmn_.Dressed()) {
     Mmn_.DressAuxIndex(dressing_);
   } else if (!dressed_route && Mmn_.Dressed()) {
