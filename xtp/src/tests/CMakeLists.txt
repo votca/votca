@@ -53,6 +53,8 @@ list(APPEND test_cases test_dftengine_private)
 # slow: three full SCF runs
 list(APPEND test_cases test_dftengine_forces)
 list(APPEND test_cases test_dftgradient)
+# slow: 19 SCF + BSE runs per case
+list(APPEND test_cases test_bsegradient)
 list(APPEND test_cases test_diabatization)
 list(APPEND test_cases test_diis)
 list(APPEND test_cases test_dipoledipoleinteraction)

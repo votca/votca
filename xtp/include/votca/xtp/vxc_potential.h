@@ -46,7 +46,7 @@ class Vxc_Potential {
     Eigen::MatrixXd vxc_beta;
   };
 
-  explicit Vxc_Potential(const Grid& grid) : grid_(grid) {};
+  explicit Vxc_Potential(const Grid& grid) : grid_(grid){};
   ~Vxc_Potential();
 
   static double getExactExchange(const std::string& functional);
@@ -94,6 +94,17 @@ class Vxc_Potential {
   // ===========================================================================
   Eigen::MatrixXd GridWeightGradient(const Eigen::MatrixXd& density_matrix,
                                      const QMMolecule& atoms) const;
+
+  // ===========================================================================
+  // First-order change of PulayGradient + GridWeightGradient along a
+  // symmetric density direction P: d/dt [PulayGradient + GridWeightGradient]
+  // (D + t P) at t = 0, analytically in one grid pass (the XC part of
+  // relaxed excited-state gradients). Needs second functional derivatives
+  // from libxc. Checked against finite differences in test_xcgradient.cc.
+  // ===========================================================================
+  Eigen::MatrixXd GradientResponse(const Eigen::MatrixXd& density_matrix,
+                                   const Eigen::MatrixXd& direction,
+                                   const QMMolecule& atoms) const;
 
   // ===========================================================================
   // UKS (spin-polarized) analogs of PulayGradient/GridWeightGradient
@@ -165,6 +176,10 @@ class Vxc_Potential {
   void EvaluateFXCBatch(Index n, const double* rho, const double* sigma,
                         double* vsigma, double* v2rho2, double* v2rhosigma,
                         double* v2sigma2) const;
+  // the same with vrho as well
+  void EvaluateVXCFXCBatch(Index n, const double* rho, const double* sigma,
+                           double* vrho, double* vsigma, double* v2rho2,
+                           double* v2rhosigma, double* v2sigma2) const;
   // the same, polarized (libxc layout): rho 2n, sigma and vsigma 3n,
   // v2rho2 3n (aa, ab, bb), v2rhosigma 6n (a_aa, a_ab, a_bb, b_aa, b_ab,
   // b_bb), v2sigma2 6n (aa_aa, aa_ab, aa_bb, ab_ab, ab_bb, bb_bb)

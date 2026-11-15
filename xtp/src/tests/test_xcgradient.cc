@@ -647,4 +647,42 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks_gga) {
   libint2::finalize();
 }
 
+// GradientResponse (analytic d/dt of PulayGradient + GridWeightGradient at
+// D + t P) against a Richardson central difference in t, methane with the
+// test density and a random symmetric direction, LDA and GGA.
+BOOST_AUTO_TEST_CASE(xc_gradient_response_finite_difference) {
+  libint2::initialize();
+  auto base_atoms = LoadBaseGeometry();
+  QMMolecule mol0 = BuildDisplacedMethane(base_atoms, 1, 0.0);
+  AOBasis aobasis0 = BuildBasis(mol0);
+  Eigen::MatrixXd dmat = tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/vxc_potential/dmat.mm");
+  std::srand(7);
+  Eigen::MatrixXd r = Eigen::MatrixXd::Random(dmat.rows(), dmat.cols());
+  const Eigen::MatrixXd P = 0.05 * (r + r.transpose());
+  Vxc_Grid grid0;
+  grid0.GridSetup("coarse", mol0, aobasis0);
+  for (const std::string functional :
+       {"XC_LDA_X XC_LDA_C_VWN", "XC_GGA_X_PBE XC_GGA_C_PBE"}) {
+    Vxc_Potential<Vxc_Grid> vxc0(grid0);
+    vxc0.setXCfunctional(functional);
+    const Eigen::MatrixXd analytic = vxc0.GradientResponse(dmat, P, mol0);
+    auto g = [&](double t) {
+      const Eigen::MatrixXd D = dmat + t * P;
+      return Eigen::MatrixXd(vxc0.PulayGradient(D, aobasis0) +
+                             vxc0.GridWeightGradient(D, mol0));
+    };
+    // GGA needs a small step (FD error 4e-5 at h = 3e-3, 1e-10 at 1e-4)
+    const double h = 1e-4;
+    const Eigen::MatrixXd fd =
+        (8.0 * (g(h) - g(-h)) - (g(2 * h) - g(-2 * h))) / (12.0 * h);
+    const double err = (analytic - fd).cwiseAbs().maxCoeff();
+    std::cout << functional << " GradientResponse max |analytic - fd| = " << err
+              << " (max |fd| = " << fd.cwiseAbs().maxCoeff() << ")"
+              << std::endl;
+    BOOST_CHECK_SMALL(err, 1e-6 * std::max(1.0, fd.cwiseAbs().maxCoeff()));
+  }
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

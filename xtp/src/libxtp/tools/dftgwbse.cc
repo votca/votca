@@ -19,13 +19,16 @@
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
+#include "votca/xtp/dftengine.h"
 #include "votca/xtp/gwbseengine.h"
 #include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/qmstate.h"
 #include "votca/xtp/segment.h"
 #include "votca/xtp/staticregion.h"
 
 // Local private VOTCA includes
 #include "dftgwbse.h"
+#include "votca/xtp/excitonfollow.h"
 
 namespace votca {
 namespace xtp {
@@ -46,6 +49,19 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
 
   // XML OUTPUT
   xml_output_ = job_name_ + "_summary.xml";
+
+  if (options.exists(".excited_state_forces")) {
+    excited_state_forces_ =
+        options.get(".excited_state_forces").as<std::string>();
+  }
+  if (options.exists(".excited_state_forces_follow")) {
+    excited_state_forces_follow_ =
+        options.get(".excited_state_forces_follow").as<std::string>();
+  }
+  if (options.exists(".excited_state_forces_qp_response")) {
+    excited_state_forces_qp_response_ =
+        options.get(".excited_state_forces_qp_response").as<bool>();
+  }
 
   if (options.exists(".mpsfile")) {
     mpsfile_ = options.get(".mpsfile").as<std::string>();
@@ -154,6 +170,10 @@ bool DftGwBse::Run() {
     }
   }
 
+  if (!excited_state_forces_.empty()) {
+    ComputeExcitedStateForces(orbitals);
+  }
+
   XTP_LOG(Log::error, log_) << "Saving data to " << archive_file_ << std::flush;
   orbitals.WriteToCpt(archive_file_);
 
@@ -167,6 +187,154 @@ bool DftGwBse::Run() {
     ofout.close();
   }
   return true;
+}
+
+// Root following: the state of the requested type with the largest exciton
+// overlap (ExcitonOverlaps) with the state whose forces are stored in the
+// orb file of an earlier geometry (excited_state_forces_follow).
+QMState DftGwBse::FollowState(const Orbitals& orbitals) {
+  Orbitals ref;
+  ref.ReadFromCpt(excited_state_forces_follow_);
+  if (ref.getExcitedStateForcesState().empty()) {
+    throw std::runtime_error(
+        "excited_state_forces_follow: " + excited_state_forces_follow_ +
+        " holds no excited-state forces");
+  }
+  const QMState ref_state(ref.getExcitedStateForcesState());
+  const Eigen::VectorXd ov =
+      ExcitonOverlaps(ref, ref_state, orbitals, ref_state.Type());
+  Index best = 0;
+  ov.maxCoeff(&best);
+  double second = 0.0;
+  for (Index i = 0; i < ov.size(); ++i) {
+    if (i != best) {
+      second = std::max(second, ov(i));
+    }
+  }
+  const QMState state(ref_state.Type(), best, false);
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Root following: " << ref_state.ToString() << " of "
+      << excited_state_forces_follow_ << " is " << state.ToString()
+      << " here (overlap " << ov(best) << ", next largest " << second << ")"
+      << std::flush;
+  if (ov(best) < 0.5 || second > 0.8 * ov(best)) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp()
+        << " WARNING: root following is ambiguous (states mix strongly or "
+           "the geometry step is large)"
+        << std::flush;
+  }
+  return state;
+}
+
+// Forces -dE/dR of one BSE state: the ground-state forces of the SCF
+// (xtpdft.compute_forces) minus the analytic gradient of the excitation
+// energy with fixed QP corrections (DFTEngine::BSEExcitationGradient).
+void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {
+  QMState state(excited_state_forces_);
+  if (!excited_state_forces_follow_.empty()) {
+    state = FollowState(orbitals);
+  }
+  const bool singlet = state.Type() == QMStateType::Singlet;
+  if (!singlet && state.Type() != QMStateType::Triplet) {
+    throw std::runtime_error(
+        "excited_state_forces: only singlet or triplet BSE states (e.g. s1)");
+  }
+  if (package_options_.get("name").as<std::string>() != "xtp") {
+    throw std::runtime_error("excited_state_forces: needs the xtp DFT package");
+  }
+  if (!mpsfile_.empty() || orbitals.getCalculationType() == "Truncated") {
+    throw std::runtime_error(
+        "excited_state_forces: embedding and truncated bases are not "
+        "supported");
+  }
+  if (!orbitals.hasForces()) {
+    throw std::runtime_error(
+        "excited_state_forces: needs the ground-state forces, set "
+        "dftpackage.xtpdft.compute_forces to true");
+  }
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Analytic forces of BSE state " << state.ToString()
+      << (orbitals.getTDAApprox() ? " (TDA)" : " (full BSE)") << std::flush;
+
+  DFTEngine::BSEGradientInput input = DFTEngine::BSEGradientInputFromOrbitals(
+      orbitals, singlet, state.StateIdx());
+  // response of the QP corrections: implemented for G0W0 and evGW with
+  // the plasmon-pole and the exact self-energy; otherwise (cda) the
+  // corrections are kept fixed
+  const std::string mode =
+      gwbseengine_options_.get("gwbse.gw.mode").as<std::string>();
+  const std::string integrator =
+      gwbseengine_options_.get("gwbse.gw.sigma_integrator").as<std::string>();
+  if (excited_state_forces_qp_response_ && (mode == "G0W0" || mode == "evGW") &&
+      (integrator == "ppm" || integrator == "exact")) {
+    input.qp_response = true;
+    input.sigma_integrator = integrator;
+    input.qp_selfconsistent = (mode == "evGW");
+    if (input.qp_selfconsistent) {
+      input.out_of_window_shift =
+          gwbseengine_options_.get("gwbse.gw.out_of_window_shift")
+              .as<std::string>();
+      input.out_of_window_fit_fraction =
+          gwbseengine_options_.get("gwbse.gw.out_of_window_fit_fraction")
+              .as<double>();
+    }
+    input.qpmin = orbitals.getGWAmin();
+    input.qpmax = orbitals.getGWAmax();
+    input.qp_energies = orbitals.QPpertEnergies();
+    input.sigma_eta = gwbseengine_options_.get("gwbse.gw.eta").as<double>();
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Including the response of the QP corrections"
+        << std::flush;
+  } else {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp()
+        << " QP corrections kept fixed (excited_state_forces_qp_response "
+           "false, or not G0W0/evGW with sigma_integrator ppm or exact)"
+        << std::flush;
+  }
+  DFTEngine dft;
+  dft.setLogger(&log_);
+  dft.Initialize(package_options_);
+  const DFTEngine::BSEGradientResult result =
+      dft.BSEExcitationGradient(orbitals, input);
+
+  const double omega =
+      (singlet ? orbitals.BSESinglets() : orbitals.BSETriplets())
+          .eigenvalues()(state.StateIdx());
+  if (std::abs(result.omega - omega) > 1e-6) {
+    throw std::runtime_error(
+        "excited_state_forces: the excitation energy rebuilt for the "
+        "gradient (" +
+        std::to_string(result.omega) +
+        " Ha) differs from the BSE eigenvalue (" + std::to_string(omega) +
+        " Ha); the GW-BSE setup (e.g. environment screening, dynamical "
+        "screening of the BSE kernel) is not covered by the gradient");
+  }
+  if (input.qp_response) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " QP energies rebuilt for the gradient: max "
+        << "deviation " << result.qp_rebuild_error << " Ha" << std::flush;
+  }
+  if (input.qp_selfconsistent) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " RPA energies rebuilt for the gradient: max "
+        << "deviation " << result.rpa_rebuild_error << " Ha" << std::flush;
+  }
+  // the QP solver and the interpolated pole sums of GW are converged to
+  // about 1e-6 Ha; a larger deviation means a different setup
+  if (input.qp_response && result.qp_rebuild_error > 1e-4) {
+    throw std::runtime_error(
+        "excited_state_forces: the QP energies rebuilt for the gradient "
+        "differ from the GW ones by " +
+        std::to_string(result.qp_rebuild_error) + " Ha");
+  }
+  const Eigen::MatrixXd forces = orbitals.getForces() - result.gradient;
+  orbitals.setExcitedStateForces(forces, state.ToString());
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Excited-state forces (Hartree/Bohr) of "
+      << state.ToString() << ", Omega = " << omega << " Ha:\n"
+      << forces << std::flush;
 }
 
 }  // namespace xtp

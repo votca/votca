@@ -499,8 +499,8 @@ void DFTEngine::ComputeAndStoreForces(
   Eigen::MatrixXd grad = nucrep_term + eone_grad + overlap_pulay_grad +
                          rij_term + pulay_term + weight_term;
 
-  // Exact-exchange (RI-K) gradient, hybrids only; skipped otherwise since
-  // RIKGradient costs O(nocc^2 * naux) linear solves. Its energy,
+  // Exact-exchange (RI-K) gradient, hybrids only (O(Naux * Nao^2 * nocc)
+  // work, O(Naux * nocc^2 + Naux^2) memory). Its energy,
   // E_K = -sum_ij c_ij.d_ij, equals 0.25*Dmat.cwiseProduct(K).sum() at
   // ScaHFX_ = 1 (tested in test_dftgradient.cc), so the contribution is
   // ScaHFX_ * RIKGradient, as exx = 0.25*ScaHFX_*Dmat.cwiseProduct(K).sum().

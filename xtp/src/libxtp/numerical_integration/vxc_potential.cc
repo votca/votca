@@ -423,16 +423,27 @@ void Vxc_Potential<Grid>::EvaluateFXCBatch(Index n, const double* rho,
                                            double* v2rho2, double* v2rhosigma,
                                            double* v2sigma2) const {
   std::vector<double> vrho(n);
+  EvaluateVXCFXCBatch(n, rho, sigma, vrho.data(), vsigma, v2rho2, v2rhosigma,
+                      v2sigma2);
+}
+
+template <class Grid>
+void Vxc_Potential<Grid>::EvaluateVXCFXCBatch(Index n, const double* rho,
+                                              const double* sigma, double* vrho,
+                                              double* vsigma, double* v2rho2,
+                                              double* v2rhosigma,
+                                              double* v2sigma2) const {
   std::fill(vsigma, vsigma + n, 0.0);
   std::fill(v2rhosigma, v2rhosigma + n, 0.0);
   std::fill(v2sigma2, v2sigma2 + n, 0.0);
-  CallLibxcFXC(xfunc, n, rho, sigma, vrho.data(), vsigma, v2rho2, v2rhosigma,
+  CallLibxcFXC(xfunc, n, rho, sigma, vrho, vsigma, v2rho2, v2rhosigma,
                v2sigma2);
   if (use_separate_) {
     std::vector<double> vr(n), vs(n, 0.0), rr(n), rs(n, 0.0), ss(n, 0.0);
     CallLibxcFXC(cfunc, n, rho, sigma, vr.data(), vs.data(), rr.data(),
                  rs.data(), ss.data());
     for (Index i = 0; i < n; ++i) {
+      vrho[i] += vr[i];
       vsigma[i] += vs[i];
       v2rho2[i] += rr[i];
       v2rhosigma[i] += rs[i];
@@ -1124,6 +1135,127 @@ double SSWDerivative(double mu) {
                    std::exp(-(kSSWAlpha * h) * (kSSWAlpha * h)) * hprime;
   return (mu > 0.0) ? -d_erf1c : d_erf1c;
 }
+
+// Adds e * C_p * d(w_owner)/dR_A for all atoms A to grad (natoms x 3), with
+// the stored weight = C_p * w_owner, C_p the geometry-independent radial and
+// angular quadrature weight and w_owner the SSW partition weight of the
+// point's owner atom; e is the energy density at the point. The point moves
+// with its owner. O(Natoms^2) per point: d(mu_ab)/dR_A is non-zero only for
+// A in {owner, a, b}.
+void AddSSWWeightDerivative(const Eigen::Vector3d& point, Index owner,
+                            double weight, double e, const QMMolecule& atoms,
+                            const Eigen::MatrixXd& Rij, Eigen::MatrixXd& grad) {
+  const Index natoms = atoms.size();
+  Eigen::VectorXd rq(natoms);
+  for (Index k = 0; k < natoms; ++k) {
+    rq(k) = (point - atoms[k].getPos()).norm();
+  }
+  // p[], mu_table, sk_table and hard-cutoff flags as in
+  // Vxc_Grid::SSWpartition, keeping the per-pair values for the derivative.
+  // hard(j,i): 0 = smooth, 1 = mu > cutoff (p[i] = 0), -1 = mu < -cutoff
+  // (p[j] = 0); upper triangle (j < i) only.
+  Eigen::VectorXd p = Eigen::VectorXd::Ones(natoms);
+  Eigen::MatrixXd mu_table = Eigen::MatrixXd::Zero(natoms, natoms);
+  Eigen::MatrixXd sk_table = Eigen::MatrixXd::Zero(natoms, natoms);
+  Eigen::MatrixXi hard = Eigen::MatrixXi::Zero(natoms, natoms);
+  for (Index ii = 1; ii < natoms; ++ii) {
+    for (Index jj = 0; jj < ii; ++jj) {
+      const double mu = (rq(ii) - rq(jj)) * Rij(jj, ii);
+      mu_table(jj, ii) = mu;
+      if (mu > kSSWCutoff) {
+        p(ii) = 0.0;
+        hard(jj, ii) = 1;
+      } else if (mu < -kSSWCutoff) {
+        p(jj) = 0.0;
+        hard(jj, ii) = -1;
+      } else {
+        const double sk = SSWValue(mu);
+        sk_table(jj, ii) = sk;
+        p(jj) *= sk;
+        p(ii) *= (1.0 - sk);
+      }
+    }
+  }
+  const double wsum = p.sum();
+  const double w_owner = p(owner) / wsum;
+  // points with negligible w_owner have negligible weight (C_p is bounded)
+  constexpr double kNegligibleWOwner = 1.e-8;
+  if (w_owner < kNegligibleWOwner) {
+    return;
+  }
+  // d(rq(k))/dR_A: +-unit vector for A == owner or A == k, zero if both
+  auto d_rq_dR = [&](Index k, Index A) -> Eigen::Vector3d {
+    if (A == owner && A == k) {
+      return Eigen::Vector3d::Zero();
+    } else if (A == owner) {
+      return (point - atoms[k].getPos()) / rq(k);
+    } else if (A == k) {
+      return -(point - atoms[k].getPos()) / rq(k);
+    }
+    return Eigen::Vector3d::Zero();
+  };
+  // coef * d(mu_ab)/dR_A (a < b) added to out for A in {owner, a, b}
+  auto add_dmu = [&](Index a, Index b, double coef, Eigen::MatrixXd& out) {
+    const double Rab = 1.0 / Rij(a, b);
+    const Eigen::Vector3d rvec = atoms[a].getPos() - atoms[b].getPos();
+    const double mu = mu_table(a, b);
+    const Index cand[3] = {owner, a, b};
+    for (Index c = 0; c < 3; ++c) {
+      const Index A = cand[c];
+      if ((c > 0 && A == cand[0]) || (c > 1 && A == cand[1])) {
+        continue;
+      }
+      Eigen::Vector3d dRab = Eigen::Vector3d::Zero();
+      if (A == a) {
+        dRab = rvec / Rab;
+      } else if (A == b) {
+        dRab = -rvec / Rab;
+      }
+      const Eigen::Vector3d dmu =
+          (d_rq_dR(b, A) - d_rq_dR(a, A)) / Rab - (mu / Rab) * dRab;
+      out.row(A) += coef * dmu.transpose();
+    }
+  };
+  // d p_k/dR = p_k sum over the smooth pairs of k of the log-derivatives of
+  // s or (1-s); these divide by s or 1-s, so pairs (and p_k) near the SSW
+  // saturation are treated as zero (threshold not tuned)
+  constexpr double kNegligibleP = 1.e-8;
+  Eigen::MatrixXd dp_owner = Eigen::MatrixXd::Zero(natoms, 3);
+  Eigen::MatrixXd dp_sum = Eigen::MatrixXd::Zero(natoms, 3);
+  Eigen::MatrixXd dp_k(natoms, 3);
+  for (Index k = 0; k < natoms; ++k) {
+    if (p(k) < kNegligibleP) {
+      continue;
+    }
+    dp_k.setZero();
+    for (Index b = k + 1; b < natoms; ++b) {
+      if (hard(k, b) != 0) {
+        continue;
+      }
+      const double skv = sk_table(k, b);
+      if (skv < kNegligibleP) {
+        continue;
+      }
+      add_dmu(k, b, SSWDerivative(mu_table(k, b)) / skv, dp_k);
+    }
+    for (Index a = 0; a < k; ++a) {
+      if (hard(a, k) != 0) {
+        continue;
+      }
+      const double one_minus_skv = 1.0 - sk_table(a, k);
+      if (one_minus_skv < kNegligibleP) {
+        continue;
+      }
+      add_dmu(a, k, -SSWDerivative(mu_table(a, k)) / one_minus_skv, dp_k);
+    }
+    dp_sum += p(k) * dp_k;
+    if (k == owner) {
+      dp_owner = p(k) * dp_k;
+    }
+  }
+  const double C_p = weight / w_owner;
+  grad += (C_p * e / wsum) * (dp_owner - w_owner * dp_sum);
+}
 }  // namespace
 
 template <class Grid>
@@ -1179,140 +1311,8 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
               "grid must be built with Vxc_Grid::GridSetup.");
         }
 
-        // rq(k) = distance from THIS point to atom k; needed for every
-        // atom, not just the owner, since the partition weight depends on
-        // distances to all atoms.
-        const Eigen::Vector3d& point = points[pidx];
-        Eigen::VectorXd rq(natoms);
-        for (Index k = 0; k < natoms; ++k) {
-          rq(k) = (point - atoms[k].getPos()).norm();
-        }
-
-        // Build p[], mu_table, sk_table, hard-cutoff flags for every pair
-        // -- same structure as Vxc_Grid::SSWpartition, but retaining the
-        // per-pair intermediate values needed for the derivative (the
-        // energy-level code discards these immediately after use).
-        Eigen::VectorXd p = Eigen::VectorXd::Ones(natoms);
-        Eigen::MatrixXd mu_table = Eigen::MatrixXd::Zero(natoms, natoms);
-        Eigen::MatrixXd sk_table = Eigen::MatrixXd::Zero(natoms, natoms);
-        // hard(j,i): 0 = smooth (sk_table valid), 1 = mu>cutoff (p[i]=0
-        // hard), -1 = mu<-cutoff (p[j]=0 hard). Only upper triangle (j<i)
-        // populated, matching the loop structure below.
-        Eigen::MatrixXi hard = Eigen::MatrixXi::Zero(natoms, natoms);
-        for (Index ii = 1; ii < natoms; ++ii) {
-          for (Index jj = 0; jj < ii; ++jj) {
-            double mu = (rq(ii) - rq(jj)) * Rij(jj, ii);
-            mu_table(jj, ii) = mu;
-            if (mu > kSSWCutoff) {
-              p(ii) = 0.0;
-              hard(jj, ii) = 1;
-            } else if (mu < -kSSWCutoff) {
-              p(jj) = 0.0;
-              hard(jj, ii) = -1;
-            } else {
-              double sk = SSWValue(mu);
-              sk_table(jj, ii) = sk;
-              p(jj) *= sk;
-              p(ii) *= (1.0 - sk);
-            }
-          }
-        }
-        double wsum = p.sum();
-        double w_owner = p(owner) / wsum;
-
-        // d(rq(k))/dR_A: zero unless A is the point's owner or A == k, then
-        // +-unit vector; zero if owner == k == A (point and owner move
-        // together).
-        auto d_rq_dR = [&](Index k, Index A) -> Eigen::Vector3d {
-          if (A == owner && A == k) {
-            return Eigen::Vector3d::Zero();
-          } else if (A == owner) {
-            return (point - atoms[k].getPos()) / rq(k);
-          } else if (A == k) {
-            return -(point - atoms[k].getPos()) / rq(k);
-          }
-          return Eigen::Vector3d::Zero();
-        };
-        auto d_Rab_dR = [&](Index a, Index b, Index A) -> Eigen::Vector3d {
-          Eigen::Vector3d rvec = atoms[a].getPos() - atoms[b].getPos();
-          double Rab = rvec.norm();
-          if (A == a) {
-            return rvec / Rab;
-          } else if (A == b) {
-            return -rvec / Rab;
-          }
-          return Eigen::Vector3d::Zero();
-        };
-        // a<b convention throughout, matching mu_table(a,b) with a<b.
-        auto dmu_dR = [&](Index a, Index b, Index A) -> Eigen::Vector3d {
-          Eigen::Vector3d d_rq_b = d_rq_dR(b, A);
-          Eigen::Vector3d d_rq_a = d_rq_dR(a, A);
-          double Rab = 1.0 / Rij(a, b);
-          Eigen::Vector3d dRab = d_Rab_dR(a, b, A);
-          double mu = mu_table(a, b);
-          return (d_rq_b - d_rq_a) / Rab - (mu / Rab) * dRab;
-        };
-        auto dp_dR = [&](Index k, Index A) -> Eigen::Vector3d {
-          // The log-derivative terms below divide by sk or (1-sk), which
-          // gives 0/0 as p(k) -> 0 near SSW saturation; points with
-          // negligible p(k) are treated as zero. The threshold is not
-          // tuned.
-          constexpr double kNegligibleP = 1.e-8;
-          if (p(k) < kNegligibleP) {
-            return Eigen::Vector3d::Zero();
-          }
-          Eigen::Vector3d total = Eigen::Vector3d::Zero();
-          for (Index b = k + 1; b < natoms; ++b) {
-            if (hard(k, b) != 0) {
-              continue;
-            }
-            double skv = sk_table(k, b);
-            if (skv < kNegligibleP) {
-              continue;  // avoid dividing by a near-zero skv
-            }
-            total += (SSWDerivative(mu_table(k, b)) / skv) * dmu_dR(k, b, A);
-          }
-          for (Index a = 0; a < k; ++a) {
-            if (hard(a, k) != 0) {
-              continue;
-            }
-            double skv = sk_table(a, k);
-            double one_minus_skv = 1.0 - skv;
-            if (one_minus_skv < kNegligibleP) {
-              continue;  // same for the (1-sk) denominator
-            }
-            total += (-SSWDerivative(mu_table(a, k)) / one_minus_skv) *
-                     dmu_dR(a, k, A);
-          }
-          return p(k) * total;
-        };
-
-        // Skip points with negligible w_owner (then weight_p = C_p*w_owner
-        // is negligible too, C_p being bounded) to avoid dividing by it.
-        constexpr double kNegligibleWOwner = 1.e-8;
-        if (w_owner < kNegligibleWOwner) {
-          continue;
-        }
-
-        // The stored weight is weight_p = C_p * w_owner(p), with C_p the
-        // geometry-independent radial*angular quadrature weight and w_owner
-        // the SSW partition weight. The energy C_p*w_owner*rho_p*f_xc_p is
-        // differentiated through w_owner only (dw below), so the prefactor
-        // needs C_p = weight/w_owner.
-        double C_p = weight / w_owner;
-
-        double prefactor = C_p * rho * xc.f_xc;
-
-        for (Index A = 0; A < natoms; ++A) {
-          Eigen::Vector3d dp_owner = dp_dR(owner, A);
-          Eigen::Vector3d dwsum = Eigen::Vector3d::Zero();
-          for (Index k = 0; k < natoms; ++k) {
-            dwsum += dp_dR(k, A);
-          }
-          Eigen::Vector3d dw = dp_owner / wsum - w_owner * dwsum / wsum;
-          Eigen::Vector3d contribution = prefactor * dw;
-          grad_thread[thread_id].row(A) += contribution.transpose();
-        }
+        AddSSWWeightDerivative(points[pidx], owner, weight, rho * xc.f_xc,
+                               atoms, Rij, grad_thread[thread_id]);
       }
     } catch (...) {
 #pragma omp critical
@@ -1330,6 +1330,162 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
   for (Index t = 0; t < nthreads; ++t) {
     grad += grad_thread[t];
+  }
+  return grad;
+}
+
+// ===========================================================================
+// d/dt [PulayGradient + GridWeightGradient](D + t P) at t = 0.
+//
+// With T = 2D and T' = 2P on the box, per grid point (phi, dphi, H_mu the AO
+// values, gradients and Hessians):
+//   temp = phi^T T, g = dphi^T temp, Gm = T dphi, s = Gm g,
+//   Hrho = sum_mu temp_mu H_mu + sym(dphi^T Gm),
+// and the primed objects from T'. With drho = temp'.phi / 2,
+// dsigma = 2 g.g', dvr = v2rho2 drho + v2rhosigma dsigma,
+// dvs = v2rhosigma drho + v2sigma2 dsigma, s' = Gm' g + Gm g':
+//   translation (owner):
+//     w [dvr g + vr g' + 2 dvs Hrho g + 2 vs (Hrho' g + Hrho g')]
+//   basis (mu on A):
+//     -w (dvr temp_mu + vr temp'_mu) dphi_mu
+//     -2w [dvs (dphi_mu s_mu + temp_mu H_mu g)
+//          + vs (dphi_mu s'_mu + temp'_mu H_mu g + temp_mu H_mu g')]
+//   grid weights: the SSW derivative with energy density
+//     d(rho f_xc) = vr drho + vs dsigma.
+// ===========================================================================
+template <class Grid>
+Eigen::MatrixXd Vxc_Potential<Grid>::GradientResponse(
+    const Eigen::MatrixXd& density_matrix, const Eigen::MatrixXd& direction,
+    const QMMolecule& atoms) const {
+  const Index natoms = atoms.size();
+  const Eigen::MatrixXd Rij = grid_.CalcInverseAtomDist(atoms);
+  // fail before the grid loop for functionals without fxc
+  {
+    const double rho = 0.1;
+    const double sigma = 0.01;
+    double vr, vs, rr, rs, ss;
+    EvaluateVXCFXCBatch(1, &rho, &sigma, &vr, &vs, &rr, &rs, &ss);
+  }
+  const Index nthreads = OPENMP::getMaxThreads();
+  std::vector<Eigen::MatrixXd> grad_thread(nthreads,
+                                           Eigen::MatrixXd::Zero(natoms, 3));
+  std::exception_ptr eptr = nullptr;
+#pragma omp parallel for schedule(guided)
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    try {
+      const Index thread_id = OPENMP::getThreadId();
+      Eigen::MatrixXd& gt = grad_thread[thread_id];
+      const GridBox& box = grid_[i];
+      if (!box.Matrixsize()) {
+        continue;
+      }
+      const Eigen::MatrixXd T = 2 * box.ReadFromBigMatrix(density_matrix);
+      const Eigen::MatrixXd Tp = 2 * box.ReadFromBigMatrix(direction);
+      const double cutoff = 1.e-40 / double(density_matrix.rows()) /
+                            double(density_matrix.rows());
+      if (T.cwiseAbs2().maxCoeff() < cutoff) {
+        continue;
+      }
+      const Index nf = box.Matrixsize();
+      std::vector<Index> local_idx_to_atom(nf);
+      const std::vector<const AOShell*>& shells = box.getShells();
+      const std::vector<GridboxRange>& ao_ranges = box.getAOranges();
+      for (std::size_t sh = 0; sh < shells.size(); ++sh) {
+        const Index atom = shells[sh]->getAtomIndex();
+        for (Index k = 0; k < ao_ranges[sh].size; ++k) {
+          local_idx_to_atom[ao_ranges[sh].start + k] = atom;
+        }
+      }
+      const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+      const std::vector<double>& weights = box.getGridWeights();
+      const std::vector<Index>& owner_atoms = box.getOwnerAtoms();
+
+      for (Index pt = 0; pt < box.size(); ++pt) {
+        const double w = weights[pt];
+        const Index owner = owner_atoms[pt];
+        if (owner < 0) {
+          throw std::runtime_error(
+              "GradientResponse: grid point has no owner atom set; the grid "
+              "must be built with Vxc_Grid::GridSetup.");
+        }
+        AOShell::AOValuesHessian ao = is_gga_
+                                          ? box.CalcAOValuesHessian(points[pt])
+                                          : AOShell::AOValuesHessian(0);
+        AOShell::AOValues aov(0);
+        if (!is_gga_) {
+          aov = box.CalcAOValues(points[pt]);
+        }
+        const Eigen::VectorXd& phi = is_gga_ ? ao.values : aov.values;
+        const Eigen::MatrixX3d& dphi =
+            is_gga_ ? ao.derivatives : aov.derivatives;
+
+        const Eigen::VectorXd temp = T * phi;
+        const double rho = 0.5 * temp.dot(phi);
+        if (rho * w < 1.e-20) {
+          continue;
+        }
+        const Eigen::VectorXd tempP = Tp * phi;
+        const double drho = 0.5 * tempP.dot(phi);
+        const Eigen::Vector3d g = dphi.transpose() * temp;
+        const Eigen::Vector3d gp = dphi.transpose() * tempP;
+        const double sigma = g.squaredNorm();
+        const double dsigma = 2.0 * g.dot(gp);
+        double vr, vs, rr, rs, ss;
+        EvaluateVXCFXCBatch(1, &rho, &sigma, &vr, &vs, &rr, &rs, &ss);
+        const double dvr = rr * drho + rs * dsigma;
+        const double dvs = rs * drho + ss * dsigma;
+
+        // LDA part: translation and basis terms
+        gt.row(owner) += (w * (dvr * g + vr * gp)).transpose();
+        for (Index mu = 0; mu < nf; ++mu) {
+          gt.row(local_idx_to_atom[mu]) -=
+              w * (dvr * temp(mu) + vr * tempP(mu)) * dphi.row(mu);
+        }
+        if (is_gga_) {
+          const Eigen::MatrixX3d Gm = T * dphi;
+          const Eigen::MatrixX3d Gp = Tp * dphi;
+          const Eigen::VectorXd sv = Gm * g;
+          const Eigen::VectorXd svp = Gp * g + Gm * gp;
+          Eigen::Matrix3d Hrho = Eigen::Matrix3d::Zero();
+          Eigen::Matrix3d Hp = Eigen::Matrix3d::Zero();
+          for (Index mu = 0; mu < nf; ++mu) {
+            Hrho += temp(mu) * ao.hessians[mu];
+            Hp += tempP(mu) * ao.hessians[mu];
+          }
+          const Eigen::Matrix3d M = dphi.transpose() * Gm;
+          const Eigen::Matrix3d Mp = dphi.transpose() * Gp;
+          Hrho += 0.5 * (M + M.transpose());
+          Hp += 0.5 * (Mp + Mp.transpose());
+          gt.row(owner) +=
+              (2.0 * w * (dvs * (Hrho * g) + vs * (Hp * g + Hrho * gp)))
+                  .transpose();
+          for (Index mu = 0; mu < nf; ++mu) {
+            const Eigen::Matrix3d& H = ao.hessians[mu];
+            const Eigen::Vector3d d = dphi.row(mu).transpose();
+            const Eigen::Vector3d c =
+                dvs * (d * sv(mu) + temp(mu) * (H * g)) +
+                vs * (d * svp(mu) + tempP(mu) * (H * g) + temp(mu) * (H * gp));
+            gt.row(local_idx_to_atom[mu]) -= (2.0 * w * c).transpose();
+          }
+        }
+        AddSSWWeightDerivative(points[pt], owner, w, vr * drho + vs * dsigma,
+                               atoms, Rij, gt);
+      }
+    } catch (...) {
+#pragma omp critical
+      {
+        if (!eptr) {
+          eptr = std::current_exception();
+        }
+      }
+    }
+  }
+  if (eptr) {
+    std::rethrow_exception(eptr);
+  }
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (const Eigen::MatrixXd& gtt : grad_thread) {
+    grad += gtt;
   }
   return grad;
 }
@@ -1483,10 +1639,9 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradientUKS(
     const Eigen::MatrixXd& dmat_alpha, const Eigen::MatrixXd& dmat_beta,
     const QMMolecule& atoms) const {
   // UKS version of GridWeightGradient (LDA and GGA). The SSW weight
-  // derivative (d_rq_dR, d_Rab_dR, dmu_dR, dp_dR, C_p/w_owner) is purely
-  // geometric and identical; only the prefactor differs: rho_a, rho_b
-  // from the spin density matrices (not pre-doubled, as in
-  // IntegrateVXCSpin) and f_xc from EvaluateXCSpin.
+  // derivative (AddSSWWeightDerivative) is purely geometric and identical; only
+  // the prefactor differs: rho_a, rho_b from the spin density matrices (not
+  // pre-doubled, as in IntegrateVXCSpin) and f_xc from EvaluateXCSpin.
   Index natoms = atoms.size();
   Eigen::MatrixXd Rij = grid_.CalcInverseAtomDist(atoms);
 
@@ -1545,113 +1700,8 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradientUKS(
               "grid must be built with Vxc_Grid::GridSetup.");
         }
 
-        const Eigen::Vector3d& point = points[pidx];
-        Eigen::VectorXd rq(natoms);
-        for (Index k = 0; k < natoms; ++k) {
-          rq(k) = (point - atoms[k].getPos()).norm();
-        }
-
-        Eigen::VectorXd p = Eigen::VectorXd::Ones(natoms);
-        Eigen::MatrixXd mu_table = Eigen::MatrixXd::Zero(natoms, natoms);
-        Eigen::MatrixXd sk_table = Eigen::MatrixXd::Zero(natoms, natoms);
-        Eigen::MatrixXi hard = Eigen::MatrixXi::Zero(natoms, natoms);
-        for (Index ii = 1; ii < natoms; ++ii) {
-          for (Index jj = 0; jj < ii; ++jj) {
-            double mu = (rq(ii) - rq(jj)) * Rij(jj, ii);
-            mu_table(jj, ii) = mu;
-            if (mu > kSSWCutoff) {
-              p(ii) = 0.0;
-              hard(jj, ii) = 1;
-            } else if (mu < -kSSWCutoff) {
-              p(jj) = 0.0;
-              hard(jj, ii) = -1;
-            } else {
-              double sk = SSWValue(mu);
-              sk_table(jj, ii) = sk;
-              p(jj) *= sk;
-              p(ii) *= (1.0 - sk);
-            }
-          }
-        }
-        double wsum = p.sum();
-        double w_owner = p(owner) / wsum;
-
-        auto d_rq_dR = [&](Index k, Index A) -> Eigen::Vector3d {
-          if (A == owner && A == k) {
-            return Eigen::Vector3d::Zero();
-          } else if (A == owner) {
-            return (point - atoms[k].getPos()) / rq(k);
-          } else if (A == k) {
-            return -(point - atoms[k].getPos()) / rq(k);
-          }
-          return Eigen::Vector3d::Zero();
-        };
-        auto d_Rab_dR = [&](Index a, Index b, Index A) -> Eigen::Vector3d {
-          Eigen::Vector3d rvec = atoms[a].getPos() - atoms[b].getPos();
-          double Rab = rvec.norm();
-          if (A == a) {
-            return rvec / Rab;
-          } else if (A == b) {
-            return -rvec / Rab;
-          }
-          return Eigen::Vector3d::Zero();
-        };
-        auto dmu_dR = [&](Index a, Index b, Index A) -> Eigen::Vector3d {
-          Eigen::Vector3d d_rq_b = d_rq_dR(b, A);
-          Eigen::Vector3d d_rq_a = d_rq_dR(a, A);
-          double Rab = 1.0 / Rij(a, b);
-          Eigen::Vector3d dRab = d_Rab_dR(a, b, A);
-          double mu = mu_table(a, b);
-          return (d_rq_b - d_rq_a) / Rab - (mu / Rab) * dRab;
-        };
-        auto dp_dR = [&](Index k, Index A) -> Eigen::Vector3d {
-          constexpr double kNegligibleP = 1.e-8;
-          if (p(k) < kNegligibleP) {
-            return Eigen::Vector3d::Zero();
-          }
-          Eigen::Vector3d total = Eigen::Vector3d::Zero();
-          for (Index b = k + 1; b < natoms; ++b) {
-            if (hard(k, b) != 0) {
-              continue;
-            }
-            double skv = sk_table(k, b);
-            if (skv < kNegligibleP) {
-              continue;
-            }
-            total += (SSWDerivative(mu_table(k, b)) / skv) * dmu_dR(k, b, A);
-          }
-          for (Index a = 0; a < k; ++a) {
-            if (hard(a, k) != 0) {
-              continue;
-            }
-            double skv = sk_table(a, k);
-            double one_minus_skv = 1.0 - skv;
-            if (one_minus_skv < kNegligibleP) {
-              continue;
-            }
-            total += (-SSWDerivative(mu_table(a, k)) / one_minus_skv) *
-                     dmu_dR(a, k, A);
-          }
-          return p(k) * total;
-        };
-
-        constexpr double kNegligibleWOwner = 1.e-8;
-        if (w_owner < kNegligibleWOwner) {
-          continue;
-        }
-        double C_p = weight / w_owner;
-        double prefactor = C_p * rho * xc.f_xc;
-
-        for (Index A = 0; A < natoms; ++A) {
-          Eigen::Vector3d dp_owner = dp_dR(owner, A);
-          Eigen::Vector3d dwsum = Eigen::Vector3d::Zero();
-          for (Index k = 0; k < natoms; ++k) {
-            dwsum += dp_dR(k, A);
-          }
-          Eigen::Vector3d dw = dp_owner / wsum - w_owner * dwsum / wsum;
-          Eigen::Vector3d contribution = prefactor * dw;
-          grad_thread[thread_id].row(A) += contribution.transpose();
-        }
+        AddSSWWeightDerivative(points[pidx], owner, weight, rho * xc.f_xc,
+                               atoms, Rij, grad_thread[thread_id]);
       }
     } catch (...) {
 #pragma omp critical

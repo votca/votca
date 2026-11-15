@@ -37,6 +37,7 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/qmmolecule.h"
+#include "votca/xtp/riderivatives.h"
 #include "votca/xtp/votca_xtp_config.h"
 #include <atomic>
 #include <exception>
@@ -428,6 +429,106 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
 }
 #endif  // LIBINT_INCLUDE_ERI2
 
+// sum_PQ G_PQ d(P|Q)/dR for symmetric G, see riderivatives.h. Shell pairs
+// s2 <= s1 as in ComputeCoulombMetricDerivatives, off-diagonal pairs
+// doubled; each pair is contracted as soon as it is computed, so no
+// natoms * 3 * Naux^2 derivative matrices are stored.
+#if (LIBINT_INCLUDE_ERI2 >= 1)
+Eigen::MatrixXd ContractCoulombMetricDerivatives(const AOBasis& auxbasis,
+                                                 const Eigen::MatrixXd& G) {
+  Index natoms = static_cast<Index>(auxbasis.getFuncPerAtom().size());
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Shell> shells = auxbasis.GenerateLibintBasis();
+  std::vector<Index> shell2bf = auxbasis.getMapToBasisFunctions();
+
+  std::vector<Index> shell2atom;
+  shell2atom.reserve(auxbasis.getNumofShells());
+  for (Index s = 0; s < auxbasis.getNumofShells(); ++s) {
+    shell2atom.push_back(auxbasis.getShell(s).getAtomIndex());
+  }
+
+  std::vector<Eigen::MatrixXd> partial(nthreads,
+                                       Eigen::MatrixXd::Zero(natoms, 3));
+
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] =
+      libint2::Engine(libint2::Operator::coulomb, auxbasis.getMaxNprim(),
+                      static_cast<int>(auxbasis.getMaxL()), 1);
+  engines[0].set(libint2::BraKet::xs_xs);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+
+  std::exception_ptr eptr_coulmetric = nullptr;
+  std::atomic<bool> any_nonnull_buffer_coulmetric{false};
+#pragma omp parallel for schedule(dynamic)
+  for (Index s1 = 0; s1 < auxbasis.getNumofShells(); ++s1) {
+    try {
+      Index thread = OPENMP::getThreadId();
+      libint2::Engine& engine = engines[thread];
+      Eigen::MatrixXd& acc = partial[thread];
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
+
+      Index bf1 = shell2bf[s1];
+      Index n1 = shells[s1].size();
+      Index atom1 = shell2atom[s1];
+
+      for (Index s2 = 0; s2 <= s1; ++s2) {
+        engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xs, 1>(
+            shells[s1], libint2::Shell::unit(), shells[s2],
+            libint2::Shell::unit());
+
+        if (buf[0] == nullptr || buf[3] == nullptr) {
+          continue;
+        }
+        any_nonnull_buffer_coulmetric.store(true, std::memory_order_relaxed);
+
+        Index bf2 = shell2bf[s2];
+        Index n2 = shells[s2].size();
+        Index atom2 = shell2atom[s2];
+        const double factor = (s1 == s2) ? 1.0 : 2.0;
+        const auto Gblock = G.block(bf1, bf2, n1, n2);
+
+        for (Index xyz = 0; xyz < 3; ++xyz) {
+          Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
+          Eigen::Map<const MatrixLibInt> buf_mat2(buf[3 + xyz], n1, n2);
+          acc(atom1, xyz) += factor * (Gblock.array() * buf_mat1.array()).sum();
+          acc(atom2, xyz) += factor * (Gblock.array() * buf_mat2.array()).sum();
+        }
+      }
+    } catch (...) {
+#pragma omp critical
+      {
+        if (!eptr_coulmetric) {
+          eptr_coulmetric = std::current_exception();
+        }
+      }
+    }
+  }
+  if (eptr_coulmetric) {
+    std::rethrow_exception(eptr_coulmetric);
+  }
+  if (!any_nonnull_buffer_coulmetric.load() && auxbasis.getNumofShells() > 0) {
+    throw std::runtime_error(
+        "ContractCoulombMetricDerivatives: engine.results() returned a "
+        "null buffer for every shell pair; this libint2 build does not "
+        "support this operator's derivative integrals at runtime. Rebuild "
+        "libint2 with --enable-eri2=1 to use this feature.");
+  }
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (const Eigen::MatrixXd& p : partial) {
+    grad += p;
+  }
+  return grad;
+}
+#else   // !(LIBINT_INCLUDE_ERI2)
+Eigen::MatrixXd ContractCoulombMetricDerivatives(const AOBasis&,
+                                                 const Eigen::MatrixXd&) {
+  ThrowNoDerivativeSupport("ContractCoulombMetricDerivatives",
+                           "--enable-eri2=1");
+}
+#endif  // LIBINT_INCLUDE_ERI2
+
 // ===========================================================================
 // Three-centre RI integral derivatives d(mu,nu|P)/dR. Same shell order as
 // ComputeAO3cBlock (auxshell, unit, shell_col, shell_row, BraKet::xs_xx);
@@ -591,18 +692,17 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
 #endif  // LIBINT_INCLUDE_ERI3
 
 #if (LIBINT_INCLUDE_ERI3 >= 1)
-// Density-contracted three-centre derivatives for DFTGradient::RIJGradient:
-//   result[a](xyz, P) = sum_{mu,nu} D_{mu nu} d(mu,nu|P)/dR_a,xyz.
-// Each shell triple is contracted as soon as it is computed, so memory is
-// O(natoms * 3 * Naux) instead of the O(natoms * 3 * Naux * Nao^2) of
-// ComputeThreeCenterDerivatives (e.g. 53 atoms, 943 AOs, 2320 aux functions
-// would need ~2.6 PB). Loop structure and buffer layout as in
-// ComputeThreeCenterDerivatives.
-std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
-    const AOBasis& auxbasis, const AOBasis& dftbasis,
-    const Eigen::MatrixXd& density) {
+// sum_P sum_{mu nu} Gamma^P_{mu nu} d(mu nu|P)/dR, see riderivatives.h.
+// Parallel over aux shells; each thread builds the Gamma^P of its aux shell
+// (symmetrized), computes the derivative integrals of the shell pairs
+// col <= row (doubling off-diagonal pairs, as Gamma^P and (mu nu|P) are
+// symmetric) and contracts them immediately. Memory: one aux shell of
+// Nao x Nao matrices and a (natoms x 3) accumulator per thread. Shell order
+// and buffer layout as in ComputeThreeCenterDerivatives.
+Eigen::MatrixXd ContractThreeCenterDerivatives(const AOBasis& auxbasis,
+                                               const AOBasis& dftbasis,
+                                               const AuxDensityFn& gamma) {
   Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
-
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
   std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
@@ -620,156 +720,8 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
     auxshell2atom.push_back(auxbasis.getShell(s).getAtomIndex());
   }
 
-  Index n_aux_bf = auxbasis.AOBasisSize();
-
-  // result[a]: (3, n_aux_bf), rows xyz, columns aux function p
-  std::vector<Eigen::MatrixXd> result(natoms,
-                                      Eigen::MatrixXd::Zero(3, n_aux_bf));
-
-  std::vector<libint2::Engine> engines(nthreads);
-  engines[0] = libint2::Engine(
-      libint2::Operator::coulomb,
-      std::max(dftbasis.getMaxNprim(), auxbasis.getMaxNprim()),
-      static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())), 1);
-  engines[0].set(libint2::BraKet::xs_xx);
-  for (Index i = 1; i < nthreads; ++i) {
-    engines[i] = engines[0];
-  }
-
-  // No synchronization needed: the loop is parallel over aux shells, so
-  // different threads write to different columns (global_aux) of
-  // result[atom].
-  std::exception_ptr eptr_3c = nullptr;
-  std::atomic<bool> any_nonnull_buffer_3c{false};
-#pragma omp parallel for schedule(dynamic)
-  for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
-    try {
-      libint2::Engine& engine = engines[OPENMP::getThreadId()];
-      const libint2::Engine::target_ptr_vec& buf = engine.results();
-
-      const libint2::Shell& auxshell = auxshells[aux];
-      Index aux_start = auxshell2bf[aux];
-      Index atom_aux = auxshell2atom[aux];
-
-      for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
-        const libint2::Shell& shell_row = dftshells[row];
-        Index row_start = shell2bf[row];
-        Index atom_row = dftshell2atom[row];
-
-        for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
-          const libint2::Shell& shell_col = dftshells[col];
-          Index col_start = shell2bf[col];
-          Index atom_col = dftshell2atom[col];
-
-          engine
-              .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
-                  auxshell, libint2::Shell::unit(), shell_col, shell_row);
-
-          if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
-            continue;
-          }
-          any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
-
-          for (Index xyz = 0; xyz < 3; ++xyz) {
-            Eigen::TensorMap<
-                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-                result_aux(buf[xyz], auxshell.size(), shell_col.size(),
-                           shell_row.size());
-            Eigen::TensorMap<
-                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-                result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
-                           shell_row.size());
-            Eigen::TensorMap<
-                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-                result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
-                           shell_row.size());
-
-            for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
-              Index global_aux = aux_start + static_cast<Index>(aux_c);
-              for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
-                for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
-                  double val_aux = result_aux(aux_c, col_c, row_c);
-                  double val_col = result_col(aux_c, col_c, row_c);
-                  double val_row = result_row(aux_c, col_c, row_c);
-                  Index r = row_start + static_cast<Index>(row_c);
-                  Index c = col_start + static_cast<Index>(col_c);
-                  // contract with the density immediately
-                  double d_rc = density(r, c);
-                  result[atom_aux](xyz, global_aux) += d_rc * val_aux;
-                  result[atom_col](xyz, global_aux) += d_rc * val_col;
-                  result[atom_row](xyz, global_aux) += d_rc * val_row;
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (...) {
-#pragma omp critical
-      {
-        if (!eptr_3c) {
-          eptr_3c = std::current_exception();
-        }
-      }
-    }
-  }
-  if (eptr_3c) {
-    std::rethrow_exception(eptr_3c);
-  }
-  if (!any_nonnull_buffer_3c.load() && auxbasis.getNumofShells() > 0 &&
-      dftbasis.getNumofShells() > 0) {
-    throw std::runtime_error(
-        "ComputeThreeCenterDerivativeContraction: engine.results() "
-        "returned a null buffer for every shell triple; this libint2 "
-        "build does not support this operator's derivative integrals at "
-        "runtime, even though it may report LIBINT2_MAX_DERIV_ORDER >= 1 "
-        "for other operators. Rebuild libint2 with --enable-eri3=1 to "
-        "use this feature.");
-  }
-  return result;
-}
-#else   // !(LIBINT_INCLUDE_ERI3)
-std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
-    const AOBasis&, const AOBasis&, const Eigen::MatrixXd&) {
-  ThrowNoDerivativeSupport("ComputeThreeCenterDerivativeContraction",
-                           "--enable-eri3=1");
-}
-#endif  // LIBINT_INCLUDE_ERI3
-
-#if (LIBINT_INCLUDE_ERI3 >= 1)
-// Full (Nao x Nao) three-centre derivative matrices for one atom only,
-// (3, n_aux_bf) of them. Shell triples with no shell on target_atom are
-// skipped, but a loop over all atoms still evaluates each triple up to
-// three times. Superseded for RIKGradient by
-// ComputeThreeCenterDerivativesMOTransformed, which needs a single pass.
-ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
-    const AOBasis& auxbasis, const AOBasis& dftbasis, Index target_atom) {
-  std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
-  std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
-  std::vector<Index> shell2bf = dftbasis.getMapToBasisFunctions();
-  std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
-
-  std::vector<Index> dftshell2atom;
-  dftshell2atom.reserve(dftbasis.getNumofShells());
-  for (Index s = 0; s < dftbasis.getNumofShells(); ++s) {
-    dftshell2atom.push_back(dftbasis.getShell(s).getAtomIndex());
-  }
-  std::vector<Index> auxshell2atom;
-  auxshell2atom.reserve(auxbasis.getNumofShells());
-  for (Index s = 0; s < auxbasis.getNumofShells(); ++s) {
-    auxshell2atom.push_back(auxbasis.getShell(s).getAtomIndex());
-  }
-
-  Index n_dft_bf = dftbasis.AOBasisSize();
-  Index n_aux_bf = auxbasis.AOBasisSize();
-  Index nthreads = OPENMP::getMaxThreads();
-
-  // (3, n_aux_bf) matrices of size nao x nao for target_atom only
-  ThreeCenterDerivative result;
-  for (Index xyz = 0; xyz < 3; ++xyz) {
-    result[xyz] = std::vector<Eigen::MatrixXd>(
-        n_aux_bf, Eigen::MatrixXd::Zero(n_dft_bf, n_dft_bf));
-  }
+  std::vector<Eigen::MatrixXd> partial(nthreads,
+                                       Eigen::MatrixXd::Zero(natoms, 3));
 
   std::vector<libint2::Engine> engines(nthreads);
   engines[0] = libint2::Engine(
@@ -786,28 +738,31 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
 #pragma omp parallel for schedule(dynamic)
   for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
     try {
-      libint2::Engine& engine = engines[OPENMP::getThreadId()];
+      Index thread = OPENMP::getThreadId();
+      libint2::Engine& engine = engines[thread];
+      Eigen::MatrixXd& acc = partial[thread];
       const libint2::Engine::target_ptr_vec& buf = engine.results();
 
       const libint2::Shell& auxshell = auxshells[aux];
       Index aux_start = auxshell2bf[aux];
       Index atom_aux = auxshell2atom[aux];
+      Index naux_c = static_cast<Index>(auxshell.size());
+
+      std::vector<Eigen::MatrixXd> gam(naux_c);
+      for (Index f = 0; f < naux_c; ++f) {
+        gamma(aux_start + f, gam[f]);
+        gam[f] = 0.5 * (gam[f] + gam[f].transpose()).eval();
+      }
 
       for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
         const libint2::Shell& shell_row = dftshells[row];
         Index row_start = shell2bf[row];
         Index atom_row = dftshell2atom[row];
 
-        for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
+        for (Index col = 0; col <= row; ++col) {
           const libint2::Shell& shell_col = dftshells[col];
           Index col_start = shell2bf[col];
           Index atom_col = dftshell2atom[col];
-
-          // no shell on target_atom: no contribution
-          if (atom_aux != target_atom && atom_col != target_atom &&
-              atom_row != target_atom) {
-            continue;
-          }
 
           engine
               .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
@@ -818,6 +773,7 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
           }
           any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
 
+          const double factor = (row == col) ? 1.0 : 2.0;
           for (Index xyz = 0; xyz < 3; ++xyz) {
             Eigen::TensorMap<
                 Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
@@ -832,28 +788,25 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
                 result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
                            shell_row.size());
 
+            double s_aux = 0.0;
+            double s_col = 0.0;
+            double s_row = 0.0;
             for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
-              Index global_aux = aux_start + static_cast<Index>(aux_c);
+              const Eigen::MatrixXd& g = gam[aux_c];
               for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
+                Index c = col_start + static_cast<Index>(col_c);
                 for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
                   Index r = row_start + static_cast<Index>(row_c);
-                  Index c = col_start + static_cast<Index>(col_c);
-                  // only the centres located on target_atom contribute
-                  if (atom_aux == target_atom) {
-                    result[xyz][global_aux](r, c) +=
-                        result_aux(aux_c, col_c, row_c);
-                  }
-                  if (atom_col == target_atom) {
-                    result[xyz][global_aux](r, c) +=
-                        result_col(aux_c, col_c, row_c);
-                  }
-                  if (atom_row == target_atom) {
-                    result[xyz][global_aux](r, c) +=
-                        result_row(aux_c, col_c, row_c);
-                  }
+                  double g_rc = g(r, c);
+                  s_aux += g_rc * result_aux(aux_c, col_c, row_c);
+                  s_col += g_rc * result_col(aux_c, col_c, row_c);
+                  s_row += g_rc * result_row(aux_c, col_c, row_c);
                 }
               }
             }
+            acc(atom_aux, xyz) += factor * s_aux;
+            acc(atom_col, xyz) += factor * s_col;
+            acc(atom_row, xyz) += factor * s_row;
           }
         }
       }
@@ -872,193 +825,23 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
   if (!any_nonnull_buffer_3c.load() && auxbasis.getNumofShells() > 0 &&
       dftbasis.getNumofShells() > 0) {
     throw std::runtime_error(
-        "ComputeThreeCenterDerivativesForAtom: engine.results() returned "
-        "a null buffer for every shell triple touching this atom; this "
-        "libint2 build does not support this operator's derivative "
-        "integrals at runtime, even though it may report "
-        "LIBINT2_MAX_DERIV_ORDER >= 1 for other operators. Rebuild "
-        "libint2 with --enable-eri3=1 to use this feature.");
+        "ContractThreeCenterDerivatives: engine.results() returned a null "
+        "buffer for every shell triple; this libint2 build does not "
+        "support this operator's derivative integrals at runtime, even "
+        "though it may report LIBINT2_MAX_DERIV_ORDER >= 1 for other "
+        "operators. Rebuild libint2 with --enable-eri3=1 to use this "
+        "feature.");
   }
-  return result;
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (const Eigen::MatrixXd& p : partial) {
+    grad += p;
+  }
+  return grad;
 }
 #else   // !(LIBINT_INCLUDE_ERI3)
-ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(const AOBasis&,
-                                                           const AOBasis&,
-                                                           Index) {
-  ThrowNoDerivativeSupport("ComputeThreeCenterDerivativesForAtom",
-                           "--enable-eri3=1");
-}
-#endif  // LIBINT_INCLUDE_ERI3
-
-#if (LIBINT_INCLUDE_ERI3 >= 1)
-// Three-centre derivatives transformed to occupied MOs, for
-// DFTGradient::RIKGradient, in a single pass over the shell triples:
-//   result[a][xyz][P](i, j) = sum_{mu,nu} C_mu,i C_nu,j d(mu,nu|P)/dR_a,xyz
-// with C = occ_mo_coeffs, i.e. (nocc x nocc) matrices (ThreeCenterDerivative
-// is shape-agnostic). Memory natoms * 3 * Naux * nocc^2 doubles (~24 GB for
-// 53 atoms, 2320 aux functions, 93 occupied orbitals). Each shell pair and
-// aux function contributes C_row^T B C_col with the (nrow x ncol) integral
-// block B.
-std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
-    const AOBasis& auxbasis, const AOBasis& dftbasis,
-    const Eigen::MatrixXd& occ_mo_coeffs) {
-  Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
-  Index nocc = occ_mo_coeffs.cols();
-
-  Index nthreads = OPENMP::getMaxThreads();
-  std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
-  std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
-  std::vector<Index> shell2bf = dftbasis.getMapToBasisFunctions();
-  std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
-
-  std::vector<Index> dftshell2atom;
-  dftshell2atom.reserve(dftbasis.getNumofShells());
-  for (Index s = 0; s < dftbasis.getNumofShells(); ++s) {
-    dftshell2atom.push_back(dftbasis.getShell(s).getAtomIndex());
-  }
-  std::vector<Index> auxshell2atom;
-  auxshell2atom.reserve(auxbasis.getNumofShells());
-  for (Index s = 0; s < auxbasis.getNumofShells(); ++s) {
-    auxshell2atom.push_back(auxbasis.getShell(s).getAtomIndex());
-  }
-
-  Index n_aux_bf = auxbasis.AOBasisSize();
-
-  // result[a][xyz][p]: (nocc, nocc)
-  std::vector<ThreeCenterDerivative> result(natoms);
-  for (Index a = 0; a < natoms; ++a) {
-    for (Index xyz = 0; xyz < 3; ++xyz) {
-      result[a][xyz] = std::vector<Eigen::MatrixXd>(
-          n_aux_bf, Eigen::MatrixXd::Zero(nocc, nocc));
-    }
-  }
-
-  std::vector<libint2::Engine> engines(nthreads);
-  engines[0] = libint2::Engine(
-      libint2::Operator::coulomb,
-      std::max(dftbasis.getMaxNprim(), auxbasis.getMaxNprim()),
-      static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())), 1);
-  engines[0].set(libint2::BraKet::xs_xx);
-  for (Index i = 1; i < nthreads; ++i) {
-    engines[i] = engines[0];
-  }
-
-  // No synchronization needed: threads write to different global_aux
-  // entries of result[atom][xyz].
-  std::exception_ptr eptr_3c = nullptr;
-  std::atomic<bool> any_nonnull_buffer_3c{false};
-#pragma omp parallel for schedule(dynamic)
-  for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
-    try {
-      libint2::Engine& engine = engines[OPENMP::getThreadId()];
-      const libint2::Engine::target_ptr_vec& buf = engine.results();
-
-      const libint2::Shell& auxshell = auxshells[aux];
-      Index aux_start = auxshell2bf[aux];
-      Index atom_aux = auxshell2atom[aux];
-
-      for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
-        const libint2::Shell& shell_row = dftshells[row];
-        Index row_start = shell2bf[row];
-        Index atom_row = dftshell2atom[row];
-
-        for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
-          const libint2::Shell& shell_col = dftshells[col];
-          Index col_start = shell2bf[col];
-          Index atom_col = dftshell2atom[col];
-
-          engine
-              .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
-                  auxshell, libint2::Shell::unit(), shell_col, shell_row);
-
-          if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
-            continue;
-          }
-          any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
-
-          // MO coefficient rows of this shell pair
-          Index nrow = static_cast<Index>(shell_row.size());
-          Index ncol = static_cast<Index>(shell_col.size());
-          Eigen::MatrixXd mo_row_block =
-              occ_mo_coeffs.middleRows(row_start, nrow);
-          Eigen::MatrixXd mo_col_block =
-              occ_mo_coeffs.middleRows(col_start, ncol);
-
-          for (Index xyz = 0; xyz < 3; ++xyz) {
-            Eigen::TensorMap<
-                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-                result_aux(buf[xyz], auxshell.size(), shell_col.size(),
-                           shell_row.size());
-            Eigen::TensorMap<
-                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-                result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
-                           shell_row.size());
-            Eigen::TensorMap<
-                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-                result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
-                           shell_row.size());
-
-            for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
-              Index global_aux = aux_start + static_cast<Index>(aux_c);
-
-              // Copy the (nrow, ncol) block of this aux function and
-              // transform it with two small matrix products; one rank-1
-              // update per AO element would cost nao^2 * Naux * nocc^2.
-              Eigen::MatrixXd block_aux(nrow, ncol);
-              Eigen::MatrixXd block_col(nrow, ncol);
-              Eigen::MatrixXd block_row(nrow, ncol);
-              for (Index col_c = 0; col_c < ncol; ++col_c) {
-                for (Index row_c = 0; row_c < nrow; ++row_c) {
-                  block_aux(row_c, col_c) =
-                      result_aux(aux_c, static_cast<size_t>(col_c),
-                                 static_cast<size_t>(row_c));
-                  block_col(row_c, col_c) =
-                      result_col(aux_c, static_cast<size_t>(col_c),
-                                 static_cast<size_t>(row_c));
-                  block_row(row_c, col_c) =
-                      result_row(aux_c, static_cast<size_t>(col_c),
-                                 static_cast<size_t>(row_c));
-                }
-              }
-              result[atom_aux][xyz][global_aux].noalias() +=
-                  mo_row_block.transpose() * block_aux * mo_col_block;
-              result[atom_col][xyz][global_aux].noalias() +=
-                  mo_row_block.transpose() * block_col * mo_col_block;
-              result[atom_row][xyz][global_aux].noalias() +=
-                  mo_row_block.transpose() * block_row * mo_col_block;
-            }
-          }
-        }
-      }
-    } catch (...) {
-#pragma omp critical
-      {
-        if (!eptr_3c) {
-          eptr_3c = std::current_exception();
-        }
-      }
-    }
-  }
-  if (eptr_3c) {
-    std::rethrow_exception(eptr_3c);
-  }
-  if (!any_nonnull_buffer_3c.load() && auxbasis.getNumofShells() > 0 &&
-      dftbasis.getNumofShells() > 0) {
-    throw std::runtime_error(
-        "ComputeThreeCenterDerivativesMOTransformed: engine.results() "
-        "returned a null buffer for every shell triple; this libint2 "
-        "build does not support this operator's derivative integrals at "
-        "runtime, even though it may report LIBINT2_MAX_DERIV_ORDER >= 1 "
-        "for other operators. Rebuild libint2 with --enable-eri3=1 to "
-        "use this feature.");
-  }
-  return result;
-}
-#else   // !(LIBINT_INCLUDE_ERI3)
-std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
-    const AOBasis&, const AOBasis&, const Eigen::MatrixXd&) {
-  ThrowNoDerivativeSupport("ComputeThreeCenterDerivativesMOTransformed",
-                           "--enable-eri3=1");
+Eigen::MatrixXd ContractThreeCenterDerivatives(const AOBasis&, const AOBasis&,
+                                               const AuxDensityFn&) {
+  ThrowNoDerivativeSupport("ContractThreeCenterDerivatives", "--enable-eri3=1");
 }
 #endif  // LIBINT_INCLUDE_ERI3
 
@@ -1090,6 +873,52 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
     }
   }
   return tensor;
+}
+
+// Visits (mu nu|P) for every aux function, see riderivatives.h. Parallel
+// over aux shells with one engine per thread; memory one aux shell of
+// Nao x Nao matrices per thread instead of the full Naux * Nao^2 tensor of
+// ComputeThreeCenterIntegrals.
+void ForEachThreeCenterIntegral(const AOBasis& auxbasis,
+                                const AOBasis& dftbasis,
+                                const ThreeCenterVisitor& use) {
+  std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
+  std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
+  Index nthreads = OPENMP::getMaxThreads();
+
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] = libint2::Engine(
+      libint2::Operator::coulomb,
+      std::max(dftbasis.getMaxNprim(), auxbasis.getMaxNprim()),
+      static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())), 0);
+  engines[0].set(libint2::BraKet::xs_xx);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+
+  std::exception_ptr eptr = nullptr;
+#pragma omp parallel for schedule(dynamic)
+  for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
+    try {
+      libint2::Engine& engine = engines[OPENMP::getThreadId()];
+      std::vector<Eigen::MatrixXd> block =
+          ComputeAO3cBlock(auxshells[aux], dftbasis, engine);
+      Index aux_start = auxshell2bf[aux];
+      for (size_t i = 0; i < block.size(); ++i) {
+        use(aux_start + static_cast<Index>(i), block[i]);
+      }
+    } catch (...) {
+#pragma omp critical
+      {
+        if (!eptr) {
+          eptr = std::current_exception();
+        }
+      }
+    }
+  }
+  if (eptr) {
+    std::rethrow_exception(eptr);
+  }
 }
 
 // ===========================================================================

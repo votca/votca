@@ -64,6 +64,10 @@ class AOOverlap : public AOMatrix {
   Eigen::MatrixXd aomatrix_;
 };
 
+// overlap <chi_m|chi_k> between the functions of two bases (e.g. the same
+// basis at two geometries), rows from row, columns from col
+Eigen::MatrixXd ComputeMixedOverlap(const AOBasis& row, const AOBasis& col);
+
 // derived class for atomic orbital Coulomb interaction
 class AOCoulomb : public AOMatrix {
  public:

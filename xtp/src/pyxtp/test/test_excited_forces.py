@@ -1,0 +1,132 @@
+"""Analytic BSE excited-state forces through the ASE calculator
+(xtp(excited_state=...)): twelve dftgwbse runs of water, only with
+PYXTP_RUN_DFTGWBSE=1."""
+import os
+import unittest
+
+import numpy as np
+import pytest
+from ase import Atoms
+
+try:
+    from pyxtp import xtp
+except ImportError:
+    raise unittest.SkipTest('pyxtp not available')
+
+RUN = os.environ.get("PYXTP_RUN_DFTGWBSE") == "1"
+
+
+def make_calc(mode='G0W0', sigma='ppm'):
+    calc = xtp(nthreads=1, excited_state='S1')
+    calc.set(**{'dftpackage/basisset': 'def2-svp',
+                'dftpackage/auxbasisset': 'aux-def2-svp',
+                'dftpackage/functional': 'XC_HYB_GGA_XC_PBEH',
+                'gwbse/gw/mode': mode,
+                'gwbse/bse/useTDA': 'true',
+                'gwbse/bse/exctotal': '3'})
+    if mode == 'evGW':
+        calc.set(**{'gwbse/gw/sc_limit': '1e-9',
+                    'gwbse/gw/screening_update': 'every'})
+    if sigma != 'ppm':
+        # QP window below the levels whose QP solutions jump between
+        # branches near this geometry with the full-frequency self-energy
+        calc.set(**{'gwbse/gw/sigma_integrator': sigma,
+                    'gwbse/ranges': 'explicit', 'gwbse/qpmin': '0',
+                    'gwbse/qpmax': '9', 'gwbse/rpamax': '23',
+                    'gwbse/bsemin': '0', 'gwbse/bsemax': '23'})
+    return calc
+
+
+def water(shift=0.0):
+    return Atoms('OH2', positions=[[0, 0, 0.1 + shift], [0.96, 0.05, 0],
+                                   [-0.24, 0.93, -0.07]])
+
+
+def test_state_label():
+    assert xtp._parse_state(' T2 ') == 't2'
+    with pytest.raises(ValueError):
+        xtp._parse_state('q1')
+
+
+@pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
+def test_excited_state_energy_and_forces():
+    atoms = water()
+    atoms.calc = make_calc()
+    energy = atoms.get_potential_energy()
+    forces = atoms.get_forces()
+    calc = atoms.calc
+    assert forces.shape == (3, 3)
+    # total energy of S1 = DFT + Omega(S1)
+    assert energy == pytest.approx(calc.DFTenergy + calc.bse_singlet_energies[0])
+    # forces sum to zero (translational invariance)
+    assert np.abs(forces.sum(axis=0)).max() < 1e-4
+    # differ from the ground-state forces
+    assert np.abs(forces - calc.dft_forces).max() > 1e-2
+
+    # moved atoms: the forces belong to the new geometry, not the old one
+    atoms.positions[0, 2] += 0.05
+    moved = atoms.get_forces()
+    fresh = water(0.05)
+    fresh.calc = make_calc()
+    np.testing.assert_allclose(moved, fresh.get_forces(), atol=1e-6)
+    assert np.abs(moved - forces).max() > 1e-3
+
+
+@pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
+@pytest.mark.parametrize("mode,sigma", [("G0W0", "ppm"), ("evGW", "ppm"),
+                                        ("evGW", "exact")])
+def test_excited_state_forces_finite_difference(mode, sigma):
+    """Plasmon-pole model: the analytic forces include the response of the
+    QP corrections, so they are the derivative of the total S1 energy with
+    GW recomputed at every geometry."""
+    atoms = water()
+    atoms.calc = make_calc(mode, sigma)
+    force = atoms.get_forces()[1, 0]
+    h = 5e-4  # Angstrom
+    energies = []
+    for step in (h, -h):
+        displaced = water()
+        displaced.positions[1, 0] += step
+        displaced.calc = make_calc(mode, sigma)
+        energies.append(displaced.get_potential_energy())
+    fd = -(energies[0] - energies[1]) / (2 * h)
+    assert force == pytest.approx(fd, rel=5e-4)
+
+
+@pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
+def test_root_following():
+    """follow_root: from the second geometry on the state is the one with
+    the largest exciton overlap with the state of the previous geometry; for
+    small steps it keeps its label, and energy and forces belong to it."""
+    calc = make_calc()
+    calc.follow_root = True
+    calc.excited_state = calc.tracked_state = 's2'
+    atoms = water()
+    atoms.calc = calc
+    atoms.get_forces()
+    assert calc.root_reference is not None
+    assert os.path.exists(calc.root_reference)
+    for shift in (0.01, 0.02):
+        atoms.positions = water(shift).positions
+        forces = atoms.get_forces()
+        assert calc.tracked_state == 's2'
+        assert calc.excited_forces_state == 's2'
+        assert atoms.get_potential_energy() == pytest.approx(
+            calc.DFTenergy + calc.bse_singlet_energies[1])
+        assert np.abs(forces.sum(axis=0)).max() < 1e-4
+    with open(atoms.get_chemical_formula() + '.out') as out:
+        assert 'Root following: s2' in out.read()
+
+
+@pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
+def test_calculator_attached_to_new_atoms():
+    """Attaching the calculator to other atoms (a scan with new Atoms per
+    point) must not return the results of the previous positions."""
+    calc = make_calc()
+    first = water()
+    first.calc = calc
+    f1 = first.get_forces()
+    second = water(0.05)
+    second.calc = calc
+    f2 = second.get_forces()
+    assert np.abs(f1 - f2).max() > 1e-3
