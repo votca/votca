@@ -129,6 +129,16 @@ class GWBSE {
       InactiveScreeningInput::Mode::None;
   double inactive_chunk_bytes_ = 0.0;     // 0: from the --memory budget
   double inactive_virtual_cutoff_ = 0.0;  // Ha above the LUMO; 0: all
+  // stream_rpa: occupied levels below the QP/BSE windows are not stored;
+  // their response is streamed (InactiveScreening::Responses)
+  bool stream_rpa_ = false;
+  Index streamed_holes_ = 0;
+  Eigen::MatrixXd StreamedResponse(const AOBasis& auxbasis,
+                                   const AOBasis& dftbasis,
+                                   const TCMatrix_gwbse& Mmn,
+                                   const Eigen::VectorXd& rpa_energies,
+                                   const std::vector<double>& frequencies,
+                                   std::vector<Eigen::MatrixXd>& Y) const;
   InactiveScreeningInput inactive_;
 };
 }  // namespace xtp

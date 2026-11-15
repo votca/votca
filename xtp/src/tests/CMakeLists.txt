@@ -511,6 +511,29 @@ if(RUN_XTP_INTEGRATIONTESTS)
     message(STATUS "Skipping the checks of integration_Run_xtp_tools_dftgwbse_pbe_* (h5py not found)")
   endif()
 
+  # xtp_tools -e dftgwbse with stream_rpa (G0W0 and evGW): same QP and
+  # singlet energies as with all integrals stored (formaldehyde + 2 waters,
+  # windows of +-4 eV)
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/DataFiles/xtp_tools_integration_tests)
+  foreach(stream_case stream stream_ref stream_evgw stream_evgw_ref)
+    set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_${stream_case})
+    file(MAKE_DIRECTORY ${RUNPATH})
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/formaldehyde_water.xyz ${RUNPATH}/molecule_${stream_case}.xyz)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/dftgwbse_${stream_case}.xml ${RUNPATH}/dftgwbse_${stream_case}.xml)
+    add_test(NAME integration_Run_xtp_tools_dftgwbse_${stream_case} COMMAND xtp_tools -e dftgwbse -o dftgwbse_${stream_case}.xml WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_xtp_tools_dftgwbse_${stream_case} PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  endforeach()
+  if(HAS_HDF5_COMPARE)
+    add_test(NAME integration_Check_xtp_tools_dftgwbse_stream COMMAND ${Python_EXECUTABLE} ${REFPATH}/check_pbe_inactive.py
+      ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_stream/molecule_stream.orb
+      --same ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_stream_ref/molecule_stream_ref.orb --atol 1e-8)
+    set_tests_properties(integration_Check_xtp_tools_dftgwbse_stream PROPERTIES DEPENDS "integration_Run_xtp_tools_dftgwbse_stream;integration_Run_xtp_tools_dftgwbse_stream_ref")
+    add_test(NAME integration_Check_xtp_tools_dftgwbse_stream_evgw COMMAND ${Python_EXECUTABLE} ${REFPATH}/check_pbe_inactive.py
+      ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_stream_evgw/molecule_stream_evgw.orb
+      --same ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_stream_evgw_ref/molecule_stream_evgw_ref.orb --atol 1e-8)
+    set_tests_properties(integration_Check_xtp_tools_dftgwbse_stream_evgw PROPERTIES DEPENDS "integration_Run_xtp_tools_dftgwbse_stream_evgw;integration_Run_xtp_tools_dftgwbse_stream_evgw_ref")
+  endif()
+
   # xtp_tools -e dftgwbse cation water TDA
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_cation_tda)
   file(MAKE_DIRECTORY ${RUNPATH})

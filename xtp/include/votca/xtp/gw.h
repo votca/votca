@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_GW_H
 #define VOTCA_XTP_GW_H
 
+#include <functional>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -181,6 +182,14 @@ class GW {
    *    bare ones.
    */
   void setReactionField(const Eigen::MatrixXd& R);
+  /// Called with the RPA input energies right before each build of the
+  /// screening (every evGW iteration that rebuilds it), e.g. to attach a
+  /// response computed outside the stored integrals
+  /// (TCMatrix_gwbse::setAdditionalResponse).
+  using ScreeningHook = std::function<void(const Eigen::VectorXd&)>;
+  void setScreeningHook(ScreeningHook hook) {
+    screening_hook_ = std::move(hook);
+  }
   /// Exchange with occupied levels below rpamin (frozen core), in the DFT
   /// MO basis of the GW window: added to Sigma_x, which otherwise only sums
   /// over the occupied levels in Mmn (from rpamin on). See
@@ -313,7 +322,8 @@ class GW {
   Eigen::MatrixXd Sigma_x_;         // Fock exchange with the bare v, only
   Eigen::MatrixXd Sigma_c_;         // dynamic correlation
   Eigen::MatrixXd reaction_field_;  // R, fill-time aux frame; empty: off
-  Eigen::MatrixXd dressing_;        // (1 + R)^(1/2), fill-time aux frame
+  ScreeningHook screening_hook_;
+  Eigen::MatrixXd dressing_;  // (1 + R)^(1/2), fill-time aux frame
   void DressForEnvironment();
   Eigen::MatrixXd Sigma_reac_;  // static correlation from v_reac (COH+SEX)
   void PrintReactionFieldShifts() const;

@@ -369,6 +369,9 @@ void GW::CalculateGWPerturbation() {
       }
       {
         auto t = timings_.Measure("screening: other");
+        if (screening_hook_) {
+          screening_hook_(rpa_.getRPAInputEnergies());
+        }
         sigma_->PrepareScreening();
       }
       screening.Built(rpa_.getRPAInputEnergies());
@@ -677,9 +680,7 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     }
 
 #pragma omp critical
-    {
-      total_stats.Add(local_stats);
-    }
+    { total_stats.Add(local_stats); }
   }
 
   if (track) {

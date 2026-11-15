@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Check the GW-BSE results of PbE runs with inactive-region screening."""
+"""Check GW-BSE results: PbE with inactive screening, streamed RPA."""
 
 import argparse
 import sys
@@ -41,6 +41,8 @@ def main():
     parser.add_argument("--full", help="orb file of the full run: with "
                         "exact screening and complete G the virtual QP "
                         "energies must equal the full ones")
+    parser.add_argument("--same", help="orb file of a run that must give "
+                        "the same QP and singlet energies (all levels)")
     parser.add_argument("--atol", type=float, default=2e-4,
                         help="tolerance in Hartree")
     args = parser.parse_args()
@@ -56,6 +58,18 @@ def main():
     if qp[homo + 1] <= qp[homo]:
         print("LUMO below HOMO")
         return 1
+    if args.same:
+        other, other_homo, other_singlets = read(args.same)
+        if other_homo != homo or set(other) != set(qp):
+            print("different levels")
+            return 1
+        diff = max(abs(qp[k] - other[k]) for k in qp)
+        n = min(len(singlets), len(other_singlets))
+        sdiff = float(np.max(np.abs(singlets[:n] - other_singlets[:n])))
+        print(f"{len(qp)} QP levels, max deviation {diff:.2e} Ha; "
+              f"{n} singlets, max deviation {sdiff:.2e} Ha")
+        if diff > args.atol or sdiff > args.atol:
+            return 1
     if args.full:
         full, full_homo, _ = read(args.full)
         if full_homo != homo:
