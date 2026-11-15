@@ -130,3 +130,24 @@ def test_calculator_attached_to_new_atoms():
     second.calc = calc
     f2 = second.get_forces()
     assert np.abs(f1 - f2).max() > 1e-3
+
+
+@pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
+def test_numerical_ground_state_forces():
+    """Without dftpackage.xtpdft.compute_forces the ground-state forces are
+    finite differences; they must see the displaced positions (they were
+    zero when the calculator kept a copy of the atoms) and agree with the
+    analytic DFT forces."""
+    analytic = make_calc()
+    analytic.excited_state = analytic.tracked_state = None
+    analytic.set(**{'dftpackage/xtpdft/compute_forces': 'true'})
+    atoms = water()
+    atoms.calc = analytic
+    reference = atoms.get_forces()
+    numerical = make_calc()
+    numerical.excited_state = numerical.tracked_state = None
+    other = water()
+    other.calc = numerical
+    forces = numerical.calculate_numerical_forces(eps=1e-3, atoms=other)
+    assert np.abs(reference).max() > 1e-2
+    np.testing.assert_allclose(forces, reference, atol=2e-3)

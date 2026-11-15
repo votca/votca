@@ -28,13 +28,17 @@ def numeric_force_xtp(atoms, a, i, d=0.001, opt_forces: dict = None):
     p = p0.copy()
     p[a, i] += d
     atoms.set_positions(p, apply_constraint=False)
-    eplus = atoms._calc.get_total_energy(name=name, level=level, dynamic=dynamic)
+    # pass the atoms: the calculator keeps a copy of the positions it was
+    # attached with, so the displacement is only seen through them
+    eplus = atoms._calc.get_total_energy(name=name, level=level,
+                                         dynamic=dynamic, atoms=atoms)
 
     atoms._calc.reset_results()
 
     p[a, i] -= 2 * d
     atoms.set_positions(p, apply_constraint=False)
-    eminus = atoms._calc.get_total_energy(name=name, level=level, dynamic=dynamic)
+    eminus = atoms._calc.get_total_energy(name=name, level=level,
+                                          dynamic=dynamic, atoms=atoms)
     atoms.set_positions(p0, apply_constraint=False)
     return (eminus - eplus) / (2 * d)
 
@@ -489,7 +493,7 @@ class xtp(Calculator):
         if name not in self.results:
             if not allow_calculation:
                 return None
-            self.calculate(properties=[name])
+            self.calculate(atoms=atoms, properties=[name])
 
         if name  == 'energy':
             return self.get_dft_energy()
