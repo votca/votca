@@ -209,7 +209,7 @@ class DFTEngine {
     Eigen::VectorXd qp_energies;
     std::string sigma_integrator = "ppm";  // gw.sigma_integrator: ppm, exact
     double sigma_eta = 1e-3;               // gw.eta
-    double ppm_imag = 0.5;    // imaginary fitting frequency of the PPM
+    double ppm_imag = 0.5;  // imaginary fitting frequency of the PPM
     /// evGW: the RPA energies are the QP energies in the QP window and
     /// shifted KS energies outside (out_of_window_shift); otherwise (G0W0)
     /// KS energies plus fixed shifts
@@ -332,7 +332,8 @@ class DFTEngine {
   std::vector<Eigen::MatrixXd> CoupledResponse(
       const Vxc_Potential<Vxc_Grid>& vxc, const Eigen::MatrixXd& P0,
       const Eigen::MatrixXd& C_occ, const Eigen::MatrixXd& C_virt,
-      const std::vector<Eigen::MatrixXd>& U);
+      const std::vector<Eigen::MatrixXd>& U,
+      const Vxc_Potential<Vxc_Grid>::FXCKernel* fxc_kernel = nullptr);
 
   /// Orthonormalize an initial MO guess with respect to the AO overlap matrix.
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;

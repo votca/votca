@@ -62,6 +62,28 @@ class Vxc_Potential {
   std::vector<Eigen::MatrixXd> IntegrateFXC(
       const Eigen::MatrixXd& density_matrix,
       const std::vector<Eigen::MatrixXd>& response_matrices) const;
+  /// The ground-state part of IntegrateFXC, for many responses at one
+  /// density (e.g. the iterations of a CPKS solve): per grid point that
+  /// passes the density screening, the weight, the density gradient and the
+  /// second derivatives of libxc (about 70 bytes per point). Saves the
+  /// density, its gradient and libxc in every application; the AO values
+  /// are recomputed (caching them took 1.4 GB for pyridine + 6 H2O /
+  /// def2-SVP and saved only 10 %).
+  struct FXCKernel {
+    struct Box {
+      std::vector<Index> points;  // indices in the box of the kept points
+      Eigen::VectorXd w, vsigma, v2rho2, v2rhosigma, v2sigma2;
+      Eigen::Matrix3Xd grad;  // density gradient (GGA)
+    };
+    std::vector<Box> boxes;
+    Index n_ao = 0;
+  };
+  FXCKernel PrepareFXC(const Eigen::MatrixXd& density_matrix) const;
+  /// IntegrateFXC with a prepared kernel (the same results)
+  std::vector<Eigen::MatrixXd> ApplyFXC(
+      const FXCKernel& kernel,
+      const std::vector<Eigen::MatrixXd>& response_matrices) const;
+
   SpinResult IntegrateVXCSpin(const Eigen::MatrixXd& dmat_alpha,
                               const Eigen::MatrixXd& dmat_beta) const;
 

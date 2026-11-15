@@ -1096,9 +1096,10 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
     const Eigen::MatrixXd& S = overlap.Matrix();
     Eigen::MatrixXd h = -(S * C_virt * Lvo * C_occ.transpose() * S);
     h = (h + h.transpose()).eval();
-    // the gradient error is linear in the Z residual; 1e-8 relative is
-    // well below the other errors (1e-10 cost four more iterations)
-    std::vector<Eigen::MatrixXd> dP = StaticResponse(orb, {h}, 1e-8, 200);
+    // the gradient error is linear in the Z residual: 1e-6 relative changed
+    // the forces of pyridine + 6 H2O by 1e-8 Ha/Bohr against 1e-8 (three
+    // iterations fewer), far below the FD agreement and optimizer thresholds
+    std::vector<Eigen::MatrixXd> dP = StaticResponse(orb, {h}, 1e-6, 200);
     Zvo = 0.5 * C_virt.transpose() * S * dP[0] * S * C_occ;
   }
 

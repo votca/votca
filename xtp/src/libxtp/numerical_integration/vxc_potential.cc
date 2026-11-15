@@ -679,10 +679,79 @@ std::vector<std::array<Eigen::MatrixXd, 2>>
 // assembled like IntegrateVXC: a = w (dv_rho/2 phi + 2 dphi.(...)),
 // dV = a phi^T + transpose. The points IntegrateVXC skips are skipped.
 template <class Grid>
-std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::IntegrateFXC(
-    const Eigen::MatrixXd& density_matrix,
+typename Vxc_Potential<Grid>::FXCKernel Vxc_Potential<Grid>::PrepareFXC(
+    const Eigen::MatrixXd& density_matrix) const {
+  // fail before the grid loop for functionals without fxc
+  {
+    const double rho = 0.1;
+    const double sigma = 0.01;
+    double vs, rr, rs, ss;
+    EvaluateFXCBatch(1, &rho, &sigma, &vs, &rr, &rs, &ss);
+  }
+  FXCKernel kernel;
+  kernel.n_ao = density_matrix.rows();
+  kernel.boxes.resize(std::size_t(grid_.getBoxesSize()));
+#pragma omp parallel for schedule(guided)
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+    typename FXCKernel::Box& kb = kernel.boxes[std::size_t(i)];
+    const Eigen::MatrixXd DMAT_here = 2 * box.ReadFromBigMatrix(density_matrix);
+    const Index nf = box.Matrixsize();
+    const Index block = std::min(kPointBlock, box.size());
+    Eigen::MatrixXd phi(nf, block);
+    Eigen::MatrixXd dphi(nf, 3 * block);
+    Eigen::MatrixXd y(nf, block);
+    std::vector<double> rho, sigma, w;
+    std::vector<Eigen::Vector3d> grad;
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+    for (Index start = 0; start < box.size(); start += block) {
+      const Index nb = std::min(block, box.size() - start);
+      for (Index p = 0; p < nb; ++p) {
+        box.CalcAOValues(points[start + p], phi, dphi, p);
+      }
+      y.leftCols(nb).noalias() = DMAT_here * phi.leftCols(nb);
+      for (Index p = 0; p < nb; ++p) {
+        const double r = 0.5 * phi.col(p).dot(y.col(p));
+        if (r * weights[start + p] < 1.e-20) {
+          continue;
+        }
+        const Eigen::Vector3d g =
+            dphi.middleCols(3 * p, 3).transpose() * y.col(p);
+        kb.points.push_back(start + p);
+        rho.push_back(r);
+        sigma.push_back(g.squaredNorm());
+        grad.push_back(g);
+        w.push_back(weights[start + p]);
+      }
+    }
+    const Index nk = Index(kb.points.size());
+    kb.w = Eigen::Map<const Eigen::VectorXd>(w.data(), nk);
+    kb.vsigma.resize(nk);
+    kb.v2rho2.resize(nk);
+    kb.v2rhosigma.resize(nk);
+    kb.v2sigma2.resize(nk);
+    if (nk > 0) {
+      EvaluateFXCBatch(nk, rho.data(), sigma.data(), kb.vsigma.data(),
+                       kb.v2rho2.data(), kb.v2rhosigma.data(),
+                       kb.v2sigma2.data());
+    }
+    kb.grad.resize(3, nk);
+    for (Index q = 0; q < nk; ++q) {
+      kb.grad.col(q) = grad[std::size_t(q)];
+    }
+  }
+  return kernel;
+}
+
+template <class Grid>
+std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::ApplyFXC(
+    const FXCKernel& kernel,
     const std::vector<Eigen::MatrixXd>& response_matrices) const {
-  const Index n_ao = density_matrix.rows();
+  const Index n_ao = kernel.n_ao;
   const Index n_resp = Index(response_matrices.size());
   std::vector<Eigen::MatrixXd> result(static_cast<std::size_t>(n_resp),
                                       Eigen::MatrixXd::Zero(n_ao, n_ao));
@@ -696,14 +765,6 @@ std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::IntegrateFXC(
     throw std::runtime_error(
         "IntegrateFXC: response matrix does not match the density matrix");
   }
-  // fail before the grid loop for functionals without fxc
-  {
-    const double rho = 0.1;
-    const double sigma = 0.01;
-    double vs, rr, rs, ss;
-    EvaluateFXCBatch(1, &rho, &sigma, &vs, &rr, &rs, &ss);
-  }
-
   std::vector<Eigen::MatrixXd*> targets;
   for (Eigen::MatrixXd& m : result) {
     targets.push_back(&m);
@@ -712,88 +773,57 @@ std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::IntegrateFXC(
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
     const GridBox& box = grid_[i];
-    if (!box.Matrixsize()) {
+    const typename FXCKernel::Box& kb = kernel.boxes[std::size_t(i)];
+    const Index nk_box = Index(kb.points.size());
+    if (!box.Matrixsize() || nk_box == 0) {
       continue;
     }
-    const Eigen::MatrixXd DMAT_here = 2 * box.ReadFromBigMatrix(density_matrix);
+    const Index nf = box.Matrixsize();
     std::vector<Eigen::MatrixXd> dmat_k(static_cast<std::size_t>(n_resp));
     for (Index k = 0; k < n_resp; ++k) {
       dmat_k[std::size_t(k)] =
           2 * box.ReadFromBigMatrix(response_matrices[std::size_t(k)]);
     }
-    const Index nf = box.Matrixsize();
-    const Index block = std::min(kPointBlock, box.size());
     std::vector<Eigen::MatrixXd> fxc_here(static_cast<std::size_t>(n_resp),
                                           Eigen::MatrixXd::Zero(nf, nf));
-    Eigen::MatrixXd phi(nf, block);
-    Eigen::MatrixXd dphi(nf, 3 * block);
-    Eigen::MatrixXd y(nf, block);
+    const Index block = std::min(kPointBlock, nk_box);
+    Eigen::MatrixXd phi_buf(nf, block);
+    Eigen::MatrixXd dphi_buf(nf, 3 * block);
     Eigen::MatrixXd yk(nf, block);
     Eigen::MatrixXd a(nf, block);
-    std::vector<Index> kept;
-    std::vector<double> rho, sigma, vsigma, v2rho2, v2rhosigma, v2sigma2;
-    std::vector<Eigen::Vector3d> grad;
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-    const std::vector<double>& weights = box.getGridWeights();
-
-    for (Index start = 0; start < box.size(); start += block) {
-      const Index nb = std::min(block, box.size() - start);
-      for (Index p = 0; p < nb; ++p) {
-        box.CalcAOValues(points[start + p], phi, dphi, p);
+    for (Index start = 0; start < nk_box; start += block) {
+      const Index nb = std::min(block, nk_box - start);
+      for (Index q = 0; q < nb; ++q) {
+        box.CalcAOValues(points[kb.points[std::size_t(start + q)]], phi_buf,
+                         dphi_buf, q);
       }
-      y.leftCols(nb).noalias() = DMAT_here * phi.leftCols(nb);
-      kept.clear();
-      rho.clear();
-      sigma.clear();
-      grad.clear();
-      for (Index p = 0; p < nb; ++p) {
-        const double r = 0.5 * phi.col(p).dot(y.col(p));
-        if (r * weights[start + p] < 1.e-20) {
-          continue;
-        }
-        const Eigen::Vector3d g =
-            dphi.middleCols(3 * p, 3).transpose() * y.col(p);
-        kept.push_back(p);
-        rho.push_back(r);
-        sigma.push_back(g.squaredNorm());
-        grad.push_back(g);
-      }
-      const Index nk = Index(kept.size());
-      if (nk == 0) {
-        continue;
-      }
-      vsigma.resize(nk);
-      v2rho2.resize(nk);
-      v2rhosigma.resize(nk);
-      v2sigma2.resize(nk);
-      EvaluateFXCBatch(nk, rho.data(), sigma.data(), vsigma.data(),
-                       v2rho2.data(), v2rhosigma.data(), v2sigma2.data());
-      Eigen::MatrixXd phik(nf, nk);
-      for (Index q = 0; q < nk; ++q) {
-        phik.col(q) = phi.col(kept[q]);
-      }
-
+      const auto phi = phi_buf.leftCols(nb);
+      const auto dphi = dphi_buf.leftCols(3 * nb);
       for (Index k = 0; k < n_resp; ++k) {
-        yk.leftCols(nb).noalias() = dmat_k[std::size_t(k)] * phi.leftCols(nb);
-        for (Index q = 0; q < nk; ++q) {
-          const Index p = kept[q];
-          const double w = weights[start + p];
-          const double drho = 0.5 * phi.col(p).dot(yk.col(p));
+        yk.leftCols(nb).noalias() = dmat_k[std::size_t(k)] * phi;
+        for (Index q = 0; q < nb; ++q) {
+          const Index kq = start + q;
+          const double w = kb.w(kq);
+          const double drho = 0.5 * phi.col(q).dot(yk.col(q));
           if (is_gga_) {
             const Eigen::Vector3d dg =
-                dphi.middleCols(3 * p, 3).transpose() * yk.col(p);
-            const double dsigma = 2.0 * grad[q].dot(dg);
-            const double dv_rho = v2rho2[q] * drho + v2rhosigma[q] * dsigma;
-            const double dv_sigma = v2rhosigma[q] * drho + v2sigma2[q] * dsigma;
+                dphi.middleCols(3 * q, 3).transpose() * yk.col(q);
+            const Eigen::Vector3d g = kb.grad.col(kq);
+            const double dsigma = 2.0 * g.dot(dg);
+            const double dv_rho =
+                kb.v2rho2(kq) * drho + kb.v2rhosigma(kq) * dsigma;
+            const double dv_sigma =
+                kb.v2rhosigma(kq) * drho + kb.v2sigma2(kq) * dsigma;
             const Eigen::Vector3d vec =
-                2.0 * (dv_sigma * grad[q] + vsigma[q] * dg);
-            a.col(q) = (w * 0.5 * dv_rho) * phi.col(p) +
-                       w * (dphi.middleCols(3 * p, 3) * vec);
+                2.0 * (dv_sigma * g + kb.vsigma(kq) * dg);
+            a.col(q) = (w * 0.5 * dv_rho) * phi.col(q) +
+                       w * (dphi.middleCols(3 * q, 3) * vec);
           } else {
-            a.col(q) = (w * 0.5 * v2rho2[q] * drho) * phi.col(p);
+            a.col(q) = (w * 0.5 * kb.v2rho2(kq) * drho) * phi.col(q);
           }
         }
-        fxc_here[std::size_t(k)].noalias() += a.leftCols(nk) * phik.transpose();
+        fxc_here[std::size_t(k)].noalias() += a.leftCols(nb) * phi.transpose();
       }
     }
     std::vector<const Eigen::MatrixXd*> blocks;
@@ -807,6 +837,24 @@ std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::IntegrateFXC(
     m = (m + m.transpose()).eval();
   }
   return result;
+}
+
+template <class Grid>
+std::vector<Eigen::MatrixXd> Vxc_Potential<Grid>::IntegrateFXC(
+    const Eigen::MatrixXd& density_matrix,
+    const std::vector<Eigen::MatrixXd>& response_matrices) const {
+  if (std::any_of(response_matrices.begin(), response_matrices.end(),
+                  [&density_matrix](const Eigen::MatrixXd& m) {
+                    return m.rows() != density_matrix.rows() ||
+                           m.cols() != density_matrix.cols();
+                  })) {
+    throw std::runtime_error(
+        "IntegrateFXC: response matrix does not match the density matrix");
+  }
+  if (response_matrices.empty()) {
+    return {};
+  }
+  return ApplyFXC(PrepareFXC(density_matrix), response_matrices);
 }
 
 // ===========================================================================

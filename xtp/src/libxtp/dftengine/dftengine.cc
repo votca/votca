@@ -2876,7 +2876,8 @@ Eigen::MatrixXd DFTEngine::UKSOrbitalHessian(
 std::vector<Eigen::MatrixXd> DFTEngine::CoupledResponse(
     const Vxc_Potential<Vxc_Grid>& vxc, const Eigen::MatrixXd& P0,
     const Eigen::MatrixXd& C_occ, const Eigen::MatrixXd& C_virt,
-    const std::vector<Eigen::MatrixXd>& U) {
+    const std::vector<Eigen::MatrixXd>& U,
+    const Vxc_Potential<Vxc_Grid>::FXCKernel* fxc_kernel) {
   auto density = [&](const Eigen::MatrixXd& u) {
     const Eigen::MatrixXd half = (C_virt * u) * C_occ.transpose();
     return Eigen::MatrixXd(2.0 * (half + half.transpose()));
@@ -2888,7 +2889,8 @@ std::vector<Eigen::MatrixXd> DFTEngine::CoupledResponse(
   std::vector<Eigen::MatrixXd> G;
   {
     auto t = timings_.Measure("response: f_xc");
-    G = vxc.IntegrateFXC(P0, dP);
+    G = (fxc_kernel != nullptr) ? vxc.ApplyFXC(*fxc_kernel, dP)
+                                : vxc.IntegrateFXC(P0, dP);
   }
   std::vector<Eigen::MatrixXd> result;
   for (std::size_t k = 0; k < U.size(); ++k) {
@@ -2968,9 +2970,15 @@ std::vector<Eigen::MatrixXd> DFTEngine::StaticResponse(
     return Eigen::MatrixXd(2.0 * (half + half.transpose()));
   };
   // the orbital Hessian (A + B) applied to the U of several right-hand sides
+  // the XC kernel at P0, once for all iterations
+  Vxc_Potential<Vxc_Grid>::FXCKernel fxc_kernel;
+  {
+    auto t = timings_.Measure("response: f_xc kernel");
+    fxc_kernel = vxc.PrepareFXC(P0);
+  }
   auto apply = [&](const std::vector<Eigen::MatrixXd>& U) {
     std::vector<Eigen::MatrixXd> result =
-        CoupledResponse(vxc, P0, C_occ, C_virt, U);
+        CoupledResponse(vxc, P0, C_occ, C_virt, U, &fxc_kernel);
     for (std::size_t k = 0; k < U.size(); ++k) {
       result[k] += diag.cwiseProduct(U[k]);
     }
