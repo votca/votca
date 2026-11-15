@@ -302,7 +302,16 @@ void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {
   const double omega =
       (singlet ? orbitals.BSESinglets() : orbitals.BSETriplets())
           .eigenvalues()(state.StateIdx());
-  if (std::abs(result.omega - omega) > 1e-6) {
+  // the gradient belongs to the Rayleigh quotient of the stored exciton,
+  // which differs from the Davidson eigenvalue at the level of the
+  // Davidson residual (bse.davidson.tolerance; for full BSE to first
+  // order); a different GW-BSE setup gives deviations of 1e-3 Ha and more
+  const double omega_error = std::abs(result.omega - omega);
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Excitation energy rebuilt for the gradient: "
+      << "deviation from the BSE eigenvalue " << omega_error << " Ha"
+      << std::flush;
+  if (omega_error > 1e-4) {
     throw std::runtime_error(
         "excited_state_forces: the excitation energy rebuilt for the "
         "gradient (" +
@@ -310,6 +319,15 @@ void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {
         " Ha) differs from the BSE eigenvalue (" + std::to_string(omega) +
         " Ha); the GW-BSE setup (e.g. environment screening, dynamical "
         "screening of the BSE kernel) is not covered by the gradient");
+  }
+  if (omega_error > 1e-6) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp()
+        << " WARNING: the BSE eigenvalue is converged only to about "
+        << omega_error
+        << " Ha; tighten bse.davidson.tolerance (strict or lapack) for "
+           "energies consistent with the forces"
+        << std::flush;
   }
   if (input.qp_response) {
     XTP_LOG(Log::error, log_)

@@ -243,6 +243,13 @@ class xtp(Calculator):
         if self.excited_state is not None:
             self.options.excited_state_forces = self.excited_state
             self.options.dftpackage.xtpdft.compute_forces = 'true'
+            # the energy must be the one whose gradient is computed: the
+            # default Davidson residual (1e-4) leaves the eigenvalue off by
+            # up to ~1e-5 Ha for full BSE, enough to confuse an optimizer's
+            # energy checks near convergence
+            if self.options.gwbse.bse.davidson.tolerance in ('', 'loose',
+                                                             'normal'):
+                self.options.gwbse.bse.davidson.tolerance = 'strict'
             follow = ''
             if self.follow_root and self.root_reference is not None:
                 follow = Path(self.root_reference).absolute().as_posix()
