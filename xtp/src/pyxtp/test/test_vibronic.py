@@ -578,3 +578,32 @@ def test_xtp_qp_gradients(tmp_path):
         analytic = (levels.gradients[i] * direction).sum()
         assert abs(analytic - fd) < 1e-4 * np.linalg.norm(levels.gradients[i])
         assert np.abs(levels.gradients[i].sum(axis=0)).max() < 1e-6
+
+    # more levels later, from the orb file alone (tasks=gradients): the
+    # stored ones are kept, the new ones equal those of a full run
+    from pyxtp.vibronic import add_gradients
+    settings = {"dftpackage/basisset": "def2-svp",
+                "dftpackage/auxbasisset": "aux-def2-svp",
+                "dftpackage/convergence_tightness": "verytight",
+                "gwbse/gw/mode": "G0W0", "gwbse/ranges": "explicit",
+                "gwbse/qpmin": "0", "gwbse/qpmax": "9",
+                "gwbse/rpamax": "23", "gwbse/bsemin": "0",
+                "gwbse/bsemax": "9", "gwbse/bse/exctotal": "2"}
+    mtime = os.path.getmtime(tmp_path / "ref" / "H2O.out")
+    add_gradients(orb, qp_levels="homo-2:lumo+1", settings=settings)
+    more = QPLevels.from_orb(orb)
+    assert more.labels == ["HOMO-2", "HOMO-1", "HOMO", "LUMO", "LUMO+1"]
+    np.testing.assert_array_equal(more.gradients[1:4], levels.gradients)
+    assert os.path.getmtime(tmp_path / "ref" / "H2O.out") == mtime
+    log = (tmp_path / "ref" / "H2O_gradients.out").read_text()
+    assert "3 requested level(s) are already stored" in log
+    assert "DFT calculation" not in log and "GW" in log
+    for i in (0, 4):
+        level = more.levels[i]
+        fd = (plus[level] - minus[level]) / (2 * h)
+        analytic = (more.gradients[i] * direction).sum()
+        assert abs(analytic - fd) < 1e-4 * np.linalg.norm(more.gradients[i])
+    # other options than those of the stored run are refused
+    wrong = dict(settings, **{"dftpackage/basisset": "def2-tzvp"})
+    with pytest.raises(RuntimeError, match="basis set"):
+        add_gradients(orb, qp_levels="lumo+2", settings=wrong)

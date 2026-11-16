@@ -367,6 +367,11 @@ and the line shape and places it at the vertical energies of that level.
   them, shifted rigidly by the difference of the molecular QP energies;
   ``Spectrum.notes`` records how every level was placed.
 * All levels count equally; photoemission cross sections are not included.
+* More levels (or the forces of another excited state) can be added later
+  to the same orb file without repeating DFT and GW-BSE:
+  ``add_gradients('molecule.orb', qp_levels='homo-9:lumo+9',
+  options=calc.options)`` runs ``dftgwbse`` with ``tasks=gradients``;
+  levels that are already stored are not recomputed.
 * ``Spectrum.broadened(sigma)`` applies a Gaussian instrument broadening,
   ``Spectrum.onset()`` the tangent construction for the onset.
 * ``pyxtp.vibronic.plot`` (needs ``matplotlib``) makes figures for
@@ -394,6 +399,8 @@ The script ``xtp_vibronic`` provides the same steps on the command line
    xtp_vibronic spectrum -m modes.npz -g molecule.orb -p electron-addition \
        --lambda-classical 0.01 --sites site_energies.dat \
        --columns lumo=3,lumo+1=4 --where '1>4.0' -o ipes.dat
+   # later: more levels from the same orb file, no new DFT or GW
+   xtp_vibronic gradients molecule.orb --levels homo-9:lumo+9 -o options.xml -t 8
    xtp_vibronic plot -s ipes.dat --broadening 0.3 --onset \
        --experiment measured.dat -o ipes.pdf
    xtp_vibronic plot -c s1_modes.txt --title S1 -o s1_modes.pdf

@@ -24,7 +24,7 @@ from .coupling import (VibronicCouplings, couplings_from_forces,
 from .hessian import (Displacement, FiniteDifferenceHessian,
                       xtp_ground_state_factory)
 from .lineshape import LineShape, ensemble_spectrum, vibronic_lineshape
-from .spectrum import QPLevels, Spectrum, level_spectrum
+from .spectrum import QPLevels, Spectrum, add_gradients, level_spectrum
 from .modes import (EV2INVCM, HBAR_OMEGA_EV, NormalModes, read_orca_engrad,
                     read_orca_hessian)
 
@@ -33,6 +33,7 @@ __all__ = ["VibronicCouplings", "couplings_from_forces",
            "read_gap_gradient",
            "Displacement", "FiniteDifferenceHessian",
            "xtp_ground_state_factory", "LineShape", "ensemble_spectrum",
-           "vibronic_lineshape", "QPLevels", "Spectrum", "level_spectrum",
+           "vibronic_lineshape", "QPLevels", "Spectrum", "add_gradients",
+           "level_spectrum",
            "EV2INVCM", "HBAR_OMEGA_EV", "NormalModes",
            "read_orca_engrad", "read_orca_hessian"]

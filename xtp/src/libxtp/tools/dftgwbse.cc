@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <sstream>
 #include <votca/tools/constants.h>
+#include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
 #include "votca/xtp/dftengine.h"
@@ -55,6 +56,19 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   if (options.exists(".excited_state_forces")) {
     excited_state_forces_ =
         options.get(".excited_state_forces").as<std::string>();
+  }
+  {
+    const std::string tasks = options.get(".tasks").as<std::string>();
+    tools::Tokenizer tok(tasks, " ,");
+    const std::vector<std::string> list = tok.ToVector();
+    const bool has =
+        std::find(list.begin(), list.end(), "gradients") != list.end();
+    if (has && list.size() > 1) {
+      throw std::runtime_error(
+          "tasks: gradients cannot be combined with other tasks (with dft "
+          "and gwbse the gradients are computed in the same run anyway)");
+    }
+    gradients_only_ = has;
   }
   if (options.exists(".qp_gradients")) {
     qp_gradients_ = options.get(".qp_gradients").as<std::string>();
@@ -97,6 +111,30 @@ bool DftGwBse::Run() {
 
   // Get orbitals object
   Orbitals orbitals;
+
+  // tasks = gradients: no DFT or GW-BSE, the requested gradients
+  // (qp_gradients, excited_state_forces) are computed from the data of an
+  // earlier run in the orb file and added to it
+  if (gradients_only_) {
+    if (excited_state_forces_.empty() && qp_gradients_.empty()) {
+      throw std::runtime_error(
+          "tasks gradients: set qp_gradients and/or excited_state_forces");
+    }
+    XTP_LOG(Log::error, log_)
+        << "Gradients from the GW-BSE data in " << archive_file_ << std::flush;
+    orbitals.ReadFromCpt(archive_file_);
+    CheckStoredRun(orbitals);
+    if (!excited_state_forces_.empty()) {
+      ComputeExcitedStateForces(orbitals);
+    }
+    if (!qp_gradients_.empty()) {
+      ComputeQPGradients(orbitals);
+    }
+    XTP_LOG(Log::error, log_)
+        << "Saving data to " << archive_file_ << std::flush;
+    orbitals.WriteToCpt(archive_file_);
+    return true;
+  }
 
   if (!guess_file_.empty()) {
     XTP_LOG(Log::error, log_)
@@ -354,8 +392,30 @@ void DftGwBse::ComputeQPGradients(Orbitals& orbitals) {
     throw std::runtime_error(
         "qp_gradients: embedding and truncated bases are not supported");
   }
-  const std::vector<Index> levels =
+  const std::vector<Index> requested =
       ParseLevels(qp_gradients_, orbitals.getHomo());
+  // levels whose gradients are already in the orb file (tasks gradients on
+  // a file of an earlier run) are kept and not recomputed
+  const std::vector<Index> stored = orbitals.getQPGradientLevels();
+  const Eigen::MatrixXd stored_gradients = orbitals.getQPGradients();
+  std::vector<Index> levels;
+  for (Index level : requested) {
+    if (std::find(stored.begin(), stored.end(), level) == stored.end()) {
+      levels.push_back(level);
+    }
+  }
+  if (levels.empty()) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " QP gradients of all requested levels are "
+        << "already stored" << std::flush;
+    return;
+  }
+  if (levels.size() < requested.size()) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " QP gradients of "
+        << requested.size() - levels.size()
+        << " requested level(s) are already stored" << std::flush;
+  }
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Analytic gradients of the QP energies of "
       << levels.size() << " level(s), " << levels.front() << " to "
@@ -381,11 +441,57 @@ void DftGwBse::ComputeQPGradients(Orbitals& orbitals) {
     }
   }
   const Index natoms = orbitals.QMAtoms().size();
-  Eigen::MatrixXd all(Index(levels.size()) * natoms, 3);
-  for (std::size_t l = 0; l < levels.size(); ++l) {
-    all.middleRows(Index(l) * natoms, natoms) = result.qp_gradients[l];
+  // stored and new levels, sorted
+  std::vector<std::pair<Index, Eigen::MatrixXd>> merged;
+  for (std::size_t l = 0; l < stored.size(); ++l) {
+    merged.emplace_back(stored[l],
+                        stored_gradients.middleRows(Index(l) * natoms, natoms));
   }
-  orbitals.setQPGradients(all, levels);
+  for (std::size_t l = 0; l < levels.size(); ++l) {
+    merged.emplace_back(levels[l], result.qp_gradients[l]);
+  }
+  std::sort(merged.begin(), merged.end(),
+            [](const auto& a, const auto& b) { return a.first < b.first; });
+  Eigen::MatrixXd all(Index(merged.size()) * natoms, 3);
+  std::vector<Index> all_levels;
+  for (std::size_t l = 0; l < merged.size(); ++l) {
+    all.middleRows(Index(l) * natoms, natoms) = merged[l].second;
+    all_levels.push_back(merged[l].first);
+  }
+  orbitals.setQPGradients(all, all_levels);
+}
+
+// tasks = gradients: the options must be those of the run that wrote the
+// orb file. What is stored there is compared; a different GW setup shows
+// up in the rebuilt QP and excitation energies of the gradient.
+void DftGwBse::CheckStoredRun(const Orbitals& orbitals) const {
+  auto lower = [](std::string text) {
+    std::transform(text.begin(), text.end(), text.begin(), ::tolower);
+    return text;
+  };
+  auto check = [&](const std::string& what, const std::string& stored,
+                   const std::string& option) {
+    if (lower(stored) != lower(option)) {
+      throw std::runtime_error("tasks gradients: " + what + " of " +
+                               archive_file_ + " is " + stored +
+                               ", the options say " + option +
+                               "; use the options of the run that wrote "
+                               "the file");
+    }
+  };
+  if (!orbitals.hasQMAtoms() || orbitals.MOs().eigenvalues().size() == 0 ||
+      orbitals.RPAInputEnergies().size() == 0) {
+    throw std::runtime_error("tasks gradients: " + archive_file_ +
+                             " has no GW data");
+  }
+  check("the basis set", orbitals.getDftBasis().Name(),
+        package_options_.get("basisset").as<std::string>());
+  check("the functional", orbitals.getXCFunctionalName(),
+        package_options_.get("functional").as<std::string>());
+  if (orbitals.hasAuxbasisName()) {
+    check("the auxiliary basis set", orbitals.getAuxBasis().Name(),
+          package_options_.get("auxbasisset").as<std::string>());
+  }
 }
 
 void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {

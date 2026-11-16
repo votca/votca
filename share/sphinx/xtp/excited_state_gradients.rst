@@ -171,6 +171,18 @@ is stored in the orb file (``qp_gradients``, one block of
   embedding, G0W0 or evGW with ``ppm`` or ``exact``; otherwise the
   gradient of the KS energy with fixed corrections is returned).
 
+Gradients can be added to an existing orb file without repeating DFT and
+GW-BSE, which matters for large molecules: ``dftgwbse`` with
+``tasks=gradients`` (and the options of the run that wrote
+``job_name.orb``) reads the file, computes what ``qp_gradients`` and/or
+``excited_state_forces`` ask for and writes it back. QP levels whose
+gradients are already stored are not recomputed, so a range can be
+extended later; the forces of another excited state replace the stored
+ones. Basis sets and functional are compared with the file, and the QP and
+excitation energies rebuilt for the gradient reveal a different GW-BSE
+setup. From Python: ``pyxtp.vibronic.add_gradients``; on the command line
+``xtp_vibronic gradients``.
+
 Validation against finite differences of the QP energies (GW recomputed
 at displaced geometries; water, PBE0/def2-SVP, QP window 0-9, levels
 HOMO-2 to LUMO+2): relative errors below :math:`10^{-6}` for G0W0 and

@@ -9,6 +9,8 @@ Subcommands:
   modes      collect the Hessian, print the frequencies, save modes.npz
   lineshape  couplings and line shape of one transition (optionally an
              ensemble spectrum)
+  gradients  add QP gradients or excited-state forces to the orb file of
+             an earlier dftgwbse run (no DFT, no GW-BSE)
   spectrum   UPS/IPES-type spectrum of all QP levels with gradients
   plot       publication-quality figure of a spectrum or of couplings
 """
@@ -237,6 +239,26 @@ def cmd_spectrum(args) -> None:
     print(f"wrote {args.output}")
 
 
+def cmd_gradients(args) -> None:
+    from ..xtp import xtp
+    from .spectrum import QPLevels, add_gradients
+
+    if not args.levels and not args.state:
+        sys.exit("give --levels and/or --state")
+    options = None
+    if args.options:
+        options = xtp().options
+        _apply_options_file(options, args.options)
+    add_gradients(args.orb, qp_levels=args.levels, excited_state=args.state,
+                  options=options, settings=_settings(args.set),
+                  nthreads=args.threads)
+    if args.levels:
+        print("QP gradients in", args.orb + ":",
+              " ".join(QPLevels.from_orb(args.orb).labels))
+    if args.state:
+        print(f"forces of {args.state} stored in {args.orb}")
+
+
 def cmd_plot(args) -> None:
     import matplotlib
     matplotlib.use("Agg")
@@ -277,4 +299,4 @@ def run(args) -> None:
     """Run the subcommand of parsed xtp_vibronic arguments."""
     {"hessian": cmd_hessian, "status": cmd_status, "modes": cmd_modes,
      "lineshape": cmd_lineshape, "spectrum": cmd_spectrum,
-     "plot": cmd_plot}[args.command](args)
+     "gradients": cmd_gradients, "plot": cmd_plot}[args.command](args)

@@ -10,7 +10,7 @@
     <mpsfile help="MPS file to read from with external multipoles for embedding" default="OPTIONAL"/>
     <guess help="File to read the wave function if the use guess flag is set to true" default="OPTIONAL"/>
     <moguess help="Orb file to read ONLY the MOs from (geometry still comes from job_name.xyz, or from guess if that is also set) -- for warm-starting a geometry optimization step's own SCF from a PREVIOUS step's converged wavefunction at a different geometry, which guess itself cannot represent since it loads geometry and MOs together from the same file." default="OPTIONAL"/>
-    <tasks help="task to compute" default="input,dft,parse,gwbse" choices="[guess,input,dft,parse,gwbse,localize,dft_in_dft]"/>
+    <tasks help="task to compute. gradients (alone): no DFT or GW-BSE run; the gradients requested with qp_gradients and/or excited_state_forces are computed from the data of an earlier run in job_name.orb (same options as that run) and added to the file; QP gradients of levels that are already stored are kept" default="input,dft,parse,gwbse" choices="[guess,input,dft,parse,gwbse,localize,dft_in_dft,gradients]"/>
     <gwbse link="gwbse.xml"/>
     <localize link="localize.xml"/>
     <logging_file help="File to send logging data to." default="OPTIONAL"/>

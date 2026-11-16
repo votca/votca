@@ -67,6 +67,9 @@ class DftGwBse final : public QMTool {
   // QP levels whose energy gradients are computed, e.g. homo-2:lumo+3
   std::string qp_gradients_;
   void ComputeQPGradients(Orbitals& orbitals);
+  // tasks = gradients: gradients from the orb file of an earlier run
+  bool gradients_only_ = false;
+  void CheckStoredRun(const Orbitals& orbitals) const;
   void SetupQPResponse(DFTEngine::BSEGradientInput& input,
                        const Orbitals& orbitals);
   static std::vector<Index> ParseLevels(const std::string& text, Index homo);

@@ -356,5 +356,65 @@ def level_spectrum(modes: NormalModes, levels: QPLevels, process: str,
     return Spectrum(np.asarray(energies), contributions, process, lam, notes)
 
 
+def add_gradients(orbfile: Pathlike, qp_levels: Optional[str] = None,
+                  excited_state: Optional[str] = None, options=None,
+                  settings: Optional[Mapping[str, str]] = None,
+                  nthreads: int = 1) -> None:
+    """Add gradients to the orb file of an earlier dftgwbse run.
+
+    Runs dftgwbse with ``tasks=gradients``: no DFT and no GW-BSE, only the
+    gradients, from the data in the orb file. QP levels whose gradients
+    are already stored are not recomputed, so levels can be added later;
+    the forces of another excited state replace the stored ones.
+
+    Args:
+        orbfile: orb file of the earlier run; it is updated in place
+        qp_levels: e.g. 'homo-9:lumo+9' (dftgwbse option qp_gradients)
+        excited_state: e.g. 's2' (dftgwbse option excited_state_forces;
+            needs the ground-state forces in the file)
+        options: pyxtp Options of the earlier run (e.g. calc.options)
+        settings: or its settings as for xtp.set(); the DFT and GW
+            options must be those of the earlier run (basis sets and
+            functional are checked, the GW setup through the QP energies
+            rebuilt for the gradient)
+        nthreads: threads
+    """
+    import os
+
+    from pyxtp_binds import xtp_binds
+
+    from ..capture_standard_output import capture_standard_output
+    from ..xtp import xtp
+
+    if qp_levels is None and excited_state is None:
+        raise ValueError("give qp_levels and/or excited_state")
+    orb = Path(orbfile).absolute()
+    if not orb.exists():
+        raise FileNotFoundError(orb)
+    calc = xtp(nthreads=nthreads)
+    if options is not None:
+        calc.set(**options.to_flat_dict())
+    calc.set(**dict(settings or {}))
+    calc.set(tasks="gradients")
+    calc.options.job_name = orb.stem
+    if qp_levels is not None:
+        calc.options.qp_gradients = qp_levels
+    if excited_state is not None:
+        calc.options.excited_state_forces = excited_state
+        calc.options.dftpackage.xtpdft.compute_forces = "true"
+    cwd = os.getcwd()
+    os.chdir(orb.parent)
+    try:
+        xml = f"{orb.stem}_gradients.xml"
+        calc.options._write_xml(xml)
+        output = capture_standard_output(
+            xtp_binds.call_tool, "dftgwbse", nthreads,
+            Path(xml).absolute().as_posix())
+        with open(f"{orb.stem}_gradients.out", "w") as handle:
+            handle.write(output)
+    finally:
+        os.chdir(cwd)
+
+
 __all__ = ["QPLevels", "Spectrum", "level_spectrum", "level_label",
-           "parse_level", "PROCESSES"]
+           "parse_level", "add_gradients", "PROCESSES"]

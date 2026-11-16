@@ -180,6 +180,22 @@ def build_parser() -> argparse.ArgumentParser:
                     help="column with a weight per site")
     sp.add_argument("-o", "--output", default="spectrum.dat")
 
+    gr = sub.add_parser(
+        "gradients", help="add QP gradients (more levels) or excited-state "
+        "forces to the orb file of an earlier dftgwbse run, without "
+        "repeating DFT and GW-BSE")
+    gr.add_argument("orb", help="orb file of the earlier run (updated)")
+    gr.add_argument("--levels", help="QP levels, e.g. homo-9:lumo+9; levels "
+                    "already stored are not recomputed")
+    gr.add_argument("--state", help="excited state, e.g. s2")
+    gr.add_argument("-o", "--options", help="dftgwbse options file of the "
+                    "earlier run (<options><dftgwbse>...</dftgwbse>"
+                    "</options>)")
+    gr.add_argument("--set", action="append", metavar="KEY=VALUE",
+                    help="pyxtp option of the earlier run, e.g. "
+                    "dftpackage.basisset=def2-svp (repeatable)")
+    gr.add_argument("-t", "--threads", type=int, default=1)
+
     pl = sub.add_parser("plot", help="publication-quality figure")
     what = pl.add_mutually_exclusive_group(required=True)
     what.add_argument("-s", "--spectrum", help="output of 'spectrum' or "
