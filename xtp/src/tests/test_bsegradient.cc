@@ -220,6 +220,13 @@ Orbitals RunSCF(const Eigen::Matrix3d& pos, DFTEngine& dft) {
 
 void CheckGradient(const std::string& functional, const Windows& w,
                    bool singlet, bool tda = true) {
+  // the gradient needs first derivatives of the one-body, 2- and 3-centre
+  // integrals; libint2 builds without them throw in BSEExcitationGradient
+  if (!HasLibint2DerivativeSupport()) {
+    std::cout << "SKIPPING: this libint2 build lacks derivative integrals"
+              << std::endl;
+    return;
+  }
   DFTEngine dft;
   InitializeEngine(dft, functional);
   Orbitals orb = RunSCF(WaterPositions(), dft);
