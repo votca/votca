@@ -351,7 +351,11 @@ void CheckLevelGradients(const std::string& functional, const Windows& w) {
     const double analytic = (grad.array() * d.array()).sum();
     std::cout << "  level " << p << ": analytic " << analytic
               << ", finite difference " << fd << std::endl;
-    BOOST_CHECK_SMALL(std::abs(analytic - fd) / grad.norm(), 5e-5);
+    // The finite differences carry an absolute noise of up to ~3e-6
+    // Hartree/Bohr (SCF eigenvalues reproducible to ~1e-9 Hartree, depending
+    // on the thread count); the HOMO derivative along d is only ~2e-4, so a
+    // purely relative check fails on the noise (seen in CI with one thread).
+    BOOST_CHECK_SMALL(std::abs(analytic - fd), 5e-5 * grad.norm() + 1e-5);
     BOOST_CHECK_SMALL(grad.colwise().sum().cwiseAbs().maxCoeff(), 1e-6);
   }
 }
