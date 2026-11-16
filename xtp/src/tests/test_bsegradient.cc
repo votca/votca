@@ -30,10 +30,12 @@
 #define BOOST_TEST_MODULE bsegradient_test
 
 // Standard includes
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
@@ -254,34 +256,47 @@ void CheckGradient(const std::string& functional, const Windows& w,
 
   BOOST_CHECK_SMALL(res.omega - omega_ref, 1e-9);
 
+  // Directional finite differences: each direction costs two SCF + BSE
+  // runs instead of 18 for the full 3x3 gradient, which timed out in CI
+  // Debug builds (unit_test_bsegradient > 1500 s on fedora:latest). Fixed,
+  // non-symmetric displacements of all atoms, so an error in any gradient
+  // component shows up; Debug builds check only the first.
   // Angstrom; smaller steps are limited by SCF and grid noise (~5e-6)
   const double h = 5e-4;
-  Eigen::MatrixXd fd(3, 3);
-  for (Index a = 0; a < 3; ++a) {
-    for (Index x = 0; x < 3; ++x) {
-      Eigen::Matrix3d plus = WaterPositions();
-      Eigen::Matrix3d minus = WaterPositions();
-      plus(a, x) += h;
-      minus(a, x) -= h;
-      DFTEngine dp;
-      InitializeEngine(dp, functional);
-      Orbitals op = RunSCF(plus, dp);
-      DFTEngine dm;
-      InitializeEngine(dm, functional);
-      Orbitals om = RunSCF(minus, dm);
-      fd(a, x) =
-          (SolveBSE(op, w, singlet, tda) - SolveBSE(om, w, singlet, tda)) /
-          (2.0 * h) * kAngstromPerBohr;
-    }
+  std::vector<Eigen::Matrix3d> directions(2);
+  directions[0] << 0.31, -0.52, 0.17,  //
+      -0.44, 0.08, 0.61,               //
+      0.23, 0.57, -0.29;
+  directions[1] << -0.12, 0.35, 0.48,  //
+      0.27, -0.63, 0.09,               //
+      0.54, 0.14, -0.38;
+#ifndef NDEBUG
+  directions.resize(1);
+#endif
+  const double gnorm = res.gradient.norm();
+  double err = 0.0;
+  for (const Eigen::Matrix3d& d0 : directions) {
+    const Eigen::Matrix3d d = d0 / d0.norm();
+    DFTEngine dp;
+    InitializeEngine(dp, functional);
+    Orbitals op = RunSCF(WaterPositions() + h * d, dp);
+    DFTEngine dm;
+    InitializeEngine(dm, functional);
+    Orbitals om = RunSCF(WaterPositions() - h * d, dm);
+    // gradient rows are atoms, columns x,y,z (Hartree/Bohr), as d
+    const double fd =
+        (SolveBSE(op, w, singlet, tda) - SolveBSE(om, w, singlet, tda)) /
+        (2.0 * h) * kAngstromPerBohr;
+    const double analytic = (res.gradient.array() * d.array()).sum();
+    err = std::max(err, std::abs(analytic - fd) / gnorm);
+    std::cout << "  direction derivative: analytic " << analytic
+              << ", finite difference " << fd << std::endl;
   }
-  const double err =
-      (res.gradient - fd).cwiseAbs().maxCoeff() / fd.cwiseAbs().maxCoeff();
   std::cout << functional << (singlet ? " singlet" : " triplet")
             << (tda ? " TDA" : " full BSE") << " windows " << w.vmin << "-"
             << w.cmax << " / " << w.rpamin << "-" << w.rpamax << ": Omega "
             << res.omega << ", max rel. error " << err << "\nanalytic\n"
-            << res.gradient << "\nfinite difference\n"
-            << fd << std::endl;
+            << res.gradient << std::endl;
   BOOST_CHECK_SMALL(res.gradient.colwise().sum().cwiseAbs().maxCoeff(), 1e-6);
   BOOST_CHECK_SMALL(err, 5e-5);
 }
