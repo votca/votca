@@ -45,6 +45,7 @@ Version 2026-dev
 -  Stepwise Libint build (#1274)
 -  inactive region screening with PbE (#1275)
 -  streamed RPA for PPM (#1276)
+-  analytic BSE forces (#1277)
    
 Version 2026 (released 09.03.26)
 ================================
