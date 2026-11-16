@@ -84,6 +84,27 @@
 #define LIBINT_INCLUDE_ERI3 INCLUDE_ERI3
 #endif
 
+// libint2 < 2.9.0 computes the wrong build-function index for 3-centre
+// derivative integrals when the 3-centre AM limit is centre dependent
+// (engine.impl.h, BraKet::xs_xx: LIBINT2_CENTER_DEPENDENT_MAX_AM_3eri is
+// macro-expanded before being pasted with the derivative order, so the ket
+// stride is LIBINT2_MAX_AM_3eri1+1 instead of LIBINT2_MAX_AM_default1+1).
+// The engine then calls a wrong or null build function: a segfault at 0x0,
+// e.g. with Ubuntu's libint2 2.7.2 (--with-eri3-max-am=7,6, max-am 5).
+// Treat 3-centre derivatives as unavailable for such builds.
+#if (LIBINT_MAJOR_VERSION < 2 ||                                 \
+     (LIBINT_MAJOR_VERSION == 2 && LIBINT_MINOR_VERSION < 9)) && \
+    defined(LIBINT2_CENTER_DEPENDENT_MAX_AM_3eri1) &&            \
+    defined(LIBINT2_MAX_AM_3eri1) && defined(LIBINT2_MAX_AM_default1)
+#if LIBINT2_CENTER_DEPENDENT_MAX_AM_3eri1 == 1 && \
+    LIBINT2_MAX_AM_3eri1 != LIBINT2_MAX_AM_default1
+#define VOTCA_LIBINT_ERI3_DERIV_BROKEN 1
+#endif
+#endif
+#ifndef VOTCA_LIBINT_ERI3_DERIV_BROKEN
+#define VOTCA_LIBINT_ERI3_DERIV_BROKEN 0
+#endif
+
 // The libint2 headers compiled here must be those of the libint2 that CMake
 // found and links (CheckLibintFeatures.cmake passes its version and
 // derivative orders). Another libint2 earlier in the include path (e.g. a
@@ -628,7 +649,7 @@ Eigen::MatrixXd ContractCoulombMetricDerivatives(const AOBasis&,
 // being (dftbasis size x dftbasis size).
 using ThreeCenterDerivative = std::array<std::vector<Eigen::MatrixXd>, 3>;
 
-#if (LIBINT_INCLUDE_ERI3 >= 1)
+#if (LIBINT_INCLUDE_ERI3 >= 1) && !VOTCA_LIBINT_ERI3_DERIV_BROKEN
 std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     const AOBasis& auxbasis, const AOBasis& dftbasis) {
   CheckDerivativeTable(
@@ -772,11 +793,16 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
 #else   // !(LIBINT_INCLUDE_ERI3)
 std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     const AOBasis&, const AOBasis&) {
-  ThrowNoDerivativeSupport("ComputeThreeCenterDerivatives", "--enable-eri3=1");
+  ThrowNoDerivativeSupport(
+      "ComputeThreeCenterDerivatives",
+      VOTCA_LIBINT_ERI3_DERIV_BROKEN
+          ? "--enable-eri3=1 (libint2 >= 2.9.0: older releases index "
+            "centre-dependent 3-centre derivative code incorrectly)"
+          : "--enable-eri3=1");
 }
 #endif  // LIBINT_INCLUDE_ERI3
 
-#if (LIBINT_INCLUDE_ERI3 >= 1)
+#if (LIBINT_INCLUDE_ERI3 >= 1) && !VOTCA_LIBINT_ERI3_DERIV_BROKEN
 // sum_P sum_{mu nu} Gamma^P_{mu nu} d(mu nu|P)/dR, see riderivatives.h.
 // Parallel over aux shells; each thread builds the Gamma^P of its aux shell
 // (symmetrized), computes the derivative integrals of the shell pairs
@@ -931,7 +957,12 @@ Eigen::MatrixXd ContractThreeCenterDerivatives(const AOBasis& auxbasis,
 #else   // !(LIBINT_INCLUDE_ERI3)
 Eigen::MatrixXd ContractThreeCenterDerivatives(const AOBasis&, const AOBasis&,
                                                const AuxDensityFn&) {
-  ThrowNoDerivativeSupport("ContractThreeCenterDerivatives", "--enable-eri3=1");
+  ThrowNoDerivativeSupport(
+      "ContractThreeCenterDerivatives",
+      VOTCA_LIBINT_ERI3_DERIV_BROKEN
+          ? "--enable-eri3=1 (libint2 >= 2.9.0: older releases index "
+            "centre-dependent 3-centre derivative code incorrectly)"
+          : "--enable-eri3=1");
 }
 #endif  // LIBINT_INCLUDE_ERI3
 
@@ -1200,7 +1231,7 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
 bool HasLibint2DerivativeSupport() {
 #if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && \
     (LIBINT_INCLUDE_ONEBODY >= 1) && (LIBINT_INCLUDE_ERI2 >= 1) &&      \
-    (LIBINT_INCLUDE_ERI3 >= 1)
+    (LIBINT_INCLUDE_ERI3 >= 1) && !VOTCA_LIBINT_ERI3_DERIV_BROKEN
   return true;
 #else
   return false;
