@@ -133,7 +133,12 @@ exact self-energy, QP solutions can jump between branches near poles of the
 self-energy, which makes the energy discontinuous along a path; the forces
 belong to the branch found at that geometry. For evGW,
 energy and forces agree to the convergence of the GW iterations
-(``gw.sc_limit``). For contour deformation (cda)
+(``gw.sc_limit``). For geometry optimizations with evGW, set
+``gw.out_of_window_shift`` to ``nearest``: the default ``max`` shifts the
+levels outside the GW window by the largest correction in the window, so
+the energy has kinks where that level changes, and optimizations can stall
+there (formaldehyde S1, PBE0/def2-TZVPP: no convergence in 80 steps with
+``max``, 8 steps with ``nearest``). For contour deformation (cda)
 the QP corrections are kept fixed (cf. Holzer, arXiv:2611.12617); for water
 (S1, PBE0/def2-SVP) this neglects about 10 % of the forces, and the energy,
 which contains the full GW response, is then not exactly consistent with

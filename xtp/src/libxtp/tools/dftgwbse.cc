@@ -275,6 +275,20 @@ void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {
       input.out_of_window_shift =
           gwbseengine_options_.get("gwbse.gw.out_of_window_shift")
               .as<std::string>();
+      if (input.out_of_window_shift == "max" &&
+          (orbitals.getGWAmax() < orbitals.getRPAmax() ||
+           orbitals.getGWAmin() > orbitals.getRPAmin())) {
+        // max of the window corrections: the energy has kinks where the
+        // level with the largest correction changes; the forces are those
+        // of the branch at the geometry, and optimizations can stall at
+        // such a kink (formaldehyde S1, PBE0/def2-TZVPP)
+        XTP_LOG(Log::error, log_)
+            << TimeStamp()
+            << " WARNING: evGW with gw.out_of_window_shift max: the energy "
+               "is not differentiable where the level with the largest "
+               "correction changes; use nearest for geometry optimizations"
+            << std::flush;
+      }
       input.out_of_window_fit_fraction =
           gwbseengine_options_.get("gwbse.gw.out_of_window_fit_fraction")
               .as<double>();
