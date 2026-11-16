@@ -502,14 +502,15 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
         // the pole energies of G (screening frozen); one reverse pass per
         // iteration. Fallback: the matrix column by column (nq passes).
         const Eigen::VectorXd diag1 = (1.0 - dsigma.array()).matrix();
-        auto apply = [&](const Eigen::VectorXd& x) {
-          const Eigen::VectorXd rho = reverse(x, false);
-          return Eigen::VectorXd(x.cwiseProduct(diag1) - rho.segment(qr, nq) -
+        auto apply = [&](const Eigen::VectorXd& vin) {
+          const Eigen::VectorXd rho = reverse(vin, false);
+          return Eigen::VectorXd(vin.cwiseProduct(diag1) - rho.segment(qr, nq) -
                                  Js.transpose() * rho);
         };
-        Eigen::MatrixXd M = -poles.middleRows(qr, nq) - Js.transpose() * poles;
-        M.diagonal() += diag1;
-        const Eigen::PartialPivLU<Eigen::MatrixXd> luM(M);
+        Eigen::MatrixXd Mpre =
+            -poles.middleRows(qr, nq) - Js.transpose() * poles;
+        Mpre.diagonal() += diag1;
+        const Eigen::PartialPivLU<Eigen::MatrixXd> luM(Mpre);
         const double bnorm = Wbar.norm();
         const double tol = 1e-11 * std::max(1.0, bnorm);
         Eigen::VectorXd v = Eigen::VectorXd::Zero(nq);
