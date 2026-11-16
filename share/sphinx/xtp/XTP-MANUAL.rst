@@ -17,6 +17,7 @@ software and manual versions match.
    projection_embedding
    implementation_notes
    gwbse_numerics
+   excited_state_gradients
    transfer_theory
    transport_theory
    transport_simulations

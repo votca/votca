@@ -104,6 +104,9 @@ GW-BSE calculation per displaced coordinate.
 Analytic excited-state forces
 *****************************
 
+Theory, the dftgwbse options, recommended settings and validation are in
+:doc:`excited_state_gradients`.
+
 ``xtp(excited_state='s1')`` (or ``'t1'``, ...) makes ``get_potential_energy``
 return the total energy of that BSE state (DFT total energy plus the static
 excitation energy) and ``get_forces`` its analytic forces, computed after the
