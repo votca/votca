@@ -28,9 +28,9 @@ find_package(Python 3.5 COMPONENTS Interpreter Development QUIET)
 find_package(pybind11 QUIET)
 if(pybind11_FOUND AND Python_Development_FOUND AND PYase_FOUND AND PYxmltodict_FOUND
    AND PYh5py_FOUND AND PYlxml_FOUND AND PYrdkit_FOUND)
-  list(APPEND XTP_SCRIPTS xtp_excited_dipoles)
+  list(APPEND XTP_SCRIPTS xtp_excited_dipoles xtp_vibronic)
 else()
-  message(STATUS "Skipping xtp_excited_dipoles (needs pyxtp: pybind11, the Python "
+  message(STATUS "Skipping xtp_excited_dipoles and xtp_vibronic (needs pyxtp: pybind11, the Python "
                  "development files and the python modules ase, xmltodict, h5py, lxml, rdkit)")
 endif()
 

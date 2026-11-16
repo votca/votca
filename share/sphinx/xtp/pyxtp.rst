@@ -221,6 +221,131 @@ the Python interpreter ``pyxtp`` was installed for. Example:
 ``xtp_excited_dipoles -x molecule.xyz -o options.xml -t 4 --xml result.xml``,
 where ``options.xml`` holds ``dftgwbse`` options as for ``xtp_tools``.
 
+Vibronic line shapes
+********************
+
+``pyxtp.vibronic`` turns a ground-state Hessian and the gradient of an energy
+gap into Huang-Rhys factors and thermal vibronic line shapes, and sums them
+over the vertical energies of a morphology (e.g. QP levels or excitation
+energies from QM/MM) to give ensemble spectra.
+
+Model: displaced harmonic oscillators with the frequencies of the initial
+state. With :math:`g` the gradient of :math:`E_\mathrm{final}-E_\mathrm{initial}`
+at the initial-state minimum, the mass-weighted normal-mode components
+:math:`q_\nu = e_\nu \cdot M^{-1/2} g` give
+
+.. math::
+
+   \lambda_\nu = \frac{q_\nu^2}{2\omega_\nu^2}, \qquad
+   S_\nu = \frac{\lambda_\nu}{\hbar\omega_\nu},
+
+and the line shape is the Fourier transform of the generating function
+
+.. math::
+
+   F(E) = \frac{1}{2\pi}\int d\tau\, e^{i(E-E_{00})\tau}
+   \exp\Big(\sum_\nu S_\nu\big[(n_\nu+1)e^{-i\omega_\nu\tau}
+   + n_\nu e^{i\omega_\nu\tau} - (2n_\nu+1)\big]\Big)
+   e^{-i\lambda_\mathrm{cl}\tau - \lambda_\mathrm{cl}k_BT\tau^2}
+   e^{-\sigma^2\tau^2/2 - \gamma|\tau|},
+
+with :math:`\tau=t/\hbar`, Bose occupations :math:`n_\nu`, a classical
+(outer-sphere or soft-mode) reorganization energy :math:`\lambda_\mathrm{cl}`
+and optional Gaussian (:math:`\sigma`) and Lorentzian (:math:`\gamma`)
+broadening. It is evaluated with one FFT, is normalized, and is stored
+relative to the vertical energy :math:`E_\mathrm{vert}=E_{00}+\lambda`,
+which is its mean.
+
+.. code-block:: python
+
+   from ase.io import read
+   from pyxtp.vibronic import (FiniteDifferenceHessian, xtp_ground_state_factory,
+                               couplings_from_gradient, read_gap_gradient,
+                               vibronic_lineshape, ensemble_spectrum)
+
+   settings = {'dftpackage/functional': 'XC_HYB_GGA_XC_PBEH',  # PBE0
+               'dftpackage/basisset': 'def2-svp',
+               'dftpackage/auxbasisset': 'aux-def2-svp'}
+   fd = FiniteDifferenceHessian(read('minimum.xyz'),
+                                xtp_ground_state_factory(settings, nthreads=4),
+                                workdir='hessian', step=0.005)
+   fd.run()                       # 6N + 1 force calculations, resumable
+   modes = fd.normal_modes()      # translations/rotations projected out
+   modes.save('modes.npz')
+
+   # gradient of Omega_S1 from a dftgwbse run with excited_state_forces=s1
+   c = couplings_from_gradient(modes, read_gap_gradient('s1.orb'),
+                               min_wavenumber=10)
+   print(c.summary())
+   shape = vibronic_lineshape(c, temperature=300, process='absorption',
+                              lambda_classical=0.05)
+   energies, spectrum = ensemble_spectrum(site_energies, shape)
+
+* **Hessian.** ``FiniteDifferenceHessian`` differentiates analytic forces
+  (central differences, 6N + 1 calculations; ``scheme='forward'`` 3N + 1).
+  Every displacement runs in its own directory of ``workdir`` and is claimed
+  with a lock file: interrupted runs resume, several processes can work on
+  the same ``workdir``, and ``run(part=i, nparts=n)`` splits the jobs for
+  array jobs. ``xtp_ground_state_factory`` runs only the DFT part of
+  ``dftgwbse`` with analytic forces and ``verytight`` SCF, and starts the
+  displaced SCFs from the converged orbitals of the reference geometry. Any
+  other ASE calculator works as well. ``indices`` restricts the
+  displacements to some atoms (partial Hessian). The reference geometry
+  should be a tightly converged minimum of the same method; the residual
+  forces and the asymmetry of the finite-difference Hessian are reported by
+  ``xtp_vibronic modes``. Existing Hessians can be read with
+  ``read_orca_hessian``.
+* **Gradients.** ``read_gap_gradient`` reads the gradient of
+  :math:`\Omega_n` from an orb file with ``excited_state_forces`` (see
+  above; :math:`F_\mathrm{ground}-F_\mathrm{excited}`), ORCA-style
+  ``.engrad`` files or arrays in eV/Å. ``couplings_from_forces`` takes the
+  forces of both states; ``couplings_from_geometry`` uses an optimized
+  final-state geometry instead (the difference to the gradient route
+  measures anharmonicity and frequency changes).
+* **Process.** ``process`` (``--process``) sets the energy axis of the line
+  shape and of the site energies, and with it the side of :math:`E_{00}` on
+  which the vibronic progression lies:
+
+  ===================== ================================================ ===========
+  process               energy axis (site energies)                      progression
+  ===================== ================================================ ===========
+  ``absorption``        photon energy :math:`S_0\to S_n` (:math:`\Omega_n`) above
+  ``emission``          photon energy :math:`S_n\to S_0` (:math:`\Omega_n`) below
+  ``electron-addition`` QP level of the added electron (LUMO, ...;       above
+                        inverse photoemission)
+  ``electron-removal``  QP level of the removed electron (HOMO, ...;     below
+                        photoemission)
+  ``ionization``        ionization energy :math:`-E_\mathrm{HOMO}`        above
+  ``electron-affinity`` electron affinity :math:`-E_\mathrm{LUMO}`        below
+  ===================== ================================================ ===========
+
+  The gradient is that of :math:`\Omega_n` or of the QP level involved; its
+  sign does not matter (:math:`\lambda_\nu \propto q_\nu^2`). For emission
+  the modes should strictly be those of the excited state.
+* **Soft modes.** Modes below ``min_wavenumber`` are left out (their
+  :math:`\lambda` is reported); ``classical_below`` treats soft modes as part
+  of the classical term instead, which is appropriate for torsions hindered
+  in a solid. Imaginary modes are always left out with a warning.
+* **Limitations.** Linear coupling only: the final state has the frequencies
+  and modes of the initial state (no frequency changes, no Duschinsky
+  rotation), so modes that are not displaced by symmetry do not appear even
+  if their frequency changes (e.g. the out-of-plane mode of formaldehyde in
+  S1). Herzberg-Teller (intensity borrowing) effects are not included.
+
+The script ``xtp_vibronic`` provides the same steps on the command line
+(installed together with ``pyxtp``):
+
+.. code-block:: bash
+
+   xtp_vibronic hessian -x minimum.xyz -w hessian -t 4 \
+       --set dftpackage.functional=XC_HYB_GGA_XC_PBEH --set dftpackage.basisset=def2-svp \
+       --set dftpackage.auxbasisset=aux-def2-svp     # repeatable, or -o options.xml
+   xtp_vibronic hessian -w hessian --part 3 --nparts 16  # e.g. in an array job
+   xtp_vibronic status -w hessian
+   xtp_vibronic modes -w hessian -m modes.npz
+   xtp_vibronic lineshape -m modes.npz -g s1.orb -p absorption -T 300 --lambda-classical 0.05 \
+       --sites site_energies.dat --column 2 --where '1>4.0' -o spectrum.dat
+
 Examples
 ********
 
