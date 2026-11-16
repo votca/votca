@@ -39,6 +39,7 @@
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/riderivatives.h"
 #include "votca/xtp/votca_xtp_config.h"
+#include <algorithm>
 #include <atomic>
 #include <exception>
 #include <iostream>
@@ -162,6 +163,62 @@ namespace {
       "metric and three-center RI integrals each have their own "
       "configure option.");
 }
+
+// libint2::Engine only assert()s that a build function exists for the
+// angular momenta of a shell set; with NDEBUG a missing one becomes a call
+// through a null pointer (segfault at address 0x0, not an exception).
+// Packaged libint2 builds can generate derivative code for fewer angular
+// momenta than energy code, and the engine's own lmax check does not catch
+// every gap, so the generated tables are checked against the basis first.
+// Tables are indexed [l1][l2] (one-body, two-centre) and [lP][l1][l2]
+// (three-centre); for the latter libint2 generates only one ordering of the
+// ket pair and the engine swaps the shells, so either ordering suffices.
+template <class Fn, std::size_t N1, std::size_t N2>
+bool BuildTableCovers(Fn (&table)[N1][N2], Index lmax1, Index lmax2) {
+  if (lmax1 >= Index(N1) || lmax2 >= Index(N2)) {
+    return false;
+  }
+  for (Index l1 = 0; l1 <= lmax1; ++l1) {
+    for (Index l2 = 0; l2 <= lmax2; ++l2) {
+      if (table[l1][l2] == nullptr) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+template <class Fn, std::size_t NP, std::size_t N1, std::size_t N2>
+bool BuildTableCovers(Fn (&table)[NP][N1][N2], Index lmaxP, Index lmax) {
+  if (lmaxP >= Index(NP) || lmax >= Index(N1) || lmax >= Index(N2)) {
+    return false;
+  }
+  for (Index lP = 0; lP <= lmaxP; ++lP) {
+    for (Index l1 = 0; l1 <= lmax; ++l1) {
+      for (Index l2 = 0; l2 <= l1; ++l2) {
+        if (table[lP][l1][l2] == nullptr && table[lP][l2][l1] == nullptr) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+[[maybe_unused]] void CheckDerivativeTable(bool covered,
+                                           const char* function_name,
+                                           Index lmax) {
+  if (!covered) {
+    throw std::runtime_error(
+        std::string(function_name) +
+        ": this libint2 build has no first-derivative integrals for the "
+        "angular momenta of this basis (maximum l = " +
+        std::to_string(lmax) +
+        "), so analytic nuclear forces are unavailable. Rebuild libint2 "
+        "with a higher derivative angular-momentum limit (the second "
+        "entry of --with-max-am / --with-eri2-max-am / --with-eri3-max-am).");
+  }
+}
 }  // namespace
 
 // Nuclear-coordinate derivatives of a two-centre one-electron integral
@@ -191,6 +248,20 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
       "computeOneBodyIntegralDerivatives only supports single-operator "
       "types (overlap, kinetic); multipole-type operators with multiple "
       "result matrices are not handled.");
+  {
+    Index lmax = aobasis.getMaxL();
+    if constexpr (obtype == libint2::Operator::overlap) {
+      CheckDerivativeTable(
+          BuildTableCovers(LIBINT2_PREFIXED_NAME(libint2_build_overlap1), lmax,
+                           lmax),
+          "ComputeOverlapDerivatives", lmax);
+    } else {
+      CheckDerivativeTable(
+          BuildTableCovers(LIBINT2_PREFIXED_NAME(libint2_build_kinetic1), lmax,
+                           lmax),
+          "ComputeKineticDerivatives", lmax);
+    }
+  }
 
   // AOBasis has no getNumofAtoms(); getFuncPerAtom() has one entry per atom.
   Index natoms = static_cast<Index>(aobasis.getFuncPerAtom().size());
@@ -327,6 +398,10 @@ std::vector<AOMatrixDerivative> ComputeKineticDerivatives(const AOBasis&) {
 #if (LIBINT_INCLUDE_ERI2 >= 1)
 std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
     const AOBasis& aobasis) {
+  CheckDerivativeTable(
+      BuildTableCovers(LIBINT2_PREFIXED_NAME(libint2_build_2eri1),
+                       aobasis.getMaxL(), aobasis.getMaxL()),
+      "ComputeCoulombMetricDerivatives", aobasis.getMaxL());
   Index natoms = static_cast<Index>(aobasis.getFuncPerAtom().size());
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
@@ -437,6 +512,10 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
 #if (LIBINT_INCLUDE_ERI2 >= 1)
 Eigen::MatrixXd ContractCoulombMetricDerivatives(const AOBasis& auxbasis,
                                                  const Eigen::MatrixXd& G) {
+  CheckDerivativeTable(
+      BuildTableCovers(LIBINT2_PREFIXED_NAME(libint2_build_2eri1),
+                       auxbasis.getMaxL(), auxbasis.getMaxL()),
+      "ContractCoulombMetricDerivatives", auxbasis.getMaxL());
   Index natoms = static_cast<Index>(auxbasis.getFuncPerAtom().size());
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> shells = auxbasis.GenerateLibintBasis();
@@ -552,6 +631,11 @@ using ThreeCenterDerivative = std::array<std::vector<Eigen::MatrixXd>, 3>;
 #if (LIBINT_INCLUDE_ERI3 >= 1)
 std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     const AOBasis& auxbasis, const AOBasis& dftbasis) {
+  CheckDerivativeTable(
+      BuildTableCovers(LIBINT2_PREFIXED_NAME(libint2_build_3eri1),
+                       auxbasis.getMaxL(), dftbasis.getMaxL()),
+      "ComputeThreeCenterDerivatives",
+      std::max(auxbasis.getMaxL(), dftbasis.getMaxL()));
   Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
   // assumes auxbasis and dftbasis are defined on the same molecule
 
@@ -703,6 +787,11 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
 Eigen::MatrixXd ContractThreeCenterDerivatives(const AOBasis& auxbasis,
                                                const AOBasis& dftbasis,
                                                const AuxDensityFn& gamma) {
+  CheckDerivativeTable(
+      BuildTableCovers(LIBINT2_PREFIXED_NAME(libint2_build_3eri1),
+                       auxbasis.getMaxL(), dftbasis.getMaxL()),
+      "ContractThreeCenterDerivatives",
+      std::max(auxbasis.getMaxL(), dftbasis.getMaxL()));
   Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
@@ -939,6 +1028,10 @@ void ForEachThreeCenterIntegral(const AOBasis& auxbasis,
     (LIBINT_INCLUDE_ONEBODY >= 1)
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     const AOBasis& aobasis, const QMMolecule& mol) {
+  CheckDerivativeTable(
+      BuildTableCovers(LIBINT2_PREFIXED_NAME(libint2_build_elecpot1),
+                       aobasis.getMaxL(), aobasis.getMaxL()),
+      "ComputeNuclearAttractionDerivatives", aobasis.getMaxL());
   Index natoms = mol.size();
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
