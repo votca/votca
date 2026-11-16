@@ -189,8 +189,7 @@ HOMO-2 to LUMO+2): relative errors below :math:`10^{-6}` for G0W0 and
 evGW with both self-energy models.
 
 The main use is the vibronic structure of photoemission and inverse
-photoemission spectra, see :doc:`pyxtp` (``pyxtp.vibronic``,
-``xtp_vibronic spectrum``).
+photoemission spectra, see :doc:`vibronic_spectra`.
 
 Root following
 ==============

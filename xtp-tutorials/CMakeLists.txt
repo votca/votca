@@ -54,6 +54,8 @@ if(TARGET VOTCA::xtp_binds)
   get_target_property(XTP_PYPATH VOTCA::xtp_binds XTP_PYPATH)
   list(APPEND NOTEBOOKS "pyxtp/geometry_optimization.ipynb")
   list(APPEND NOTEBOOKS "pyxtp/single_point.ipynb")
+  # matplotlib, as the other tutorials
+  list(APPEND NOTEBOOKS "pyxtp/VIBRONIC_SPECTRA.ipynb")
 endif()
 
 foreach(_notebook ${NOTEBOOKS})

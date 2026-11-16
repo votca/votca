@@ -18,6 +18,7 @@ software and manual versions match.
    implementation_notes
    gwbse_numerics
    excited_state_gradients
+   vibronic_spectra
    transfer_theory
    transport_theory
    transport_simulations

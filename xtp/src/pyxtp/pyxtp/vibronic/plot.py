@@ -10,8 +10,9 @@ Needs matplotlib (not imported by ``pyxtp.vibronic`` itself).
         fig.savefig("ipes.pdf")
 
 Design: one axis per panel; thin lines; the contributions of the levels
-in a fixed colour order (colour-blind safe, at most eight, further levels
-are drawn in grey), the totals and all text in black/grey ink; a legend
+in a fixed colour order (colour-blind safe; HOMO and LUMO first, then by
+distance from the gap, so a level keeps its colour; from the ninth level
+on grey), the totals and all text in black/grey ink; a legend
 whenever there is more than one curve.
 """
 
@@ -65,6 +66,16 @@ def paper_style(fontsize: float = 8.0):
         yield
 
 
+def _slot(label: str, index: int) -> int:
+    """Colour slot of a contribution: n for HOMO-n and LUMO+n."""
+    for name, sep in (("HOMO", "-"), ("LUMO", "+")):
+        if label == name:
+            return 0
+        if label.startswith(name + sep) and label[5:].isdigit():
+            return int(label[5:])
+    return index
+
+
 def _new_axes(ax, width, height):
     if ax is not None:
         return ax.figure, ax
@@ -116,15 +127,21 @@ def plot_spectrum(spectrum: Spectrum,
     many = len(labels) > 1
 
     if contributions and many:
-        for i, label in enumerate(labels):
+        # colour by the distance of the level from the gap (HOMO and LUMO
+        # first), so that a level keeps its colour whatever else is shown;
+        # the legend lists the levels in this order as well
+        order = sorted(range(len(labels)),
+                       key=lambda j: (_slot(labels[j], j), j))
+        grey_label = "deeper/higher levels"
+        for i, label in ((_slot(labels[j], j), labels[j]) for j in order):
             y = spectrum.contributions[label] * scale
             if i < len(SERIES_COLORS):
                 ax.plot(e, y, color=SERIES_COLORS[i], lw=1.0, label=label,
                         zorder=3)
             else:
                 ax.plot(e, y, color=INK_MUTED, lw=0.8, zorder=3,
-                        label="higher levels" if i == len(SERIES_COLORS)
-                        else None)
+                        label=grey_label)
+                grey_label = None
     if broad:
         # below the contributions: it coincides with them where the levels
         # do not overlap
