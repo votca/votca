@@ -16,6 +16,8 @@
  */
 
 // VOTCA includes
+#include <algorithm>
+#include <sstream>
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
@@ -53,6 +55,9 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   if (options.exists(".excited_state_forces")) {
     excited_state_forces_ =
         options.get(".excited_state_forces").as<std::string>();
+  }
+  if (options.exists(".qp_gradients")) {
+    qp_gradients_ = options.get(".qp_gradients").as<std::string>();
   }
   if (options.exists(".excited_state_forces_follow")) {
     excited_state_forces_follow_ =
@@ -173,6 +178,9 @@ bool DftGwBse::Run() {
   if (!excited_state_forces_.empty()) {
     ComputeExcitedStateForces(orbitals);
   }
+  if (!qp_gradients_.empty()) {
+    ComputeQPGradients(orbitals);
+  }
 
   XTP_LOG(Log::error, log_) << "Saving data to " << archive_file_ << std::flush;
   orbitals.WriteToCpt(archive_file_);
@@ -230,35 +238,10 @@ QMState DftGwBse::FollowState(const Orbitals& orbitals) {
 // Forces -dE/dR of one BSE state: the ground-state forces of the SCF
 // (xtpdft.compute_forces) minus the analytic gradient of the excitation
 // energy with fixed QP corrections (DFTEngine::BSEExcitationGradient).
-void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {
-  QMState state(excited_state_forces_);
-  if (!excited_state_forces_follow_.empty()) {
-    state = FollowState(orbitals);
-  }
-  const bool singlet = state.Type() == QMStateType::Singlet;
-  if (!singlet && state.Type() != QMStateType::Triplet) {
-    throw std::runtime_error(
-        "excited_state_forces: only singlet or triplet BSE states (e.g. s1)");
-  }
-  if (package_options_.get("name").as<std::string>() != "xtp") {
-    throw std::runtime_error("excited_state_forces: needs the xtp DFT package");
-  }
-  if (!mpsfile_.empty() || orbitals.getCalculationType() == "Truncated") {
-    throw std::runtime_error(
-        "excited_state_forces: embedding and truncated bases are not "
-        "supported");
-  }
-  if (!orbitals.hasForces()) {
-    throw std::runtime_error(
-        "excited_state_forces: needs the ground-state forces, set "
-        "dftpackage.xtpdft.compute_forces to true");
-  }
-  XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Analytic forces of BSE state " << state.ToString()
-      << (orbitals.getTDAApprox() ? " (TDA)" : " (full BSE)") << std::flush;
-
-  DFTEngine::BSEGradientInput input = DFTEngine::BSEGradientInputFromOrbitals(
-      orbitals, singlet, state.StateIdx());
+// Response of the QP corrections in the gradients (BSE states and QP
+// levels): the options of the GW run that the gradient has to reproduce.
+void DftGwBse::SetupQPResponse(DFTEngine::BSEGradientInput& input,
+                               const Orbitals& orbitals) {
   // response of the QP corrections: implemented for G0W0 and evGW with
   // the plasmon-pole and the exact self-energy; otherwise (cda) the
   // corrections are kept fixed
@@ -307,6 +290,134 @@ void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {
            "false, or not G0W0/evGW with sigma_integrator ppm or exact)"
         << std::flush;
   }
+}
+
+// "homo-2:lumo+3", "lumo", "12:20" (absolute, 0-based MO indices)
+std::vector<Index> DftGwBse::ParseLevels(const std::string& text, Index homo) {
+  auto parse_one = [homo](std::string token) {
+    token.erase(std::remove_if(token.begin(), token.end(), ::isspace),
+                token.end());
+    std::transform(token.begin(), token.end(), token.begin(), ::tolower);
+    Index base = 0;
+    std::string rest = token;
+    if (token.rfind("homo", 0) == 0) {
+      base = homo;
+      rest = token.substr(4);
+    } else if (token.rfind("lumo", 0) == 0) {
+      base = homo + 1;
+      rest = token.substr(4);
+    }
+    if (rest.empty() && rest.size() != token.size()) {
+      return base;
+    }
+    std::size_t used = 0;
+    Index offset = 0;
+    try {
+      offset = Index(std::stol(rest, &used));
+    } catch (std::exception&) {
+      used = std::string::npos;
+    }
+    if (used != rest.size() || rest.empty() ||
+        (rest.size() != token.size() && rest[0] != '+' && rest[0] != '-')) {
+      throw std::runtime_error("qp_gradients: cannot read level '" + token +
+                               "' (e.g. homo-2, lumo+3 or an MO index)");
+    }
+    return base + offset;
+  };
+  std::vector<Index> levels;
+  std::stringstream list(text);
+  std::string item;
+  while (std::getline(list, item, ',')) {
+    const std::size_t colon = item.find(':');
+    const Index first = parse_one(item.substr(0, colon));
+    const Index last = (colon == std::string::npos)
+                           ? first
+                           : parse_one(item.substr(colon + 1));
+    if (last < first) {
+      throw std::runtime_error("qp_gradients: empty range '" + item + "'");
+    }
+    for (Index level = first; level <= last; ++level) {
+      if (std::find(levels.begin(), levels.end(), level) == levels.end()) {
+        levels.push_back(level);
+      }
+    }
+  }
+  std::sort(levels.begin(), levels.end());
+  return levels;
+}
+
+void DftGwBse::ComputeQPGradients(Orbitals& orbitals) {
+  if (package_options_.get("name").as<std::string>() != "xtp") {
+    throw std::runtime_error("qp_gradients: needs the xtp DFT package");
+  }
+  if (!mpsfile_.empty() || orbitals.getCalculationType() == "Truncated") {
+    throw std::runtime_error(
+        "qp_gradients: embedding and truncated bases are not supported");
+  }
+  const std::vector<Index> levels =
+      ParseLevels(qp_gradients_, orbitals.getHomo());
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Analytic gradients of the QP energies of "
+      << levels.size() << " level(s), " << levels.front() << " to "
+      << levels.back() << " (HOMO is " << orbitals.getHomo() << ")"
+      << std::flush;
+  DFTEngine::BSEGradientInput input =
+      DFTEngine::QPGradientInputFromOrbitals(orbitals, levels);
+  SetupQPResponse(input, orbitals);
+  DFTEngine dft;
+  dft.setLogger(&log_);
+  dft.Initialize(package_options_);
+  const DFTEngine::BSEGradientResult result =
+      dft.BSEExcitationGradient(orbitals, input);
+  if (input.qp_response) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " QP energies rebuilt for the gradient: max "
+        << "deviation " << result.qp_rebuild_error << " Ha" << std::flush;
+    if (result.qp_rebuild_error > 1e-4) {
+      throw std::runtime_error(
+          "qp_gradients: the QP energies rebuilt for the gradient differ "
+          "from the GW ones by " +
+          std::to_string(result.qp_rebuild_error) + " Ha");
+    }
+  }
+  const Index natoms = orbitals.QMAtoms().size();
+  Eigen::MatrixXd all(Index(levels.size()) * natoms, 3);
+  for (std::size_t l = 0; l < levels.size(); ++l) {
+    all.middleRows(Index(l) * natoms, natoms) = result.qp_gradients[l];
+  }
+  orbitals.setQPGradients(all, levels);
+}
+
+void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {
+  QMState state(excited_state_forces_);
+  if (!excited_state_forces_follow_.empty()) {
+    state = FollowState(orbitals);
+  }
+  const bool singlet = state.Type() == QMStateType::Singlet;
+  if (!singlet && state.Type() != QMStateType::Triplet) {
+    throw std::runtime_error(
+        "excited_state_forces: only singlet or triplet BSE states (e.g. s1)");
+  }
+  if (package_options_.get("name").as<std::string>() != "xtp") {
+    throw std::runtime_error("excited_state_forces: needs the xtp DFT package");
+  }
+  if (!mpsfile_.empty() || orbitals.getCalculationType() == "Truncated") {
+    throw std::runtime_error(
+        "excited_state_forces: embedding and truncated bases are not "
+        "supported");
+  }
+  if (!orbitals.hasForces()) {
+    throw std::runtime_error(
+        "excited_state_forces: needs the ground-state forces, set "
+        "dftpackage.xtpdft.compute_forces to true");
+  }
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Analytic forces of BSE state " << state.ToString()
+      << (orbitals.getTDAApprox() ? " (TDA)" : " (full BSE)") << std::flush;
+
+  DFTEngine::BSEGradientInput input = DFTEngine::BSEGradientInputFromOrbitals(
+      orbitals, singlet, state.StateIdx());
+  SetupQPResponse(input, orbitals);
   DFTEngine dft;
   dft.setLogger(&log_);
   dft.Initialize(package_options_);

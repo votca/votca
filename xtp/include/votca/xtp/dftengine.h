@@ -189,6 +189,12 @@ class DFTEngine {
     /// for the full BSE, Y (antiresonant; empty for the TDA)
     Eigen::VectorXd X;
     Eigen::VectorXd Y;
+    /// If not empty: instead of the BSE excitation energy (X, Y and singlet
+    /// are ignored), the gradients of the energies of these levels
+    /// (absolute MO indices in vmin..cmax): QP energies in the QP window
+    /// with qp_response, otherwise the energies entering as energies_bse
+    /// (KS plus fixed shifts). KS-degenerate levels: gradient of their mean.
+    std::vector<Index> qp_levels;
     /// energies of the levels vmin..cmax in the BSE Hamiltonian (diagonal of
     /// Hqp, outside the QP window the RPA input energies)
     Eigen::VectorXd energies_bse;
@@ -223,6 +229,8 @@ class DFTEngine {
     /// dOmega/dR, (natoms x 3), Hartree/Bohr; add the ground-state
     /// gradient for the excited-state energy
     Eigen::MatrixXd gradient;
+    /// for qp_levels: dE_p/dR per level (natoms x 3 each), Hartree/Bohr
+    std::vector<Eigen::MatrixXd> qp_gradients;
     /// with qp_response: max |E - rebuilt QP energy| over the QP window
     double qp_rebuild_error = 0.0;
     /// with qp_selfconsistent: max |R - rebuilt RPA energy|
@@ -246,6 +254,12 @@ class DFTEngine {
   static BSEGradientInput BSEGradientInputFromOrbitals(const Orbitals& orb,
                                                        bool singlet,
                                                        Index index);
+
+  /// The input of BSEExcitationGradient for the gradients of the QP
+  /// energies of `levels` (absolute MO indices in the QP window) of a GW
+  /// run stored in orb; no BSE is needed.
+  static BSEGradientInput QPGradientInputFromOrbitals(
+      const Orbitals& orb, const std::vector<Index>& levels);
 
   /// Name of the integration grid of the SCF (xtpdft.integration_grid).
   const std::string& getGridName() const { return grid_name_; }

@@ -25,6 +25,7 @@
 #include <cstdio>
 
 // Local VOTCA includes
+#include "votca/xtp/dftengine.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmstate.h"
@@ -63,6 +64,12 @@ class DftGwBse final : public QMTool {
   // orb file of an earlier geometry: follow its excited_state_forces state
   std::string excited_state_forces_follow_;
   void ComputeExcitedStateForces(Orbitals& orbitals);
+  // QP levels whose energy gradients are computed, e.g. homo-2:lumo+3
+  std::string qp_gradients_;
+  void ComputeQPGradients(Orbitals& orbitals);
+  void SetupQPResponse(DFTEngine::BSEGradientInput& input,
+                       const Orbitals& orbitals);
+  static std::vector<Index> ParseLevels(const std::string& text, Index homo);
   QMState FollowState(const Orbitals& orbitals);
 
   std::string xyzfile_;

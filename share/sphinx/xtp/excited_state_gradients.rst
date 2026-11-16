@@ -146,6 +146,40 @@ contributions to :math:`g^P`, to the KS energies and to the RPA energies:
 The contour-deformation integrator (``cda``) is not covered; with it the
 QP corrections are kept fixed.
 
+Gradients of quasiparticle energies
+===================================
+
+The same machinery gives the nuclear gradient of the energy of a single QP
+level :math:`E_p`: the "excitation energy" is then :math:`E_p` itself, so
+the partial derivatives :math:`g^P` of the BSE part vanish and the weight
+on the QP energies is one for level :math:`p`. The adjoint of the QP
+equation (with the evGW self-consistency, if used), the Z-vector and the
+integral derivatives are unchanged. ``dftgwbse`` computes these gradients
+with the option ``qp_gradients``, a list of levels or ranges such as
+``homo-5:lumo+5``, ``homo,lumo`` or ``30:40`` (absolute, 0-based MO
+indices); no BSE is needed. The three-index integrals and the self-energy
+model are set up once, each level then needs its own Z-vector. The result
+is stored in the orb file (``qp_gradients``, one block of
+:math:`N_\mathrm{atoms}` rows per level in Hartree/bohr, and
+``qp_gradient_levels``).
+
+* The gradients are those of the perturbative QP energies (diagonal of the
+  QP Hamiltonian); the levels must lie in the QP window.
+* For KS-degenerate levels only the gradient of the mean energy is
+  defined; each partner gets this gradient (logged).
+* The restrictions of the excited-state forces apply (closed shell, RI, no
+  embedding, G0W0 or evGW with ``ppm`` or ``exact``; otherwise the
+  gradient of the KS energy with fixed corrections is returned).
+
+Validation against finite differences of the QP energies (GW recomputed
+at displaced geometries; water, PBE0/def2-SVP, QP window 0-9, levels
+HOMO-2 to LUMO+2): relative errors below :math:`10^{-6}` for G0W0 and
+evGW with both self-energy models.
+
+The main use is the vibronic structure of photoemission and inverse
+photoemission spectra, see :doc:`pyxtp` (``pyxtp.vibronic``,
+``xtp_vibronic spectrum``).
+
 Root following
 ==============
 

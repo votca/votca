@@ -301,7 +301,68 @@ void CheckGradient(const std::string& functional, const Windows& w,
   BOOST_CHECK_SMALL(err, 5e-5);
 }
 
+// Gradients of single levels (the QP-level targets) with fixed corrections:
+// then they are the derivatives of the KS energies, checked against finite
+// differences of the SCF eigenvalues.
+void CheckLevelGradients(const std::string& functional, const Windows& w) {
+  if (!HasLibint2DerivativeSupport()) {
+    std::cout << "SKIPPING: this libint2 build lacks derivative integrals"
+              << std::endl;
+    return;
+  }
+  DFTEngine dft;
+  InitializeEngine(dft, functional);
+  Orbitals orb = RunSCF(WaterPositions(), dft);
+  const Eigen::VectorXd& eps = orb.MOs().eigenvalues();
+  const Index nmo = eps.size();
+  const Index homo = orb.getHomo();
+  DFTEngine::BSEGradientInput in;
+  in.vmin = w.vmin;
+  in.cmax = w.cmax;
+  in.rpamin = w.rpamin;
+  in.rpamax = w.rpamax;
+  in.energies_bse = eps.segment(w.vmin, w.cmax - w.vmin + 1) +
+                    ShiftBSE(nmo, homo).segment(w.vmin, w.cmax - w.vmin + 1);
+  in.energies_rpa =
+      eps.segment(w.rpamin, w.rpamax - w.rpamin + 1) +
+      ShiftRPA(nmo, homo).segment(w.rpamin, w.rpamax - w.rpamin + 1);
+  in.qp_levels = {homo - 1, homo, homo + 1, homo + 3};
+  const DFTEngine::BSEGradientResult res = dft.BSEExcitationGradient(orb, in);
+  BOOST_REQUIRE_EQUAL(res.qp_gradients.size(), in.qp_levels.size());
+  BOOST_CHECK_EQUAL(res.gradient.size(), 0);
+
+  const double h = 5e-4;
+  Eigen::Matrix3d d;
+  d << 0.31, -0.52, 0.17,  //
+      -0.44, 0.08, 0.61,   //
+      0.23, 0.57, -0.29;
+  d /= d.norm();
+  DFTEngine dp;
+  InitializeEngine(dp, functional);
+  const Orbitals op = RunSCF(WaterPositions() + h * d, dp);
+  DFTEngine dm;
+  InitializeEngine(dm, functional);
+  const Orbitals om = RunSCF(WaterPositions() - h * d, dm);
+  for (std::size_t l = 0; l < in.qp_levels.size(); ++l) {
+    const Index p = in.qp_levels[l];
+    const double fd = (op.MOs().eigenvalues()(p) - om.MOs().eigenvalues()(p)) /
+                      (2.0 * h) * kAngstromPerBohr;
+    const Eigen::MatrixXd& grad = res.qp_gradients[l];
+    const double analytic = (grad.array() * d.array()).sum();
+    std::cout << "  level " << p << ": analytic " << analytic
+              << ", finite difference " << fd << std::endl;
+    BOOST_CHECK_SMALL(std::abs(analytic - fd) / grad.norm(), 5e-5);
+    BOOST_CHECK_SMALL(grad.colwise().sum().cwiseAbs().maxCoeff(), 1e-6);
+  }
+}
+
 }  // namespace
+
+BOOST_AUTO_TEST_CASE(pbe0_level_gradients) {
+  libint2::initialize();
+  CheckLevelGradients("XC_HYB_GGA_XC_PBEH", Windows{1, 12, 0, 23});
+  libint2::finalize();
+}
 
 BOOST_AUTO_TEST_CASE(pbe0_singlet_full_windows) {
   libint2::initialize();

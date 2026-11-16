@@ -1169,6 +1169,10 @@ void Orbitals::WriteToCpt(CheckpointWriter& w) const {
     w(excited_forces_, "excited_state_forces");
     w(excited_forces_state_, "excited_state_forces_state");
   }
+  if (hasQPGradients()) {
+    w(qp_gradients_, "qp_gradients");
+    w(qp_gradient_levels_, "qp_gradient_levels");
+  }
   if (hasPolarizability()) {
     w(polarizability_, "polarizability");
   }
@@ -1283,6 +1287,8 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
   // optional: only written if computed
   r_optional(excited_forces_, "excited_state_forces");
   r_optional(excited_forces_state_, "excited_state_forces_state");
+  r_optional(qp_gradients_, "qp_gradients");
+  r_optional(qp_gradient_levels_, "qp_gradient_levels");
   // optional: older files have none (-1: not set)
   r_optional(active_core_levels_, "active_core_levels");
   try {

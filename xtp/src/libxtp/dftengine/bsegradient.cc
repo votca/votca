@@ -84,6 +84,7 @@
 #include "votca/xtp/out_of_window_shift.h"
 #include "votca/xtp/riderivatives.h"
 #include "votca/xtp/screening_kernels.h"
+#include <algorithm>
 #include <chrono>
 #include <functional>
 
@@ -175,7 +176,10 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   }
   const Index vt = homo - in.vmin + 1;
   const Index ct = in.cmax - homo;
-  if (in.X.size() != vt * ct || (in.Y.size() != 0 && in.Y.size() != vt * ct) ||
+  // targets: the BSE excitation energy, or the energies of QP levels
+  const bool has_bse = in.qp_levels.empty();
+  if ((has_bse && in.X.size() != vt * ct) ||
+      (has_bse && in.Y.size() != 0 && in.Y.size() != vt * ct) ||
       in.energies_bse.size() != in.cmax - in.vmin + 1 ||
       in.energies_rpa.size() != in.rpamax - in.rpamin + 1) {
     throw std::runtime_error("BSEExcitationGradient: input sizes");
@@ -185,6 +189,12 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
        in.qp_energies.size() != in.qpmax - in.qpmin + 1)) {
     throw std::runtime_error(
         "BSEExcitationGradient: QP window must lie in the RPA window");
+  }
+  for (Index level : in.qp_levels) {
+    if (level < in.vmin || level > in.cmax) {
+      throw std::runtime_error(
+          "BSEExcitationGradient: QP level outside the window");
+    }
   }
   const Index lo = std::min(in.vmin, in.rpamin);
   const Index hi = std::max(in.cmax, in.rpamax);
@@ -234,15 +244,18 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   // X (and Y for the full BSE) as (v, c); the energy functional
   //   Omega = (X A X + Y A Y + 2 X B Y) / (X X - Y Y)
   // is stationary in X, Y, so dOmega = (X dA X + Y dA Y + 2 X dB Y) / N
-  const bool full = in.Y.size() > 0;
+  const bool full = has_bse && in.Y.size() > 0;
   const Eigen::MatrixXd Xvc =
-      Eigen::Map<const Eigen::MatrixXd>(in.X.data(), ct, vt).transpose();
+      has_bse ? Eigen::MatrixXd(
+                    Eigen::Map<const Eigen::MatrixXd>(in.X.data(), ct, vt)
+                        .transpose())
+              : Eigen::MatrixXd::Zero(vt, ct);
   const Eigen::MatrixXd Yvc =
       full ? Eigen::MatrixXd(
                  Eigen::Map<const Eigen::MatrixXd>(in.Y.data(), ct, vt)
                      .transpose())
            : Eigen::MatrixXd::Zero(vt, ct);
-  const double norm = Xvc.squaredNorm() - Yvc.squaredNorm();
+  const double norm = has_bse ? Xvc.squaredNorm() - Yvc.squaredNorm() : 1.0;
   if (norm <= 0.0) {
     throw std::runtime_error("BSEExcitationGradient: X X - Y Y <= 0");
   }
@@ -308,78 +321,81 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
     M = es.vectors * es.values.asDiagonal() * es.vectors.transpose();
   }
 
-  // direct term of A: Y^Q = X B^Q_cc X^T + Y B^Q_cc Y^T (v x v),
-  // Z^P = X^T B^P_vv X + Y^T B^P_vv Y (c x c)
-  Eigen::MatrixXd Bvv(vt * vt, naux);
-  Eigen::MatrixXd Ymat(vt * vt, naux);
-  Eigen::MatrixXd Zmat(ct * ct, naux);
-  for (Index P = 0; P < naux; ++P) {
-    const auto b = B(P);
-    const Eigen::MatrixXd bvv = b.block(v0, v0, vt, vt);
-    const Eigen::MatrixXd bcc = b.block(c0, c0, ct, ct);
-    Eigen::MatrixXd Yq = Xvc * bcc * Xvc.transpose();
-    Eigen::MatrixXd Zc = Xvc.transpose() * bvv * Xvc;
-    if (full) {
-      Yq += Yvc * bcc * Yvc.transpose();
-      Zc += Yvc.transpose() * bvv * Yvc;
-    }
-    Bvv.col(P) = Eigen::Map<const Eigen::VectorXd>(bvv.data(), vt * vt);
-    Ymat.col(P) = Eigen::Map<const Eigen::VectorXd>(Yq.data(), vt * vt);
-    Zmat.col(P) = Eigen::Map<const Eigen::VectorXd>(Zc.data(), ct * ct);
-  }
-  Eigen::MatrixXd GammaW = Bvv.transpose() * Ymat;  // G_PQ = B^P . Y^Q
-  {
-    const Eigen::MatrixXd MY = Ymat * M;
-    const Eigen::MatrixXd MZ = Zmat * M;
+  double omega_d = 0.0;
+  if (has_bse) {
+    // direct term of A: Y^Q = X B^Q_cc X^T + Y B^Q_cc Y^T (v x v),
+    // Z^P = X^T B^P_vv X + Y^T B^P_vv Y (c x c)
+    Eigen::MatrixXd Bvv(vt * vt, naux);
+    Eigen::MatrixXd Ymat(vt * vt, naux);
+    Eigen::MatrixXd Zmat(ct * ct, naux);
     for (Index P = 0; P < naux; ++P) {
-      g(P).block(v0, v0, vt, vt) -=
-          Eigen::Map<const Eigen::MatrixXd>(MY.col(P).data(), vt, vt);
-      g(P).block(c0, c0, ct, ct) -=
-          Eigen::Map<const Eigen::MatrixXd>(MZ.col(P).data(), ct, ct);
+      const auto b = B(P);
+      const Eigen::MatrixXd bvv = b.block(v0, v0, vt, vt);
+      const Eigen::MatrixXd bcc = b.block(c0, c0, ct, ct);
+      Eigen::MatrixXd Yq = Xvc * bcc * Xvc.transpose();
+      Eigen::MatrixXd Zc = Xvc.transpose() * bvv * Xvc;
+      if (full) {
+        Yq += Yvc * bcc * Yvc.transpose();
+        Zc += Yvc.transpose() * bvv * Yvc;
+      }
+      Bvv.col(P) = Eigen::Map<const Eigen::VectorXd>(bvv.data(), vt * vt);
+      Ymat.col(P) = Eigen::Map<const Eigen::VectorXd>(Yq.data(), vt * vt);
+      Zmat.col(P) = Eigen::Map<const Eigen::VectorXd>(Zc.data(), ct * ct);
     }
-  }
-  // direct term of B (full BSE): 2 X Hd2 Y with
-  // Hd2(v1c1, v2c2) = -B_{v1c2}^T M B_{v2c1}, i.e.
-  //   -2 sum_PQ M_PQ B^P_vc . T^Q,  T^Q = X (B^Q_vc)^T Y  (v x c)
-  // and dT^Q/dB^Q gives T'^P = Y (B^P_vc)^T X.
-  if (full) {
-    Eigen::MatrixXd Bvc(vt * ct, naux);
-    Eigen::MatrixXd Tmat(vt * ct, naux);
-    Eigen::MatrixXd Tpmat(vt * ct, naux);
-    for (Index P = 0; P < naux; ++P) {
-      const Eigen::MatrixXd bvc = B(P).block(v0, c0, vt, ct);
-      const Eigen::MatrixXd T = Xvc * bvc.transpose() * Yvc;
-      const Eigen::MatrixXd Tp = Yvc * bvc.transpose() * Xvc;
-      Bvc.col(P) = Eigen::Map<const Eigen::VectorXd>(bvc.data(), vt * ct);
-      Tmat.col(P) = Eigen::Map<const Eigen::VectorXd>(T.data(), vt * ct);
-      Tpmat.col(P) = Eigen::Map<const Eigen::VectorXd>(Tp.data(), vt * ct);
-    }
-    GammaW += 2.0 * Bvc.transpose() * Tmat;
-    const Eigen::MatrixXd MT = (Tmat + Tpmat) * M;
-    for (Index P = 0; P < naux; ++P) {
-      g(P).block(v0, c0, vt, ct) -=
-          2.0 * Eigen::Map<const Eigen::MatrixXd>(MT.col(P).data(), vt, ct);
-    }
-  }
-  const double omega_d = -(M.cwiseProduct(GammaW)).sum();
-  GammaW = 0.5 * (GammaW + GammaW.transpose()).eval();
-  // screening response: dOmega = Tr(Gbar d eps), Gbar = M GammaW M
-  {
-    const Eigen::MatrixXd Gbar = M * GammaW * M;
-    const Eigen::MatrixXd GB = Bkd * Gbar;  // (kd x P)
-    for (Index P = 0; P < naux; ++P) {
-      for (Index d = 0; d < nd; ++d) {
-        g(P).block(k0, c0 + d, nk, 1) +=
-            2.0 *
-            f.segment(nk * d, nk).cwiseProduct(GB.col(P).segment(nk * d, nk));
+    Eigen::MatrixXd GammaW = Bvv.transpose() * Ymat;  // G_PQ = B^P . Y^Q
+    {
+      const Eigen::MatrixXd MY = Ymat * M;
+      const Eigen::MatrixXd MZ = Zmat * M;
+      for (Index P = 0; P < naux; ++P) {
+        g(P).block(v0, v0, vt, vt) -=
+            Eigen::Map<const Eigen::MatrixXd>(MY.col(P).data(), vt, vt);
+        g(P).block(c0, c0, ct, ct) -=
+            Eigen::Map<const Eigen::MatrixXd>(MZ.col(P).data(), ct, ct);
       }
     }
-    const Eigen::VectorXd bGb = Bkd.cwiseProduct(GB).rowwise().sum();
-    for (Index d = 0; d < nd; ++d) {
-      for (Index k = 0; k < nk; ++k) {
-        const double t = fprime(k + nk * d) * bGb(k + nk * d);
-        w(c0 + d) += t;
-        w(k0 + k) -= t;
+    // direct term of B (full BSE): 2 X Hd2 Y with
+    // Hd2(v1c1, v2c2) = -B_{v1c2}^T M B_{v2c1}, i.e.
+    //   -2 sum_PQ M_PQ B^P_vc . T^Q,  T^Q = X (B^Q_vc)^T Y  (v x c)
+    // and dT^Q/dB^Q gives T'^P = Y (B^P_vc)^T X.
+    if (full) {
+      Eigen::MatrixXd Bvc(vt * ct, naux);
+      Eigen::MatrixXd Tmat(vt * ct, naux);
+      Eigen::MatrixXd Tpmat(vt * ct, naux);
+      for (Index P = 0; P < naux; ++P) {
+        const Eigen::MatrixXd bvc = B(P).block(v0, c0, vt, ct);
+        const Eigen::MatrixXd T = Xvc * bvc.transpose() * Yvc;
+        const Eigen::MatrixXd Tp = Yvc * bvc.transpose() * Xvc;
+        Bvc.col(P) = Eigen::Map<const Eigen::VectorXd>(bvc.data(), vt * ct);
+        Tmat.col(P) = Eigen::Map<const Eigen::VectorXd>(T.data(), vt * ct);
+        Tpmat.col(P) = Eigen::Map<const Eigen::VectorXd>(Tp.data(), vt * ct);
+      }
+      GammaW += 2.0 * Bvc.transpose() * Tmat;
+      const Eigen::MatrixXd MT = (Tmat + Tpmat) * M;
+      for (Index P = 0; P < naux; ++P) {
+        g(P).block(v0, c0, vt, ct) -=
+            2.0 * Eigen::Map<const Eigen::MatrixXd>(MT.col(P).data(), vt, ct);
+      }
+    }
+    omega_d = -(M.cwiseProduct(GammaW)).sum();
+    GammaW = 0.5 * (GammaW + GammaW.transpose()).eval();
+    // screening response: dOmega = Tr(Gbar d eps), Gbar = M GammaW M
+    {
+      const Eigen::MatrixXd Gbar = M * GammaW * M;
+      const Eigen::MatrixXd GB = Bkd * Gbar;  // (kd x P)
+      for (Index P = 0; P < naux; ++P) {
+        for (Index d = 0; d < nd; ++d) {
+          g(P).block(k0, c0 + d, nk, 1) +=
+              2.0 *
+              f.segment(nk * d, nk).cwiseProduct(GB.col(P).segment(nk * d, nk));
+        }
+      }
+      const Eigen::VectorXd bGb = Bkd.cwiseProduct(GB).rowwise().sum();
+      for (Index d = 0; d < nd; ++d) {
+        for (Index k = 0; k < nk; ++k) {
+          const double t = fprime(k + nk * d) * bGb(k + nk * d);
+          w(c0 + d) += t;
+          w(k0 + k) -= t;
+        }
       }
     }
   }
@@ -394,9 +410,236 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
 
   // u_p: coefficients of sum_p u_p <p|V_xc|p> in the energy (QP response)
   Eigen::VectorXd u = Eigen::VectorXd::Zero(nmo);
+
+  // ---- from the partial derivatives g, w, u of one target to its gradient
+  auto downstream = [&](bool last) -> Eigen::MatrixXd {
+    // ---- integral part of sum g . dB
+    // metric term first (needs g and B), then B is released (after the last
+    // target) and g becomes
+    // gL (column R: sum_P L_RP g^P) in place; the integral derivatives and
+    // the orbital part Q (with s^R = gL^R + gL^R^T) both use gL
+    Eigen::MatrixXd grad;
+    {
+      Eigen::MatrixXd G = gmat.transpose() * Bmat;
+      if (last) {
+        Bmat.resize(0, 0);
+      }
+      G = (0.5 * (G + G.transpose())).eval();
+      grad = -0.5 * ContractCoulombMetricDerivatives(auxbasis_, L * G * L);
+    }
+    RightMultiplyInPlace(gmat, L);
+    const Eigen::MatrixXd& gL = gmat;
+    grad += ContractThreeCenterDerivatives(
+        auxbasis_, dftbasis_, [&gL, &Cw, nw](Index R, Eigen::MatrixXd& Gamma) {
+          Gamma = Cw *
+                  (Eigen::Map<const Eigen::MatrixXd>(gL.col(R).data(), nw, nw) *
+                   Cw.transpose());
+        });
+
+    phase("integral derivatives of B");
+    // ---- orbital part: Q_rp = sum_{P,q} B^P_rq s^P_qp, s^P = g^P + g^P^T,
+    // for all r (all MOs), p in the window
+    Eigen::MatrixXd Q = Eigen::MatrixXd::Zero(nmo, nmo);
+    {
+      Eigen::MatrixXd Qw = Eigen::MatrixXd::Zero(nmo, nw);
+      ForEachThreeCenterIntegral(
+          auxbasis_, dftbasis_, [&](Index R, const Eigen::MatrixXd& I) {
+            const Eigen::Map<const Eigen::MatrixXd> gLR(gL.col(R).data(), nw,
+                                                        nw);
+            const Eigen::MatrixXd sLR = gLR + gLR.transpose();
+            const Eigen::MatrixXd t = C.transpose() * (I * (Cw * sLR));
+#pragma omp critical(bsegradient_Q)
+            { Qw += t; }
+          });
+      Q.middleCols(lo, nw) = Qw;
+    }
+    gmat.resize(0, 0);
+    // v_xc expectation values (QP response): orbital part 2 u_p Vxc_rp
+    const bool has_u = u.cwiseAbs().maxCoeff() > 0.0;
+    if (has_u) {
+      const Eigen::MatrixXd Vxc_mo =
+          C.transpose() * vxc.IntegrateVXC(D0).matrix() * C;
+      Q += 2.0 * Vxc_mo * u.asDiagonal();
+    }
+    Eigen::VectorXd wfull = Eigen::VectorXd::Zero(nmo);
+    wfull.segment(lo, nw) = w;
+
+    phase("orbital part Q");
+    // ---- D, Theta (same-space blocks and diagonal)
+    const double kDegenerate = 1e-8;
+    Eigen::MatrixXd Dmo = Eigen::MatrixXd::Zero(nmo, nmo);
+    Eigen::MatrixXd Wmo = Eigen::MatrixXd::Zero(nmo, nmo);
+    auto same_space = [&](Index first, Index n) {
+      for (Index r = first; r < first + n; ++r) {
+        for (Index p = first; p < first + n; ++p) {
+          if (r == p) {
+            Dmo(p, p) = wfull(p);
+            Wmo(p, p) = 0.5 * Q(p, p) + wfull(p) * eps(p);
+            continue;
+          }
+          const double de = eps(p) - eps(r);
+          if (std::abs(de) < kDegenerate) {
+            Wmo(r, p) = 0.25 * (Q(r, p) + Q(p, r));
+            continue;
+          }
+          Dmo(r, p) = (Q(r, p) - Q(p, r)) / (2.0 * de);
+          Wmo(r, p) = (Q(r, p) * eps(p) - Q(p, r) * eps(r)) / (2.0 * de);
+        }
+      }
+    };
+    same_space(0, nocc);
+    same_space(nocc, nvirt);
+
+    // closed-shell Fock response G[X] (MO in, MO out) to a symmetric MO
+    // density change X
+    auto fock_response = [&](const Eigen::MatrixXd& Xmo) {
+      const Eigen::MatrixXd Xao = C * Xmo * C.transpose();
+      Eigen::MatrixXd G = vxc.IntegrateFXC(D0, {Xao})[0];
+      G += ERIs_.CalculateERIs_3c(Xao);
+      if (ScaHFX_ > 0) {
+        G += 0.5 * ScaHFX_ * ERIs_.CalculateEXX_3c(Eigen::MatrixXd(0, 0), Xao);
+      }
+      return Eigen::MatrixXd(C.transpose() * G * C);
+    };
+
+    // XC-kernel response alone (the v_xc expectation values), MO in and out
+    Eigen::MatrixXd Gu;
+    if (has_u) {
+      const Eigen::MatrixXd Uao = C * u.asDiagonal() * C.transpose();
+      Gu = C.transpose() * vxc.IntegrateFXC(D0, {Uao})[0] * C;
+    }
+
+    phase("Fock responses");
+    // ---- Z-vector: (A + B) Z = L
+    Eigen::MatrixXd Zvo;
+    {
+      const Eigen::MatrixXd GD = fock_response(Dmo);
+      Eigen::MatrixXd Lvo = Q.block(nocc, 0, nvirt, nocc) -
+                            Q.block(0, nocc, nocc, nvirt).transpose() +
+                            4.0 * GD.block(nocc, 0, nvirt, nocc);
+      if (has_u) {
+        Lvo += 4.0 * Gu.block(nocc, 0, nvirt, nocc);
+      }
+      // StaticResponse solves (A + B) U = -C_v^T h C_o
+      AOOverlap overlap;
+      overlap.Fill(dftbasis_);
+      const Eigen::MatrixXd& S = overlap.Matrix();
+      Eigen::MatrixXd h = -(S * C_virt * Lvo * C_occ.transpose() * S);
+      h = (h + h.transpose()).eval();
+      // the gradient error is linear in the Z residual: 1e-6 relative changed
+      // the forces of pyridine + 6 H2O by 1e-8 Ha/Bohr against 1e-8 (three
+      // iterations fewer), far below the FD agreement and optimizer thresholds
+      std::vector<Eigen::MatrixXd> dP = StaticResponse(orb, {h}, 1e-6, 200);
+      Zvo = 0.5 * C_virt.transpose() * S * dP[0] * S * C_occ;
+    }
+
+    phase("Z-vector");
+    // ---- relaxed density Ptilde and energy-weighted density W
+    Eigen::MatrixXd Pmo = Dmo;
+    Pmo.block(nocc, 0, nvirt, nocc) = -0.5 * Zvo;
+    Pmo.block(0, nocc, nocc, nvirt) = -0.5 * Zvo.transpose();
+    {
+      const Eigen::MatrixXd GP = fock_response(Pmo);
+      Wmo.topLeftCorner(nocc, nocc) += 2.0 * GP.topLeftCorner(nocc, nocc);
+      if (has_u) {
+        Wmo.topLeftCorner(nocc, nocc) += 2.0 * Gu.topLeftCorner(nocc, nocc);
+      }
+    }
+    for (Index i = 0; i < nocc; ++i) {
+      for (Index a = 0; a < nvirt; ++a) {
+        const double wai = 0.5 * (Q(i, nocc + a) - Zvo(a, i) * eps(i));
+        Wmo(nocc + a, i) = wai;
+        Wmo(i, nocc + a) = wai;
+      }
+    }
+    const Eigen::MatrixXd Pao = C * Pmo * C.transpose();
+    const Eigen::MatrixXd Wao = C * Wmo * C.transpose();
+
+    phase("energy-weighted density");
+    // ---- sum Ptilde dF/dR|_D - sum W dS/dR
+    grad += ContractAODerivatives(ComputeKineticDerivatives(dftbasis_), Pao);
+    grad += ContractAODerivatives(
+        ComputeNuclearAttractionDerivatives(dftbasis_, mol), Pao);
+    grad -= ContractAODerivatives(ComputeOverlapDerivatives(dftbasis_), Wao);
+    phase("one-electron and overlap derivatives");
+    // RI-J, exact: the Hartree energy is quadratic in the density
+    grad += 0.5 * (DFTGradient::RIJGradient(D0 + Pao, auxbasis_, dftbasis_) -
+                   DFTGradient::RIJGradient(D0 - Pao, auxbasis_, dftbasis_));
+    if (ScaHFX_ > 0) {
+      const SymmetricEigenSystem es = SymmetricEigen(Pao);
+      const double cutoff = 1e-12 * es.values.cwiseAbs().maxCoeff();
+      std::vector<Index> keep;
+      for (Index k = 0; k < es.values.size(); ++k) {
+        if (std::abs(es.values(k)) > cutoff) {
+          keep.push_back(k);
+        }
+      }
+      Eigen::MatrixXd U(es.vectors.rows(), Index(keep.size()));
+      Eigen::VectorXd lambda(Index(keep.size()));
+      for (Index k = 0; k < Index(keep.size()); ++k) {
+        U.col(k) = es.vectors.col(keep[std::size_t(k)]);
+        lambda(k) = es.values(keep[std::size_t(k)]);
+      }
+      grad -= ScaHFX_ * DFTGradient::RIPairGradient(U, lambda, C_occ, auxbasis_,
+                                                    dftbasis_);
+    }
+    phase("RI-J and RI-K");
+    // XC: d/dt of the ground-state XC gradient at D0 + t (Ptilde + U), with
+    // U = sum_p u_p |p><p| from the v_xc expectation values (analytic, one
+    // grid pass)
+    {
+      const Eigen::MatrixXd Pxc = Pao + C * u.asDiagonal() * C.transpose();
+      grad += vxc.GradientResponse(D0, Pxc, mol);
+    }
+    phase("XC");
+    return grad;
+  };
+
+  // ---- targets: the BSE excitation energy, or one QP level after the
+  // other (g = 0, weight 1 on the level; KS-degenerate levels share the
+  // weight, since only the gradient of their mean is defined). The
+  // integrals B and the self-energy model are shared.
+  std::vector<Eigen::MatrixXd> gradients;
+  auto run_targets = [&](const std::function<void()>& qp_response) {
+    if (has_bse) {
+      qp_response();
+      phase("QP-correction response");
+      gradients.push_back(downstream(true));
+      return;
+    }
+    for (std::size_t t = 0; t < in.qp_levels.size(); ++t) {
+      const Index level = in.qp_levels[t];
+      gmat = Eigen::MatrixXd::Zero(nw * nw, naux);
+      w.setZero();
+      wA.setZero();
+      u.setZero();
+      std::vector<Index> partners;
+      const Index first = (level <= homo) ? in.vmin : homo + 1;
+      const Index last = (level <= homo) ? homo : in.cmax;
+      for (Index j = first; j <= last; ++j) {
+        if (std::abs(eps(j) - eps(level)) < 1e-6) {
+          partners.push_back(j);
+        }
+      }
+      for (Index j : partners) {
+        wA(j - lo) = 1.0 / double(partners.size());
+      }
+      if (partners.size() > 1) {
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " QP level " << level << " is one of "
+            << partners.size()
+            << " degenerate KS levels: gradient of their mean energy"
+            << std::flush;
+      }
+      qp_response();
+      phase("QP-correction response");
+      gradients.push_back(downstream(t + 1 == in.qp_levels.size()));
+    }
+  };
+
   if (!in.qp_response) {
     // all energies are KS energies plus fixed shifts
-    w += wA;
+    run_targets([&] { w += wA; });
   } else {
     // ---- response of the QP corrections, plasmon-pole model of VOTCA
     // (Sigma_PPM, PPM::PPM_construct_parameters). The QP energies E of
@@ -791,7 +1034,7 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
         return rho;
       };
 
-      finish(dsigma, reverse, poles);
+      run_targets([&] { finish(dsigma, reverse, poles); });
     } else if (in.sigma_integrator == "exact") {
       // Sigma_c of Sigma_Exact: the RPA pair eigenproblem
       // C = Delta^1/2 (Delta + 4 b b^T) Delta^1/2 = F diag(Omega^2) F^T over
@@ -979,7 +1222,7 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
         return rho;
       };
 
-      finish(dsigma, reverse, poles);
+      run_targets([&] { finish(dsigma, reverse, poles); });
     } else {
       throw std::runtime_error(
           "BSEExcitationGradient: QP response only for the ppm and exact "
@@ -987,189 +1230,22 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
     }
   }
 
-  phase("QP-correction response");
-  // ---- integral part of sum g . dB
-  // metric term first (needs g and B), then B is released and g becomes
-  // gL (column R: sum_P L_RP g^P) in place; the integral derivatives and
-  // the orbital part Q (with s^R = gL^R + gL^R^T) both use gL
-  Eigen::MatrixXd grad;
   {
-    Eigen::MatrixXd G = gmat.transpose() * Bmat;
-    Bmat.resize(0, 0);
-    G = (0.5 * (G + G.transpose())).eval();
-    grad = -0.5 * ContractCoulombMetricDerivatives(auxbasis_, L * G * L);
-  }
-  RightMultiplyInPlace(gmat, L);
-  const Eigen::MatrixXd& gL = gmat;
-  grad += ContractThreeCenterDerivatives(
-      auxbasis_, dftbasis_, [&gL, &Cw, nw](Index R, Eigen::MatrixXd& Gamma) {
-        Gamma =
-            Cw * (Eigen::Map<const Eigen::MatrixXd>(gL.col(R).data(), nw, nw) *
-                  Cw.transpose());
-      });
-
-  phase("integral derivatives of B");
-  // ---- orbital part: Q_rp = sum_{P,q} B^P_rq s^P_qp, s^P = g^P + g^P^T,
-  // for all r (all MOs), p in the window
-  Eigen::MatrixXd Q = Eigen::MatrixXd::Zero(nmo, nmo);
-  {
-    Eigen::MatrixXd Qw = Eigen::MatrixXd::Zero(nmo, nw);
-    ForEachThreeCenterIntegral(
-        auxbasis_, dftbasis_, [&](Index R, const Eigen::MatrixXd& I) {
-          const Eigen::Map<const Eigen::MatrixXd> gLR(gL.col(R).data(), nw, nw);
-          const Eigen::MatrixXd sLR = gLR + gLR.transpose();
-          const Eigen::MatrixXd t = C.transpose() * (I * (Cw * sLR));
-#pragma omp critical(bsegradient_Q)
-          {
-            Qw += t;
-          }
-        });
-    Q.middleCols(lo, nw) = Qw;
-  }
-  gmat.resize(0, 0);
-  // v_xc expectation values (QP response): orbital part 2 u_p Vxc_rp
-  const bool has_u = u.cwiseAbs().maxCoeff() > 0.0;
-  if (has_u) {
-    const Eigen::MatrixXd Vxc_mo =
-        C.transpose() * vxc.IntegrateVXC(D0).matrix() * C;
-    Q += 2.0 * Vxc_mo * u.asDiagonal();
-  }
-  Eigen::VectorXd wfull = Eigen::VectorXd::Zero(nmo);
-  wfull.segment(lo, nw) = w;
-
-  phase("orbital part Q");
-  // ---- D, Theta (same-space blocks and diagonal)
-  const double kDegenerate = 1e-8;
-  Eigen::MatrixXd Dmo = Eigen::MatrixXd::Zero(nmo, nmo);
-  Eigen::MatrixXd Wmo = Eigen::MatrixXd::Zero(nmo, nmo);
-  auto same_space = [&](Index first, Index n) {
-    for (Index r = first; r < first + n; ++r) {
-      for (Index p = first; p < first + n; ++p) {
-        if (r == p) {
-          Dmo(p, p) = wfull(p);
-          Wmo(p, p) = 0.5 * Q(p, p) + wfull(p) * eps(p);
-          continue;
-        }
-        const double de = eps(p) - eps(r);
-        if (std::abs(de) < kDegenerate) {
-          Wmo(r, p) = 0.25 * (Q(r, p) + Q(p, r));
-          continue;
-        }
-        Dmo(r, p) = (Q(r, p) - Q(p, r)) / (2.0 * de);
-        Wmo(r, p) = (Q(r, p) * eps(p) - Q(p, r) * eps(r)) / (2.0 * de);
-      }
-    }
-  };
-  same_space(0, nocc);
-  same_space(nocc, nvirt);
-
-  // closed-shell Fock response G[X] (MO in, MO out) to a symmetric MO
-  // density change X
-  auto fock_response = [&](const Eigen::MatrixXd& Xmo) {
-    const Eigen::MatrixXd Xao = C * Xmo * C.transpose();
-    Eigen::MatrixXd G = vxc.IntegrateFXC(D0, {Xao})[0];
-    G += ERIs_.CalculateERIs_3c(Xao);
-    if (ScaHFX_ > 0) {
-      G += 0.5 * ScaHFX_ * ERIs_.CalculateEXX_3c(Eigen::MatrixXd(0, 0), Xao);
-    }
-    return Eigen::MatrixXd(C.transpose() * G * C);
-  };
-
-  // XC-kernel response alone (the v_xc expectation values), MO in and out
-  Eigen::MatrixXd Gu;
-  if (has_u) {
-    const Eigen::MatrixXd Uao = C * u.asDiagonal() * C.transpose();
-    Gu = C.transpose() * vxc.IntegrateFXC(D0, {Uao})[0] * C;
-  }
-
-  phase("Fock responses");
-  // ---- Z-vector: (A + B) Z = L
-  Eigen::MatrixXd Zvo;
-  {
-    const Eigen::MatrixXd GD = fock_response(Dmo);
-    Eigen::MatrixXd Lvo = Q.block(nocc, 0, nvirt, nocc) -
-                          Q.block(0, nocc, nocc, nvirt).transpose() +
-                          4.0 * GD.block(nocc, 0, nvirt, nocc);
-    if (has_u) {
-      Lvo += 4.0 * Gu.block(nocc, 0, nvirt, nocc);
-    }
-    // StaticResponse solves (A + B) U = -C_v^T h C_o
-    AOOverlap overlap;
-    overlap.Fill(dftbasis_);
-    const Eigen::MatrixXd& S = overlap.Matrix();
-    Eigen::MatrixXd h = -(S * C_virt * Lvo * C_occ.transpose() * S);
-    h = (h + h.transpose()).eval();
-    // the gradient error is linear in the Z residual: 1e-6 relative changed
-    // the forces of pyridine + 6 H2O by 1e-8 Ha/Bohr against 1e-8 (three
-    // iterations fewer), far below the FD agreement and optimizer thresholds
-    std::vector<Eigen::MatrixXd> dP = StaticResponse(orb, {h}, 1e-6, 200);
-    Zvo = 0.5 * C_virt.transpose() * S * dP[0] * S * C_occ;
-  }
-
-  phase("Z-vector");
-  // ---- relaxed density Ptilde and energy-weighted density W
-  Eigen::MatrixXd Pmo = Dmo;
-  Pmo.block(nocc, 0, nvirt, nocc) = -0.5 * Zvo;
-  Pmo.block(0, nocc, nocc, nvirt) = -0.5 * Zvo.transpose();
-  {
-    const Eigen::MatrixXd GP = fock_response(Pmo);
-    Wmo.topLeftCorner(nocc, nocc) += 2.0 * GP.topLeftCorner(nocc, nocc);
-    if (has_u) {
-      Wmo.topLeftCorner(nocc, nocc) += 2.0 * Gu.topLeftCorner(nocc, nocc);
-    }
-  }
-  for (Index i = 0; i < nocc; ++i) {
-    for (Index a = 0; a < nvirt; ++a) {
-      const double wai = 0.5 * (Q(i, nocc + a) - Zvo(a, i) * eps(i));
-      Wmo(nocc + a, i) = wai;
-      Wmo(i, nocc + a) = wai;
-    }
-  }
-  const Eigen::MatrixXd Pao = C * Pmo * C.transpose();
-  const Eigen::MatrixXd Wao = C * Wmo * C.transpose();
-
-  phase("energy-weighted density");
-  // ---- sum Ptilde dF/dR|_D - sum W dS/dR
-  grad += ContractAODerivatives(ComputeKineticDerivatives(dftbasis_), Pao);
-  grad += ContractAODerivatives(
-      ComputeNuclearAttractionDerivatives(dftbasis_, mol), Pao);
-  grad -= ContractAODerivatives(ComputeOverlapDerivatives(dftbasis_), Wao);
-  phase("one-electron and overlap derivatives");
-  // RI-J, exact: the Hartree energy is quadratic in the density
-  grad += 0.5 * (DFTGradient::RIJGradient(D0 + Pao, auxbasis_, dftbasis_) -
-                 DFTGradient::RIJGradient(D0 - Pao, auxbasis_, dftbasis_));
-  if (ScaHFX_ > 0) {
-    const SymmetricEigenSystem es = SymmetricEigen(Pao);
-    const double cutoff = 1e-12 * es.values.cwiseAbs().maxCoeff();
-    std::vector<Index> keep;
-    for (Index k = 0; k < es.values.size(); ++k) {
-      if (std::abs(es.values(k)) > cutoff) {
-        keep.push_back(k);
-      }
-    }
-    Eigen::MatrixXd U(es.vectors.rows(), Index(keep.size()));
-    Eigen::VectorXd lambda(Index(keep.size()));
-    for (Index k = 0; k < Index(keep.size()); ++k) {
-      U.col(k) = es.vectors.col(keep[std::size_t(k)]);
-      lambda(k) = es.values(keep[std::size_t(k)]);
-    }
-    grad -= ScaHFX_ *
-            DFTGradient::RIPairGradient(U, lambda, C_occ, auxbasis_, dftbasis_);
-  }
-  phase("RI-J and RI-K");
-  // XC: d/dt of the ground-state XC gradient at D0 + t (Ptilde + U), with
-  // U = sum_p u_p |p><p| from the v_xc expectation values (analytic, one
-  // grid pass)
-  {
-    const Eigen::MatrixXd Pxc = Pao + C * u.asDiagonal() * C.transpose();
-    grad += vxc.GradientResponse(D0, Pxc, mol);
-  }
-  phase("XC");
-  {
+    // phases of several targets are added up
+    std::vector<std::pair<std::string, double>> summed;
     double total = 0.0;
     for (const auto& pt : phase_times) {
       total += pt.second;
+      auto it = std::find_if(
+          summed.begin(), summed.end(),
+          [&pt](const auto& entry) { return entry.first == pt.first; });
+      if (it == summed.end()) {
+        summed.push_back(pt);
+      } else {
+        it->second += pt.second;
+      }
     }
+    phase_times = summed;
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " BSE gradient timing (s), total " << total
         << std::flush;
@@ -1178,7 +1254,11 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
           << "   " << pt.first << ": " << pt.second << std::flush;
     }
   }
-  result.gradient = grad;
+  if (has_bse) {
+    result.gradient = gradients[0];
+  } else {
+    result.qp_gradients = gradients;
+  }
   return result;
 }
 
@@ -1232,6 +1312,48 @@ DFTEngine::BSEGradientInput DFTEngine::BSEGradientInputFromOrbitals(
     in.energies_bse(p - in.vmin) =
         (p >= qpmin && p <= qpmax) ? hqp_diag(p - qpmin) : rpa(p - in.rpamin);
   }
+  return in;
+}
+
+DFTEngine::BSEGradientInput DFTEngine::QPGradientInputFromOrbitals(
+    const Orbitals& orb, const std::vector<Index>& levels) {
+  if (orb.hasBetaMOs()) {
+    throw std::runtime_error("QP gradient: closed-shell (RKS) GW runs only");
+  }
+  if (orb.isQSGW()) {
+    throw std::runtime_error("QP gradient: QSGW is not supported");
+  }
+  BSEGradientInput in;
+  in.rpamin = orb.getRPAmin();
+  in.rpamax = orb.getRPAmax();
+  // no BSE: the window is that of the screening
+  in.vmin = in.rpamin;
+  in.cmax = in.rpamax;
+  const Eigen::VectorXd& rpa = orb.RPAInputEnergies();
+  if (rpa.size() != in.rpamax - in.rpamin + 1) {
+    throw std::runtime_error("QP gradient: no RPA input energies in orb");
+  }
+  in.energies_rpa = rpa;
+  const Index qpmin = orb.getGWAmin();
+  const Index qpmax = orb.getGWAmax();
+  const Eigen::VectorXd& qp = orb.QPpertEnergies();
+  if (qp.size() != qpmax - qpmin + 1) {
+    throw std::runtime_error("QP gradient: no QP energies in orb");
+  }
+  in.energies_bse = rpa;
+  in.energies_bse.segment(qpmin - in.rpamin, qp.size()) = qp;
+  if (levels.empty()) {
+    throw std::runtime_error("QP gradient: no levels");
+  }
+  for (Index level : levels) {
+    if (level < qpmin || level > qpmax) {
+      throw std::runtime_error("QP gradient: level " + std::to_string(level) +
+                               " is outside the QP window " +
+                               std::to_string(qpmin) + ":" +
+                               std::to_string(qpmax));
+    }
+  }
+  in.qp_levels = levels;
   return in;
 }
 
