@@ -109,14 +109,15 @@
 #else
 #define VOTCA_LIBINT_HAVE_ERI3 -1
 #endif
-#if LIBINT_MAJOR_VERSION != VOTCA_LIBINT_EXPECT_MAJOR ||   \
-    LIBINT_MINOR_VERSION != VOTCA_LIBINT_EXPECT_MINOR ||   \
-    LIBINT_MICRO_VERSION != VOTCA_LIBINT_EXPECT_MICRO ||   \
+#if LIBINT_MAJOR_VERSION != VOTCA_LIBINT_EXPECT_MAJOR ||        \
+    LIBINT_MINOR_VERSION != VOTCA_LIBINT_EXPECT_MINOR ||        \
+    LIBINT_MICRO_VERSION != VOTCA_LIBINT_EXPECT_MICRO ||        \
     VOTCA_LIBINT_HAVE_ONEBODY != VOTCA_LIBINT_EXPECT_ONEBODY || \
-    VOTCA_LIBINT_HAVE_ERI != VOTCA_LIBINT_EXPECT_ERI ||    \
-    VOTCA_LIBINT_HAVE_ERI2 != VOTCA_LIBINT_EXPECT_ERI2 ||  \
+    VOTCA_LIBINT_HAVE_ERI != VOTCA_LIBINT_EXPECT_ERI ||         \
+    VOTCA_LIBINT_HAVE_ERI2 != VOTCA_LIBINT_EXPECT_ERI2 ||       \
     VOTCA_LIBINT_HAVE_ERI3 != VOTCA_LIBINT_EXPECT_ERI3
-#error "The libint2 headers found by the compiler are not those of the libint2 CMake configured (VOTCA_LIBINT_CONFIG_H in CMakeCache.txt). Another libint2 is earlier in the include path; remove it from there or uninstall it."
+#error \
+    "The libint2 headers found by the compiler are not those of the libint2 CMake configured (VOTCA_LIBINT_CONFIG_H in CMakeCache.txt). Another libint2 is earlier in the include path; remove it from there or uninstall it."
 #endif
 #endif
 

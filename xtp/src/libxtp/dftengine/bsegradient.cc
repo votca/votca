@@ -1020,7 +1020,9 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
           const Eigen::MatrixXd sLR = gLR + gLR.transpose();
           const Eigen::MatrixXd t = C.transpose() * (I * (Cw * sLR));
 #pragma omp critical(bsegradient_Q)
-          { Qw += t; }
+          {
+            Qw += t;
+          }
         });
     Q.middleCols(lo, nw) = Qw;
   }
