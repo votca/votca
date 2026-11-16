@@ -1,5 +1,4 @@
-"""
-Test the analytic BSE excited-state forces of the ASE calculator.
+"""Test the analytic BSE excited-state forces of the ASE calculator.
 
 xtp(excited_state=...): dftgwbse runs of water, only with
 PYXTP_RUN_DFTGWBSE=1.
@@ -47,8 +46,7 @@ def water(shift=0.0):
 
 @pytest.fixture(scope='module')
 def derivatives(tmp_path_factory):
-    """
-    Skip when libint2 lacks the derivative integrals the forces need.
+    """Skip when libint2 lacks the derivative integrals the forces need.
 
     The DFT engine then refuses compute_forces, before the SCF.
     """
@@ -104,8 +102,7 @@ def test_excited_state_energy_and_forces(derivatives):
 @pytest.mark.parametrize("mode,sigma", [("G0W0", "ppm"), ("evGW", "ppm"),
                                         ("evGW", "exact")])
 def test_excited_state_forces_finite_difference(mode, sigma, derivatives):
-    """
-    Compare the analytic forces with finite differences.
+    """Compare the analytic forces with finite differences.
 
     The analytic forces include the response of the QP corrections, so
     they are the derivative of the total S1 energy with GW recomputed at
@@ -127,8 +124,7 @@ def test_excited_state_forces_finite_difference(mode, sigma, derivatives):
 
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
 def test_root_following(derivatives):
-    """
-    Follow the state from geometry to geometry with follow_root.
+    """Follow the state from geometry to geometry with follow_root.
 
     From the second geometry on, the state is the one with the largest
     exciton overlap with the state of the previous geometry; for small
@@ -156,8 +152,7 @@ def test_root_following(derivatives):
 
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
 def test_calculator_attached_to_new_atoms(derivatives):
-    """
-    Attach the calculator to new atoms.
+    """Attach the calculator to new atoms.
 
     A scan with new Atoms per point must not return the results of the
     previous positions.
@@ -174,8 +169,7 @@ def test_calculator_attached_to_new_atoms(derivatives):
 
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
 def test_numerical_ground_state_forces(derivatives):
-    """
-    Check the finite-difference ground-state forces.
+    """Check the finite-difference ground-state forces.
 
     Without dftpackage.xtpdft.compute_forces the ground-state forces are
     finite differences; they must see the displaced positions (they were

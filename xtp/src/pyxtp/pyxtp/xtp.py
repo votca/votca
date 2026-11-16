@@ -170,8 +170,7 @@ class xtp(Calculator):
 
 
     def set_atoms(self, atoms: Atoms):
-        """
-        Set the atoms (ASE calls this when the calculator is attached).
+        """Set the atoms (ASE calls this when the calculator is attached).
 
         Results of other positions are dropped, and a copy of atoms is
         kept, so later changes of the atoms are detected.
@@ -442,8 +441,7 @@ class xtp(Calculator):
         return label
 
     def get_excited_state_total_energy(self) -> float:
-        """
-        Return the total energy (eV) of the selected BSE state.
+        """Return the total energy (eV) of the selected BSE state.
 
         The state is excited_state, or the state followed from it with
         follow_root; the energy is the DFT total energy plus the (static)
