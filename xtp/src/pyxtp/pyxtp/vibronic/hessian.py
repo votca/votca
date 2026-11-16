@@ -49,6 +49,7 @@ class Displacement:
 
     @classmethod
     def reference(cls) -> "Displacement":
+        """Return the undisplaced reference job."""
         return cls("eq", -1, -1, 0)
 
 
@@ -68,17 +69,25 @@ def _working_directory(path: Path):
 class FiniteDifferenceHessian:
     """Finite-difference Hessian of an ASE calculator's forces.
 
-    Args:
-        atoms: reference geometry (normally an optimized minimum)
-        calculator_factory: f(directory, displacement) -> ASE calculator;
-            called once per job, with the job directory as the working
-            directory during the calculation
-        workdir: directory of the jobs and the metadata (hessian.json)
-        step: displacement in Angstrom (default 0.005)
-        scheme: "central" or "forward"
-        indices: atoms to displace (default all); with a subset, the
-            Hessian is the partial Hessian of these atoms (the others are
-            infinitely heavy)
+    Parameters
+    ----------
+    atoms
+        reference geometry (normally an optimized minimum)
+    calculator_factory
+        f(directory, displacement) -> ASE calculator;
+        called once per job, with the job directory as the working
+        directory during the calculation
+    workdir
+        directory of the jobs and the metadata (hessian.json)
+    step
+        displacement in Angstrom (default 0.005)
+    scheme
+        "central" or "forward"
+    indices
+        atoms to displace (default all); with a subset, the
+        Hessian is the partial Hessian of these atoms (the others are
+        infinitely heavy)
+
     """
 
     def __init__(self, atoms: Atoms,
@@ -86,6 +95,7 @@ class FiniteDifferenceHessian:
                  workdir: Pathlike = "hessian", step: float = 0.005,
                  scheme: str = "central",
                  indices: Optional[Sequence[int]] = None):
+        """Set up the displacements (parameters in the class docstring)."""
         if scheme not in ("central", "forward"):
             raise ValueError("scheme must be 'central' or 'forward'")
         self.atoms = atoms.copy()
@@ -151,7 +161,7 @@ class FiniteDifferenceHessian:
         return jobs
 
     def displaced_atoms(self, d: Displacement) -> Atoms:
-        """The geometry of a job."""
+        """Return the geometry of a job."""
         atoms = self.atoms.copy()
         if d.atom >= 0:
             pos = atoms.get_positions()
@@ -163,6 +173,7 @@ class FiniteDifferenceHessian:
         return self.workdir / d.name / "result.npz"
 
     def is_done(self, d: Displacement) -> bool:
+        """Return whether the forces of a job are stored."""
         return self._result_file(d).exists()
 
     def status(self) -> Dict[str, List[str]]:
@@ -267,7 +278,7 @@ class FiniteDifferenceHessian:
         return ", ".join(f"{k} {len(v)}" for k, v in st.items())
 
     def reference_forces(self) -> np.ndarray:
-        """Forces at the reference geometry (eV/Angstrom)."""
+        """Return the forces at the reference geometry (eV/Angstrom)."""
         return self._load(Displacement.reference())[0]
 
     def hessian(self, symmetrize: bool = True) -> np.ndarray:
@@ -292,7 +303,7 @@ class FiniteDifferenceHessian:
         return h
 
     def normal_modes(self) -> NormalModes:
-        """Normal modes of the (partial) Hessian."""
+        """Return the normal modes of the (partial) Hessian."""
         h = self.hessian()
         sub = self.atoms[self.indices]
         return NormalModes.from_hessian(sub, h)
@@ -305,22 +316,28 @@ def xtp_ground_state_factory(settings: Optional[Dict[str, str]] = None,
                              nthreads: int = 1,
                              warm_start: bool = True,
                              options=None) -> CalculatorFactory:
-    """Factory for pyxtp ground-state DFT forces.
+    """Return a factory for pyxtp ground-state DFT forces.
 
     Runs only the DFT part of dftgwbse (tasks input,dft,parse) with
     analytic forces and verytight SCF convergence. With warm_start, the
     displaced geometries start from the converged MOs of the reference
     job (moguess + initial_guess orbfile).
 
-    Args:
-        settings: pyxtp options, e.g.
-            {"dftpackage/functional": "XC_HYB_GGA_XC_PBEH",
-            "dftpackage/basisset": "def2-svp",
-            "dftpackage/auxbasisset": "aux-def2-svp"}; they override the
-            defaults set here
-        nthreads: threads per calculation
-        warm_start: start displaced SCFs from the reference MOs
-        options: optional pyxtp Options object to start from
+    Parameters
+    ----------
+    settings
+        pyxtp options, e.g.
+        {"dftpackage/functional": "XC_HYB_GGA_XC_PBEH",
+        "dftpackage/basisset": "def2-svp",
+        "dftpackage/auxbasisset": "aux-def2-svp"}; they override the
+        defaults set here
+    nthreads
+        threads per calculation
+    warm_start
+        start displaced SCFs from the reference MOs
+    options
+        optional pyxtp Options object to start from
+
     """
     from ..xtp import xtp  # needs the compiled bindings
 

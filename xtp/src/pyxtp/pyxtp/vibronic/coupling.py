@@ -41,14 +41,21 @@ from .modes import EV2INVCM, NormalModes
 class VibronicCouplings:
     """Huang-Rhys factors and reorganization energies per mode.
 
-    Attributes:
-        hbar_omega: vibrational quanta (n), eV; only real modes are kept
-        reorganization: lambda_nu (n), eV
-        mode_index: index of each entry in the NormalModes it came from
-        dropped_lambda: reorganization energy of modes that were left out
-            (imaginary modes, modes below a cutoff), eV
-        net_force: norm of the net force/torque part of the gradient that
-            is not carried by vibrations (diagnostic), eV/Angstrom
+    Attributes
+    ----------
+    hbar_omega
+        vibrational quanta (n), eV; only real modes are kept
+    reorganization
+        lambda_nu (n), eV
+    mode_index
+        index of each entry in the NormalModes it came from
+    dropped_lambda
+        reorganization energy of modes that were left out
+        (imaginary modes, modes below a cutoff), eV
+    net_force
+        norm of the net force/torque part of the gradient that
+        is not carried by vibrations (diagnostic), eV/Angstrom
+
     """
 
     hbar_omega: np.ndarray
@@ -64,7 +71,7 @@ class VibronicCouplings:
 
     @property
     def total_reorganization(self) -> float:
-        """lambda = sum_nu lambda_nu (eV)."""
+        """Total reorganization energy, sum_nu lambda_nu (eV)."""
         return float(self.reorganization.sum())
 
     @property
@@ -106,14 +113,19 @@ def couplings_from_gradient(modes: NormalModes, gradient: np.ndarray,
                             ) -> VibronicCouplings:
     """Couplings from the gradient of the energy gap.
 
-    Args:
-        modes: normal modes of the initial state at its minimum
-        gradient: grad(E_final - E_initial) at modes.positions, (N, 3) or
-            (3N,), eV/Angstrom. With forces F: gradient = -(F_final -
-            F_initial); see couplings_from_forces.
-        min_wavenumber: modes below this frequency (cm^-1) are left out
-            (their lambda is reported as dropped_lambda). Imaginary modes
-            are always left out with a warning.
+    Parameters
+    ----------
+    modes
+        normal modes of the initial state at its minimum
+    gradient
+        grad(E_final - E_initial) at modes.positions, (N, 3) or
+        (3N,), eV/Angstrom. With forces F: gradient = -(F_final -
+        F_initial); see couplings_from_forces.
+    min_wavenumber
+        modes below this frequency (cm^-1) are left out
+        (their lambda is reported as dropped_lambda). Imaginary modes
+        are always left out with a warning.
+
     """
     g = np.asarray(gradient, dtype=float).ravel()
     if g.size != 3 * modes.natoms:
@@ -188,7 +200,7 @@ def read_gap_gradient(filename) -> np.ndarray:
 
 
 def _kabsch(ref: np.ndarray, mov: np.ndarray, w: np.ndarray) -> np.ndarray:
-    """mov rotated/translated onto ref (mass-weighted best fit)."""
+    """Rotate and translate mov onto ref (mass-weighted best fit)."""
     w = w / w.sum()
     rc = (w[:, None] * ref).sum(0)
     mc = (w[:, None] * mov).sum(0)

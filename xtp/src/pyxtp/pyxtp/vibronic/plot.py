@@ -95,21 +95,38 @@ def plot_spectrum(spectrum: Spectrum,
                   height: Optional[float] = None):
     """Spectrum with the contributions of the levels.
 
-    Args:
-        spectrum: Spectrum (e.g. from level_spectrum)
-        broadening: standard deviation (eV) of a Gaussian instrument
-            broadening; the broadened total is drawn in addition to the
-            intrinsic one
-        experiment: (energy, intensity) of a measured spectrum; scaled to
-            the maximum of the (broadened) total inside xlim
-        onset: mark the tangent onset and the first peak of the
-            (broadened) total; the values are in fig.onset
-        contributions: draw the individual levels
-        xlim: energy range
-        ax: existing axes (otherwise a new single-column figure)
+    Parameters
+    ----------
+    spectrum
+        Spectrum (e.g. from level_spectrum)
+    broadening
+        standard deviation (eV) of a Gaussian instrument
+        broadening; the broadened total is drawn in addition to the
+        intrinsic one
+    experiment
+        (energy, intensity) of a measured spectrum; scaled to
+        the maximum of the (broadened) total inside xlim
+    onset
+        mark the tangent onset and the first peak of the
+        (broadened) total; the values are in fig.onset
+    contributions
+        draw the individual levels
+    xlim
+        energy range
+    experiment_label
+        legend label of the measured spectrum
+    ax
+        existing axes (otherwise a new single-column figure)
+    width
+        figure width (inches) of a new figure
+    height
+        figure height (inches) of a new figure; default
+        min(0.72 width, 2.6)
 
-    Returns:
-        the figure; fig.onset holds the onset dictionary if requested
+    Returns
+    -------
+    the figure; fig.onset holds the onset dictionary if requested
+
     """
     fig, ax = _new_axes(ax, width, height or min(0.72 * width, 2.6))
     e = spectrum.energy
@@ -210,11 +227,22 @@ def plot_couplings(couplings: VibronicCouplings, quantity: str = "lambda",
                    height: Optional[float] = None, title: str = ""):
     """Mode-resolved couplings (top) and their running sum (bottom).
 
-    Args:
-        couplings: VibronicCouplings
-        quantity: "lambda" (reorganization energy, meV) or "huang-rhys"
-        label_modes: label this many of the strongest modes with their
-            frequency
+    Parameters
+    ----------
+    couplings
+        VibronicCouplings
+    quantity
+        "lambda" (reorganization energy, meV) or "huang-rhys"
+    label_modes
+        label this many of the strongest modes with their
+        frequency
+    width
+        figure width (inches)
+    height
+        figure height (inches); default 0.85 width
+    title
+        title above the top panel
+
     """
     if quantity not in ("lambda", "huang-rhys"):
         raise ValueError("quantity must be 'lambda' or 'huang-rhys'")
