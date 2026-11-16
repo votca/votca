@@ -194,6 +194,11 @@ set_tests_properties(unit_test_podcoupling PROPERTIES TIMEOUT 3600)
 # the longer limit is headroom for loaded runners.
 set_tests_properties(unit_test_chargeresponsefit PROPERTIES TIMEOUT 3600)
 
+# unit_test_bsegradient compares analytic BSE gradients with finite
+# differences (three SCF + BSE runs per case). Debug builds run a reduced
+# set of cases (kAllCases in the test); the margin is for slow CI runners.
+set_tests_properties(unit_test_bsegradient PROPERTIES TIMEOUT 3600)
+
 # External-bond/H-saturation fields written by QMAtom::WriteToCpt and
 # Atom::WriteToCpt that older reference .orb/.hdf5 files lack. --ignore-field
 # drops only these fields; the rest of each dataset is still compared.
@@ -845,6 +850,7 @@ set(XTP_HEAVY_TESTS
   unit_test_ewaldrealspacesum
   unit_test_diabatization
   unit_test_vxc_potential
+  unit_test_bsegradient
   integration_Run_xtp_parallel_qmmm_screened
   integration_Compare_xtp_parallel_qmmm_screened_output
   integration_Run_xtp_parallel_eqm_run

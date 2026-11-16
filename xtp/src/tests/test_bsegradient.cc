@@ -358,6 +358,17 @@ void CheckLevelGradients(const std::string& functional, const Windows& w) {
 
 }  // namespace
 
+// Debug builds (Eigen without optimisation) are 50 to 60 times slower than
+// Release here: with all cases the test ran for more than 1500 s in the CI
+// Debug jobs. They keep the level gradients, the two full-BSE gradients,
+// which also go through the TDA terms, and the TDA part of the
+// root-following test.
+#ifdef NDEBUG
+const bool kAllCases = true;
+#else
+const bool kAllCases = false;
+#endif
+
 BOOST_AUTO_TEST_CASE(pbe0_level_gradients) {
   libint2::initialize();
   CheckLevelGradients("XC_HYB_GGA_XC_PBEH", Windows{1, 12, 0, 23});
@@ -365,18 +376,33 @@ BOOST_AUTO_TEST_CASE(pbe0_level_gradients) {
 }
 
 BOOST_AUTO_TEST_CASE(pbe0_singlet_full_windows) {
+  if (!kAllCases) {
+    std::cout << "SKIPPING pbe0_singlet_full_windows in a Debug build"
+              << std::endl;
+    return;
+  }
   libint2::initialize();
   CheckGradient("XC_HYB_GGA_XC_PBEH", Windows{0, 23, 0, 23}, true);
   libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(pbe0_singlet_reduced_windows) {
+  if (!kAllCases) {
+    std::cout << "SKIPPING pbe0_singlet_reduced_windows in a Debug build"
+              << std::endl;
+    return;
+  }
   libint2::initialize();
   CheckGradient("XC_HYB_GGA_XC_PBEH", Windows{1, 20, 1, 22}, true);
   libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(pbe0_triplet_reduced_windows) {
+  if (!kAllCases) {
+    std::cout << "SKIPPING pbe0_triplet_reduced_windows in a Debug build"
+              << std::endl;
+    return;
+  }
   libint2::initialize();
   // core level outside the BSE window, highest virtuals outside both
   CheckGradient("XC_HYB_GGA_XC_PBEH", Windows{1, 18, 0, 21}, false);
@@ -403,6 +429,9 @@ BOOST_AUTO_TEST_CASE(exciton_overlaps_root_following) {
   libint2::initialize();
   const Windows w{0, 23, 0, 23};
   for (bool tda : {true, false}) {
+    if (!tda && !kAllCases) {
+      continue;
+    }
     DFTEngine d0;
     InitializeEngine(d0, "XC_HYB_GGA_XC_PBEH");
     Orbitals o0 = RunSCF(WaterPositions(), d0);
