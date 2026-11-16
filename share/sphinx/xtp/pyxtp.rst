@@ -332,6 +332,50 @@ which is its mean.
   if their frequency changes (e.g. the out-of-plane mode of formaldehyde in
   S1). Herzberg-Teller (intensity borrowing) effects are not included.
 
+Spectra of several levels (UPS, IPES)
+=====================================
+
+With ``qp_gradients`` (e.g. ``homo-5:lumo+5``) ``dftgwbse`` stores the
+analytic gradients of the QP energies of a range of levels (see
+:doc:`excited_state_gradients`). ``QPLevels.from_orb`` reads them, and
+``level_spectrum`` builds the whole spectrum: for every level that fits
+the process -- occupied levels for ``electron-removal`` and ``ionization``
+(photoemission), empty levels for ``electron-addition`` and
+``electron-affinity`` (inverse photoemission) -- it computes the couplings
+and the line shape and places it at the vertical energies of that level.
+
+.. code-block:: python
+
+   from pyxtp.vibronic import NormalModes, QPLevels, level_spectrum
+   from pyxtp.vibronic.plot import paper_style, plot_spectrum
+
+   modes = NormalModes.load('modes.npz')
+   levels = QPLevels.from_orb('molecule.orb')     # dftgwbse with qp_gradients
+   spectrum = level_spectrum(modes, levels, 'electron-addition',
+                             temperature=300, lambda_classical=0.01,
+                             site_energies={'lumo': e_lumo, 'lumo+1': e_lumo1})
+   spectrum.save('ipes.dat')
+   with paper_style():
+       fig = plot_spectrum(spectrum, broadening=0.3, onset=True,
+                           experiment=(e_exp, i_exp))
+       fig.savefig('ipes.pdf')
+
+* Without ``site_energies`` the spectrum is that of one molecule at its QP
+  energies. With site energies of a morphology (per level, on the energy
+  axis of the process), each level is summed over its sites. Levels
+  without site energies use the distribution of the nearest level that has
+  them, shifted rigidly by the difference of the molecular QP energies;
+  ``Spectrum.notes`` records how every level was placed.
+* All levels count equally; photoemission cross sections are not included.
+* ``Spectrum.broadened(sigma)`` applies a Gaussian instrument broadening,
+  ``Spectrum.onset()`` the tangent construction for the onset.
+* ``pyxtp.vibronic.plot`` (needs ``matplotlib``) makes figures for
+  publication: ``plot_spectrum`` (contributions of the levels, total,
+  broadened total, measured spectrum, onset and first peak) and
+  ``plot_couplings`` (:math:`\lambda_\nu` or :math:`S_\nu` per mode and
+  their running sum), in ``paper_style()`` (journal column widths, vector
+  fonts, colour-blind-safe colours in a fixed order).
+
 The script ``xtp_vibronic`` provides the same steps on the command line
 (installed together with ``pyxtp``):
 
@@ -345,6 +389,14 @@ The script ``xtp_vibronic`` provides the same steps on the command line
    xtp_vibronic modes -w hessian -m modes.npz
    xtp_vibronic lineshape -m modes.npz -g s1.orb -p absorption -T 300 --lambda-classical 0.05 \
        --sites site_energies.dat --column 2 --where '1>4.0' -o spectrum.dat
+   # all empty levels with QP gradients; LUMO and LUMO+1 from the morphology,
+   # higher levels as shifted copies
+   xtp_vibronic spectrum -m modes.npz -g molecule.orb -p electron-addition \
+       --lambda-classical 0.01 --sites site_energies.dat \
+       --columns lumo=3,lumo+1=4 --where '1>4.0' -o ipes.dat
+   xtp_vibronic plot -s ipes.dat --broadening 0.3 --onset \
+       --experiment measured.dat -o ipes.pdf
+   xtp_vibronic plot -c s1_modes.txt --title S1 -o s1_modes.pdf
 
 Examples
 ********

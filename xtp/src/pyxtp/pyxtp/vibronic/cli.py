@@ -7,7 +7,10 @@ Subcommands:
              processes or array-job parts can share one workdir
   status     progress of a workdir
   modes      collect the Hessian, print the frequencies, save modes.npz
-  lineshape  couplings and line shape (optionally an ensemble spectrum)
+  lineshape  couplings and line shape of one transition (optionally an
+             ensemble spectrum)
+  spectrum   UPS/IPES-type spectrum of all QP levels with gradients
+  plot       publication-quality figure of a spectrum or of couplings
 """
 
 from __future__ import annotations
@@ -177,7 +180,101 @@ def cmd_lineshape(args) -> None:
     print(f"lambda_total = {ls.reorganization:.4f} eV; wrote {args.output}")
 
 
+def _load_modes(args):
+    from ase.io import read
+
+    from .modes import NormalModes, read_orca_hessian
+
+    if args.modes:
+        return NormalModes.load(args.modes)
+    if not args.xyz:
+        sys.exit("--orca-hess needs --xyz")
+    return NormalModes.from_hessian(read(args.xyz),
+                                    read_orca_hessian(args.orca_hess))
+
+
+def cmd_spectrum(args) -> None:
+    from .modes import EV2INVCM
+    from .spectrum import QPLevels, level_spectrum
+
+    modes = _load_modes(args)
+    levels = QPLevels.from_orb(args.gradients)
+    sites = None
+    weights = None
+    if args.sites:
+        if not args.columns:
+            sys.exit("--sites needs --columns, e.g. lumo=3,lumo+1=4")
+        data = np.loadtxt(args.sites, ndmin=2)
+        keep = np.ones(len(data), dtype=bool)
+        for w in args.where or []:
+            col, op, val = _parse_where(w)
+            keep &= op(data[:, col], val)
+        sites = {}
+        for item in args.columns.split(","):
+            if "=" not in item:
+                sys.exit(f"--columns expects level=column, got {item}")
+            name, col = item.split("=")
+            sites[name.strip()] = data[keep, int(col)]
+        if args.weight_column is not None:
+            weights = data[keep, args.weight_column]
+    below = None if args.classical_below is None else \
+        args.classical_below / EV2INVCM
+    sp = level_spectrum(
+        modes, levels, args.process, args.temperature, site_energies=sites,
+        weights=weights,
+        select=args.levels.split(",") if args.levels else None,
+        lambda_classical=args.lambda_classical, sigma=args.sigma,
+        gamma=args.gamma, classical_below=below,
+        min_wavenumber=args.min_wavenumber, step=args.step)
+    print("level      lambda/eV  placed at")
+    for label in sp.contributions:
+        print(f"{label:9s} {sp.reorganization[label]:9.4f}   "
+              f"{sp.notes[label]}")
+    sp.save(args.output,
+            header=f"T {args.temperature} K, lambda_classical "
+                   f"{args.lambda_classical} eV, sigma {args.sigma} eV, "
+                   f"gamma {args.gamma} eV")
+    print(f"wrote {args.output}")
+
+
+def cmd_plot(args) -> None:
+    import matplotlib
+    matplotlib.use("Agg")
+
+    from .coupling import VibronicCouplings
+    from .modes import EV2INVCM
+    from .plot import (DOUBLE_COLUMN, SINGLE_COLUMN, paper_style,
+                       plot_couplings, plot_spectrum)
+    from .spectrum import Spectrum
+
+    width = DOUBLE_COLUMN if args.wide else SINGLE_COLUMN
+    with paper_style(args.fontsize):
+        if args.couplings:
+            d = np.loadtxt(args.couplings, ndmin=2)
+            c = VibronicCouplings(d[:, 0] / EV2INVCM, d[:, 2],
+                                  np.arange(len(d)))
+            fig = plot_couplings(c, quantity=args.quantity, width=width,
+                                 title=args.title or "")
+        else:
+            sp = Spectrum.load(args.spectrum)
+            experiment = None
+            if args.experiment:
+                x = np.loadtxt(args.experiment, ndmin=2)
+                experiment = (x[:, 0], x[:, 1])
+            fig = plot_spectrum(sp, broadening=args.broadening,
+                                experiment=experiment, onset=args.onset,
+                                contributions=not args.no_contributions,
+                                xlim=tuple(args.xlim) if args.xlim else None,
+                                width=width)
+            if fig.onset:
+                print(f"onset {fig.onset['onset']:.3f} eV, first peak "
+                      f"{fig.onset['peak']:.3f} eV")
+        fig.savefig(args.output)
+    print(f"wrote {args.output}")
+
+
 def run(args) -> None:
     """Run the subcommand of parsed xtp_vibronic arguments."""
     {"hessian": cmd_hessian, "status": cmd_status, "modes": cmd_modes,
-     "lineshape": cmd_lineshape}[args.command](args)
+     "lineshape": cmd_lineshape, "spectrum": cmd_spectrum,
+     "plot": cmd_plot}[args.command](args)

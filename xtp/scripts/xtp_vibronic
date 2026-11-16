@@ -28,7 +28,9 @@ PROGDESCR = ('Vibronic line shapes from a finite-difference Hessian of '
              'Franck-Condon line shapes and ensemble spectra. Subcommands: '
              'hessian (run or continue the displaced force jobs; several '
              'processes or array-job parts can share a workdir), status, '
-             'modes (collect the Hessian, save modes.npz), lineshape. '
+             'modes (collect the Hessian, save modes.npz), lineshape (one '
+             'transition), spectrum (all QP levels with gradients: UPS, '
+             'IPES), plot (publication-quality figures). '
              'Needs pyxtp.')
 VOTCAHEADER = f"""
 ==================================================
@@ -130,6 +132,80 @@ def build_parser() -> argparse.ArgumentParser:
                     help="column with a weight per site")
     ls.add_argument("-o", "--output", default="lineshape.dat")
     ls.add_argument("--couplings", help="write the per-mode couplings here")
+
+    sp = sub.add_parser(
+        "spectrum", help="spectrum of several QP levels (UPS, IPES) from "
+        "the QP gradients of dftgwbse (option qp_gradients)")
+    src = sp.add_mutually_exclusive_group(required=True)
+    src.add_argument("-m", "--modes", help="modes.npz from 'modes'")
+    src.add_argument("--orca-hess", help="ORCA .hess file (needs --xyz)")
+    sp.add_argument("-x", "--xyz", help="geometry for --orca-hess")
+    sp.add_argument("-g", "--gradients", required=True,
+                    help=".orb file of dftgwbse with qp_gradients (e.g. "
+                    "homo-5:lumo+5), at the geometry of the modes")
+    sp.add_argument("-p", "--process", required=True,
+                    choices=["electron-addition", "electron-removal",
+                             "ionization", "electron-affinity"],
+                    help="electron-removal / ionization: all occupied "
+                    "levels with gradients (photoemission; axis: QP level "
+                    "/ ionization energy); electron-addition / "
+                    "electron-affinity: all empty levels (inverse "
+                    "photoemission)")
+    sp.add_argument("--levels", help="use only these levels, e.g. "
+                    "lumo,lumo+1,lumo+2")
+    sp.add_argument("-T", "--temperature", type=float, default=300.0)
+    sp.add_argument("--lambda-classical", type=float, default=0.0,
+                    help="classical (outer-sphere) reorganization, eV")
+    sp.add_argument("--sigma", type=float, default=0.0,
+                    help="Gaussian broadening of every line (standard "
+                    "deviation), eV")
+    sp.add_argument("--gamma", type=float, default=0.0,
+                    help="Lorentzian broadening (half width), eV")
+    sp.add_argument("--min-wavenumber", type=float, default=0.0,
+                    help="leave out modes below this (cm^-1)")
+    sp.add_argument("--classical-below", type=float,
+                    help="treat modes below this (cm^-1) classically")
+    sp.add_argument("--step", type=float, default=2e-3,
+                    help="energy step, eV")
+    sp.add_argument("--sites", help="text file with the vertical energies "
+                    "of the sites of a morphology; without it: one "
+                    "molecule at its QP energies")
+    sp.add_argument("--columns", help="columns (0-based) of the levels in "
+                    "--sites, e.g. lumo=3,lumo+1=4; other levels use the "
+                    "distribution of the nearest of these levels, shifted "
+                    "by the molecular QP energy difference")
+    sp.add_argument("--where", action="append",
+                    help="select rows, e.g. '1>4.0' (column 1 above 4.0)")
+    sp.add_argument("--weight-column", type=int,
+                    help="column with a weight per site")
+    sp.add_argument("-o", "--output", default="spectrum.dat")
+
+    pl = sub.add_parser("plot", help="publication-quality figure")
+    what = pl.add_mutually_exclusive_group(required=True)
+    what.add_argument("-s", "--spectrum", help="output of 'spectrum' or "
+                      "'lineshape'")
+    what.add_argument("-c", "--couplings", help="per-mode couplings "
+                      "written by 'lineshape --couplings'")
+    pl.add_argument("-b", "--broadening", type=float,
+                    help="Gaussian instrument broadening (standard "
+                    "deviation, eV), drawn in addition")
+    pl.add_argument("--onset", action="store_true",
+                    help="mark and print the tangent onset and the first "
+                    "peak")
+    pl.add_argument("-e", "--experiment", help="measured spectrum (two "
+                    "columns: energy, intensity) to overlay")
+    pl.add_argument("--xlim", type=float, nargs=2, metavar=("MIN", "MAX"))
+    pl.add_argument("--no-contributions", action="store_true",
+                    help="draw only the total")
+    pl.add_argument("--quantity", default="lambda",
+                    choices=["lambda", "huang-rhys"],
+                    help="for --couplings")
+    pl.add_argument("--title", help="for --couplings, e.g. the level")
+    pl.add_argument("--wide", action="store_true",
+                    help="two-column width (7 in) instead of one (3.375 in)")
+    pl.add_argument("--fontsize", type=float, default=8.0)
+    pl.add_argument("-o", "--output", default="spectrum.pdf",
+                    help="figure file (pdf, svg, png, ...)")
     return p
 
 

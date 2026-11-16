@@ -14,6 +14,7 @@ try:
                                 couplings_from_gradient, ensemble_spectrum,
                                 read_gap_gradient, read_orca_engrad,
                                 read_orca_hessian, vibronic_lineshape)
+    from pyxtp.vibronic import QPLevels, Spectrum, level_spectrum
     from pyxtp.vibronic.lineshape import PROCESSES
     from pyxtp.vibronic.modes import KB_EV
 except ImportError:
@@ -366,6 +367,132 @@ def test_gap_gradient_from_orb(tmp_path):
     np.testing.assert_allclose(read_gap_gradient(tmp_path / "g.npy"), g)
 
 
+# ----------------------------------------------------------------------
+# spectra of several levels
+# ----------------------------------------------------------------------
+def toy_levels():
+    """Spring molecule with four 'QP levels' (HOMO-1 .. LUMO+1)."""
+    atoms, k, r0 = water_like()
+    modes = NormalModes.from_hessian(
+        atoms, spring_hessian(atoms.get_positions(), k, r0))
+    rng = np.random.default_rng(11)
+    g = rng.normal(scale=0.4, size=(4, len(atoms), 3))
+    levels = QPLevels(levels=np.array([8, 9, 10, 11]), homo=9,
+                      energies=np.array([-8.0, -6.0, -1.0, 0.5]),
+                      gradients=g)
+    return modes, levels
+
+
+def test_level_spectrum_selects_levels_and_axis():
+    modes, levels = toy_levels()
+    kw = dict(temperature=300.0, sigma=0.03)
+    add = level_spectrum(modes, levels, "electron-addition", **kw)
+    assert list(add.contributions) == ["LUMO", "LUMO+1"]
+    rem = level_spectrum(modes, levels, "electron-removal", **kw)
+    assert list(rem.contributions) == ["HOMO-1", "HOMO"]
+    ion = level_spectrum(modes, levels, "ionization", **kw)
+    # every level integrates to one; the mean is the vertical energy
+    for sp, label, evert in ((add, "LUMO", -1.0), (rem, "HOMO", -6.0),
+                             (ion, "HOMO", 6.0), (ion, "HOMO-1", 8.0)):
+        y = sp.contributions[label]
+        assert abs(np.trapezoid(y, sp.energy) - 1.0) < 2e-3
+        assert abs(np.trapezoid(y * sp.energy, sp.energy) - evert) < 5e-3
+    # the IP axis is the mirror image of the level axis
+    np.testing.assert_allclose(
+        np.interp(-rem.energy, ion.energy, ion.contributions["HOMO"]),
+        rem.contributions["HOMO"], atol=2e-3 * rem.total.max())
+    only = level_spectrum(modes, levels, "electron-addition",
+                          select=["lumo+1"], **kw)
+    assert list(only.contributions) == ["LUMO+1"]
+    with pytest.raises(ValueError):
+        level_spectrum(modes, levels, "absorption", **kw)
+
+
+def test_level_spectrum_sites_and_rigid_shift():
+    modes, levels = toy_levels()
+    rng = np.random.default_rng(4)
+    lumo_sites = -1.3 + 0.1 * rng.standard_normal(200)
+    sp = level_spectrum(modes, levels, "electron-addition", 300.0,
+                        site_energies={"LUMO": lumo_sites}, sigma=0.03)
+    assert "200 site energies" in sp.notes["LUMO"]
+    assert "shifted by +1.5000 eV" in sp.notes["LUMO+1"]
+    for label, mean in (("LUMO", lumo_sites.mean()),
+                        ("LUMO+1", lumo_sites.mean() + 1.5)):
+        y = sp.contributions[label]
+        area = np.trapezoid(y, sp.energy)
+        assert abs(area - 200) < 0.5
+        assert abs(np.trapezoid(y * sp.energy, sp.energy) / area - mean) \
+            < 5e-3
+    with pytest.raises(ValueError, match="without gradients"):
+        level_spectrum(modes, levels, "electron-addition", 300.0,
+                       site_energies={"homo": lumo_sites}, sigma=0.03)
+
+
+def test_spectrum_broadening_onset_and_file(tmp_path):
+    e = np.linspace(-3.0, 3.0, 3001)
+    s0, mu = 0.2, 0.4
+    gauss = np.exp(-0.5 * ((e - mu) / s0) ** 2)
+    sp = Spectrum(e, {"LUMO": gauss, "LUMO+1": 0.0 * gauss},
+                  "electron-addition", {"LUMO": 0.1, "LUMO+1": 0.2})
+    # tangent at the inflection point of a Gaussian hits zero at mu - 2 s
+    res = sp.onset()
+    assert abs(res["onset"] - (mu - 2 * s0)) < 2e-3
+    assert abs(res["peak"] - mu) < 2e-3
+    high = Spectrum(e, {"HOMO": gauss}, "electron-removal").onset()
+    assert abs(high["onset"] - (mu + 2 * s0)) < 2e-3
+    # Gaussian broadening adds the variances and keeps the area
+    b = sp.broadened(0.15)
+    area = np.trapezoid(b.total, b.energy)
+    assert abs(area - np.trapezoid(gauss, e)) < 1e-6
+    var = np.trapezoid(b.total * (b.energy - mu) ** 2, b.energy) / area
+    assert abs(var - (s0**2 + 0.15**2)) < 1e-4
+    sp.save(tmp_path / "s.dat", header="test")
+    back = Spectrum.load(tmp_path / "s.dat")
+    assert list(back.contributions) == ["LUMO", "LUMO+1"]
+    assert back.process == "electron-addition"
+    assert back.reorganization == {"LUMO": 0.1, "LUMO+1": 0.2}
+    np.testing.assert_allclose(back.total, sp.total)
+
+
+def test_qp_levels_from_orb(tmp_path):
+    import h5py
+    g = np.arange(2 * 3 * 3, dtype=float).reshape(6, 3) * 1e-3
+    with h5py.File(tmp_path / "x.orb", "w") as f:
+        q = f.create_group("QMdata")
+        q["qp_gradients"] = g
+        q["qp_gradient_levels"] = np.array([4, 5])
+        q["QPpert_energies"] = np.array([[-0.5], [-0.4], [0.1], [0.2]])
+        q.attrs["occupied_levels"] = np.array([5])
+        q.attrs["qpmin"] = np.array([3])
+    lv = QPLevels.from_orb(tmp_path / "x.orb")
+    assert lv.labels == ["HOMO", "LUMO"]
+    hartree, bohr = 27.211386245988, 0.529177210903
+    np.testing.assert_allclose(lv.energies, [-0.4 * hartree, 0.1 * hartree],
+                               rtol=1e-6)
+    np.testing.assert_allclose(lv.gradients[1], g[3:] * hartree / bohr,
+                               rtol=1e-6)
+    assert list(lv.select(True).levels) == [4]
+
+
+def test_plots(tmp_path):
+    matplotlib = pytest.importorskip("matplotlib")
+    matplotlib.use("Agg")
+    from pyxtp.vibronic.plot import (paper_style, plot_couplings,
+                                     plot_spectrum)
+    modes, levels = toy_levels()
+    sp = level_spectrum(modes, levels, "electron-addition", 300.0,
+                        sigma=0.03)
+    with paper_style():
+        fig = plot_spectrum(sp, broadening=0.2, onset=True,
+                            experiment=(sp.energy, sp.total))
+        assert fig.onset["onset"] < fig.onset["peak"]
+        fig.savefig(tmp_path / "s.pdf")
+        fig = plot_couplings(levels.couplings(modes)[0])
+        fig.savefig(tmp_path / "c.pdf")
+    assert (tmp_path / "s.pdf").stat().st_size > 1000
+    assert (tmp_path / "c.pdf").stat().st_size > 1000
+
+
 @pytest.mark.skipif(not os.environ.get("PYXTP_RUN_DFTGWBSE"),
                     reason="runs xtp DFT; set PYXTP_RUN_DFTGWBSE=1")
 def test_xtp_water_hessian(tmp_path):
@@ -400,3 +527,54 @@ def test_xtp_water_hessian(tmp_path):
     # the displaced SCFs were warm-started from the reference orbitals
     log = next((tmp_path / "hess" / "a0000x+").glob("*.out")).read_text()
     assert "orbfile" in log.lower() or "guess" in log.lower()
+
+
+@pytest.mark.skipif(not os.environ.get("PYXTP_RUN_DFTGWBSE"),
+                    reason="runs dftgwbse; set PYXTP_RUN_DFTGWBSE=1")
+def test_xtp_qp_gradients(tmp_path):
+    """Analytic QP gradients (G0W0) against finite differences."""
+    import h5py
+    from pyxtp import xtp
+
+    pos = np.array([[0.0, 0.0, 0.119], [0.03, 0.743, -0.437],
+                    [0.0, -0.763, -0.477]])
+    direction = np.random.default_rng(1).normal(size=(3, 3))
+    direction /= np.linalg.norm(direction)
+
+    def run(positions, tag, gradients):
+        workdir = tmp_path / tag
+        workdir.mkdir()
+        cwd = os.getcwd()
+        os.chdir(workdir)
+        try:
+            calc = xtp()
+            calc.set(**{"dftpackage/basisset": "def2-svp",
+                        "dftpackage/auxbasisset": "aux-def2-svp",
+                        "dftpackage/convergence_tightness": "verytight",
+                        "gwbse/gw/mode": "G0W0", "gwbse/ranges": "explicit",
+                        "gwbse/qpmin": "0", "gwbse/qpmax": "9",
+                        "gwbse/rpamax": "23", "gwbse/bsemin": "0",
+                        "gwbse/bsemax": "9", "gwbse/bse/exctotal": "2"})
+            if gradients:
+                calc.options.qp_gradients = "homo-1:lumo"
+            atoms = Atoms("OH2", positions=positions)
+            atoms.calc = calc
+            atoms.get_potential_energy()
+            orb = str(workdir / "H2O.orb")
+            with h5py.File(orb, "r") as f:
+                qp = np.array(f["QMdata"]["QPpert_energies"][()]).ravel()
+            return orb, qp * 27.211386245988
+        finally:
+            os.chdir(cwd)
+
+    orb, _ = run(pos, "ref", True)
+    levels = QPLevels.from_orb(orb)
+    assert levels.labels == ["HOMO-1", "HOMO", "LUMO"]
+    h = 1e-3
+    _, plus = run(pos + h * direction, "plus", False)
+    _, minus = run(pos - h * direction, "minus", False)
+    for i, level in enumerate(levels.levels):
+        fd = (plus[level] - minus[level]) / (2 * h)
+        analytic = (levels.gradients[i] * direction).sum()
+        assert abs(analytic - fd) < 1e-4 * np.linalg.norm(levels.gradients[i])
+        assert np.abs(levels.gradients[i].sum(axis=0)).max() < 1e-6

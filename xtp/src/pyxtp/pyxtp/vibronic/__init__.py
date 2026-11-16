@@ -13,6 +13,9 @@ Workflow:
 4. ``vibronic_lineshape``: thermal Franck-Condon line shape (FFT of the
    generating function, quantum modes + classical part + broadening).
 5. ``ensemble_spectrum``: sum over the vertical energies of a morphology.
+6. Several levels at once (UPS, IPES): ``QPLevels.from_orb`` (dftgwbse
+   option ``qp_gradients``) and ``level_spectrum``; figures with
+   ``pyxtp.vibronic.plot`` (needs matplotlib).
 """
 
 from .coupling import (VibronicCouplings, couplings_from_forces,
@@ -21,6 +24,7 @@ from .coupling import (VibronicCouplings, couplings_from_forces,
 from .hessian import (Displacement, FiniteDifferenceHessian,
                       xtp_ground_state_factory)
 from .lineshape import LineShape, ensemble_spectrum, vibronic_lineshape
+from .spectrum import QPLevels, Spectrum, level_spectrum
 from .modes import (EV2INVCM, HBAR_OMEGA_EV, NormalModes, read_orca_engrad,
                     read_orca_hessian)
 
@@ -29,5 +33,6 @@ __all__ = ["VibronicCouplings", "couplings_from_forces",
            "read_gap_gradient",
            "Displacement", "FiniteDifferenceHessian",
            "xtp_ground_state_factory", "LineShape", "ensemble_spectrum",
-           "vibronic_lineshape", "EV2INVCM", "HBAR_OMEGA_EV", "NormalModes",
+           "vibronic_lineshape", "QPLevels", "Spectrum", "level_spectrum",
+           "EV2INVCM", "HBAR_OMEGA_EV", "NormalModes",
            "read_orca_engrad", "read_orca_hessian"]
