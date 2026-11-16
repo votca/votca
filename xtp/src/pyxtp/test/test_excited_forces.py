@@ -1,6 +1,9 @@
-"""Analytic BSE excited-state forces through the ASE calculator
-(xtp(excited_state=...)): twelve dftgwbse runs of water, only with
-PYXTP_RUN_DFTGWBSE=1."""
+"""
+Test the analytic BSE excited-state forces of the ASE calculator.
+
+xtp(excited_state=...): dftgwbse runs of water, only with
+PYXTP_RUN_DFTGWBSE=1.
+"""
 import os
 import unittest
 
@@ -44,8 +47,11 @@ def water(shift=0.0):
 
 @pytest.fixture(scope='module')
 def derivatives(tmp_path_factory):
-    """Skip when libint2 lacks the derivative integrals the forces need
-    (the DFT engine refuses compute_forces then, before the SCF)."""
+    """
+    Skip when libint2 lacks the derivative integrals the forces need.
+
+    The DFT engine then refuses compute_forces, before the SCF.
+    """
     cwd = os.getcwd()
     os.chdir(tmp_path_factory.mktemp('derivative_probe'))
     try:
@@ -98,9 +104,13 @@ def test_excited_state_energy_and_forces(derivatives):
 @pytest.mark.parametrize("mode,sigma", [("G0W0", "ppm"), ("evGW", "ppm"),
                                         ("evGW", "exact")])
 def test_excited_state_forces_finite_difference(mode, sigma, derivatives):
-    """Plasmon-pole model: the analytic forces include the response of the
-    QP corrections, so they are the derivative of the total S1 energy with
-    GW recomputed at every geometry."""
+    """
+    Compare the analytic forces with finite differences.
+
+    The analytic forces include the response of the QP corrections, so
+    they are the derivative of the total S1 energy with GW recomputed at
+    every geometry.
+    """
     atoms = water()
     atoms.calc = make_calc(mode, sigma)
     force = atoms.get_forces()[1, 0]
@@ -117,9 +127,13 @@ def test_excited_state_forces_finite_difference(mode, sigma, derivatives):
 
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
 def test_root_following(derivatives):
-    """follow_root: from the second geometry on the state is the one with
-    the largest exciton overlap with the state of the previous geometry; for
-    small steps it keeps its label, and energy and forces belong to it."""
+    """
+    Follow the state from geometry to geometry with follow_root.
+
+    From the second geometry on, the state is the one with the largest
+    exciton overlap with the state of the previous geometry; for small
+    steps it keeps its label, and energy and forces belong to it.
+    """
     calc = make_calc()
     calc.follow_root = True
     calc.excited_state = calc.tracked_state = 's2'
@@ -142,8 +156,12 @@ def test_root_following(derivatives):
 
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
 def test_calculator_attached_to_new_atoms(derivatives):
-    """Attaching the calculator to other atoms (a scan with new Atoms per
-    point) must not return the results of the previous positions."""
+    """
+    Attach the calculator to new atoms.
+
+    A scan with new Atoms per point must not return the results of the
+    previous positions.
+    """
     calc = make_calc()
     first = water()
     first.calc = calc
@@ -156,10 +174,14 @@ def test_calculator_attached_to_new_atoms(derivatives):
 
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
 def test_numerical_ground_state_forces(derivatives):
-    """Without dftpackage.xtpdft.compute_forces the ground-state forces are
+    """
+    Check the finite-difference ground-state forces.
+
+    Without dftpackage.xtpdft.compute_forces the ground-state forces are
     finite differences; they must see the displaced positions (they were
     zero when the calculator kept a copy of the atoms) and agree with the
-    analytic DFT forces."""
+    analytic DFT forces.
+    """
     analytic = make_calc()
     analytic.excited_state = analytic.tracked_state = None
     analytic.set(**{'dftpackage/xtpdft/compute_forces': 'true'})

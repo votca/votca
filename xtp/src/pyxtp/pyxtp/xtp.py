@@ -170,12 +170,11 @@ class xtp(Calculator):
 
 
     def set_atoms(self, atoms: Atoms):
-        """Set atomic positions (called by ASE when the calculator is
-        attached to atoms). Results of other positions are dropped, and a
-        copy is kept, so later changes of atoms are detected.
+        """
+        Set the atoms (ASE calls this when the calculator is attached).
 
-        Args:
-            atoms (Atoms): atoms in ASE format
+        Results of other positions are dropped, and a copy of atoms is
+        kept, so later changes of the atoms are detected.
         """
         if self.atoms is not None and self.check_state(atoms):
             self.reset()
@@ -443,9 +442,13 @@ class xtp(Calculator):
         return label
 
     def get_excited_state_total_energy(self) -> float:
-        """Total energy (eV) of the BSE state selected with excited_state
-        (or followed from it, follow_root): DFT total energy plus the
-        (static) BSE excitation energy."""
+        """
+        Return the total energy (eV) of the selected BSE state.
+
+        The state is excited_state, or the state followed from it with
+        follow_root; the energy is the DFT total energy plus the (static)
+        BSE excitation energy.
+        """
         self.check_data()
         state = self.tracked_state
         level = int(state[1:]) - 1
