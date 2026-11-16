@@ -42,6 +42,28 @@ def water(shift=0.0):
                                    [-0.24, 0.93, -0.07]])
 
 
+@pytest.fixture(scope='module')
+def derivatives(tmp_path_factory):
+    """Skip when libint2 lacks the derivative integrals the forces need
+    (the DFT engine refuses compute_forces then, before the SCF)."""
+    cwd = os.getcwd()
+    os.chdir(tmp_path_factory.mktemp('derivative_probe'))
+    try:
+        calc = xtp(nthreads=1)
+        calc.set(**{'dftpackage/basisset': 'def2-svp',
+                    'dftpackage/auxbasisset': 'aux-def2-svp',
+                    'dftpackage/xtpdft/compute_forces': 'true'})
+        atoms = Atoms('H2', positions=[[0, 0, 0], [0, 0, 0.74]])
+        atoms.calc = calc
+        atoms.get_potential_energy()
+    except RuntimeError as error:
+        if 'without derivative integrals' in str(error):
+            pytest.skip('libint2 was built without derivative integrals')
+        raise
+    finally:
+        os.chdir(cwd)
+
+
 def test_state_label():
     assert xtp._parse_state(' T2 ') == 't2'
     with pytest.raises(ValueError):
@@ -49,7 +71,7 @@ def test_state_label():
 
 
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
-def test_excited_state_energy_and_forces():
+def test_excited_state_energy_and_forces(derivatives):
     atoms = water()
     atoms.calc = make_calc()
     energy = atoms.get_potential_energy()
@@ -75,7 +97,7 @@ def test_excited_state_energy_and_forces():
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
 @pytest.mark.parametrize("mode,sigma", [("G0W0", "ppm"), ("evGW", "ppm"),
                                         ("evGW", "exact")])
-def test_excited_state_forces_finite_difference(mode, sigma):
+def test_excited_state_forces_finite_difference(mode, sigma, derivatives):
     """Plasmon-pole model: the analytic forces include the response of the
     QP corrections, so they are the derivative of the total S1 energy with
     GW recomputed at every geometry."""
@@ -94,7 +116,7 @@ def test_excited_state_forces_finite_difference(mode, sigma):
 
 
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
-def test_root_following():
+def test_root_following(derivatives):
     """follow_root: from the second geometry on the state is the one with
     the largest exciton overlap with the state of the previous geometry; for
     small steps it keeps its label, and energy and forces belong to it."""
@@ -119,7 +141,7 @@ def test_root_following():
 
 
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
-def test_calculator_attached_to_new_atoms():
+def test_calculator_attached_to_new_atoms(derivatives):
     """Attaching the calculator to other atoms (a scan with new Atoms per
     point) must not return the results of the previous positions."""
     calc = make_calc()
@@ -133,7 +155,7 @@ def test_calculator_attached_to_new_atoms():
 
 
 @pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
-def test_numerical_ground_state_forces():
+def test_numerical_ground_state_forces(derivatives):
     """Without dftpackage.xtpdft.compute_forces the ground-state forces are
     finite differences; they must see the displaced positions (they were
     zero when the calculator kept a copy of the atoms) and agree with the
