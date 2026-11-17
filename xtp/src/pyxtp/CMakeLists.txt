@@ -98,4 +98,7 @@ if(BUILD_TESTING AND PYpytest_FOUND)
   add_test(NAME integration_test_xtp_binds_excited_forces COMMAND ${Python_EXECUTABLE} -m pytest ${RUNPATH}/test_excited_forces.py -v WORKING_DIRECTORY ${RUNPATH}  )
   set_property(TEST integration_test_xtp_binds_excited_forces PROPERTY ENVIRONMENT "PYTHONPATH=${XTP_PYPATH}:$ENV{PYTHONPATH};VOTCASHARE=${CMAKE_CURRENT_SOURCE_DIR}/../../share;PYXTP_RUN_DFTGWBSE=1")
   set_property(TEST integration_test_xtp_binds_excited_forces APPEND PROPERTY LABELS heavy)
+  # about 30 s in Release, more than 1500 s (CTest's default) in the CI
+  # Debug build before the numerical-force check was reduced
+  set_tests_properties(integration_test_xtp_binds_excited_forces PROPERTIES TIMEOUT 3600)
 endif()
