@@ -1,5 +1,6 @@
-"""Subcommands of the xtp_vibronic script (the parser is in the script,
-so that its help works without pyxtp).
+"""Subcommands of the xtp_vibronic script.
+
+The parser is in the script, so that its help works without pyxtp.
 
 Subcommands:
 
@@ -73,6 +74,7 @@ def _parse_where(expr: str):
 
 
 def cmd_hessian(args) -> None:
+    """Run (or continue) the displaced force calculations."""
     from ase.io import read
 
     from ..xtp import xtp
@@ -100,6 +102,7 @@ def cmd_hessian(args) -> None:
 
 
 def cmd_status(args) -> None:
+    """Print the progress of a Hessian workdir."""
     from .hessian import FiniteDifferenceHessian
 
     fd = FiniteDifferenceHessian.open(args.workdir)
@@ -112,6 +115,7 @@ def cmd_status(args) -> None:
 
 
 def cmd_modes(args) -> None:
+    """Collect the Hessian, print the frequencies, save the modes."""
     from .hessian import FiniteDifferenceHessian
 
     fd = FiniteDifferenceHessian.open(args.workdir)
@@ -128,6 +132,7 @@ def cmd_modes(args) -> None:
 
 
 def cmd_lineshape(args) -> None:
+    """Compute the couplings and line shape of one transition."""
     from ase.io import read
 
     from .coupling import couplings_from_gradient, read_gap_gradient
@@ -196,6 +201,7 @@ def _load_modes(args):
 
 
 def cmd_spectrum(args) -> None:
+    """Compute the spectrum of all QP levels with gradients."""
     from .modes import EV2INVCM
     from .spectrum import QPLevels, level_spectrum
 
@@ -240,6 +246,7 @@ def cmd_spectrum(args) -> None:
 
 
 def cmd_gradients(args) -> None:
+    """Add QP gradients or excited-state forces to an orb file."""
     from ..xtp import xtp
     from .spectrum import QPLevels, add_gradients
 
@@ -260,6 +267,7 @@ def cmd_gradients(args) -> None:
 
 
 def cmd_plot(args) -> None:
+    """Plot a spectrum or vibronic couplings."""
     import matplotlib
     matplotlib.use("Agg")
 

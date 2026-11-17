@@ -60,14 +60,22 @@ def rigid_body_vectors(positions: np.ndarray, masses: np.ndarray,
 class NormalModes:
     """Harmonic vibrations of a molecule at a reference geometry.
 
-    Attributes:
-        symbols: chemical symbols (N)
-        positions: reference geometry (N, 3), Angstrom
-        masses: atomic masses (N), amu
-        hessian: Cartesian Hessian (3N, 3N), eV/Angstrom^2
-        eigenvalues: mass-weighted force constants of the vibrations
-            (n_vib), eV/(Angstrom^2 amu); negative for imaginary modes
-        modes: orthonormal mass-weighted eigenvectors (3N, n_vib)
+    Attributes
+    ----------
+    symbols
+        chemical symbols (N)
+    positions
+        reference geometry (N, 3), Angstrom
+    masses
+        atomic masses (N), amu
+    hessian
+        Cartesian Hessian (3N, 3N), eV/Angstrom^2
+    eigenvalues
+        mass-weighted force constants of the vibrations
+        (n_vib), eV/(Angstrom^2 amu); negative for imaginary modes
+    modes
+        orthonormal mass-weighted eigenvectors (3N, n_vib)
+
     """
 
     symbols: Sequence[str]
@@ -83,12 +91,17 @@ class NormalModes:
                      masses: Optional[np.ndarray] = None) -> "NormalModes":
         """Diagonalize the projected mass-weighted Hessian.
 
-        Args:
-            atoms: reference geometry (masses from atoms.get_masses()
-                unless given)
-            hessian: Cartesian Hessian (3N, 3N) in eV/Angstrom^2; it is
-                symmetrized
-            masses: optional masses (amu), e.g. for isotopes
+        Parameters
+        ----------
+        atoms
+            reference geometry (masses from atoms.get_masses()
+            unless given)
+        hessian
+            Cartesian Hessian (3N, 3N) in eV/Angstrom^2; it is
+            symmetrized
+        masses
+            optional masses (amu), e.g. for isotopes
+
         """
         h = np.asarray(hessian, dtype=float)
         n3 = 3 * len(atoms)
@@ -117,10 +130,12 @@ class NormalModes:
     # ------------------------------------------------------------------
     @property
     def natoms(self) -> int:
+        """Return the number of atoms."""
         return len(self.masses)
 
     @property
     def nmodes(self) -> int:
+        """Return the number of vibrational modes."""
         return len(self.eigenvalues)
 
     @property
@@ -136,18 +151,18 @@ class NormalModes:
 
     @property
     def imaginary(self) -> np.ndarray:
-        """Indices of imaginary (negative curvature) modes."""
+        """Return the indices of the modes with negative curvature."""
         return np.flatnonzero(self.eigenvalues < 0.0)
 
     def cartesian_modes(self) -> np.ndarray:
-        """Normalized Cartesian displacement patterns (n_vib, N, 3)."""
+        """Return normalized Cartesian displacement patterns (n_vib, N, 3)."""
         inv_sqm = np.repeat(1.0 / np.sqrt(self.masses), 3)
         c = self.modes * inv_sqm[:, None]
         c /= np.linalg.norm(c, axis=0)
         return c.T.reshape(self.nmodes, self.natoms, 3)
 
     def atoms(self) -> Atoms:
-        """The reference geometry as ASE atoms."""
+        """Return the reference geometry as ASE atoms."""
         a = Atoms(self.symbols, positions=self.positions)
         a.set_masses(self.masses)
         return a

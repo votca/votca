@@ -77,13 +77,20 @@ def _check_process(process: str) -> bool:
 class LineShape:
     """Normalized line shape on an energy axis relative to E_vert.
 
-    Attributes:
-        energy: E - E_vert (eV), uniform grid
-        intensity: F(E) (1/eV), Int F dE = 1
-        reorganization: lambda_tot = |E_vert - E_00| (eV), quantum +
-            classical modes
-        temperature: K
-        process: see PROCESSES and the module docstring
+    Attributes
+    ----------
+    energy
+        E - E_vert (eV), uniform grid
+    intensity
+        F(E) (1/eV), Int F dE = 1
+    reorganization
+        lambda_tot = |E_vert - E_00| (eV), quantum +
+        classical modes
+    temperature
+        K
+    process
+        see PROCESSES and the module docstring
+
     """
 
     energy: np.ndarray
@@ -94,6 +101,7 @@ class LineShape:
 
     @property
     def step(self) -> float:
+        """Return the energy step of the grid (eV)."""
         return float(self.energy[1] - self.energy[0])
 
     @property
@@ -103,8 +111,10 @@ class LineShape:
         return -self.reorganization if above else self.reorganization
 
     def __call__(self, e: np.ndarray) -> np.ndarray:
-        """F at energies relative to E_vert (linear interpolation, 0
-        outside the grid)."""
+        """Evaluate F at energies relative to E_vert.
+
+        Linear interpolation, 0 outside the grid.
+        """
         return np.interp(e, self.energy, self.intensity, left=0.0,
                          right=0.0)
 
@@ -134,28 +144,41 @@ def vibronic_lineshape(couplings: Optional[VibronicCouplings],
                        tolerance: float = 1e-6) -> LineShape:
     """Thermal Franck-Condon line shape by FFT.
 
-    Args:
-        couplings: quantum modes (None: classical/broadening only)
-        temperature: K (0 allowed for the quantum part)
-        process: absorption, emission, electron-addition,
-            electron-removal, ionization or electron-affinity; sets the
-            energy axis and the side of E_00 on which the progression lies
-            (module docstring)
-        lambda_classical: classical reorganization energy (eV), e.g. outer
-            sphere; needs temperature > 0
-        sigma: Gaussian broadening, standard deviation (eV)
-        gamma: Lorentzian broadening, half width at half maximum (eV)
-        classical_below: modes with hbar omega below this (eV) are treated
-            classically (their lambda is added to lambda_classical)
-        step: energy step (eV)
-        window: total width of the energy axis (eV), centred on E_vert;
-            default from the width of the spectrum
-        tolerance: warn if |C(tau)| at the end of the time grid exceeds
-            this (spectrum not converged: add broadening or a classical
-            part, or reduce the step)
+    Parameters
+    ----------
+    couplings
+        quantum modes (None: classical/broadening only)
+    temperature
+        K (0 allowed for the quantum part)
+    process
+        absorption, emission, electron-addition,
+        electron-removal, ionization or electron-affinity; sets the
+        energy axis and the side of E_00 on which the progression lies
+        (module docstring)
+    lambda_classical
+        classical reorganization energy (eV), e.g. outer
+        sphere; needs temperature > 0
+    sigma
+        Gaussian broadening, standard deviation (eV)
+    gamma
+        Lorentzian broadening, half width at half maximum (eV)
+    classical_below
+        modes with hbar omega below this (eV) are treated
+        classically (their lambda is added to lambda_classical)
+    step
+        energy step (eV)
+    window
+        total width of the energy axis (eV), centred on E_vert;
+        default from the width of the spectrum
+    tolerance
+        warn if |C(tau)| at the end of the time grid exceeds
+        this (spectrum not converged: add broadening or a classical
+        part, or reduce the step)
 
-    Returns:
-        LineShape relative to E_vert.
+    Returns
+    -------
+    LineShape relative to E_vert.
+
     """
     above = _check_process(process)
     kt = KB_EV * temperature
@@ -224,15 +247,23 @@ def ensemble_spectrum(vertical_energies: Sequence[float],
     Int I dE is the number of sites. Weights can model e.g. the surface
     sensitivity of photoemission, w_i = exp(-depth_i / IMFP).
 
-    Args:
-        vertical_energies: E_vert of each site/state (eV)
-        shape: LineShape (relative to E_vert)
-        energies: output grid (eV); default covers all sites
-        weights: optional weight per site
-        step: grid step of the default grid (default: shape.step)
+    Parameters
+    ----------
+    vertical_energies
+        E_vert of each site/state (eV)
+    shape
+        LineShape (relative to E_vert)
+    energies
+        output grid (eV); default covers all sites
+    weights
+        optional weight per site
+    step
+        grid step of the default grid (default: shape.step)
 
-    Returns:
-        (energies, intensity)
+    Returns
+    -------
+    (energies, intensity)
+
     """
     ev = np.asarray(vertical_energies, dtype=float)
     wts = np.ones_like(ev) if weights is None else \

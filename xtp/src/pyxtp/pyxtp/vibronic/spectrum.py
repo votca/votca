@@ -59,11 +59,17 @@ def parse_level(text: str, homo: int) -> int:
 class QPLevels:
     """QP levels of a molecule with the gradients of their energies.
 
-    Attributes:
-        levels: absolute MO indices (0-based)
-        homo: index of the HOMO
-        energies: QP energies (eV), one per level
-        gradients: dE/dR (n_levels, N, 3), eV/Angstrom
+    Attributes
+    ----------
+    levels
+        absolute MO indices (0-based)
+    homo
+        index of the HOMO
+    energies
+        QP energies (eV), one per level
+    gradients
+        dE/dR (n_levels, N, 3), eV/Angstrom
+
     """
 
     levels: np.ndarray
@@ -87,16 +93,17 @@ class QPLevels:
             homo = int(orb.attrs["occupied_levels"][0]) - 1
             qpmin = int(orb.attrs["qpmin"][0])
             qp = np.array(orb["QPpert_energies"][()], dtype=float).ravel()
-        g = g.reshape(len(levels), -1, 3) * units.Hartree / units.Bohr
+        g = g.reshape((len(levels), -1, 3)) * units.Hartree / units.Bohr
         return cls(levels=levels, homo=homo,
                    energies=qp[levels - qpmin] * units.Hartree, gradients=g)
 
     @property
     def labels(self) -> List[str]:
+        """Return the HOMO-n or LUMO+n name of each level."""
         return [level_label(int(lv), self.homo) for lv in self.levels]
 
     def select(self, occupied: bool) -> "QPLevels":
-        """The occupied or the empty levels."""
+        """Return the occupied or the empty levels."""
         mask = (self.levels <= self.homo) == occupied
         return QPLevels(self.levels[mask], self.homo, self.energies[mask],
                         self.gradients[mask])
@@ -113,12 +120,19 @@ class QPLevels:
 class Spectrum:
     """A spectrum with the contributions of the individual levels.
 
-    Attributes:
-        energy: energy axis (eV)
-        contributions: label -> intensity on the energy axis
-        process: physical process (sets the meaning of the axis)
-        reorganization: label -> lambda (eV)
-        notes: remarks on how each contribution was placed
+    Attributes
+    ----------
+    energy
+        energy axis (eV)
+    contributions
+        label -> intensity on the energy axis
+    process
+        physical process (sets the meaning of the axis)
+    reorganization
+        label -> lambda (eV)
+    notes : list of str
+        remarks on how each contribution was placed
+
     """
 
     energy: np.ndarray
@@ -129,10 +143,12 @@ class Spectrum:
 
     @property
     def total(self) -> np.ndarray:
+        """Return the sum of all contributions."""
         return np.sum(list(self.contributions.values()), axis=0)
 
     @property
     def axis_label(self) -> str:
+        """Return the energy-axis label for the process."""
         return {"absorption": "Photon energy (eV)",
                 "emission": "Photon energy (eV)",
                 "electron-addition": "Energy (eV)",
@@ -141,8 +157,10 @@ class Spectrum:
                 "electron-affinity": "Electron affinity (eV)"}[self.process]
 
     def broadened(self, sigma: float) -> "Spectrum":
-        """Convolution with a Gaussian of standard deviation sigma (eV),
-        e.g. the instrument resolution."""
+        """Convolve with a Gaussian of standard deviation sigma (eV).
+
+        E.g. the instrument resolution.
+        """
         if sigma <= 0.0:
             return self
         de = self.energy[1] - self.energy[0]
@@ -167,15 +185,20 @@ class Spectrum:
         The tangent at the steepest point of the edge of the outermost
         peak is extrapolated to zero intensity.
 
-        Args:
-            side: "low" (edge on the low-energy side of the first peak;
-                default for electron-addition, ionization, absorption) or
-                "high" (high-energy edge of the last peak; default for
-                electron-removal, electron-affinity, emission)
-            intensity: curve to analyse (default: the total)
+        Parameters
+        ----------
+        side
+            "low" (edge on the low-energy side of the first peak;
+            default for electron-addition, ionization, absorption) or
+            "high" (high-energy edge of the last peak; default for
+            electron-removal, electron-affinity, emission)
+        intensity
+            curve to analyse (default: the total)
 
-        Returns:
-            dict with onset, peak, the tangent point (x0, y0) and slope
+        Returns
+        -------
+        dict with onset, peak, the tangent point (x0, y0) and slope
+
         """
         y = self.total if intensity is None else np.asarray(intensity)
         e = self.energy
@@ -261,30 +284,43 @@ def level_spectrum(modes: NormalModes, levels: QPLevels, process: str,
                    step: float = 2e-3) -> Spectrum:
     """Vibronic spectrum of the QP levels of a molecule or a morphology.
 
-    Args:
-        modes: normal modes of the neutral ground state
-        levels: QP levels with gradients (QPLevels.from_orb)
-        process: electron-removal or ionization (occupied levels; axis
-            E_QP or -E_QP), electron-addition or electron-affinity (empty
-            levels)
-        temperature: K
-        site_energies: vertical energies of the sites of a morphology per
-            level (key: MO index or a label such as 'homo-1', 'LUMO'), on
-            the energy axis of the process. Levels without an entry use
-            the distribution of the nearest level that has one, shifted
-            rigidly by the difference of the molecular QP energies.
-            None: one molecule, at its QP energies.
-        weights: weight per site (e.g. exp(-depth/IMFP)), the same for all
-            levels
-        select: use only these levels (indices or labels)
-        lambda_classical, sigma, gamma, classical_below: see
-            vibronic_lineshape (intrinsic line shape of every level)
-        min_wavenumber: leave out modes below this (cm^-1)
-        energies: output energy axis (default covers all contributions)
-        step: energy step of the line shapes and the default axis (eV)
+    Parameters
+    ----------
+    modes
+        normal modes of the neutral ground state
+    levels
+        QP levels with gradients (QPLevels.from_orb)
+    process
+        electron-removal or ionization (occupied levels; axis
+        E_QP or -E_QP), electron-addition or electron-affinity (empty
+        levels)
+    temperature
+        K
+    site_energies
+        vertical energies of the sites of a morphology per
+        level (key: MO index or a label such as 'homo-1', 'LUMO'), on
+        the energy axis of the process. Levels without an entry use
+        the distribution of the nearest level that has one, shifted
+        rigidly by the difference of the molecular QP energies.
+        None: one molecule, at its QP energies.
+    weights
+        weight per site (e.g. exp(-depth/IMFP)), the same for all
+        levels
+    select
+        use only these levels (indices or labels)
+    lambda_classical, sigma, gamma, classical_below: see
+        vibronic_lineshape (intrinsic line shape of every level)
+    min_wavenumber
+        leave out modes below this (cm^-1)
+    energies
+        output energy axis (default covers all contributions)
+    step
+        energy step of the line shapes and the default axis (eV)
 
-    Returns:
-        Spectrum with one contribution per level.
+    Returns
+    -------
+    Spectrum with one contribution per level.
+
     """
     _check_process(process)
     if process not in _OCCUPIED:
@@ -367,17 +403,25 @@ def add_gradients(orbfile: Pathlike, qp_levels: Optional[str] = None,
     are already stored are not recomputed, so levels can be added later;
     the forces of another excited state replace the stored ones.
 
-    Args:
-        orbfile: orb file of the earlier run; it is updated in place
-        qp_levels: e.g. 'homo-9:lumo+9' (dftgwbse option qp_gradients)
-        excited_state: e.g. 's2' (dftgwbse option excited_state_forces;
-            needs the ground-state forces in the file)
-        options: pyxtp Options of the earlier run (e.g. calc.options)
-        settings: or its settings as for xtp.set(); the DFT and GW
-            options must be those of the earlier run (basis sets and
-            functional are checked, the GW setup through the QP energies
-            rebuilt for the gradient)
-        nthreads: threads
+    Parameters
+    ----------
+    orbfile
+        orb file of the earlier run; it is updated in place
+    qp_levels
+        e.g. 'homo-9:lumo+9' (dftgwbse option qp_gradients)
+    excited_state
+        e.g. 's2' (dftgwbse option excited_state_forces;
+        needs the ground-state forces in the file)
+    options
+        pyxtp Options of the earlier run (e.g. calc.options)
+    settings
+        or its settings as for xtp.set(); the DFT and GW
+        options must be those of the earlier run (basis sets and
+        functional are checked, the GW setup through the QP energies
+        rebuilt for the gradient)
+    nthreads
+        threads
+
     """
     import os
 

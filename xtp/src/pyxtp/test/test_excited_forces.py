@@ -12,6 +12,7 @@ from ase import Atoms
 
 try:
     from pyxtp import xtp
+    from pyxtp.xtp import numeric_force_xtp
 except ImportError:
     raise unittest.SkipTest('pyxtp not available')
 
@@ -174,18 +175,24 @@ def test_numerical_ground_state_forces(derivatives):
     Without dftpackage.xtpdft.compute_forces the ground-state forces are
     finite differences; they must see the displaced positions (they were
     zero when the calculator kept a copy of the atoms) and agree with the
-    analytic DFT forces.
+    analytic DFT forces. DFT only and two force components, as
+    calculate_numerical_forces computes them (the full set took most of
+    the time of this test in the CI Debug build).
     """
+    dft_only = {'tasks': 'input,dft,parse'}
     analytic = make_calc()
     analytic.excited_state = analytic.tracked_state = None
-    analytic.set(**{'dftpackage/xtpdft/compute_forces': 'true'})
+    analytic.set(**dft_only, **{'dftpackage/xtpdft/compute_forces': 'true'})
     atoms = water()
     atoms.calc = analytic
     reference = atoms.get_forces()
+    assert np.abs(reference).max() > 1e-2
     numerical = make_calc()
     numerical.excited_state = numerical.tracked_state = None
-    other = water()
-    other.calc = numerical
-    forces = numerical.calculate_numerical_forces(eps=1e-3, atoms=other)
-    assert np.abs(reference).max() > 1e-2
-    np.testing.assert_allclose(forces, reference, atol=2e-3)
+    numerical.set(**dft_only)
+    for a, i in ((1, 0), (0, 2)):
+        other = water()
+        other.calc = xtp(options=numerical.options, nthreads=1)
+        force = numeric_force_xtp(other, a, i, 1e-3,
+                                  numerical.option_forces)
+        assert force == pytest.approx(reference[a, i], abs=2e-3)
