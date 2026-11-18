@@ -1,4 +1,5 @@
 import os
+import shutil
 import numpy as np
 from typing import Dict, Union, List , Optional, Tuple
 import h5py
@@ -27,13 +28,17 @@ def numeric_force_xtp(atoms, a, i, d=0.001, opt_forces: dict = None):
     p = p0.copy()
     p[a, i] += d
     atoms.set_positions(p, apply_constraint=False)
-    eplus = atoms._calc.get_total_energy(name=name, level=level, dynamic=dynamic)
+    # pass the atoms: the calculator keeps a copy of the positions it was
+    # attached with, so the displacement is only seen through them
+    eplus = atoms._calc.get_total_energy(name=name, level=level,
+                                         dynamic=dynamic, atoms=atoms)
 
     atoms._calc.reset_results()
 
     p[a, i] -= 2 * d
     atoms.set_positions(p, apply_constraint=False)
-    eminus = atoms._calc.get_total_energy(name=name, level=level, dynamic=dynamic)
+    eminus = atoms._calc.get_total_energy(name=name, level=level,
+                                          dynamic=dynamic, atoms=atoms)
     atoms.set_positions(p0, apply_constraint=False)
     return (eminus - eplus) / (2 * d)
 
@@ -52,6 +57,8 @@ class xtp(Calculator):
                  nthreads=1,
                  options=None,
                  directory='./',
+                 excited_state: Optional[str] = None,
+                 follow_root: bool = False,
                  **kwargs):
 
         Calculator.__init__(self, restart=restart, label=label, atoms=atoms,
@@ -64,6 +71,21 @@ class xtp(Calculator):
 
         self.set(**kwargs)
         self.select_force()
+
+        # BSE state (e.g. "s1", "t1") whose total energy and analytic forces
+        # are returned as 'energy' and 'forces' (TDA, closed shell, fixed
+        # QP corrections; see dftgwbse.excited_state_forces). None: ground
+        # state.
+        self.excited_state = None
+        if excited_state is not None:
+            self.excited_state = self._parse_state(excited_state)
+        # root following (dftgwbse.excited_state_forces_follow): from the
+        # second geometry on, energy and forces belong to the state with the
+        # largest exciton overlap with the state of the previous geometry
+        # (kept in self.root_reference); self.tracked_state is that state
+        self.follow_root = follow_root
+        self.root_reference = None
+        self.tracked_state = self.excited_state
 
         self.nthreads = nthreads
 
@@ -148,18 +170,24 @@ class xtp(Calculator):
 
 
     def set_atoms(self, atoms: Atoms):
-        """Set atomic positions
+        """Set the atoms (ASE calls this when the calculator is attached).
 
-        Args:
-            atoms (Atoms): atoms in ASE format
+        Results of other positions are dropped, and a copy of atoms is
+        kept, so later changes of the atoms are detected.
         """
-        self.atoms = atoms
+        if self.atoms is not None and self.check_state(atoms):
+            self.reset()
+        self.atoms = atoms.copy()
 
     def reset(self):
         """Clear all information from old calculation."""
 
         self.atoms = None
         self.reset_results()
+        # the stored data belongs to the old geometry: without this,
+        # _try_analytic_forces would return the forces of the previous
+        # geometry after ASE reset the calculator for new positions
+        self.has_data = False
 
     def reset_results(self):
         """Clear all the results of previous calculations but keep atoms data
@@ -210,6 +238,20 @@ class xtp(Calculator):
         input_filename = 'dftgwbse.xml'
         self.atoms.write(xyz_filename)
         self.options.job_name = xyzname
+        if self.excited_state is not None:
+            self.options.excited_state_forces = self.excited_state
+            self.options.dftpackage.xtpdft.compute_forces = 'true'
+            # the energy must be the one whose gradient is computed: the
+            # default Davidson residual (1e-4) leaves the eigenvalue off by
+            # up to ~1e-5 Ha for full BSE, enough to confuse an optimizer's
+            # energy checks near convergence
+            if self.options.gwbse.bse.davidson.tolerance in ('', 'loose',
+                                                             'normal'):
+                self.options.gwbse.bse.davidson.tolerance = 'strict'
+            follow = ''
+            if self.follow_root and self.root_reference is not None:
+                follow = Path(self.root_reference).absolute().as_posix()
+            self.options.excited_state_forces_follow = follow
         self.options._write_xml(input_filename)
 
         # Runs VOTCA and moves results a job folder, if requested
@@ -233,6 +275,12 @@ class xtp(Calculator):
 
         # Reads energies from an existing HDF5 orb file
         self.read_hdf5_data(self.hdf5_filename)
+
+        if self.follow_root and self.excited_forces_state is not None:
+            # reference for the next geometry
+            self.root_reference = os.path.join(
+                self.directory, f'{xyzname}_root_reference.orb')
+            shutil.copyfile(self.hdf5_filename, self.root_reference)
 
     @classmethod
     def read_atoms(cls, filename: Pathlike, label = None, **kwargs) -> Atoms:
@@ -345,6 +393,21 @@ class xtp(Calculator):
             else:
                 self.has_dft_forces = False
 
+            # analytic forces of one BSE state (dftgwbse.excited_state_forces),
+            # Hartree/Bohr -> eV/Angstrom as above
+            self.excited_forces = None
+            self.excited_forces_state = None
+            if 'excited_state_forces' in orb:
+                self.excited_forces = (
+                    H2EV * orb['excited_state_forces'][()] / BOHR2ANG)
+                # strings are stored as attributes
+                state = orb.attrs['excited_state_forces_state']
+                if isinstance(state, np.ndarray):
+                    state = state.flatten()[0]
+                if isinstance(state, bytes):
+                    state = state.decode()
+                self.excited_forces_state = str(state)
+
             self.has_data = True
 
         # create the results
@@ -357,6 +420,45 @@ class xtp(Calculator):
             'transition_dipoles': self.transition_dipoles,
             'qp_pert': self.qp_energies,
         }
+        if self.excited_state is not None:
+            if self.follow_root and self.excited_forces_state is not None:
+                self.tracked_state = self.excited_forces_state
+            self.results['energy'] = self.get_excited_state_total_energy()
+            if self.excited_forces is not None and \
+                    self.excited_forces_state == self.tracked_state:
+                self.results['forces'] = self.excited_forces
+                self.has_forces = True
+
+    @staticmethod
+    def _parse_state(state: str) -> str:
+        """Normalize a BSE state label such as 'S1' to 's1'."""
+        label = state.strip().lower()
+        if len(label) < 2 or label[0] not in 'st' or not label[1:].isdigit() \
+                or int(label[1:]) < 1:
+            raise ValueError(
+                f"excited_state must be a singlet or triplet BSE state such as "
+                f"'s1' or 't1', got '{state}'")
+        return label
+
+    def get_excited_state_total_energy(self) -> float:
+        """Return the total energy (eV) of the selected BSE state.
+
+        The state is excited_state, or the state followed from it with
+        follow_root; the energy is the DFT total energy plus the (static)
+        BSE excitation energy.
+        """
+        self.check_data()
+        state = self.tracked_state
+        level = int(state[1:]) - 1
+        if state[0] == 's':
+            energies = self.bse_singlet_energies
+        else:
+            energies = self.bse_triplet_energies
+        if level >= len(energies):
+            raise RuntimeError(
+                f"BSE state {state} was not computed "
+                f"(gwbse.bse.exctotal)")
+        return self.DFTenergy + energies[level]
 
 
     def get_total_energy(self, name: str = 'energy', level: int = 0, dynamic: bool = False,
@@ -399,7 +501,7 @@ class xtp(Calculator):
         if name not in self.results:
             if not allow_calculation:
                 return None
-            self.calculate(properties=[name])
+            self.calculate(atoms=atoms, properties=[name])
 
         if name  == 'energy':
             return self.get_dft_energy()
@@ -604,7 +706,7 @@ class xtp(Calculator):
         through to the existing numerical path unconditionally, exactly
         as before this method existed.
         """
-        if self.option_forces['energy'] != 'energy':
+        if self.excited_state is None and self.option_forces['energy'] != 'energy':
             return False
 
         if atoms is None:
@@ -628,6 +730,16 @@ class xtp(Calculator):
             # purely-numerical path never pays for an extra SCF run it
             # doesn't need.
             self.calculate_energies(atoms=atoms)
+
+        if self.excited_state is not None:
+            if self.excited_forces is None or \
+                    self.excited_forces_state != self.tracked_state:
+                raise RuntimeError(
+                    f"No analytic forces for {self.tracked_state} in "
+                    f"{self.hdf5_filename}")
+            self.results['forces'] = self.excited_forces
+            self.has_forces = True
+            return True
 
         if self.has_dft_forces:
             self.results['forces'] = self.dft_forces
@@ -692,6 +804,11 @@ class xtp(Calculator):
         Returns:
             np.ndarray: atomic forces
         """
+        # results of another geometry (Atoms.get_forces passes the current
+        # atoms; ASE optimizers move them between calls)
+        if atoms is not None and self.atoms is not None and \
+                self.check_state(atoms):
+            self.reset()
         if self.check_forces():
             return self.results['forces']
         if self._try_analytic_forces(atoms=atoms):

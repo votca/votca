@@ -322,6 +322,36 @@ class Orbitals {
   /// stores whatever is passed in without reinterpreting it.
   void setForces(const Eigen::MatrixXd &forces) { forces_ = forces; }
 
+  /// Analytic nuclear forces -dE/dR of one excited state (Natoms x 3,
+  /// Hartree/Bohr; ground-state forces minus the gradient of the excitation
+  /// energy), and that state (QMState string, e.g. "s1").
+  bool hasExcitedStateForces() const { return excited_forces_.rows() > 0; }
+  const Eigen::MatrixXd &getExcitedStateForces() const {
+    return excited_forces_;
+  }
+  const std::string &getExcitedStateForcesState() const {
+    return excited_forces_state_;
+  }
+  void setExcitedStateForces(const Eigen::MatrixXd &forces,
+                             const std::string &state) {
+    excited_forces_ = forces;
+    excited_forces_state_ = state;
+  }
+
+  /// Analytic nuclear gradients dE_p/dR of quasiparticle energies
+  /// (Hartree/Bohr): block l of Natoms rows belongs to the level
+  /// getQPGradientLevels()[l] (absolute MO index).
+  bool hasQPGradients() const { return qp_gradients_.rows() > 0; }
+  const Eigen::MatrixXd &getQPGradients() const { return qp_gradients_; }
+  const std::vector<Index> &getQPGradientLevels() const {
+    return qp_gradient_levels_;
+  }
+  void setQPGradients(const Eigen::MatrixXd &gradients,
+                      const std::vector<Index> &levels) {
+    qp_gradients_ = gradients;
+    qp_gradient_levels_ = levels;
+  }
+
   // access to DFT basis set name
   /// Report whether a DFT basis-set name has been stored.
   bool hasDFTbasisName() const {
@@ -853,6 +883,10 @@ class Orbitals {
   // legitimate force value on any individual component in a way it isn't
   // for a total energy.
   Eigen::MatrixXd forces_;
+  Eigen::MatrixXd excited_forces_;
+  std::string excited_forces_state_ = "";
+  Eigen::MatrixXd qp_gradients_;
+  std::vector<Index> qp_gradient_levels_;
   Eigen::MatrixXd polarizability_;  // 3x3 if set
 
   Index total_charge_ = 0;

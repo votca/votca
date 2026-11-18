@@ -175,6 +175,92 @@ class DFTEngine {
       const Orbitals& orb, const std::vector<Eigen::MatrixXd>& perturbations,
       double tolerance = 1e-7, Index max_iterations = 100);
 
+  /// Input of BSEExcitationGradient: one BSE state and the orbital
+  /// energies its Hamiltonian was built with. The energies are taken as KS
+  /// energies plus geometry-independent shifts (fixed QP corrections):
+  /// e_p(R) = eps_p(R) + (energies_bse(p) - eps_p) at the reference.
+  struct BSEGradientInput {
+    bool singlet = true;
+    Index vmin = 0;  // absolute MO indices of the BSE window
+    Index cmax = 0;
+    Index rpamin = 0;  // absolute MO indices of the static RPA screening
+    Index rpamax = 0;
+    /// amplitudes, VOTCA layout (index v * ctotal + c): X (resonant) and,
+    /// for the full BSE, Y (antiresonant; empty for the TDA)
+    Eigen::VectorXd X;
+    Eigen::VectorXd Y;
+    /// If not empty: instead of the BSE excitation energy (X, Y and singlet
+    /// are ignored), the gradients of the energies of these levels
+    /// (absolute MO indices in vmin..cmax): QP energies in the QP window
+    /// with qp_response, otherwise the energies entering as energies_bse
+    /// (KS plus fixed shifts). KS-degenerate levels: gradient of their mean.
+    std::vector<Index> qp_levels;
+    /// energies of the levels vmin..cmax in the BSE Hamiltonian (diagonal of
+    /// Hqp, outside the QP window the RPA input energies)
+    Eigen::VectorXd energies_bse;
+    /// energies of the levels rpamin..rpamax in the static RPA screening
+    Eigen::VectorXd energies_rpa;
+    double eta = 1e-4;  // broadening of the static RPA (RPA::eta_)
+
+    /// Response of the QP corrections (G0W0 with the plasmon-pole model):
+    /// the BSE energies of the levels qpmin..qpmax are then solutions of
+    /// the QP equation E = eps + (1 - a_x) Sigma_x - v_xc + Sigma_c(E) with
+    /// the screening and the poles of G at energies_rpa (KS energies plus
+    /// fixed shifts), and their derivative is included. Otherwise all
+    /// energies are KS energies plus fixed shifts.
+    bool qp_response = false;
+    Index qpmin = 0;
+    Index qpmax = -1;
+    /// QP energies of qpmin..qpmax (must equal energies_bse there)
+    Eigen::VectorXd qp_energies;
+    std::string sigma_integrator = "ppm";  // gw.sigma_integrator: ppm, exact
+    double sigma_eta = 1e-3;               // gw.eta
+    double ppm_imag = 0.5;  // imaginary fitting frequency of the PPM
+    /// evGW: the RPA energies are the QP energies in the QP window and
+    /// shifted KS energies outside (out_of_window_shift); otherwise (G0W0)
+    /// KS energies plus fixed shifts
+    bool qp_selfconsistent = false;
+    std::string out_of_window_shift = "max";
+    double out_of_window_fit_fraction = 0.3;
+  };
+  struct BSEGradientResult {
+    /// X^T H X from the rebuilt BSE Hamiltonian (equals the BSE eigenvalue)
+    double omega = 0.0;
+    /// dOmega/dR, (natoms x 3), Hartree/Bohr; add the ground-state
+    /// gradient for the excited-state energy
+    Eigen::MatrixXd gradient;
+    /// for qp_levels: dE_p/dR per level (natoms x 3 each), Hartree/Bohr
+    std::vector<Eigen::MatrixXd> qp_gradients;
+    /// with qp_response: max |E - rebuilt QP energy| over the QP window
+    double qp_rebuild_error = 0.0;
+    /// with qp_selfconsistent: max |R - rebuilt RPA energy|
+    double rpa_rebuild_error = 0.0;
+  };
+
+  /// Analytic nuclear gradient of a (TDA or full) BSE excitation energy with
+  /// static RPA screening and fixed QP corrections, for the closed-shell RI
+  /// ground state in orb (same basis, functional and grid as this engine): the
+  /// Lagrangian of the excitation energy with the KS orbital response
+  /// (Z-vector), the response of the screening, and the integral
+  /// derivatives (derivation in bsegradient.cc).
+  BSEGradientResult BSEExcitationGradient(const Orbitals& orb,
+                                          const BSEGradientInput& input);
+
+  /// The input of BSEExcitationGradient for BSE state `index` (0-based) of a
+  /// GW-BSE run stored in orb: windows, amplitudes, the diagonal of the QP
+  /// Hamiltonian (RPA input energies outside the QP window) and the RPA
+  /// input energies. Throws for setups the gradient does not cover
+  /// (off-diagonal Hqp, QSGW, open shells).
+  static BSEGradientInput BSEGradientInputFromOrbitals(const Orbitals& orb,
+                                                       bool singlet,
+                                                       Index index);
+
+  /// The input of BSEExcitationGradient for the gradients of the QP
+  /// energies of `levels` (absolute MO indices in the QP window) of a GW
+  /// run stored in orb; no BSE is needed.
+  static BSEGradientInput QPGradientInputFromOrbitals(
+      const Orbitals& orb, const std::vector<Index>& levels);
+
   /// Name of the integration grid of the SCF (xtpdft.integration_grid).
   const std::string& getGridName() const { return grid_name_; }
 
@@ -260,7 +346,8 @@ class DFTEngine {
   std::vector<Eigen::MatrixXd> CoupledResponse(
       const Vxc_Potential<Vxc_Grid>& vxc, const Eigen::MatrixXd& P0,
       const Eigen::MatrixXd& C_occ, const Eigen::MatrixXd& C_virt,
-      const std::vector<Eigen::MatrixXd>& U);
+      const std::vector<Eigen::MatrixXd>& U,
+      const Vxc_Potential<Vxc_Grid>::FXCKernel* fxc_kernel = nullptr);
 
   /// Orthonormalize an initial MO guess with respect to the AO overlap matrix.
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;

@@ -7,6 +7,9 @@ The tutorials are Jupyter notebooks in ``xtp-tutorials`` (installed to
 -  ``DFTGWBSE_ENERGY``: DFT and GW-BSE for a single molecule with ``xtp_tools``.
 -  ``single_point`` and ``geometry_optimization``: the same with the Python
    (ASE) interface; they are built only if the Python bindings are.
+-  ``VIBRONIC_SPECTRA``: vibronically resolved photoemission, inverse
+   photoemission and absorption spectra of formaldehyde from a
+   finite-difference Hessian and analytic GW gradients (Python interface).
 -  Three tutorials on the same morphology, an amorphous film of 1000
    thiophene molecules from LAMMPS (``thiophene``):
 
@@ -27,6 +30,7 @@ The tutorials are Jupyter notebooks in ``xtp-tutorials`` (installed to
    DFTGWBSE_ENERGY
    geometry_optimization
    single_point
+   VIBRONIC_SPECTRA
    MAPPING
    CHARGE_TRANSPORT
    EXCITATIONS

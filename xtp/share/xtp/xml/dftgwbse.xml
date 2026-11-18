@@ -3,10 +3,14 @@
   <dftgwbse help="Compute electronic excitations using GW-BSE">
     <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
     <dftpackage link="dftpackage.xml"/>
+    <excited_state_forces help="BSE state (e.g. s1, t1) whose analytic nuclear forces are computed after the BSE and stored in the orb file (closed shell, fixed QP corrections; needs dftpackage.xtpdft.compute_forces true)" default="OPTIONAL"/>
+    <qp_gradients help="Quasiparticle levels whose analytic nuclear energy gradients dE/dR are computed after GW and stored in the orb file (qp_gradients, qp_gradient_levels), e.g. for vibronic line shapes of photoemission spectra: a comma-separated list of levels or ranges relative to homo or lumo, or absolute MO indices (0-based), e.g. homo-3:lumo+3 or homo,lumo or 30:40. The levels must lie in the QP window. Closed shell, perturbative QP energies, G0W0 or evGW with sigma_integrator ppm or exact (otherwise, or with excited_state_forces_qp_response false, the gradients are those of the KS energies); no embedding. Degenerate levels get the gradient of their mean energy." default="OPTIONAL"/>
+    <excited_state_forces_follow help="excited_state_forces: orb file of an earlier geometry with excited-state forces; the forces are then computed for the state of the same type with the largest exciton overlap with that state (root following in geometry optimizations), instead of the state of excited_state_forces" default="OPTIONAL"/>
+    <excited_state_forces_qp_response help="excited_state_forces: include the response of the QP corrections (sigma_integrator ppm or exact, G0W0 and evGW); false keeps them fixed" default="true" choices="bool"/>
     <mpsfile help="MPS file to read from with external multipoles for embedding" default="OPTIONAL"/>
     <guess help="File to read the wave function if the use guess flag is set to true" default="OPTIONAL"/>
     <moguess help="Orb file to read ONLY the MOs from (geometry still comes from job_name.xyz, or from guess if that is also set) -- for warm-starting a geometry optimization step's own SCF from a PREVIOUS step's converged wavefunction at a different geometry, which guess itself cannot represent since it loads geometry and MOs together from the same file." default="OPTIONAL"/>
-    <tasks help="task to compute" default="input,dft,parse,gwbse" choices="[guess,input,dft,parse,gwbse,localize,dft_in_dft]"/>
+    <tasks help="task to compute. gradients (alone): no DFT or GW-BSE run; the gradients requested with qp_gradients and/or excited_state_forces are computed from the data of an earlier run in job_name.orb (same options as that run) and added to the file; QP gradients of levels that are already stored are kept" default="input,dft,parse,gwbse" choices="[guess,input,dft,parse,gwbse,localize,dft_in_dft,gradients]"/>
     <gwbse link="gwbse.xml"/>
     <localize link="localize.xml"/>
     <logging_file help="File to send logging data to." default="OPTIONAL"/>

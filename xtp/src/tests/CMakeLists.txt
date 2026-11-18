@@ -53,6 +53,8 @@ list(APPEND test_cases test_dftengine_private)
 # slow: three full SCF runs
 list(APPEND test_cases test_dftengine_forces)
 list(APPEND test_cases test_dftgradient)
+# slow: 19 SCF + BSE runs per case
+list(APPEND test_cases test_bsegradient)
 list(APPEND test_cases test_diabatization)
 list(APPEND test_cases test_diis)
 list(APPEND test_cases test_dipoledipoleinteraction)
@@ -177,20 +179,25 @@ endif()
 # cdft_total_force_finite_difference runs three full CDFT calculations and
 # exceeded CTest's default 1500 sec where libint2 supports derivative
 # integrals; without that support the case is skipped immediately.
-set_tests_properties(unit_test_dftengine_cdft PROPERTIES TIMEOUT 3600)
+set_tests_properties(unit_test_dftengine_cdft PROPERTIES TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
 
 # unit_test_podcoupling runs a B3LYP/def2-svp SCF on an ethene dimer (96
 # basis functions) that alone takes ~1100 sec in the CI Debug build, so the
 # test exceeds the 1500 sec default (DART_TESTING_TIMEOUT is raised only for
 # coverage builds).
-set_tests_properties(unit_test_podcoupling PROPERTIES TIMEOUT 3600)
+set_tests_properties(unit_test_podcoupling PROPERTIES TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
 
 # unit_test_chargeresponsefit runs 16 hybrid SCFs for water (finite-
 # difference fit, field SCFs) and three analytic fits; with the fine grid
 # the CI clang Debug job exceeded the 1500 sec default. The test now uses
 # the coarse grid (about 4.5 min at -O0 on two cores, > 10 min before);
 # the longer limit is headroom for loaded runners.
-set_tests_properties(unit_test_chargeresponsefit PROPERTIES TIMEOUT 3600)
+set_tests_properties(unit_test_chargeresponsefit PROPERTIES TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
+
+# unit_test_bsegradient compares analytic BSE gradients with finite
+# differences (three SCF + BSE runs per case). Debug builds run a reduced
+# set of cases (kAllCases in the test); the margin is for slow CI runners.
+set_tests_properties(unit_test_bsegradient PROPERTIES TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
 
 # External-bond/H-saturation fields written by QMAtom::WriteToCpt and
 # Atom::WriteToCpt that older reference .orb/.hdf5 files lack. --ignore-field
@@ -324,7 +331,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   # from the atomic guess, ~4-6 min at -O0) take ~25 min, before the
   # screened GW-BSE run, so CTest's default 1500 sec is not enough. The
   # iterations converge normally; nothing hangs.
-  set_tests_properties(integration_Run_xtp_parallel_qmmm_screened PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_screened_jobs TIMEOUT 3600)
+  set_tests_properties(integration_Run_xtp_parallel_qmmm_screened PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_screened_jobs TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
   if(HAS_XML_COMPARE)
     add_test(NAME integration_Compare_xtp_parallel_qmmm_screened_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_screened_run.jobs ${RUNPATH}/qmmm_screened.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_ground:1e-6:2e-3 --tag-tol h:1e-6:2e-3 --tag-tol e:1e-6:2e-3 --tag-tol s:1e-6:2e-3 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_qmmm_screened_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_screened)
@@ -676,7 +683,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   # The Run test also sets up the fixture ipodcoupling_run_done, so the
   # Compare test is skipped if it fails or times out (DEPENDS alone only
   # orders tests). TIMEOUT: the Debug build exceeded the 1500 sec default.
-  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_run FIXTURES_SETUP ipodcoupling_run_done TIMEOUT 3600)
+  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_run FIXTURES_SETUP ipodcoupling_run_done TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
   # Dedicated checker instead of votca_compare_xml: the coupling values
   # differ slightly between OpenBabel versions (3.1.1 vs 3.2.0), see
   # check_ipodcoupling_coupling_output.cc. The file paths are compiled in
@@ -843,6 +850,7 @@ set(XTP_HEAVY_TESTS
   unit_test_ewaldrealspacesum
   unit_test_diabatization
   unit_test_vxc_potential
+  unit_test_bsegradient
   integration_Run_xtp_parallel_qmmm_screened
   integration_Compare_xtp_parallel_qmmm_screened_output
   integration_Run_xtp_parallel_eqm_run

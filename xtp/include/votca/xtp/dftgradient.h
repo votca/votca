@@ -73,6 +73,18 @@ class DFTGradient {
   static Eigen::MatrixXd RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
                                      const AOBasis& auxbasis,
                                      const AOBasis& dftbasis);
+
+  /// Gradient of E = sum_{k,i} w_k d_ki^T V^-1 d_ki with
+  /// d_ki(P) = U_k^T (mu nu|P) C_i, for fixed U (nbf x nk), weights w (nk)
+  /// and C (nbf x ni). RIKGradient(C) = -RIPairGradient(C, 1, C). With
+  /// U, w the eigen-decomposition of a symmetric matrix P and D = 2 C C^T,
+  /// it gives the exchange part of sum_munu P_munu dF_munu/dR at fixed
+  /// density: -ScaHFX * RIPairGradient(U, w, C).
+  static Eigen::MatrixXd RIPairGradient(const Eigen::MatrixXd& U,
+                                        const Eigen::VectorXd& w,
+                                        const Eigen::MatrixXd& C,
+                                        const AOBasis& auxbasis,
+                                        const AOBasis& dftbasis);
 };
 
 }  // namespace xtp

@@ -25,6 +25,8 @@ Bibliography
 
 .. [Brent:1973] Brent, Algorithms for Minimization without Derivatives, Prentice-Hall (1973)
 
+.. [Caylak:2021] Çaylak and Baumeier, J. Chem. Theory Comput. 17, 879 (2021)
+
 .. [Chen:2025a] Chen, van der Hoorn, and Baumeier, Multiscale Model. Simul. 23, 1439 (2025)
 
 .. [Chen:2025b] Chen, van der Hoorn, and Baumeier, Phys. Rev. B 111, 224209 (2025)
@@ -36,6 +38,8 @@ Bibliography
 .. [DeLeeuw:1980] de Leeuw, Perram, and Smith, Proc. R. Soc. Lond. A 373, 27 (1980)
 
 .. [Duchemin:2018] Duchemin, Guido, Jacquemin, and Blase, Chem. Sci. 9, 4430 (2018)
+
+.. [Furche:2002] Furche and Ahlrichs, J. Chem. Phys. 117, 7433 (2002)
 
 .. [Ghan:2020] Ghan, Kunkel, Reuter, and Oberhofer, J. Chem. Theory Comput. 16, 7431 (2020)
 
@@ -49,6 +53,8 @@ Bibliography
 
 .. [Hirshfeld:1977] Hirshfeld, Theor. Chim. Acta 44, 129 (1977)
 
+.. [Holzer:2026] Holzer, arXiv:2611.12617 (2026)
+
 .. [Hu:2010] Hu and Yang, J. Chem. Phys. 132, 054109 (2010)
 
 .. [Hybertsen:1986] Hybertsen and Louie, Phys. Rev. B 34, 5390 (1986)
@@ -60,6 +66,8 @@ Bibliography
 .. [Li:2016] Li, D'Avino, Duchemin, Beljonne, and Blase, J. Phys. Chem. Lett. 7, 2814 (2016)
 
 .. [Li:2018] Li, D'Avino, Duchemin, Beljonne, and Blase, Phys. Rev. B 97, 035108 (2018)
+
+.. [Loos:2019] Loos and Jacquemin, J. Chem. Theory Comput. 15, 2481 (2019)
 
 .. [Manby:2012] Manby, Stella, Goodpaster, and Miller, J. Chem. Theory Comput. 8, 2564 (2012)
 

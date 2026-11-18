@@ -101,6 +101,70 @@ All energies except ``'energy'`` use finite differences of the total energy
 (displacement ``eps=0.001`` Å in ``get_forces``), i.e. one full DFT and
 GW-BSE calculation per displaced coordinate.
 
+Analytic excited-state forces
+*****************************
+
+Theory, the dftgwbse options, recommended settings and validation are in
+:doc:`excited_state_gradients`.
+
+``xtp(excited_state='s1')`` (or ``'t1'``, ...) makes ``get_potential_energy``
+return the total energy of that BSE state (DFT total energy plus the static
+excitation energy) and ``get_forces`` its analytic forces, computed after the
+BSE by ``dftgwbse.excited_state_forces`` (``dftpackage.xtpdft.compute_forces``
+is switched on automatically). This needs one GW-BSE run per geometry instead
+of one per displaced coordinate:
+
+.. code-block:: python
+
+   from ase.optimize import BFGS
+   calc = xtp(nthreads=4, excited_state='s1')
+   calc.set(**{'dftpackage/basisset': 'def2-svp',
+               'dftpackage/auxbasisset': 'aux-def2-svp'})
+   atoms.calc = calc
+   BFGS(atoms).run(fmax=0.01)
+
+The gradient (``DFTEngine::BSEExcitationGradient``) is that of the BSE
+excitation energy (full or TDA) with static RPA screening, including the
+response of the Kohn-Sham orbitals, of the screening and of all integrals.
+With the plasmon-pole model (``gw.sigma_integrator`` ppm, the default) and
+the full-frequency self-energy (exact) it also includes the response of the
+QP corrections, for G0W0 and for evGW
+(an adjoint equation through the self-consistent energies, including
+``gw.out_of_window_shift``), so the forces are the derivative of the energy
+returned (checked against finite differences to about 1e-4). With the
+exact self-energy, QP solutions can jump between branches near poles of the
+self-energy, which makes the energy discontinuous along a path; the forces
+belong to the branch found at that geometry. For evGW,
+energy and forces agree to the convergence of the GW iterations
+(``gw.sc_limit``). For geometry optimizations with evGW, set
+``gw.out_of_window_shift`` to ``nearest``: the default ``max`` shifts the
+levels outside the GW window by the largest correction in the window, so
+the energy has kinks where that level changes, and optimizations can stall
+there (formaldehyde S1, PBE0/def2-TZVPP: no convergence in 80 steps with
+``max``, 8 steps with ``nearest``). For contour deformation (cda)
+the QP corrections are kept fixed (cf. Holzer, arXiv:2611.12617); for water
+(S1, PBE0/def2-SVP) this neglects about 10 % of the forces, and the energy,
+which contains the full GW response, is then not exactly consistent with
+the forces, so use an optimizer driven by the forces (e.g. ASE's ``BFGS``
+or ``FIRE``). Requirements: xtp DFT
+with an auxiliary basis, closed shell, ``bse.use_Hqp_offdiag`` false, no QSGW, no embedding or environment
+screening. The run stops with an error if the excitation energy rebuilt for
+the gradient does not reproduce the BSE eigenvalue.
+
+Root following: with ``xtp(excited_state='s2', follow_root=True)`` the state
+is followed from geometry to geometry instead of keeping its label. From the
+second geometry on, ``dftgwbse.excited_state_forces_follow`` points to the orb
+file of the previous geometry, and energy and forces belong to the state of
+the same spin with the largest exciton overlap
+:math:`|\langle X|X'\rangle - \langle Y|Y'\rangle|` with the previous state
+(excitons in the AO basis, with the overlap of the basis functions at the two
+geometries); ``calc.tracked_state`` gives its current label. The overlaps
+are logged; a warning flags steps where the largest one is below 0.5 or the
+next largest is above 80 % of it. Example, formaldehyde (G0W0/PBE0,
+def2-SVP) along the C=O stretch: the bright state that is S4 at 1.20 Å is
+followed through crossings to S3 (1.35 Å) and S2 (1.45 Å), with overlaps
+above 0.97 for steps of 0.05 Å.
+
 Excited-state dipoles by finite fields
 **************************************
 
@@ -157,9 +221,21 @@ the Python interpreter ``pyxtp`` was installed for. Example:
 ``xtp_excited_dipoles -x molecule.xyz -o options.xml -t 4 --xml result.xml``,
 where ``options.xml`` holds ``dftgwbse`` options as for ``xtp_tools``.
 
+Vibronic spectra
+****************
+
+``pyxtp.vibronic`` and the script ``xtp_vibronic`` compute vibronically
+resolved photoemission, inverse photoemission and absorption spectra from a
+finite-difference Hessian of analytic DFT forces and analytic GW and GW-BSE
+gradients, for single molecules and morphologies, and make figures for
+publications. See :doc:`vibronic_spectra` and the tutorial
+:doc:`../xtp-tutorials/VIBRONIC_SPECTRA`.
+
 Examples
 ********
 
 See the tutorials :doc:`../xtp-tutorials/single_point` (energy and absorption
 spectrum of CO) and :doc:`../xtp-tutorials/geometry_optimization` (excited-state
-forces and geometry optimization of CO).
+forces and geometry optimization of CO) and
+:doc:`../xtp-tutorials/VIBRONIC_SPECTRA` (vibronic UPS, IPES and absorption
+spectra of formaldehyde).

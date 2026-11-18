@@ -1,0 +1,244 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+import argparse
+import sys
+
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
+# the interpreter VOTCA installed pyxtp for (set at configure time)
+PYXTP_PYTHON = '@Python_EXECUTABLE@'
+PROGTITLE = 'THE VOTCA::XTP vibronic line shapes'
+PROGDESCR = ('Vibronic line shapes from a finite-difference Hessian of '
+             'analytic xtp DFT forces and the gradient of an energy gap '
+             '(BSE excitation, QP level): Huang-Rhys factors, thermal '
+             'Franck-Condon line shapes and ensemble spectra. Subcommands: '
+             'hessian (run or continue the displaced force jobs; several '
+             'processes or array-job parts can share a workdir), status, '
+             'modes (collect the Hessian, save modes.npz), lineshape (one '
+             'transition), spectrum (all QP levels with gradients: UPS, '
+             'IPES), plot (publication-quality figures). '
+             'Needs pyxtp.')
+VOTCAHEADER = f"""
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{PROGTITLE}
+
+please read and cite: @PROJECT_CITATION@
+and submit bugs to @PROJECT_CONTACT@
+xtp_vibronic, version {VERSION}
+
+"""
+
+
+class XtpHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="xtp_vibronic",
+        formatter_class=lambda prog: XtpHelpFormatter(
+            prog, max_help_position=70),
+        description=PROGDESCR)
+    sub = p.add_subparsers(dest="command", required=True)
+
+    h = sub.add_parser("hessian", help="run the displaced force jobs")
+    h.add_argument("-x", "--xyz", help="reference geometry (minimum); "
+                   "not needed to continue an existing workdir")
+    h.add_argument("-w", "--workdir", default="hessian")
+    h.add_argument("-o", "--options", help="dftgwbse options file "
+                   "(<options><dftgwbse>...</dftgwbse></options>)")
+    h.add_argument("--set", action="append", metavar="KEY=VALUE",
+                   help="pyxtp option, e.g. dftpackage.functional=PBE0 "
+                   "(repeatable)")
+    h.add_argument("-t", "--threads", type=int, default=1)
+    h.add_argument("--step", type=float, default=0.005,
+                   help="displacement in Angstrom")
+    h.add_argument("--scheme", default="central",
+                   choices=["central", "forward"])
+    h.add_argument("--atoms", help="displace only these atoms "
+                   "(comma separated, 0-based): partial Hessian")
+    h.add_argument("--part", type=int, default=0,
+                   help="this process computes jobs part, part+nparts, ...")
+    h.add_argument("--nparts", type=int, default=1)
+    h.add_argument("--no-warm-start", action="store_true",
+                   help="do not start displaced SCFs from the reference MOs")
+
+    s = sub.add_parser("status", help="progress of a workdir")
+    s.add_argument("-w", "--workdir", default="hessian")
+    s.add_argument("--clear-locks", action="store_true",
+                   help="remove locks of unfinished jobs (after a crash)")
+
+    m = sub.add_parser("modes", help="collect the Hessian and save the modes")
+    m.add_argument("-w", "--workdir", default="hessian")
+    m.add_argument("-m", "--modes", default="modes.npz", help="output file")
+
+    ls = sub.add_parser("lineshape", help="couplings and line shape")
+    src = ls.add_mutually_exclusive_group(required=True)
+    src.add_argument("-m", "--modes", help="modes.npz from 'modes'")
+    src.add_argument("--orca-hess", help="ORCA .hess file (needs --xyz)")
+    ls.add_argument("-x", "--xyz", help="geometry for --orca-hess")
+    ls.add_argument("-g", "--gradient", required=True,
+                    help="gradient of the excitation energy or QP level: .orb "
+                    "with excited_state_forces, .engrad, .npy or text "
+                    "(N x 3, eV/Angstrom); its sign does not matter")
+    ls.add_argument("-T", "--temperature", type=float, default=300.0)
+    ls.add_argument("--lambda-classical", type=float, default=0.0,
+                    help="classical (outer-sphere) reorganization, eV")
+    ls.add_argument("--sigma", type=float, default=0.0,
+                    help="Gaussian broadening (standard deviation), eV")
+    ls.add_argument("--gamma", type=float, default=0.0,
+                    help="Lorentzian broadening (half width), eV")
+    ls.add_argument("--min-wavenumber", type=float, default=0.0,
+                    help="leave out modes below this (cm^-1)")
+    ls.add_argument("--classical-below", type=float,
+                    help="treat modes below this (cm^-1) classically")
+    ls.add_argument("-p", "--process", required=True,
+                    choices=["absorption", "emission", "electron-addition",
+                             "electron-removal", "ionization",
+                             "electron-affinity"],
+                    help="sets the energy axis of the spectrum and of "
+                    "--sites: photon energy (absorption, emission), QP "
+                    "level of the added/removed electron (electron-addition"
+                    ", e.g. LUMO in inverse photoemission; electron-removal"
+                    ", e.g. HOMO in photoemission), or ionization energy / "
+                    "electron affinity (positive)")
+    ls.add_argument("--step", type=float, default=1e-3,
+                    help="energy step, eV")
+    ls.add_argument("--sites", help="text file with vertical energies "
+                    "(ensemble spectrum)")
+    ls.add_argument("--column", type=int, default=0,
+                    help="column of the vertical energies (0-based)")
+    ls.add_argument("--where", action="append",
+                    help="select rows, e.g. '1>4.0' (column 1 above 4.0)")
+    ls.add_argument("--weight-column", type=int,
+                    help="column with a weight per site")
+    ls.add_argument("-o", "--output", default="lineshape.dat")
+    ls.add_argument("--couplings", help="write the per-mode couplings here")
+
+    sp = sub.add_parser(
+        "spectrum", help="spectrum of several QP levels (UPS, IPES) from "
+        "the QP gradients of dftgwbse (option qp_gradients)")
+    src = sp.add_mutually_exclusive_group(required=True)
+    src.add_argument("-m", "--modes", help="modes.npz from 'modes'")
+    src.add_argument("--orca-hess", help="ORCA .hess file (needs --xyz)")
+    sp.add_argument("-x", "--xyz", help="geometry for --orca-hess")
+    sp.add_argument("-g", "--gradients", required=True,
+                    help=".orb file of dftgwbse with qp_gradients (e.g. "
+                    "homo-5:lumo+5), at the geometry of the modes")
+    sp.add_argument("-p", "--process", required=True,
+                    choices=["electron-addition", "electron-removal",
+                             "ionization", "electron-affinity"],
+                    help="electron-removal / ionization: all occupied "
+                    "levels with gradients (photoemission; axis: QP level "
+                    "/ ionization energy); electron-addition / "
+                    "electron-affinity: all empty levels (inverse "
+                    "photoemission)")
+    sp.add_argument("--levels", help="use only these levels, e.g. "
+                    "lumo,lumo+1,lumo+2")
+    sp.add_argument("-T", "--temperature", type=float, default=300.0)
+    sp.add_argument("--lambda-classical", type=float, default=0.0,
+                    help="classical (outer-sphere) reorganization, eV")
+    sp.add_argument("--sigma", type=float, default=0.0,
+                    help="Gaussian broadening of every line (standard "
+                    "deviation), eV")
+    sp.add_argument("--gamma", type=float, default=0.0,
+                    help="Lorentzian broadening (half width), eV")
+    sp.add_argument("--min-wavenumber", type=float, default=0.0,
+                    help="leave out modes below this (cm^-1)")
+    sp.add_argument("--classical-below", type=float,
+                    help="treat modes below this (cm^-1) classically")
+    sp.add_argument("--step", type=float, default=2e-3,
+                    help="energy step, eV")
+    sp.add_argument("--sites", help="text file with the vertical energies "
+                    "of the sites of a morphology; without it: one "
+                    "molecule at its QP energies")
+    sp.add_argument("--columns", help="columns (0-based) of the levels in "
+                    "--sites, e.g. lumo=3,lumo+1=4; other levels use the "
+                    "distribution of the nearest of these levels, shifted "
+                    "by the molecular QP energy difference")
+    sp.add_argument("--where", action="append",
+                    help="select rows, e.g. '1>4.0' (column 1 above 4.0)")
+    sp.add_argument("--weight-column", type=int,
+                    help="column with a weight per site")
+    sp.add_argument("-o", "--output", default="spectrum.dat")
+
+    gr = sub.add_parser(
+        "gradients", help="add QP gradients (more levels) or excited-state "
+        "forces to the orb file of an earlier dftgwbse run, without "
+        "repeating DFT and GW-BSE")
+    gr.add_argument("orb", help="orb file of the earlier run (updated)")
+    gr.add_argument("--levels", help="QP levels, e.g. homo-9:lumo+9; levels "
+                    "already stored are not recomputed")
+    gr.add_argument("--state", help="excited state, e.g. s2")
+    gr.add_argument("-o", "--options", help="dftgwbse options file of the "
+                    "earlier run (<options><dftgwbse>...</dftgwbse>"
+                    "</options>)")
+    gr.add_argument("--set", action="append", metavar="KEY=VALUE",
+                    help="pyxtp option of the earlier run, e.g. "
+                    "dftpackage.basisset=def2-svp (repeatable)")
+    gr.add_argument("-t", "--threads", type=int, default=1)
+
+    pl = sub.add_parser("plot", help="publication-quality figure")
+    what = pl.add_mutually_exclusive_group(required=True)
+    what.add_argument("-s", "--spectrum", help="output of 'spectrum' or "
+                      "'lineshape'")
+    what.add_argument("-c", "--couplings", help="per-mode couplings "
+                      "written by 'lineshape --couplings'")
+    pl.add_argument("-b", "--broadening", type=float,
+                    help="Gaussian instrument broadening (standard "
+                    "deviation, eV), drawn in addition")
+    pl.add_argument("--onset", action="store_true",
+                    help="mark and print the tangent onset and the first "
+                    "peak")
+    pl.add_argument("-e", "--experiment", help="measured spectrum (two "
+                    "columns: energy, intensity) to overlay")
+    pl.add_argument("--xlim", type=float, nargs=2, metavar=("MIN", "MAX"))
+    pl.add_argument("--no-contributions", action="store_true",
+                    help="draw only the total")
+    pl.add_argument("--quantity", default="lambda",
+                    choices=["lambda", "huang-rhys"],
+                    help="for --couplings")
+    pl.add_argument("--title", help="for --couplings, e.g. the level")
+    pl.add_argument("--wide", action="store_true",
+                    help="two-column width (7 in) instead of one (3.375 in)")
+    pl.add_argument("--fontsize", type=float, default=8.0)
+    pl.add_argument("-o", "--output", default="spectrum.pdf",
+                    help="figure file (pdf, svg, png, ...)")
+    return p
+
+
+def main():
+    args = build_parser().parse_args()
+    print(VOTCAHEADER)
+    try:
+        from pyxtp.vibronic.cli import run
+    except ImportError as err:
+        sys.exit(f"xtp_vibronic needs pyxtp, which could not be imported "
+                 f"with {sys.executable}: {err}\n"
+                 f"VOTCA installs pyxtp for {PYXTP_PYTHON} (into its user "
+                 "site-packages, or CMAKE_INSTALL_PYTHON_LIBDIR if set). Run "
+                 "the script with that interpreter, or add the install "
+                 "directory to PYTHONPATH.")
+    run(args)
+
+
+if __name__ == "__main__":
+    main()

@@ -46,8 +46,31 @@ if(ENABLE_COVERAGE_BUILD)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
+    # Coverage instrumentation at -O0 made the fedora gnu coverage job by far
+    # the slowest CI job (light tests alone ~4 h):
+    # - -Og: Eigen's kernels get inlined; the line mapping stays usable for
+    #   coverage (CMAKE_BUILD_TYPE=Debug adds no -O level of its own)
+    # - -fprofile-update=single: with -pthread (OpenMP) gcc defaults to
+    #   atomic counter updates on every branch; counts may be slightly
+    #   inexact with several threads, which does not change which lines are
+    #   reported as covered
+    include(CheckCXXCompilerFlag)
+    foreach(_flag -Og -fprofile-update=single)
+        string(MAKE_C_IDENTIFIER "VOTCA_CXX_HAS${_flag}" _var)
+        check_cxx_compiler_flag("${_flag}" ${_var})
+        if(${_var})
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_flag}")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_flag}")
+        endif()
+    endforeach()
     # in coverage mode, so tests will take very long
     set(DART_TESTING_TIMEOUT 7200 CACHE STRING "Maximum time allowed before CTest will kill the test.")
+endif()
+# Timeout of the tests known to be slow in Debug builds; never below the
+# default (DART_TESTING_TIMEOUT, raised for coverage builds).
+set(VOTCA_LONG_TEST_TIMEOUT 3600)
+if(DEFINED DART_TESTING_TIMEOUT AND DART_TESTING_TIMEOUT GREATER VOTCA_LONG_TEST_TIMEOUT)
+    set(VOTCA_LONG_TEST_TIMEOUT ${DART_TESTING_TIMEOUT})
 endif()
 
 include(CTest)

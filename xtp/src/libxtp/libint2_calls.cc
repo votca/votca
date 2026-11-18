@@ -157,6 +157,44 @@ std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers>
 }
 
 /***********************************
+ * OVERLAP BETWEEN TWO BASES
+ ***********************************/
+Eigen::MatrixXd ComputeMixedOverlap(const AOBasis& row, const AOBasis& col) {
+  libint2::Shell::do_enforce_unit_normalization(false);
+  const std::vector<libint2::Shell> sa = row.GenerateLibintBasis();
+  const std::vector<libint2::Shell> sb = col.GenerateLibintBasis();
+  const std::vector<Index> ba = row.getMapToBasisFunctions();
+  const std::vector<Index> bb = col.getMapToBasisFunctions();
+  Eigen::MatrixXd result =
+      Eigen::MatrixXd::Zero(row.AOBasisSize(), col.AOBasisSize());
+  const Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] = libint2::Engine(
+      libint2::Operator::overlap,
+      std::max(row.getMaxNprim(), col.getMaxNprim()),
+      static_cast<int>(std::max(row.getMaxL(), col.getMaxL())), 0);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+#pragma omp parallel for schedule(dynamic)
+  for (Index s1 = 0; s1 < Index(sa.size()); ++s1) {
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    const Index n1 = Index(sa[s1].size());
+    for (Index s2 = 0; s2 < Index(sb.size()); ++s2) {
+      engine.compute(sa[s1], sb[s2]);
+      if (buf[0] == nullptr) {
+        continue;
+      }
+      const Index n2 = Index(sb[s2].size());
+      Eigen::Map<const MatrixLibInt> m(buf[0], n1, n2);
+      result.block(ba[s1], bb[s2], n1, n2) = m;
+    }
+  }
+  return result;
+}
+
+/***********************************
  * KINETIC
  ***********************************/
 void AOKinetic::Fill(const AOBasis& aobasis) {
