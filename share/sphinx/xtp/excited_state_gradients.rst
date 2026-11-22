@@ -212,6 +212,42 @@ consecutive optimization steps.
 Usage
 *****
 
+Relaxed densities
+=================
+
+The gradient contracts the derivatives of the one-electron Hamiltonian
+with :math:`\tilde{P}` (the BSE difference density, the Z-vector and,
+with the QP response, the response of the QP corrections). This is the
+relaxed difference density: for any perturbation :math:`\lambda h'` of the
+one-electron Hamiltonian at fixed basis (an electric field, point charges,
+multipoles),
+
+.. math::
+
+    \frac{\mathrm{d}\Omega}{\mathrm{d}\lambda}
+    = \sum_{\mu\nu} \tilde{P}_{\mu\nu} h'_{\mu\nu},
+
+and the same holds for single QP levels. Unlike the unrelaxed density
+:math:`D_0 + XX^T + YY^T` it contains the orbital relaxation, so its
+dipole moment is the derivative of the state energy with respect to a
+field. Computing it needs no derivative integrals.
+
+* ``dftgwbse``: ``relaxed_density`` (e.g. ``s1``, ``t1``, or a QP level such
+  as ``pqp5``) stores :math:`D_0 + \tilde{P}` in the orb file (dataset
+  ``relaxed_density``, attribute ``relaxed_density_state``; for a QP level
+  the density with the electron added or removed) and prints its dipole
+  change from the ground state. The response of the QP corrections
+  follows ``excited_state_forces_qp_response``. With ``tasks gradients`` it
+  is computed from an earlier run.
+* ``qmmm``: ``qmregion.relaxed_density true`` polarizes the polar regions
+  with the relaxed density of the tracked state in the iterative scheme
+  (not with ``environment_screening``).
+
+For water (PBE0/def2-SVP, full BSE), the dipole change of the relaxed S1
+density agrees with finite-field derivatives of the S1 energy to
+:math:`4\times 10^{-7}` (G0W0) and :math:`3\times 10^{-6}` (evGW)
+:math:`e a_0`; with the QP corrections kept fixed it differs by about 7%.
+
 From Python (ASE)
 =================
 

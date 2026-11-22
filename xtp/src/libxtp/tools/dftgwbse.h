@@ -67,6 +67,8 @@ class DftGwBse final : public QMTool {
   // QP levels whose energy gradients are computed, e.g. homo-2:lumo+3
   std::string qp_gradients_;
   void ComputeQPGradients(Orbitals& orbitals);
+  std::string relaxed_density_;
+  void ComputeRelaxedDensity(Orbitals& orbitals);
   // tasks = gradients: gradients from the orb file of an earlier run
   bool gradients_only_ = false;
   void CheckStoredRun(const Orbitals& orbitals) const;

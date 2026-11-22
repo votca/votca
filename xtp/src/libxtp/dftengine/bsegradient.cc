@@ -136,7 +136,7 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   if (!ecp_name_.empty()) {
     throw std::runtime_error("BSEExcitationGradient: ECPs are not supported");
   }
-  if (!HasLibint2DerivativeSupport()) {
+  if (!in.density_only && !HasLibint2DerivativeSupport()) {
     throw std::runtime_error(
         "BSEExcitationGradient: libint2 lacks derivative integrals");
   }
@@ -412,6 +412,9 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   Eigen::VectorXd u = Eigen::VectorXd::Zero(nmo);
 
   // ---- from the partial derivatives g, w, u of one target to its gradient
+  // relaxed difference densities of the targets (AO, both spins), filled
+  // by downstream next to the gradients
+  std::vector<Eigen::MatrixXd> relaxed_densities;
   auto downstream = [&](bool last) -> Eigen::MatrixXd {
     // ---- integral part of sum g . dB
     // metric term first (needs g and B), then B is released (after the last
@@ -419,7 +422,11 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
     // gL (column R: sum_P L_RP g^P) in place; the integral derivatives and
     // the orbital part Q (with s^R = gL^R + gL^R^T) both use gL
     Eigen::MatrixXd grad;
-    {
+    if (in.density_only) {
+      if (last) {
+        Bmat.resize(0, 0);
+      }
+    } else {
       Eigen::MatrixXd G = gmat.transpose() * Bmat;
       if (last) {
         Bmat.resize(0, 0);
@@ -429,12 +436,15 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
     }
     RightMultiplyInPlace(gmat, L);
     const Eigen::MatrixXd& gL = gmat;
-    grad += ContractThreeCenterDerivatives(
-        auxbasis_, dftbasis_, [&gL, &Cw, nw](Index R, Eigen::MatrixXd& Gamma) {
-          Gamma = Cw *
-                  (Eigen::Map<const Eigen::MatrixXd>(gL.col(R).data(), nw, nw) *
-                   Cw.transpose());
-        });
+    if (!in.density_only) {
+      grad += ContractThreeCenterDerivatives(
+          auxbasis_, dftbasis_,
+          [&gL, &Cw, nw](Index R, Eigen::MatrixXd& Gamma) {
+            Gamma = Cw * (Eigen::Map<const Eigen::MatrixXd>(gL.col(R).data(),
+                                                            nw, nw) *
+                          Cw.transpose());
+          });
+    }
 
     phase("integral derivatives of B");
     // ---- orbital part: Q_rp = sum_{P,q} B^P_rq s^P_qp, s^P = g^P + g^P^T,
@@ -554,6 +564,10 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
     }
     const Eigen::MatrixXd Pao = C * Pmo * C.transpose();
     const Eigen::MatrixXd Wao = C * Wmo * C.transpose();
+    relaxed_densities.push_back(Pao);
+    if (in.density_only) {
+      return grad;
+    }
 
     phase("energy-weighted density");
     // ---- sum Ptilde dF/dR|_D - sum W dS/dR
@@ -1256,8 +1270,10 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   }
   if (has_bse) {
     result.gradient = gradients[0];
+    result.relaxed_density = relaxed_densities[0];
   } else {
     result.qp_gradients = gradients;
+    result.qp_relaxed_densities = relaxed_densities;
   }
   return result;
 }
@@ -1355,6 +1371,112 @@ DFTEngine::BSEGradientInput DFTEngine::QPGradientInputFromOrbitals(
   }
   in.qp_levels = levels;
   return in;
+}
+
+bool DFTEngine::ConfigureQPResponse(BSEGradientInput& input,
+                                    const Orbitals& orb,
+                                    const tools::Property& gwbse, Logger* log) {
+  const std::string mode = gwbse.get("gw.mode").as<std::string>();
+  const std::string integrator =
+      gwbse.get("gw.sigma_integrator").as<std::string>();
+  if (!(mode == "G0W0" || mode == "evGW") ||
+      !(integrator == "ppm" || integrator == "exact")) {
+    return false;
+  }
+  input.qp_response = true;
+  input.sigma_integrator = integrator;
+  input.qp_selfconsistent = (mode == "evGW");
+  if (input.qp_selfconsistent) {
+    input.out_of_window_shift =
+        gwbse.get("gw.out_of_window_shift").as<std::string>();
+    if (log != nullptr && input.out_of_window_shift == "max" &&
+        (orb.getGWAmax() < orb.getRPAmax() ||
+         orb.getGWAmin() > orb.getRPAmin())) {
+      // max of the window corrections: the energy has kinks where the
+      // level with the largest correction changes; the gradients are those
+      // of the branch at the geometry, and optimizations can stall at such
+      // a kink (formaldehyde S1, PBE0/def2-TZVPP)
+      XTP_LOG(Log::error, *log)
+          << TimeStamp()
+          << " WARNING: evGW with gw.out_of_window_shift max: the energy "
+             "is not differentiable where the level with the largest "
+             "correction changes; use nearest for geometry optimizations"
+          << std::flush;
+    }
+    input.out_of_window_fit_fraction =
+        gwbse.get("gw.out_of_window_fit_fraction").as<double>();
+  }
+  input.qpmin = orb.getGWAmin();
+  input.qpmax = orb.getGWAmax();
+  input.qp_energies = orb.QPpertEnergies();
+  input.sigma_eta = gwbse.get("gw.eta").as<double>();
+  return true;
+}
+
+Eigen::MatrixXd DFTEngine::RelaxedDensityMatrix(const Orbitals& orb,
+                                                const QMState& state,
+                                                const tools::Property& gwbse,
+                                                bool qp_response) {
+  if (orb.getCalculationType() != "NoEmbedding") {
+    throw std::runtime_error(
+        "RelaxedDensityMatrix: not for truncated or embedded (PbE) bases");
+  }
+  const QMStateType type = state.Type();
+  BSEGradientInput in;
+  double sign = 1.0;
+  if (type == QMStateType::Singlet || type == QMStateType::Triplet) {
+    in = BSEGradientInputFromOrbitals(orb, type == QMStateType::Singlet,
+                                      state.StateIdx());
+  } else if (type == QMStateType::PQPstate) {
+    in = QPGradientInputFromOrbitals(orb, {state.StateIdx()});
+    // removing an electron from an occupied level: E(N-1) - E(N) = -E_p
+    sign = (state.StateIdx() <= orb.getHomo()) ? -1.0 : 1.0;
+  } else {
+    throw std::runtime_error(
+        "RelaxedDensityMatrix: only singlet or triplet BSE states and "
+        "perturbative QP levels (e.g. s1, t1, pqp5), not " +
+        type.ToLongString());
+  }
+  const bool response =
+      qp_response && ConfigureQPResponse(in, orb, gwbse, pLog_);
+  in.density_only = true;
+  if (pLog_ != nullptr) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Relaxed density of " << state.ToString()
+        << (response ? " (orbital and QP-correction response)"
+                     : " (orbital response, fixed QP corrections)")
+        << std::flush;
+  }
+  const BSEGradientResult result = BSEExcitationGradient(orb, in);
+
+  // the density belongs to the energy rebuilt from orb; a different setup
+  // (environment screening, dynamical screening of the BSE kernel, other
+  // options than those of the run) shows up as a deviation
+  if (type.isExciton()) {
+    const double omega =
+        (type == QMStateType::Singlet ? orb.BSESinglets() : orb.BSETriplets())
+            .eigenvalues()(state.StateIdx());
+    const double error = std::abs(result.omega - omega);
+    if (error > 1e-4) {
+      throw std::runtime_error(
+          "RelaxedDensityMatrix: the excitation energy rebuilt from the orb "
+          "data (" +
+          std::to_string(result.omega) + " Ha) differs from the BSE one (" +
+          std::to_string(omega) +
+          " Ha); this GW-BSE setup is not covered (e.g. environment "
+          "screening)");
+    }
+  }
+  if (response && result.qp_rebuild_error > 1e-4) {
+    throw std::runtime_error(
+        "RelaxedDensityMatrix: the QP energies rebuilt from the orb data "
+        "differ from the GW ones by " +
+        std::to_string(result.qp_rebuild_error) + " Ha");
+  }
+  const Eigen::MatrixXd& P = type.isExciton()
+                                 ? result.relaxed_density
+                                 : result.qp_relaxed_densities.front();
+  return orb.DensityMatrixGroundState() + sign * P;
 }
 
 }  // namespace xtp

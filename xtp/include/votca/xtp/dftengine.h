@@ -222,6 +222,10 @@ class DFTEngine {
     bool qp_selfconsistent = false;
     std::string out_of_window_shift = "max";
     double out_of_window_fit_fraction = 0.3;
+    /// only the relaxed densities (BSEGradientResult::relaxed_density,
+    /// qp_relaxed_densities), no nuclear gradient: needs no derivative
+    /// integrals
+    bool density_only = false;
   };
   struct BSEGradientResult {
     /// X^T H X from the rebuilt BSE Hamiltonian (equals the BSE eigenvalue)
@@ -231,6 +235,14 @@ class DFTEngine {
     Eigen::MatrixXd gradient;
     /// for qp_levels: dE_p/dR per level (natoms x 3 each), Hartree/Bohr
     std::vector<Eigen::MatrixXd> qp_gradients;
+    /// relaxed difference density (AO, both spins) of the BSE state: the
+    /// Lagrangian's one-particle density, so dOmega/dlambda = Tr(h' P) for
+    /// any perturbation lambda h' of the one-electron Hamiltonian at fixed
+    /// basis (fields, point charges, multipoles); includes the orbital and,
+    /// with qp_response, the QP-correction response
+    Eigen::MatrixXd relaxed_density;
+    /// for qp_levels: the same per level, dE_p/dlambda = Tr(h' P_p)
+    std::vector<Eigen::MatrixXd> qp_relaxed_densities;
     /// with qp_response: max |E - rebuilt QP energy| over the QP window
     double qp_rebuild_error = 0.0;
     /// with qp_selfconsistent: max |R - rebuilt RPA energy|
@@ -260,6 +272,30 @@ class DFTEngine {
   /// run stored in orb; no BSE is needed.
   static BSEGradientInput QPGradientInputFromOrbitals(
       const Orbitals& orb, const std::vector<Index>& levels);
+
+  /// Switches on the response of the QP corrections in input when the GW
+  /// setup of orb is covered (G0W0 or evGW with sigma_integrator ppm or
+  /// exact), with the settings of the gwbse options (the node holding
+  /// gw.mode, gw.sigma_integrator, ...); returns whether it did (otherwise
+  /// the corrections stay fixed). log may be nullptr.
+  static bool ConfigureQPResponse(BSEGradientInput& input, const Orbitals& orb,
+                                  const tools::Property& gwbse, Logger* log);
+
+  /// Relaxed density matrix (AO, total, both spins) of a state of a GW-BSE
+  /// run stored in orb: a singlet or triplet BSE state (ground-state
+  /// density plus the relaxed difference density of BSEGradientResult), or
+  /// a perturbative QP level (PQP state; the density of the system with one
+  /// electron added to an empty level or removed from an occupied one).
+  /// Orbital relaxation always, the response of the QP corrections if
+  /// qp_response and covered (ConfigureQPResponse). Needs this engine
+  /// initialized with the DFT options of the run (xtp, RI, closed shell,
+  /// no ECPs, no truncation); no derivative integrals. Throws if the
+  /// excitation or QP energies rebuilt from orb deviate from the stored
+  /// ones (a GW-BSE setup that is not covered, e.g. environment screening).
+  Eigen::MatrixXd RelaxedDensityMatrix(const Orbitals& orb,
+                                       const QMState& state,
+                                       const tools::Property& gwbse,
+                                       bool qp_response = true);
 
   /// Name of the integration grid of the SCF (xtpdft.integration_grid).
   const std::string& getGridName() const { return grid_name_; }

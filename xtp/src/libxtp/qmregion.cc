@@ -97,6 +97,8 @@ void QMRegion::Initialize(const tools::Property& prop) {
 
   dftoptions_ = prop.get("dftpackage");
   localize_options_ = prop.get("localize");
+  relaxed_density_ =
+      prop.ifExistsReturnElseReturnDefault<bool>("relaxed_density", false);
 
   if (prop.get("dftpackage.xtpdft.dft_in_dft.activeatoms")
           .as<std::string>()
@@ -163,6 +165,24 @@ void QMRegion::Initialize(const tools::Property& prop) {
         << ", shell dielectric " << screening_shell_dielectric_
         << ", site width " << screening_site_width_ << " alpha^(1/3)"
         << std::flush;
+  }
+  if (relaxed_density_) {
+    if (!do_gwbse_) {
+      throw std::runtime_error(
+          "relaxed_density: needs a GW-BSE state (exciton or QP level)");
+    }
+    if (screening_) {
+      throw std::runtime_error(
+          "relaxed_density: not available with environment_screening (the "
+          "screened GW-BSE energy has no relaxed density yet)");
+    }
+    if (do_dft_in_dft_) {
+      throw std::runtime_error(
+          "relaxed_density: not available with DFT-in-DFT embedding");
+    }
+    if (dftoptions_.get("name").as<std::string>() != "xtp") {
+      throw std::runtime_error("relaxed_density: needs the xtp DFT package");
+    }
   }
 }
 
@@ -700,6 +720,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     gwbse.setInactiveScreening(std::move(inactive));
     gwbse.Initialize(gwbseoptions_);
     gwbse.Evaluate();
+    relaxed_dmat_valid_ = false;
     state = statetracker_.CalcStateAndUpdate(orb_);
     energy += StateEnergy(state);
   }
@@ -714,9 +735,42 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   }
   E_hist_.push_back(energy);
 
-  Dmat_hist_.push_back(orb_.DensityMatrixFull(state));
+  Dmat_hist_.push_back(StateDensity(state));
   UpdateOverlapSqrt();
   return;
+}
+
+Eigen::MatrixXd QMRegion::StateDensity(const QMState& state) const {
+  const bool relaxable =
+      state.Type().isExciton() || state.Type() == QMStateType::PQPstate;
+  if (!relaxed_density_ || !relaxable) {
+    return orb_.DensityMatrixFull(state);
+  }
+  if (!relaxed_dmat_valid_ || !(relaxed_dmat_state_ == state)) {
+    DFTEngine dft;
+    dft.setLogger(&log_);
+    tools::Property dftoptions = dftoptions_;  // Initialize takes non-const
+    dft.Initialize(dftoptions);
+    relaxed_dmat_ = dft.RelaxedDensityMatrix(orb_, state, gwbseoptions_);
+    relaxed_dmat_state_ = state;
+    relaxed_dmat_valid_ = true;
+    const Eigen::MatrixXd unrelaxed = orb_.DensityMatrixFull(state);
+    AOOverlap overlap;
+    overlap.Fill(orb_.getDftBasis());
+    AODipole dipole;
+    dipole.setCenter(orb_.QMAtoms().getPos());
+    dipole.Fill(orb_.getDftBasis());
+    Eigen::Vector3d change;
+    for (Index k = 0; k < 3; ++k) {
+      change(k) =
+          -(dipole.Matrix()[k].cwiseProduct(relaxed_dmat_ - unrelaxed)).sum();
+    }
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Relaxed density of " << state.ToString()
+        << ": electronic dipole change by the relaxation (e*bohr) "
+        << change.transpose() << std::flush;
+  }
+  return relaxed_dmat_;
 }
 
 void QMRegion::UpdateOverlapSqrt() {
@@ -865,7 +919,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   if ((do_gwbse_ && !screening_) || initstate_.Type().isKSState()) {
     state = statetracker_.CalcState(orb_);
   }
-  Eigen::MatrixXd dmat = orb_.DensityMatrixFull(state);
+  Eigen::MatrixXd dmat = StateDensity(state);
   double Ngrid = numint.IntegrateDensity(dmat);
   AOOverlap overlap;
   overlap.Fill(basis);
