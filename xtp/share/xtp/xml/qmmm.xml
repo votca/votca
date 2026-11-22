@@ -17,6 +17,7 @@
         <dftpackage link="dftpackage.xml"/>
         <localize link="localize.xml"/>
         <statetracker link="statetracker.xml" default="OPTIONAL" />
+        <relaxed_density help="polarize the polar regions with the relaxed density of the tracked state (orbital relaxation and, for G0W0/evGW with sigma_integrator ppm or exact, the response of the QP corrections; DFTEngine::RelaxedDensityMatrix) instead of the unrelaxed one; for BSE singlets/triplets and perturbative QP levels, xtp DFT package with an auxiliary basis, closed shell, no environment_screening or DFT-in-DFT" default="false" choices="bool" />
         <!-- Embedded GW-BSE after Li, D'Avino, Duchemin, Beljonne, Blase,
              Phys. Rev. B (2018), arXiv:1801.01755, and Amblard, Blase, Duchemin, JCP 160,
              154104 (2024). The QM/MM loop converges the ground state; the

@@ -4,11 +4,12 @@ xtp(excited_state=...): dftgwbse runs of water, only with
 PYXTP_RUN_DFTGWBSE=1.
 """
 import os
+import re
 import unittest
 
 import numpy as np
 import pytest
-from ase import Atoms
+from ase import Atoms, units
 
 try:
     from pyxtp import xtp
@@ -196,3 +197,53 @@ def test_numerical_ground_state_forces(derivatives):
         force = numeric_force_xtp(other, a, i, 1e-3,
                                   numerical.option_forces)
         assert force == pytest.approx(reference[a, i], abs=2e-3)
+
+
+def relaxed_dipole_change(directory, formula):
+    """Read the relaxed dipole change dftgwbse logs with relaxed_density."""
+    pattern = (r'dipole change from the ground state \(e\*bohr\):'
+               r'\s+(\S+)\s+(\S+)\s+(\S+)')
+    with open(os.path.join(directory, formula + '.out')) as out:
+        found = re.findall(pattern, out.read())
+    assert found, 'no relaxed density in the dftgwbse output'
+    return np.array([float(x) for x in found[-1]])
+
+
+@pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
+def test_relaxed_density_finite_field(tmp_path):
+    """Compare the relaxed S1 density with a finite field.
+
+    With the field term H0 -= F.r of the DFT engine, dOmega/dF is the
+    dipole change of the relaxed density (orbital relaxation and the
+    response of the G0W0 corrections). Needs no derivative integrals.
+    """
+    field = 2e-4  # a.u.
+    omega = []
+    change = None
+    for f in (0.0, field, -field):
+        directory = tmp_path / f'field_{f}'
+        directory.mkdir()
+        cwd = os.getcwd()
+        os.chdir(directory)
+        try:
+            calc = make_calc()
+            calc.excited_state = calc.tracked_state = None
+            calc.set(**{'relaxed_density': 's1',
+                        'gwbse/bse/useTDA': 'false',
+                        'gwbse/bse/davidson/tolerance': 'lapack',
+                        'dftpackage/convergence_tightness': 'verytight'})
+            if f != 0.0:
+                calc.set(**{'dftpackage/externalfield': f'0 0 {f}'})
+            atoms = water()
+            atoms.calc = calc
+            atoms.get_potential_energy()
+            omega.append(calc.bse_singlet_energies[0])
+            if f == 0.0:
+                change = relaxed_dipole_change(
+                    '.', atoms.get_chemical_formula())
+        finally:
+            os.chdir(cwd)
+    # bse_singlet_energies in eV
+    fd = (omega[1] - omega[2]) / (2 * field) / units.Hartree
+    assert abs(change[2]) > 0.1
+    assert change[2] == pytest.approx(fd, abs=2e-5)

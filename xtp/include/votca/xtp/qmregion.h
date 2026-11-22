@@ -159,6 +159,17 @@ class QMRegion : public Region {
 
   bool do_gwbse_ = false;
 
+  // relaxed_density: the environment is polarized by (and convergence is
+  // measured with) the relaxed density of the tracked state instead of the
+  // unrelaxed one; computed once per GW-BSE run (cache)
+  bool relaxed_density_ = false;
+  mutable Eigen::MatrixXd relaxed_dmat_;
+  mutable QMState relaxed_dmat_state_;
+  mutable bool relaxed_dmat_valid_ = false;
+  // density of state used by the loop: the relaxed one with relaxed_density
+  // (BSE states and perturbative QP levels), else Orbitals::DensityMatrixFull
+  Eigen::MatrixXd StateDensity(const QMState& state) const;
+
   // environment screening (embedded GW-BSE)
   bool screening_ = false;
   bool screening_include_kreac_ = true;

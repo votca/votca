@@ -352,6 +352,20 @@ class Orbitals {
     qp_gradient_levels_ = levels;
   }
 
+  /// Relaxed density matrix (AO, total) of one state, e.g. from dftgwbse
+  /// relaxed_density (DFTEngine::RelaxedDensityMatrix): orbital relaxation
+  /// and, where covered, the response of the QP corrections included.
+  bool hasRelaxedDensity() const { return relaxed_density_.rows() > 0; }
+  const Eigen::MatrixXd &getRelaxedDensity() const { return relaxed_density_; }
+  const std::string &getRelaxedDensityState() const {
+    return relaxed_density_state_;
+  }
+  void setRelaxedDensity(const Eigen::MatrixXd &density,
+                         const std::string &state) {
+    relaxed_density_ = density;
+    relaxed_density_state_ = state;
+  }
+
   // access to DFT basis set name
   /// Report whether a DFT basis-set name has been stored.
   bool hasDFTbasisName() const {
@@ -887,6 +901,8 @@ class Orbitals {
   std::string excited_forces_state_ = "";
   Eigen::MatrixXd qp_gradients_;
   std::vector<Index> qp_gradient_levels_;
+  Eigen::MatrixXd relaxed_density_;
+  std::string relaxed_density_state_ = "";
   Eigen::MatrixXd polarizability_;  // 3x3 if set
 
   Index total_charge_ = 0;

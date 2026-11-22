@@ -17,11 +17,13 @@
 
 // VOTCA includes
 #include <algorithm>
+#include <iomanip>
 #include <sstream>
 #include <votca/tools/constants.h>
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/gwbseengine.h"
 #include "votca/xtp/qmpackagefactory.h"
@@ -73,6 +75,9 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   if (options.exists(".qp_gradients")) {
     qp_gradients_ = options.get(".qp_gradients").as<std::string>();
   }
+  if (options.exists(".relaxed_density")) {
+    relaxed_density_ = options.get(".relaxed_density").as<std::string>();
+  }
   if (options.exists(".excited_state_forces_follow")) {
     excited_state_forces_follow_ =
         options.get(".excited_state_forces_follow").as<std::string>();
@@ -116,9 +121,11 @@ bool DftGwBse::Run() {
   // (qp_gradients, excited_state_forces) are computed from the data of an
   // earlier run in the orb file and added to it
   if (gradients_only_) {
-    if (excited_state_forces_.empty() && qp_gradients_.empty()) {
+    if (excited_state_forces_.empty() && qp_gradients_.empty() &&
+        relaxed_density_.empty()) {
       throw std::runtime_error(
-          "tasks gradients: set qp_gradients and/or excited_state_forces");
+          "tasks gradients: set qp_gradients, excited_state_forces and/or "
+          "relaxed_density");
     }
     XTP_LOG(Log::error, log_)
         << "Gradients from the GW-BSE data in " << archive_file_ << std::flush;
@@ -129,6 +136,9 @@ bool DftGwBse::Run() {
     }
     if (!qp_gradients_.empty()) {
       ComputeQPGradients(orbitals);
+    }
+    if (!relaxed_density_.empty()) {
+      ComputeRelaxedDensity(orbitals);
     }
     XTP_LOG(Log::error, log_)
         << "Saving data to " << archive_file_ << std::flush;
@@ -219,6 +229,12 @@ bool DftGwBse::Run() {
   if (!qp_gradients_.empty()) {
     ComputeQPGradients(orbitals);
   }
+  if (!relaxed_density_.empty()) {
+    if (orbitals.getCalculationType() == "Truncated") {
+      throw std::runtime_error("relaxed_density: not for truncated bases");
+    }
+    ComputeRelaxedDensity(orbitals);
+  }
 
   XTP_LOG(Log::error, log_) << "Saving data to " << archive_file_ << std::flush;
   orbitals.WriteToCpt(archive_file_);
@@ -283,41 +299,9 @@ void DftGwBse::SetupQPResponse(DFTEngine::BSEGradientInput& input,
   // response of the QP corrections: implemented for G0W0 and evGW with
   // the plasmon-pole and the exact self-energy; otherwise (cda) the
   // corrections are kept fixed
-  const std::string mode =
-      gwbseengine_options_.get("gwbse.gw.mode").as<std::string>();
-  const std::string integrator =
-      gwbseengine_options_.get("gwbse.gw.sigma_integrator").as<std::string>();
-  if (excited_state_forces_qp_response_ && (mode == "G0W0" || mode == "evGW") &&
-      (integrator == "ppm" || integrator == "exact")) {
-    input.qp_response = true;
-    input.sigma_integrator = integrator;
-    input.qp_selfconsistent = (mode == "evGW");
-    if (input.qp_selfconsistent) {
-      input.out_of_window_shift =
-          gwbseengine_options_.get("gwbse.gw.out_of_window_shift")
-              .as<std::string>();
-      if (input.out_of_window_shift == "max" &&
-          (orbitals.getGWAmax() < orbitals.getRPAmax() ||
-           orbitals.getGWAmin() > orbitals.getRPAmin())) {
-        // max of the window corrections: the energy has kinks where the
-        // level with the largest correction changes; the forces are those
-        // of the branch at the geometry, and optimizations can stall at
-        // such a kink (formaldehyde S1, PBE0/def2-TZVPP)
-        XTP_LOG(Log::error, log_)
-            << TimeStamp()
-            << " WARNING: evGW with gw.out_of_window_shift max: the energy "
-               "is not differentiable where the level with the largest "
-               "correction changes; use nearest for geometry optimizations"
-            << std::flush;
-      }
-      input.out_of_window_fit_fraction =
-          gwbseengine_options_.get("gwbse.gw.out_of_window_fit_fraction")
-              .as<double>();
-    }
-    input.qpmin = orbitals.getGWAmin();
-    input.qpmax = orbitals.getGWAmax();
-    input.qp_energies = orbitals.QPpertEnergies();
-    input.sigma_eta = gwbseengine_options_.get("gwbse.gw.eta").as<double>();
+  if (excited_state_forces_qp_response_ &&
+      DFTEngine::ConfigureQPResponse(
+          input, orbitals, gwbseengine_options_.get("gwbse"), &log_)) {
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " Including the response of the QP corrections"
         << std::flush;
@@ -328,6 +312,38 @@ void DftGwBse::SetupQPResponse(DFTEngine::BSEGradientInput& input,
            "false, or not G0W0/evGW with sigma_integrator ppm or exact)"
         << std::flush;
   }
+}
+
+// relaxed_density: the relaxed density matrix of one state, stored in the
+// orb file (orbital relaxation and, as for the forces, the response of the
+// QP corrections where covered); at fixed external multipoles if mpsfile
+// is set
+void DftGwBse::ComputeRelaxedDensity(Orbitals& orbitals) {
+  if (package_options_.get("name").as<std::string>() != "xtp") {
+    throw std::runtime_error("relaxed_density: needs the xtp DFT package");
+  }
+  QMState state(relaxed_density_);
+  DFTEngine dft;
+  dft.setLogger(&log_);
+  dft.Initialize(package_options_);
+  const Eigen::MatrixXd density = dft.RelaxedDensityMatrix(
+      orbitals, state, gwbseengine_options_.get("gwbse"),
+      excited_state_forces_qp_response_);
+  orbitals.setRelaxedDensity(density, state.ToString());
+  // dipole change of the state (relaxed), = dE_state/dF for H0 -= F . r
+  AODipole dipole;
+  dipole.setCenter(orbitals.QMAtoms().getPos());
+  dipole.Fill(orbitals.getDftBasis());
+  const Eigen::MatrixXd diff = density - orbitals.DensityMatrixGroundState();
+  Eigen::Vector3d change;
+  for (Index k = 0; k < 3; ++k) {
+    change(k) = -(dipole.Matrix()[k].cwiseProduct(diff)).sum();
+  }
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Relaxed density of " << state.ToString()
+      << " stored (relaxed_density); dipole change from the ground state "
+         "(e*bohr): "
+      << std::setprecision(8) << change.transpose() << std::flush;
 }
 
 // "homo-2:lumo+3", "lumo", "12:20" (absolute, 0-based MO indices)

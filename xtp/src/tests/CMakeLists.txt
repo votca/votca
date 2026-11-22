@@ -170,6 +170,13 @@ foreach(PROG ${test_cases} )
   set_tests_properties(unit_${PROG} PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
 endforeach(PROG)
 
+# libecpint before 1.1 evaluates off-centre ECP integrals of high angular
+# momentum inaccurately (closed-form radial integrals, removed in 1.1): the
+# large_l_test reference (g functions) of these versions is kept separately.
+if(ecpint_VERSION VERSION_LESS 1.1)
+  target_compile_definitions(unit_test_aopotential PRIVATE VOTCA_LIBECPINT_BEFORE_1_1)
+endif()
+
 # includes libint2.hpp: same job pool as the libint2 sources of the library
 # (defined in src/libxtp/CMakeLists.txt)
 if(TARGET unit_test_aoderivatives)
@@ -337,6 +344,29 @@ if(RUN_XTP_INTEGRATIONTESTS)
     set_tests_properties(integration_Compare_xtp_parallel_qmmm_screened_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_screened)
   else()
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_screened (votca_compare_xml not found)")
+  endif()
+
+  # xtp_parallel -e qmmm, iterative embedded GW-BSE (S1 of methane against
+  # two Thole regions) with qmregion.relaxed_density: the polar regions see
+  # the relaxed S1 density (orbital and G0W0-correction response) instead
+  # of the unrelaxed one. Same tolerances as the screened test.
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_qmmm_relaxed)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_einternal.hdf5 ${RUNPATH}/state.hdf5)
+  add_test(NAME integration_Setup_xtp_parallel_qmmm_relaxed_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/qmmm_relaxed.jobs ${RUNPATH}/qmmm_relaxed.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_qmmm_relaxed_jobs PROPERTIES FIXTURES_SETUP qmmm_relaxed_jobs)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/qmmm_relaxed.xml ${RUNPATH}/qmmm_relaxed.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
+  add_test(NAME integration_Run_xtp_parallel_qmmm_relaxed COMMAND xtp_parallel -e qmmm -o qmmm_relaxed.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_parallel_qmmm_relaxed PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_relaxed_jobs TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
+  if(HAS_XML_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_qmmm_relaxed_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_relaxed_run.jobs ${RUNPATH}/qmmm_relaxed.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_polar:1e-6:2e-3 --tag-tol E_static:1e-6:2e-3 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_qmmm_relaxed_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_relaxed)
+  else()
+    message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_relaxed (votca_compare_xml not found)")
   endif()
 
   # xtp_parallel -e qmmm (MM only) -j read
@@ -853,6 +883,8 @@ set(XTP_HEAVY_TESTS
   unit_test_bsegradient
   integration_Run_xtp_parallel_qmmm_screened
   integration_Compare_xtp_parallel_qmmm_screened_output
+  integration_Run_xtp_parallel_qmmm_relaxed
+  integration_Compare_xtp_parallel_qmmm_relaxed_output
   integration_Run_xtp_parallel_eqm_run
   integration_Compare_xtp_parallel_eqm_run_output
   integration_Compare_xtp_parallel_eqm_run_output2

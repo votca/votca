@@ -46,6 +46,7 @@ Version 2026-dev
 -  inactive region screening with PbE (#1275)
 -  streamed RPA for PPM (#1276)
 -  analytic BSE forces (#1277)
+-  relaxed excited state densities (#1278)
    
 Version 2026 (released 09.03.26)
 ================================

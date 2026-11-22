@@ -91,11 +91,19 @@ votca::xtp::Logger& TestLog() {
   return log;
 }
 
-void InitializeEngine(DFTEngine& dft, const std::string& functional) {
+// field: a homogeneous electric field (a.u.), H0 -= F . r (DFTEngine
+// externalfield)
+void InitializeEngine(DFTEngine& dft, const std::string& functional,
+                      const Eigen::Vector3d& field = Eigen::Vector3d::Zero()) {
   dft.setLogger(&TestLog());
   std::string xml_path = "/tmp/xtp_test_bsegradient_dft.xml";
   std::ofstream xml(xml_path);
   xml << "<dftpackage>\n<spin>1</spin>\n<name>xtp</name>\n<charge>0</charge>\n";
+  if (!field.isZero()) {
+    xml.precision(17);
+    xml << "<externalfield>" << field(0) << " " << field(1) << " " << field(2)
+        << "</externalfield>\n";
+  }
   xml << "<functional>" << functional << "</functional>\n";
   xml << "<basisset>" << DataFile("def2-svp.xml") << "</basisset>\n";
   xml << "<auxbasisset>" << DataFile("aux-def2-svp.xml") << "</auxbasisset>\n";
@@ -360,6 +368,106 @@ void CheckLevelGradients(const std::string& functional, const Windows& w) {
   }
 }
 
+// The relaxed densities of BSEExcitationGradient: with H0 -= F . r, the
+// response of the BSE excitation energy (and of single levels) to the field
+// is dOmega/dF_k = -Tr(r_k P), checked against finite fields.
+void CheckRelaxedDensities(const std::string& functional, const Windows& w,
+                           bool singlet, bool tda) {
+  if (!HasLibint2DerivativeSupport()) {
+    std::cout << "SKIPPING: this libint2 build lacks derivative integrals"
+              << std::endl;
+    return;
+  }
+  DFTEngine dft;
+  InitializeEngine(dft, functional);
+  Orbitals orb = RunSCF(WaterPositions(), dft);
+  Eigen::VectorXd X;
+  Eigen::VectorXd Y;
+  SolveBSE(orb, w, singlet, tda, &X, &Y);
+  const Eigen::VectorXd& eps = orb.MOs().eigenvalues();
+  const Index nmo = eps.size();
+  const Index homo = orb.getHomo();
+  DFTEngine::BSEGradientInput in;
+  in.singlet = singlet;
+  in.vmin = w.vmin;
+  in.cmax = w.cmax;
+  in.rpamin = w.rpamin;
+  in.rpamax = w.rpamax;
+  in.X = X;
+  in.Y = Y;
+  in.energies_bse = eps.segment(w.vmin, w.cmax - w.vmin + 1) +
+                    ShiftBSE(nmo, homo).segment(w.vmin, w.cmax - w.vmin + 1);
+  in.energies_rpa =
+      eps.segment(w.rpamin, w.rpamax - w.rpamin + 1) +
+      ShiftRPA(nmo, homo).segment(w.rpamin, w.rpamax - w.rpamin + 1);
+  const DFTEngine::BSEGradientResult res = dft.BSEExcitationGradient(orb, in);
+  {
+    // density_only: the same density without the integral derivatives
+    DFTEngine::BSEGradientInput din = in;
+    din.density_only = true;
+    const DFTEngine::BSEGradientResult dres =
+        dft.BSEExcitationGradient(orb, din);
+    BOOST_CHECK_EQUAL(dres.gradient.size(), 0);
+    BOOST_CHECK_SMALL(
+        (dres.relaxed_density - res.relaxed_density).cwiseAbs().maxCoeff(),
+        1e-12);
+  }
+  DFTEngine::BSEGradientInput lin = in;
+  lin.X.resize(0);
+  lin.Y.resize(0);
+  lin.qp_levels = {homo, homo + 1};
+  const DFTEngine::BSEGradientResult lres = dft.BSEExcitationGradient(orb, lin);
+  BOOST_REQUIRE_EQUAL(lres.qp_relaxed_densities.size(), 2);
+
+  BasisSet dftset;
+  dftset.Load(DataFile("def2-svp.xml"));
+  AOBasis dftbasis;
+  dftbasis.Fill(dftset, orb.QMAtoms());
+  AODipole dipole;
+  dipole.setCenter(orb.QMAtoms().getPos());
+  dipole.Fill(dftbasis);
+  AOOverlap overlap;
+  overlap.Fill(dftbasis);
+  // difference densities: no change of the electron number
+  BOOST_CHECK_SMALL((res.relaxed_density.cwiseProduct(overlap.Matrix())).sum(),
+                    1e-8);
+
+  const double f = 2e-4;  // a.u.
+#ifdef NDEBUG
+  const std::vector<Index> directions = {2, 0};
+#else
+  const std::vector<Index> directions = {2};  // Debug: one direction
+#endif
+  for (Index k : directions) {
+    const Eigen::MatrixXd& rk = dipole.Matrix()[k];
+    Eigen::Vector3d field = Eigen::Vector3d::Zero();
+    field(k) = f;
+    DFTEngine dp;
+    InitializeEngine(dp, functional, field);
+    Orbitals op = RunSCF(WaterPositions(), dp);
+    DFTEngine dm;
+    InitializeEngine(dm, functional, -field);
+    Orbitals om = RunSCF(WaterPositions(), dm);
+    const double fd =
+        (SolveBSE(op, w, singlet, tda) - SolveBSE(om, w, singlet, tda)) /
+        (2.0 * f);
+    const double analytic = -(rk.cwiseProduct(res.relaxed_density)).sum();
+    std::cout << "  field " << k << ": dOmega/dF analytic " << analytic
+              << ", finite field " << fd << std::endl;
+    BOOST_CHECK_SMALL(std::abs(analytic - fd), 1e-5 + 1e-4 * std::abs(fd));
+    for (Index l = 0; l < 2; ++l) {
+      const Index p = lin.qp_levels[std::size_t(l)];
+      const double fdl =
+          (op.MOs().eigenvalues()(p) - om.MOs().eigenvalues()(p)) / (2.0 * f);
+      const double al =
+          -(rk.cwiseProduct(lres.qp_relaxed_densities[std::size_t(l)])).sum();
+      std::cout << "  field " << k << ": level " << p << " analytic " << al
+                << ", finite field " << fdl << std::endl;
+      BOOST_CHECK_SMALL(std::abs(al - fdl), 1e-5 + 1e-4 * std::abs(fdl));
+    }
+  }
+}
+
 }  // namespace
 
 // Debug builds (Eigen without optimisation) are 50 to 60 times slower than
@@ -376,6 +484,13 @@ const bool kAllCases = false;
 BOOST_AUTO_TEST_CASE(pbe0_level_gradients) {
   libint2::initialize();
   CheckLevelGradients("XC_HYB_GGA_XC_PBEH", Windows{1, 12, 0, 23});
+  libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(pbe0_relaxed_densities) {
+  libint2::initialize();
+  CheckRelaxedDensities("XC_HYB_GGA_XC_PBEH", Windows{0, 23, 0, 23}, true,
+                        false);
   libint2::finalize();
 }
 
