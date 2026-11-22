@@ -170,6 +170,13 @@ foreach(PROG ${test_cases} )
   set_tests_properties(unit_${PROG} PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
 endforeach(PROG)
 
+# libecpint before 1.1 evaluates off-centre ECP integrals of high angular
+# momentum inaccurately (closed-form radial integrals, removed in 1.1): the
+# large_l_test reference (g functions) of these versions is kept separately.
+if(ecpint_VERSION VERSION_LESS 1.1)
+  target_compile_definitions(unit_test_aopotential PRIVATE VOTCA_LIBECPINT_BEFORE_1_1)
+endif()
+
 # includes libint2.hpp: same job pool as the libint2 sources of the library
 # (defined in src/libxtp/CMakeLists.txt)
 if(TARGET unit_test_aoderivatives)

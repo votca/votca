@@ -288,8 +288,20 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   AOECP ecp;
   ecp.FillPotential(dftbasis, ecpbasis);
 
+  // Reference from libecpint 1.1, which agrees with an independent
+  // quadrature (radial Gauss-Legendre x product angular grid) to 1e-10
+  // relative: the g block of each atom is the off-centre (type 2) integral
+  // of the other atom's ECP, since the s, p, d projectors annihilate the
+  // g functions on their own centre. libecpint before 1.1 gets these
+  // integrals wrong by a factor of up to ~13 (closed-form radial integrals,
+  // removed in 1.1); for those versions the old reference is kept.
+#ifdef VOTCA_LIBECPINT_BEFORE_1_1
+  const std::string ecp_ref_file = "/aopotential/ecp_ref_l_libecpint_1.0.mm";
+#else
+  const std::string ecp_ref_file = "/aopotential/ecp_ref_l.mm";
+#endif
   Eigen::MatrixXd ecp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/ecp_ref_l.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + ecp_ref_file);
   bool check_ecp = ecp.Matrix().isApprox(ecp_ref, 0.00001);
   BOOST_CHECK_EQUAL(check_ecp, 1);
   if (!check_ecp) {
