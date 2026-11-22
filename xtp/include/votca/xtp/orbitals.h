@@ -352,6 +352,23 @@ class Orbitals {
     qp_gradient_levels_ = levels;
   }
 
+  /// Forces (Hartree/Bohr, -dE/dR) on the external sites of an embedded
+  /// run (e.g. dftgwbse mpsfile), one row per site in the order of the
+  /// sites, at frozen moments: ground state and the state of
+  /// getExcitedStateForcesState().
+  bool hasSiteForces() const { return site_forces_.rows() > 0; }
+  const Eigen::MatrixXd &getSiteForces() const { return site_forces_; }
+  void setSiteForces(const Eigen::MatrixXd &forces) { site_forces_ = forces; }
+  bool hasExcitedStateSiteForces() const {
+    return excited_site_forces_.rows() > 0;
+  }
+  const Eigen::MatrixXd &getExcitedStateSiteForces() const {
+    return excited_site_forces_;
+  }
+  void setExcitedStateSiteForces(const Eigen::MatrixXd &forces) {
+    excited_site_forces_ = forces;
+  }
+
   /// Relaxed density matrix (AO, total) of one state, e.g. from dftgwbse
   /// relaxed_density (DFTEngine::RelaxedDensityMatrix): orbital relaxation
   /// and, where covered, the response of the QP corrections included.
@@ -902,6 +919,8 @@ class Orbitals {
   Eigen::MatrixXd qp_gradients_;
   std::vector<Index> qp_gradient_levels_;
   Eigen::MatrixXd relaxed_density_;
+  Eigen::MatrixXd site_forces_;
+  Eigen::MatrixXd excited_site_forces_;
   std::string relaxed_density_state_ = "";
   Eigen::MatrixXd polarizability_;  // 3x3 if set
 

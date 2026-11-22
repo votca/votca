@@ -52,7 +52,35 @@ class AOGaussianSites {
     double width;
     double charge;
     Eigen::Vector3d dipole;
+    /// traceless Cartesian quadrupole in the convention of
+    /// StaticSite::CalculateCartesianMultipole (as AOMultipole), carried as
+    /// the Gaussian quadrupole density c sum_ij Theta_ij d_i d_j g_k
+    Eigen::Matrix3d quadrupole = Eigen::Matrix3d::Zero();
   };
+
+  /// Width (bohr) with which point multipoles are represented as Gaussians
+  /// in PointGradient. Narrower Gaussians lose precision in the integrals
+  /// (factors beta^3/4 and up); the difference from the point is O(width^2)
+  /// and is extrapolated away (widths w and 2w).
+  static constexpr double kPointWidth = 4e-3;
+
+  /// Gradient of E = Tr(D Potential(sources)) with respect to the atoms of
+  /// basis (natoms x 3, returned) and the source positions (sources x 3,
+  /// site_gradient), at fixed moments and widths (three-centre Coulomb
+  /// derivative integrals; needs libint2 ERI3 derivatives).
+  static Eigen::MatrixXd Gradient(const AOBasis& basis,
+                                  const std::vector<Source>& sources,
+                                  const Eigen::MatrixXd& D,
+                                  Eigen::MatrixXd& site_gradient);
+
+  /// The same for point multipoles (the widths of sources are ignored),
+  /// i.e. for Tr(D V) with V of AOMultipole up to the sign: Gradient with
+  /// Gaussians of width kPointWidth and 2 kPointWidth, Richardson
+  /// extrapolated to zero width (the error of a width w is O(w^2)).
+  static Eigen::MatrixXd PointGradient(const AOBasis& basis,
+                                       std::vector<Source> sources,
+                                       const Eigen::MatrixXd& D,
+                                       Eigen::MatrixXd& site_gradient);
 
   /// <mu| phi |nu> with phi the electrostatic potential of the sources
   /// (positive next to a positive charge); the electrons' Hamiltonian gets

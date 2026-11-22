@@ -415,6 +415,8 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   // relaxed difference densities of the targets (AO, both spins), filled
   // by downstream next to the gradients
   std::vector<Eigen::MatrixXd> relaxed_densities;
+  // gradients with respect to the external sites (setExternalcharges)
+  std::vector<Eigen::MatrixXd> site_gradients;
   auto downstream = [&](bool last) -> Eigen::MatrixXd {
     // ---- integral part of sum g . dB
     // metric term first (needs g and B), then B is released (after the last
@@ -575,6 +577,14 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
     grad += ContractAODerivatives(
         ComputeNuclearAttractionDerivatives(dftbasis_, mol), Pao);
     grad -= ContractAODerivatives(ComputeOverlapDerivatives(dftbasis_), Wao);
+    // external sites (frozen moments): a one-electron operator, contracted
+    // with the relaxed density like the nuclear attraction; the sites get
+    // the field of the density change
+    {
+      Eigen::MatrixXd site_grad;
+      grad += ExternalSitesGradient(mol, Pao, false, site_grad);
+      site_gradients.push_back(site_grad);
+    }
     phase("one-electron and overlap derivatives");
     // RI-J, exact: the Hartree energy is quadratic in the density
     grad += 0.5 * (DFTGradient::RIJGradient(D0 + Pao, auxbasis_, dftbasis_) -
@@ -1271,9 +1281,13 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   if (has_bse) {
     result.gradient = gradients[0];
     result.relaxed_density = relaxed_densities[0];
+    if (!site_gradients.empty()) {
+      result.site_gradient = site_gradients[0];
+    }
   } else {
     result.qp_gradients = gradients;
     result.qp_relaxed_densities = relaxed_densities;
+    result.qp_site_gradients = site_gradients;
   }
   return result;
 }

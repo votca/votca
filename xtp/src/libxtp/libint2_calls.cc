@@ -49,6 +49,8 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include "gaussiansiteshells.h"
+
 namespace votca {
 namespace xtp {
 
@@ -741,35 +743,37 @@ std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
   return ao3c;
 }
 
+GaussianSiteShells::GaussianSiteShells(const Eigen::Vector3d& pos,
+                                       double width) {
+  const double beta = 1.0 / (width * width);
+  const std::array<double, 3> O = {pos.x(), pos.y(), pos.z()};
+  s = libint2::Shell{{beta}, {{0, false, {1.0}}}, O};
+  p = libint2::Shell{{beta}, {{1, false, {1.0}}}, O};
+  d = libint2::Shell{{beta}, {{2, false, {1.0}}}, O};
+  const double n_s = std::pow(2.0 * beta / M_PI, 0.75);
+  s_factor = 1.0 / (n_s * std::pow(M_PI / beta, 1.5));
+  const double n_p = n_s * 2.0 * std::sqrt(beta);
+  p_factor = 2.0 * beta * std::pow(beta / M_PI, 1.5) / n_p;
+  // c sum_ij Theta_ij d_i d_j g = c 4 beta^2 sum_ij Theta_ij x_i x_j g for
+  // a traceless Theta
+  const double n_d = n_s * 4.0 * beta / std::sqrt(3.0);
+  d_factor =
+      kQuadrupoleScale * 4.0 * beta * beta * std::pow(beta / M_PI, 1.5) / n_d;
+}
+
+std::array<double, 6> GaussianSiteShells::QuadrupoleWeights(
+    const Eigen::Matrix3d& Q) {
+  return {Q(0, 0), Q(0, 1) + Q(1, 0), Q(0, 2) + Q(2, 0),
+          Q(1, 1), Q(1, 2) + Q(2, 1), Q(2, 2)};
+}
+
 namespace {
-// libint2 shells of a Gaussian charge (s) and a Gaussian dipole (cartesian
-// p) of exponent beta at pos, and the factors that turn the L2-normalized
-// primitives libint2 makes of them into the unit charge g (beta/pi)^3/2
-// exp(-beta r^2) and the unit dipole density 2 beta (r - R) g:
-//   s: N_s = (2 beta/pi)^3/4, charge N_s (pi/beta)^3/2;
-//   p: N_p = (2 beta/pi)^3/4 2 sqrt(beta).
-struct GaussianSiteShells {
-  libint2::Shell s;
-  libint2::Shell p;
-  double s_factor;
-  double p_factor;
-  GaussianSiteShells(const Eigen::Vector3d& pos, double width) {
-    const double beta = 1.0 / (width * width);
-    const std::array<double, 3> O = {pos.x(), pos.y(), pos.z()};
-    s = libint2::Shell{{beta}, {{0, false, {1.0}}}, O};
-    p = libint2::Shell{{beta}, {{1, false, {1.0}}}, O};
-    const double n_s = std::pow(2.0 * beta / M_PI, 0.75);
-    s_factor = 1.0 / (n_s * std::pow(M_PI / beta, 1.5));
-    const double n_p = n_s * 2.0 * std::sqrt(beta);
-    p_factor = 2.0 * beta * std::pow(beta / M_PI, 1.5) / n_p;
-  }
-};
 
 std::vector<libint2::Engine> GaussianSiteEngines(const AOBasis& basis) {
   std::vector<libint2::Engine> engines(OPENMP::getMaxThreads());
   engines[0] = libint2::Engine(libint2::Operator::coulomb,
                                int(std::max<Index>(basis.getMaxNprim(), 1)),
-                               int(std::max<Index>(basis.getMaxL(), 1)), 0);
+                               int(std::max<Index>(basis.getMaxL(), 2)), 0);
   engines[0].set(libint2::BraKet::xs_xx);
   for (std::size_t i = 1; i < engines.size(); ++i) {
     engines[i] = engines[0];
@@ -804,8 +808,34 @@ Eigen::MatrixXd AOGaussianSites::Potential(const AOBasis& basis,
         V += (src.dipole(c) * sh.p_factor) * p[std::size_t(c)];
       }
     }
+    if (src.quadrupole.squaredNorm() > 0.0) {
+      std::vector<Eigen::MatrixXd> d = ComputeAO3cBlock(sh.d, basis, engine);
+      const std::array<double, 6> w =
+          GaussianSiteShells::QuadrupoleWeights(src.quadrupole);
+      for (Index c = 0; c < 6; ++c) {
+        V += (w[std::size_t(c)] * sh.d_factor) * d[std::size_t(c)];
+      }
+    }
   }
   return V;
+}
+
+Eigen::MatrixXd AOGaussianSites::PointGradient(const AOBasis& basis,
+                                               std::vector<Source> sources,
+                                               const Eigen::MatrixXd& D,
+                                               Eigen::MatrixXd& site_gradient) {
+  for (Source& s : sources) {
+    s.width = kPointWidth;
+  }
+  Eigen::MatrixXd site_w;
+  const Eigen::MatrixXd grad_w = Gradient(basis, sources, D, site_w);
+  for (Source& s : sources) {
+    s.width = 2.0 * kPointWidth;
+  }
+  Eigen::MatrixXd site_2w;
+  const Eigen::MatrixXd grad_2w = Gradient(basis, sources, D, site_2w);
+  site_gradient = (4.0 * site_w - site_2w) / 3.0;
+  return (4.0 * grad_w - grad_2w) / 3.0;
 }
 
 Eigen::MatrixXd AOGaussianSites::PotentialAndGradientAt(

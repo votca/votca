@@ -394,6 +394,44 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
 // Pulay, RI-J, XC and, for hybrids, RI-K) from the converged density matrix,
 // stored as the force -dE/dR via Orbitals::setForces(). The individual terms
 // are tested in test_dftgradient.cc and test_xcgradient.cc.
+// External terms of the Hamiltonian the forces do not cover: the forces
+// would silently miss their derivatives, so they are skipped instead.
+bool DFTEngine::ExternalTermsCoveredByForces() const {
+  std::string missing;
+  if (integrate_ext_field_) {
+    missing = "an external electric field";
+  } else if (has_ewaldgrid_) {
+    missing = "the Ewald background potential";
+  } else if (integrate_ext_density_) {
+    missing = "an external density";
+  } else if (ext_potential_matrix_.size() > 0) {
+    missing = "an external potential matrix";
+  }
+  if (missing.empty()) {
+    return true;
+  }
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Skipping force calculation: the forces do not "
+      << "include the derivative of " << missing << std::flush;
+  return false;
+}
+
+// External sites (frozen moments): their part of the atomic gradient is
+// added to grad, the forces on the sites are stored in orb.
+void DFTEngine::AddExternalSitesGradient(Orbitals& orb,
+                                         const Eigen::MatrixXd& Dmat,
+                                         Eigen::MatrixXd& grad) const {
+  if (externalsites_ == nullptr || externalsites_->empty()) {
+    return;
+  }
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Computing the external-site gradient ("
+      << externalsites_->size() << " sites, frozen moments)" << std::flush;
+  Eigen::MatrixXd site_grad;
+  grad += ExternalSitesGradient(orb.QMAtoms(), Dmat, true, site_grad);
+  orb.setSiteForces(-site_grad);
+}
+
 void DFTEngine::ComputeAndStoreForces(
     Orbitals& orb, const Eigen::MatrixXd& Dmat,
     const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
@@ -427,6 +465,10 @@ void DFTEngine::ComputeAndStoreForces(
         << "') was used for this SCF, but analytic nuclear forces do "
            "not include the ECP term d(V_ECP)/dR."
         << std::flush;
+    return;
+  }
+
+  if (!ExternalTermsCoveredByForces()) {
     return;
   }
 
@@ -513,9 +555,14 @@ void DFTEngine::ComputeAndStoreForces(
         << TimeStamp() << "   RI-K gradient done" << std::flush;
   }
 
+  AddExternalSitesGradient(orb, Dmat, grad);
+
   // Translational invariance: the total gradient must sum to zero over
-  // atoms. Only logged, not thrown.
+  // atoms (and external sites). Only logged, not thrown.
   Eigen::Vector3d sum = grad.colwise().sum();
+  if (orb.hasSiteForces()) {
+    sum -= orb.getSiteForces().colwise().sum();
+  }
   if (sum.cwiseAbs().maxCoeff() > 1e-4) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp()
@@ -660,6 +707,10 @@ void DFTEngine::ComputeAndStoreForcesUKS(
     return;
   }
 
+  if (!ExternalTermsCoveredByForces()) {
+    return;
+  }
+
   Eigen::MatrixXd grad =
       ComputeNonXCGradientUKS(orb.QMAtoms(), Dspin, MOs_alpha, MOs_beta);
 
@@ -668,8 +719,13 @@ void DFTEngine::ComputeAndStoreForcesUKS(
   grad += vxcpotential.GridWeightGradientUKS(Dspin.alpha, Dspin.beta,
                                              orb.QMAtoms());
 
+  AddExternalSitesGradient(orb, Dspin.alpha + Dspin.beta, grad);
+
   // Translational invariance check, logged only (as for RKS).
   Eigen::Vector3d sum = grad.colwise().sum();
+  if (orb.hasSiteForces()) {
+    sum -= orb.getSiteForces().colwise().sum();
+  }
   if (sum.cwiseAbs().maxCoeff() > 1e-4) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp()
@@ -3413,6 +3469,44 @@ const PolarSite* AsChargeResponseSite(const StaticSite& site) {
 }
 }  // namespace
 
+namespace {
+// Interaction energy of a nucleus (point charge Z at pos) with an external
+// site, as the electrons see the site (IntegrateExternalMultipoles).
+double NucleusSiteEnergy(const eeInteractor& interactor,
+                         const StaticSite& nucleus, const StaticSite* site) {
+  double E_ext = 0.0;
+  // The nuclei must see the permanent multipoles plus the induced
+  // dipole, as the electrons do (AOMultipole::FillBlock uses the virtual
+  // getDipole(), which includes the induced dipole of a PolarSite).
+  // eeInteractor::CalcStaticEnergy_site reads the non-virtual Q(), i.e.
+  // permanent moments only, so the induced dipole is added here. Since
+  // the electronic and nuclear terms nearly cancel for a neutral QM
+  // region, omitting it gives large errors. VSiteA itself is correct:
+  // the induction solver treats permanent and induced moments
+  // separately, and changing it would double-count induced dipoles.
+  Vector9d Q = site->Q();
+  if (const PolarSite* p = AsChargeResponseSite(*site)) {
+    // induced charge and dipole of a charge-response site: Gaussians,
+    // as the electrons see them (IntegrateExternalMultipoles)
+    const Eigen::Vector3d r = nucleus.getPos() - p->getPos();
+    const GaussianKernel k(r.norm(), p->CRWidth());
+    E_ext += nucleus.getCharge() *
+             (p->Induced_Charge() * k.B0 + k.B1 * p->getInducedDipole().dot(r));
+  } else {
+    Q.segment<3>(1) += site->getInducedDipole();  // zero for a StaticSite
+  }
+  Index rank = site->getRank();
+  if (rank < 1 && Q.segment<3>(1).norm() > 1e-12) {
+    rank = 1;  // same promotion, same threshold, as AOMultipole
+  }
+  StaticSite effective(site->getId(), site->getElement(), site->getPos());
+  effective.setMultipole(Q, rank);
+
+  E_ext += interactor.CalcStaticEnergy_site(effective, nucleus);
+  return E_ext;
+}
+}  // namespace
+
 double DFTEngine::ExternalRepulsion(
     const QMMolecule& mol,
     const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
@@ -3433,37 +3527,96 @@ double DFTEngine::ExternalRepulsion(
                                     << std::flush;
         continue;
       }
-      // The nuclei must see the permanent multipoles plus the induced
-      // dipole, as the electrons do (AOMultipole::FillBlock uses the virtual
-      // getDipole(), which includes the induced dipole of a PolarSite).
-      // eeInteractor::CalcStaticEnergy_site reads the non-virtual Q(), i.e.
-      // permanent moments only, so the induced dipole is added here. Since
-      // the electronic and nuclear terms nearly cancel for a neutral QM
-      // region, omitting it gives large errors. VSiteA itself is correct:
-      // the induction solver treats permanent and induced moments
-      // separately, and changing it would double-count induced dipoles.
-      Vector9d Q = site->Q();
-      if (const PolarSite* p = AsChargeResponseSite(*site)) {
-        // induced charge and dipole of a charge-response site: Gaussians,
-        // as the electrons see them (IntegrateExternalMultipoles)
-        const Eigen::Vector3d r = nucleus.getPos() - p->getPos();
-        const GaussianKernel k(r.norm(), p->CRWidth());
-        E_ext += nucleus.getCharge() * (p->Induced_Charge() * k.B0 +
-                                        k.B1 * p->getInducedDipole().dot(r));
-      } else {
-        Q.segment<3>(1) += site->getInducedDipole();  // zero for a StaticSite
-      }
-      Index rank = site->getRank();
-      if (rank < 1 && Q.segment<3>(1).norm() > 1e-12) {
-        rank = 1;  // same promotion, same threshold, as AOMultipole
-      }
-      StaticSite effective(site->getId(), site->getElement(), site->getPos());
-      effective.setMultipole(Q, rank);
-
-      E_ext += interactor.CalcStaticEnergy_site(effective, nucleus);
+      E_ext += NucleusSiteEnergy(interactor, nucleus, site.get());
     }
   }
   return E_ext;
+}
+
+Eigen::MatrixXd DFTEngine::ExternalSitesGradient(
+    const QMMolecule& mol, const Eigen::MatrixXd& D, bool nuclei,
+    Eigen::MatrixXd& site_gradient) const {
+  const Index natoms = mol.size();
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  if (externalsites_ == nullptr || externalsites_->empty()) {
+    site_gradient.resize(0, 3);
+    return grad;
+  }
+  const std::vector<std::unique_ptr<StaticSite>>& sites = *externalsites_;
+  const Index nsites = Index(sites.size());
+  site_gradient = Eigen::MatrixXd::Zero(nsites, 3);
+
+  // electrons: E = Tr(D V), V = -(potential of the point multipoles) -
+  // (potential of the Gaussian induced moments of charge-response sites)
+  std::vector<AOGaussianSites::Source> points;
+  std::vector<Index> point_site;
+  std::vector<AOGaussianSites::Source> gaussians;
+  std::vector<Index> gaussian_site;
+  for (Index k = 0; k < nsites; ++k) {
+    const StaticSite& site = *sites[std::size_t(k)];
+    const Vector9d& Q = site.Q();
+    const PolarSite* cr = AsChargeResponseSite(site);
+    // permanent moments, plus the induced dipole of a point polar site
+    // (getDipole() is virtual and includes it)
+    const Eigen::Vector3d dipole =
+        (cr != nullptr) ? Eigen::Vector3d(Q.segment<3>(1)) : site.getDipole();
+    points.push_back(
+        {site.getPos(), 0.0, Q(0), dipole, site.CalculateCartesianMultipole()});
+    point_site.push_back(k);
+    if (cr != nullptr) {
+      gaussians.push_back({cr->getPos(), cr->CRWidth(), cr->Induced_Charge(),
+                           cr->getInducedDipole()});
+      gaussian_site.push_back(k);
+    }
+  }
+  Eigen::MatrixXd point_site_grad;
+  grad -= AOGaussianSites::PointGradient(dftbasis_, points, D, point_site_grad);
+  for (std::size_t i = 0; i < point_site.size(); ++i) {
+    site_gradient.row(point_site[i]) -= point_site_grad.row(Index(i));
+  }
+  if (!gaussians.empty()) {
+    Eigen::MatrixXd gauss_site_grad;
+    grad -= AOGaussianSites::Gradient(dftbasis_, gaussians, D, gauss_site_grad);
+    for (std::size_t i = 0; i < gaussian_site.size(); ++i) {
+      site_gradient.row(gaussian_site[i]) -= gauss_site_grad.row(Index(i));
+    }
+  }
+
+  // nuclei: central differences of each nucleus-site pair energy (a function
+  // of their distance vector only, so the site gets minus the nucleus'
+  // derivative); h = 1e-5 bohr gives about 1e-10 relative accuracy
+  if (nuclei) {
+    const eeInteractor interactor;
+    const double h = 1e-5;
+#pragma omp parallel for schedule(dynamic)
+    for (Index a = 0; a < natoms; ++a) {
+      const QMAtom& atom = mol[a];
+      Eigen::Vector3d ga = Eigen::Vector3d::Zero();
+      for (Index k = 0; k < nsites; ++k) {
+        const StaticSite* site = sites[std::size_t(k)].get();
+        if ((site->getPos() - atom.getPos()).norm() < 1e-7) {
+          continue;  // ignored in the energy as well (ExternalRepulsion)
+        }
+        Eigen::Vector3d gk;
+        for (Index x = 0; x < 3; ++x) {
+          Eigen::Vector3d shift = Eigen::Vector3d::Zero();
+          shift(x) = h;
+          StaticSite plus(atom, double(atom.getNuccharge()));
+          plus.setPos(atom.getPos() + shift);
+          StaticSite minus(atom, double(atom.getNuccharge()));
+          minus.setPos(atom.getPos() - shift);
+          gk(x) = (NucleusSiteEnergy(interactor, plus, site) -
+                   NucleusSiteEnergy(interactor, minus, site)) /
+                  (2.0 * h);
+        }
+        ga += gk;
+#pragma omp critical(external_sites_gradient)
+        { site_gradient.row(k) -= gk.transpose(); }
+      }
+      grad.row(a) += ga.transpose();
+    }
+  }
+  return grad;
 }
 
 Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {

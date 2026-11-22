@@ -35,6 +35,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/aogaussiansites.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/riderivatives.h"
@@ -65,6 +66,8 @@
 #elif defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
+
+#include "gaussiansiteshells.h"
 
 // libint2 releases up to 2.9 (autotools-generated config.h) name the
 // per-category derivative orders INCLUDE_ONEBODY/_ERI2/_ERI3; newer CMake
@@ -963,6 +966,163 @@ Eigen::MatrixXd ContractThreeCenterDerivatives(const AOBasis&, const AOBasis&,
           ? "--enable-eri3=1 (libint2 >= 2.9.0: older releases index "
             "centre-dependent 3-centre derivative code incorrectly)"
           : "--enable-eri3=1");
+}
+#endif  // LIBINT_INCLUDE_ERI3
+
+// Gradient of Tr(D V) for the Gaussian sources of AOGaussianSites::Potential
+// (charges, dipoles and quadrupoles as s, p and d primitives at the source
+// positions): the same three-centre Coulomb derivative integrals as
+// ContractThreeCenterDerivatives, with the sources as the auxiliary
+// functions; the derivative with respect to the auxiliary centre is the
+// gradient with respect to the source position.
+#if (LIBINT_INCLUDE_ERI3 >= 1) && !VOTCA_LIBINT_ERI3_DERIV_BROKEN
+Eigen::MatrixXd AOGaussianSites::Gradient(const AOBasis& basis,
+                                          const std::vector<Source>& sources,
+                                          const Eigen::MatrixXd& D,
+                                          Eigen::MatrixXd& site_gradient) {
+  const Index natoms = static_cast<Index>(basis.getFuncPerAtom().size());
+  const Index nsrc = static_cast<Index>(sources.size());
+  site_gradient = Eigen::MatrixXd::Zero(nsrc, 3);
+  for (const Source& src : sources) {
+    if (!(src.width > 0.0)) {
+      throw std::runtime_error(
+          "AOGaussianSites: Gaussian sites need a positive width");
+    }
+  }
+  CheckDerivativeTable(
+      BuildTableCovers(LIBINT2_PREFIXED_NAME(libint2_build_3eri1), Index(2),
+                       basis.getMaxL()),
+      "AOGaussianSites::Gradient", std::max(Index(2), basis.getMaxL()));
+  const Eigen::MatrixXd Dsym = 0.5 * (D + D.transpose());
+  std::vector<libint2::Shell> shells = basis.GenerateLibintBasis();
+  std::vector<Index> shell2bf = basis.getMapToBasisFunctions();
+  std::vector<Index> shell2atom;
+  shell2atom.reserve(shells.size());
+  for (Index s = 0; s < basis.getNumofShells(); ++s) {
+    shell2atom.push_back(basis.getShell(s).getAtomIndex());
+  }
+  const Index nthreads = OPENMP::getMaxThreads();
+  std::vector<Eigen::MatrixXd> partial(nthreads,
+                                       Eigen::MatrixXd::Zero(natoms, 3));
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] = libint2::Engine(libint2::Operator::coulomb,
+                               int(std::max<Index>(basis.getMaxNprim(), 1)),
+                               int(std::max<Index>(basis.getMaxL(), 2)), 1);
+  engines[0].set(libint2::BraKet::xs_xx);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+
+  std::exception_ptr eptr = nullptr;
+#pragma omp parallel for schedule(dynamic)
+  for (Index k = 0; k < nsrc; ++k) {
+    try {
+      const Index thread = OPENMP::getThreadId();
+      libint2::Engine& engine = engines[thread];
+      Eigen::MatrixXd& acc = partial[thread];
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
+      const Source& src = sources[std::size_t(k)];
+      const GaussianSiteShells sh(src.pos, src.width);
+      // (shell, weights of its components)
+      std::vector<std::pair<const libint2::Shell*, std::vector<double>>> parts;
+      if (src.charge != 0.0) {
+        parts.push_back({&sh.s, {src.charge * sh.s_factor}});
+      }
+      if (src.dipole.squaredNorm() > 0.0) {
+        parts.push_back(
+            {&sh.p,
+             {src.dipole(0) * sh.p_factor, src.dipole(1) * sh.p_factor,
+              src.dipole(2) * sh.p_factor}});
+      }
+      if (src.quadrupole.squaredNorm() > 0.0) {
+        const std::array<double, 6> w =
+            GaussianSiteShells::QuadrupoleWeights(src.quadrupole);
+        std::vector<double> wd(6);
+        for (std::size_t c = 0; c < 6; ++c) {
+          wd[c] = w[c] * sh.d_factor;
+        }
+        parts.push_back({&sh.d, wd});
+      }
+      Eigen::Vector3d gsite = Eigen::Vector3d::Zero();
+      for (const auto& part : parts) {
+        const libint2::Shell& aux = *part.first;
+        const std::vector<double>& wa = part.second;
+        for (Index row = 0; row < Index(shells.size()); ++row) {
+          const libint2::Shell& shell_row = shells[row];
+          const Index row_start = shell2bf[row];
+          for (Index col = 0; col <= row; ++col) {
+            const libint2::Shell& shell_col = shells[col];
+            const Index col_start = shell2bf[col];
+            engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx,
+                            1>(aux, libint2::Shell::unit(), shell_col,
+                               shell_row);
+            if (buf[0] == nullptr) {
+              continue;
+            }
+            const double factor = (row == col) ? 1.0 : 2.0;
+            for (Index xyz = 0; xyz < 3; ++xyz) {
+              Eigen::TensorMap<
+                  Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                  d_aux(buf[xyz], aux.size(), shell_col.size(),
+                        shell_row.size());
+              Eigen::TensorMap<
+                  Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                  d_col(buf[3 + xyz], aux.size(), shell_col.size(),
+                        shell_row.size());
+              Eigen::TensorMap<
+                  Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                  d_row(buf[6 + xyz], aux.size(), shell_col.size(),
+                        shell_row.size());
+              double s_aux = 0.0;
+              double s_col = 0.0;
+              double s_row = 0.0;
+              for (std::size_t a = 0; a < aux.size(); ++a) {
+                const double wgt = wa[a];
+                if (wgt == 0.0) {
+                  continue;
+                }
+                for (std::size_t c = 0; c < shell_col.size(); ++c) {
+                  for (std::size_t r = 0; r < shell_row.size(); ++r) {
+                    const double g =
+                        wgt * Dsym(row_start + Index(r), col_start + Index(c));
+                    s_aux += g * d_aux(a, c, r);
+                    s_col += g * d_col(a, c, r);
+                    s_row += g * d_row(a, c, r);
+                  }
+                }
+              }
+              gsite(xyz) += factor * s_aux;
+              acc(shell2atom[std::size_t(col)], xyz) += factor * s_col;
+              acc(shell2atom[std::size_t(row)], xyz) += factor * s_row;
+            }
+          }
+        }
+      }
+      site_gradient.row(k) = gsite.transpose();
+    } catch (...) {
+#pragma omp critical(gaussian_site_gradient_error)
+      {
+        if (!eptr) {
+          eptr = std::current_exception();
+        }
+      }
+    }
+  }
+  if (eptr) {
+    std::rethrow_exception(eptr);
+  }
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (const Eigen::MatrixXd& p : partial) {
+    grad += p;
+  }
+  return grad;
+}
+#else   // !(LIBINT_INCLUDE_ERI3)
+Eigen::MatrixXd AOGaussianSites::Gradient(const AOBasis&,
+                                          const std::vector<Source>&,
+                                          const Eigen::MatrixXd&,
+                                          Eigen::MatrixXd&) {
+  ThrowNoDerivativeSupport("AOGaussianSites::Gradient", "--enable-eri3=1");
 }
 #endif  // LIBINT_INCLUDE_ERI3
 

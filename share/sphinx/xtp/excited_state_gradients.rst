@@ -167,9 +167,9 @@ is stored in the orb file (``qp_gradients``, one block of
   QP Hamiltonian); the levels must lie in the QP window.
 * For KS-degenerate levels only the gradient of the mean energy is
   defined; each partner gets this gradient (logged).
-* The restrictions of the excited-state forces apply (closed shell, RI, no
-  embedding, G0W0 or evGW with ``ppm`` or ``exact``; otherwise the
-  gradient of the KS energy with fixed corrections is returned).
+* The restrictions of the excited-state forces apply (closed shell, RI,
+  G0W0 or evGW with ``ppm`` or ``exact``; otherwise the gradient of the KS
+  energy with fixed corrections is returned).
 
 Gradients can be added to an existing orb file without repeating DFT and
 GW-BSE, which matters for large molecules: ``dftgwbse`` with
@@ -426,12 +426,39 @@ response moves the C–C minimum by +0.003 Å (G0W0) and +0.006 Å (evGW)
 with the exact self-energy, in agreement with [Holzer:2026]_.
 
 
+Embedding in frozen multipoles
+******************************
+
+With external multipoles (``dftgwbse`` ``mpsfile``, or sites given to the
+DFT engine), the ground-state forces, the excited-state forces and the QP
+gradients include the interaction with the sites at frozen moments:
+point charges, dipoles (including induced dipoles of polar sites) and
+quadrupoles, and the Gaussian induced charges and dipoles of
+charge-response sites. The electrons enter with the ground-state density
+or the relaxed density of the state (the sites are a one-electron
+operator), the nuclei through the classical nucleus-site energy. The
+forces on the sites are stored as well (orb datasets ``site_forces`` and
+``excited_state_site_forces``, one row per site in the order of the mps
+file), so that atoms and sites together obey Newton's third law.
+
+The derivative integrals are three-centre Coulomb integrals between the
+AO pair and Gaussian charges, dipoles and quadrupoles at the sites; point
+multipoles are represented by narrow Gaussians whose width is extrapolated
+to zero (agreement with finite differences of the point-multipole energy
+to :math:`10^{-9}`). Frozen moments means that the induced moments of a
+polarizable environment do not respond to the displacement; for an
+environment converged self-consistently with the QM density their
+response does not contribute to the ground-state forces (the polarization
+energy is stationary), but it does for excited states.
+
 Limitations
 ***********
 
 * Closed-shell ground states; singlet and triplet BSE states.
 * Only the xtp DFT package, with an auxiliary basis (RI).
-* No embedding or environment screening (QM/MM), no truncated bases.
+* Embedding only in frozen external multipoles (see below); no Ewald
+  background, external fields or environment screening, no truncated
+  bases.
 * No off-diagonal QP Hamiltonian in the BSE (``use_Hqp_offdiag``), no
   QSGW, no contour deformation (QP corrections are then kept fixed), no
   dynamical screening of the BSE kernel.

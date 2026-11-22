@@ -294,6 +294,21 @@ QMState DftGwBse::FollowState(const Orbitals& orbitals) {
 // energy with fixed QP corrections (DFTEngine::BSEExcitationGradient).
 // Response of the QP corrections in the gradients (BSE states and QP
 // levels): the options of the GW run that the gradient has to reproduce.
+// The external multipoles of mpsfile as the DFT engine of the SCF sees
+// them (QMPackage::AddRegion copies the sites of a StaticRegion).
+std::vector<std::unique_ptr<StaticSite>> DftGwBse::LoadExternalSites() const {
+  std::vector<std::unique_ptr<StaticSite>> sites;
+  if (mpsfile_.empty()) {
+    return sites;
+  }
+  StaticSegment seg = StaticSegment("", 0);
+  seg.LoadFromFile(mpsfile_);
+  for (const StaticSite& site : seg) {
+    sites.push_back(std::make_unique<StaticSite>(site));
+  }
+  return sites;
+}
+
 void DftGwBse::SetupQPResponse(DFTEngine::BSEGradientInput& input,
                                const Orbitals& orbitals) {
   // response of the QP corrections: implemented for G0W0 and evGW with
@@ -404,9 +419,8 @@ void DftGwBse::ComputeQPGradients(Orbitals& orbitals) {
   if (package_options_.get("name").as<std::string>() != "xtp") {
     throw std::runtime_error("qp_gradients: needs the xtp DFT package");
   }
-  if (!mpsfile_.empty() || orbitals.getCalculationType() == "Truncated") {
-    throw std::runtime_error(
-        "qp_gradients: embedding and truncated bases are not supported");
+  if (orbitals.getCalculationType() == "Truncated") {
+    throw std::runtime_error("qp_gradients: truncated bases are not supported");
   }
   const std::vector<Index> requested =
       ParseLevels(qp_gradients_, orbitals.getHomo());
@@ -443,6 +457,11 @@ void DftGwBse::ComputeQPGradients(Orbitals& orbitals) {
   DFTEngine dft;
   dft.setLogger(&log_);
   dft.Initialize(package_options_);
+  // external multipoles (mpsfile): frozen, their gradient terms are added
+  std::vector<std::unique_ptr<StaticSite>> sites = LoadExternalSites();
+  if (!sites.empty()) {
+    dft.setExternalcharges(&sites);
+  }
   const DFTEngine::BSEGradientResult result =
       dft.BSEExcitationGradient(orbitals, input);
   if (input.qp_response) {
@@ -523,10 +542,9 @@ void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {
   if (package_options_.get("name").as<std::string>() != "xtp") {
     throw std::runtime_error("excited_state_forces: needs the xtp DFT package");
   }
-  if (!mpsfile_.empty() || orbitals.getCalculationType() == "Truncated") {
+  if (orbitals.getCalculationType() == "Truncated") {
     throw std::runtime_error(
-        "excited_state_forces: embedding and truncated bases are not "
-        "supported");
+        "excited_state_forces: truncated bases are not supported");
   }
   if (!orbitals.hasForces()) {
     throw std::runtime_error(
@@ -543,6 +561,11 @@ void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {
   DFTEngine dft;
   dft.setLogger(&log_);
   dft.Initialize(package_options_);
+  // external multipoles (mpsfile): frozen, their gradient terms are added
+  std::vector<std::unique_ptr<StaticSite>> sites = LoadExternalSites();
+  if (!sites.empty()) {
+    dft.setExternalcharges(&sites);
+  }
   const DFTEngine::BSEGradientResult result =
       dft.BSEExcitationGradient(orbitals, input);
 
@@ -596,6 +619,20 @@ void DftGwBse::ComputeExcitedStateForces(Orbitals& orbitals) {
   }
   const Eigen::MatrixXd forces = orbitals.getForces() - result.gradient;
   orbitals.setExcitedStateForces(forces, state.ToString());
+  if (!sites.empty()) {
+    if (!orbitals.hasSiteForces()) {
+      throw std::runtime_error(
+          "excited_state_forces: the ground-state run has no forces on the "
+          "external sites");
+    }
+    orbitals.setExcitedStateSiteForces(orbitals.getSiteForces() -
+                                       result.site_gradient);
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Forces on the " << sites.size()
+        << " external sites (frozen moments) stored "
+           "(excited_state_site_forces)"
+        << std::flush;
+  }
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Excited-state forces (Hartree/Bohr) of "
       << state.ToString() << ", Omega = " << omega << " Ha:\n"

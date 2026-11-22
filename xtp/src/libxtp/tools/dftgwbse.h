@@ -69,6 +69,7 @@ class DftGwBse final : public QMTool {
   void ComputeQPGradients(Orbitals& orbitals);
   std::string relaxed_density_;
   void ComputeRelaxedDensity(Orbitals& orbitals);
+  std::vector<std::unique_ptr<StaticSite>> LoadExternalSites() const;
   // tasks = gradients: gradients from the orb file of an earlier run
   bool gradients_only_ = false;
   void CheckStoredRun(const Orbitals& orbitals) const;

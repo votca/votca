@@ -47,6 +47,7 @@
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/excitonfollow.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/polarsite.h"
 #include "votca/xtp/threecenter.h"
 
 using namespace votca::xtp;
@@ -94,7 +95,8 @@ votca::xtp::Logger& TestLog() {
 // field: a homogeneous electric field (a.u.), H0 -= F . r (DFTEngine
 // externalfield)
 void InitializeEngine(DFTEngine& dft, const std::string& functional,
-                      const Eigen::Vector3d& field = Eigen::Vector3d::Zero()) {
+                      const Eigen::Vector3d& field = Eigen::Vector3d::Zero(),
+                      bool forces = false) {
   dft.setLogger(&TestLog());
   std::string xml_path = "/tmp/xtp_test_bsegradient_dft.xml";
   std::ofstream xml(xml_path);
@@ -108,6 +110,9 @@ void InitializeEngine(DFTEngine& dft, const std::string& functional,
   xml << "<basisset>" << DataFile("def2-svp.xml") << "</basisset>\n";
   xml << "<auxbasisset>" << DataFile("aux-def2-svp.xml") << "</auxbasisset>\n";
   xml << "<initial_guess>independent</initial_guess>\n<xtpdft>\n";
+  if (forces) {
+    xml << "<compute_forces>true</compute_forces>\n";
+  }
   xml << "<screening_eps>1e-12</screening_eps>\n";
   xml << "<fock_matrix_reset>3</fock_matrix_reset>\n<convergence>\n";
   xml << "  <energy>1e-12</energy>\n  <method>DIIS</method>\n";
@@ -468,6 +473,56 @@ void CheckRelaxedDensities(const std::string& functional, const Windows& w,
   }
 }
 
+// External sites around water (bohr): a static site with charge, dipole
+// and quadrupole, a point polar site with an induced dipole and a
+// charge-response site with Gaussian induced charge and dipole; frozen
+// moments, positions shifted by h * dir (nsites x 3).
+std::vector<std::unique_ptr<StaticSite>> EmbeddingSites(
+    const Eigen::MatrixXd& shift = Eigen::MatrixXd::Zero(3, 3)) {
+  std::vector<std::unique_ptr<StaticSite>> sites;
+  {
+    auto s = std::make_unique<StaticSite>(
+        0, "O", Eigen::Vector3d(3.6, -1.2, 1.5) + shift.row(0).transpose());
+    Vector9d Q;
+    Q << 0.30, 0.10, -0.15, 0.20, 0.25, -0.10, 0.15, 0.05, -0.20;
+    s->setMultipole(Q, 2);
+    sites.push_back(std::move(s));
+  }
+  {
+    auto p = std::make_unique<PolarSite>(
+        1, "H", Eigen::Vector3d(-2.8, 2.6, -1.0) + shift.row(1).transpose());
+    Vector9d Q = Vector9d::Zero();
+    Q(0) = -0.20;
+    p->setMultipole(Q, 0);
+    p->setInduced_Dipole(Eigen::Vector3d(0.05, -0.08, 0.03));
+    sites.push_back(std::move(p));
+  }
+  {
+    auto c = std::make_unique<PolarSite>(
+        2, "C", Eigen::Vector3d(0.5, -3.4, -2.2) + shift.row(2).transpose());
+    Vector9d Q = Vector9d::Zero();
+    Q(0) = 0.10;
+    c->setMultipole(Q, 0);
+    c->setChargeResponse(1.2, false);
+    c->setInduced_Charge(-0.15);
+    c->setInduced_Dipole(Eigen::Vector3d(-0.04, 0.06, 0.02));
+    sites.push_back(std::move(c));
+  }
+  return sites;
+}
+
+// fixed, non-symmetric directions for the atoms and the sites
+Eigen::Matrix3d AtomDirection() {
+  Eigen::Matrix3d d;
+  d << 0.31, -0.52, 0.17, -0.44, 0.08, 0.61, 0.23, 0.57, -0.29;
+  return d / d.norm();
+}
+Eigen::Matrix3d SiteDirection() {
+  Eigen::Matrix3d d;
+  d << -0.12, 0.35, 0.48, 0.27, -0.63, 0.09, 0.54, 0.14, -0.38;
+  return d / d.norm();
+}
+
 }  // namespace
 
 // Debug builds (Eigen without optimisation) are 50 to 60 times slower than
@@ -491,6 +546,136 @@ BOOST_AUTO_TEST_CASE(pbe0_relaxed_densities) {
   libint2::initialize();
   CheckRelaxedDensities("XC_HYB_GGA_XC_PBEH", Windows{0, 23, 0, 23}, true,
                         false);
+  libint2::finalize();
+}
+
+// Ground-state forces on the atoms and on frozen external sites (charge,
+// dipole, quadrupole, induced dipole, charge-response Gaussians) against
+// directional finite differences of the total energy.
+BOOST_AUTO_TEST_CASE(embedded_ground_state_forces) {
+  libint2::initialize();
+  if (!HasLibint2DerivativeSupport()) {
+    std::cout << "SKIPPING: this libint2 build lacks derivative integrals"
+              << std::endl;
+    libint2::finalize();
+    return;
+  }
+  const std::string xc = "XC_HYB_GGA_XC_PBEH";
+  auto energy = [&](const Eigen::Matrix3d& pos, const Eigen::MatrixXd& shift) {
+    std::vector<std::unique_ptr<StaticSite>> sites = EmbeddingSites(shift);
+    DFTEngine dft;
+    InitializeEngine(dft, xc);
+    dft.setExternalcharges(&sites);
+    return RunSCF(pos, dft).getDFTTotalEnergy();
+  };
+  std::vector<std::unique_ptr<StaticSite>> sites = EmbeddingSites();
+  DFTEngine dft;
+  InitializeEngine(dft, xc, Eigen::Vector3d::Zero(), true);
+  dft.setExternalcharges(&sites);
+  const Orbitals orb = RunSCF(WaterPositions(), dft);
+  BOOST_REQUIRE(orb.hasSiteForces());
+  const Eigen::MatrixXd& F = orb.getForces();
+  const Eigen::MatrixXd& Fs = orb.getSiteForces();
+  // forces in Hartree/Bohr, positions here in Angstrom (water) and bohr
+  // (sites)
+  const double h = 5e-4;
+  const Eigen::Matrix3d da = AtomDirection();
+  const double fd_atoms =
+      (energy(WaterPositions() + h * da, Eigen::Matrix3d::Zero()) -
+       energy(WaterPositions() - h * da, Eigen::Matrix3d::Zero())) /
+      (2.0 * h) * kAngstromPerBohr;
+  const double an_atoms = -(F.array() * da.array()).sum();
+  const double hs = 1e-3;
+  const Eigen::Matrix3d ds = SiteDirection();
+  const double fd_sites =
+      (energy(WaterPositions(), hs * ds) - energy(WaterPositions(), -hs * ds)) /
+      (2.0 * hs);
+  const double an_sites = -(Fs.array() * ds.array()).sum();
+  const Eigen::Vector3d net = F.colwise().sum() + Fs.colwise().sum();
+  std::cout << "embedded ground state: atoms analytic " << an_atoms << " FD "
+            << fd_atoms << "; sites analytic " << an_sites << " FD " << fd_sites
+            << "; net force " << net.transpose() << std::endl;
+  BOOST_CHECK_SMALL(std::abs(an_atoms - fd_atoms), 5e-5 * F.norm() + 1e-6);
+  BOOST_CHECK_SMALL(std::abs(an_sites - fd_sites), 5e-5 * Fs.norm() + 1e-6);
+  BOOST_CHECK_SMALL(net.cwiseAbs().maxCoeff(), 1e-5);
+  libint2::finalize();
+}
+
+// The same for the BSE excitation energy (fixed corrections): the external
+// sites enter through the relaxed density.
+BOOST_AUTO_TEST_CASE(embedded_bse_gradient) {
+  if (!kAllCases) {
+    std::cout << "SKIPPING embedded_bse_gradient in a Debug build" << std::endl;
+    return;
+  }
+  libint2::initialize();
+  if (!HasLibint2DerivativeSupport()) {
+    std::cout << "SKIPPING: this libint2 build lacks derivative integrals"
+              << std::endl;
+    libint2::finalize();
+    return;
+  }
+  const std::string xc = "XC_HYB_GGA_XC_PBEH";
+  const Windows w{0, 23, 0, 23};
+  auto omega = [&](const Eigen::Matrix3d& pos, const Eigen::MatrixXd& shift) {
+    std::vector<std::unique_ptr<StaticSite>> sites = EmbeddingSites(shift);
+    DFTEngine dft;
+    InitializeEngine(dft, xc);
+    dft.setExternalcharges(&sites);
+    Orbitals o = RunSCF(pos, dft);
+    return SolveBSE(o, w, true, true);
+  };
+  std::vector<std::unique_ptr<StaticSite>> sites = EmbeddingSites();
+  DFTEngine dft;
+  InitializeEngine(dft, xc);
+  dft.setExternalcharges(&sites);
+  Orbitals orb = RunSCF(WaterPositions(), dft);
+  Eigen::VectorXd X;
+  Eigen::VectorXd Y;
+  const double omega_ref = SolveBSE(orb, w, true, true, &X, &Y);
+  const Eigen::VectorXd& eps = orb.MOs().eigenvalues();
+  const Index nmo = eps.size();
+  const Index homo = orb.getHomo();
+  DFTEngine::BSEGradientInput in;
+  in.singlet = true;
+  in.vmin = w.vmin;
+  in.cmax = w.cmax;
+  in.rpamin = w.rpamin;
+  in.rpamax = w.rpamax;
+  in.X = X;
+  in.Y = Y;
+  in.energies_bse = eps.segment(w.vmin, w.cmax - w.vmin + 1) +
+                    ShiftBSE(nmo, homo).segment(w.vmin, w.cmax - w.vmin + 1);
+  in.energies_rpa =
+      eps.segment(w.rpamin, w.rpamax - w.rpamin + 1) +
+      ShiftRPA(nmo, homo).segment(w.rpamin, w.rpamax - w.rpamin + 1);
+  const DFTEngine::BSEGradientResult res = dft.BSEExcitationGradient(orb, in);
+  BOOST_CHECK_SMALL(res.omega - omega_ref, 1e-9);
+  BOOST_REQUIRE_EQUAL(res.site_gradient.rows(), 3);
+
+  const double h = 5e-4;
+  const Eigen::Matrix3d da = AtomDirection();
+  const double fd_atoms =
+      (omega(WaterPositions() + h * da, Eigen::Matrix3d::Zero()) -
+       omega(WaterPositions() - h * da, Eigen::Matrix3d::Zero())) /
+      (2.0 * h) * kAngstromPerBohr;
+  const double an_atoms = (res.gradient.array() * da.array()).sum();
+  const double hs = 1e-3;
+  const Eigen::Matrix3d ds = SiteDirection();
+  const double fd_sites =
+      (omega(WaterPositions(), hs * ds) - omega(WaterPositions(), -hs * ds)) /
+      (2.0 * hs);
+  const double an_sites = (res.site_gradient.array() * ds.array()).sum();
+  const Eigen::Vector3d net = res.gradient.colwise().sum().transpose() +
+                              res.site_gradient.colwise().sum().transpose();
+  std::cout << "embedded BSE: atoms analytic " << an_atoms << " FD " << fd_atoms
+            << "; sites analytic " << an_sites << " FD " << fd_sites << "; net "
+            << net.transpose() << std::endl;
+  BOOST_CHECK_SMALL(std::abs(an_atoms - fd_atoms),
+                    5e-5 * res.gradient.norm() + 1e-6);
+  BOOST_CHECK_SMALL(std::abs(an_sites - fd_sites),
+                    5e-5 * res.site_gradient.norm() + 1e-6);
+  BOOST_CHECK_SMALL(net.cwiseAbs().maxCoeff(), 1e-6);
   libint2::finalize();
 }
 

@@ -101,6 +101,19 @@ class DFTEngine {
     externalsites_ = externalsites;
   }
 
+  /// Gradient of the interaction energy with the external sites
+  /// (setExternalcharges) at frozen moments: the electrons with density D
+  /// (AO, both spins, electrons counted positive) and, with nuclei, the
+  /// nuclei of mol. Returns d/dR of the atoms (natoms x 3, Hartree/Bohr);
+  /// site_gradient (nsites x 3, the order of the sites) receives d/dR of the
+  /// site positions. Point multipoles (charge, dipole incl. induced,
+  /// quadrupole) and the Gaussian induced charges/dipoles of charge-response
+  /// sites, as in IntegrateExternalMultipoles. Needs libint2 ERI3
+  /// derivatives.
+  Eigen::MatrixXd ExternalSitesGradient(const QMMolecule& mol,
+                                        const Eigen::MatrixXd& D, bool nuclei,
+                                        Eigen::MatrixXd& site_gradient) const;
+
   void setEwaldgrid(const Vxc_Grid& ewaldgrid) {
     external_ewaldgrid_ = ewaldgrid;
     has_ewaldgrid_ = true;
@@ -243,6 +256,11 @@ class DFTEngine {
     Eigen::MatrixXd relaxed_density;
     /// for qp_levels: the same per level, dE_p/dlambda = Tr(h' P_p)
     std::vector<Eigen::MatrixXd> qp_relaxed_densities;
+    /// dOmega/dR of the external sites (setExternalcharges; nsites x 3,
+    /// frozen moments), empty without sites
+    Eigen::MatrixXd site_gradient;
+    /// for qp_levels: the same per level
+    std::vector<Eigen::MatrixXd> qp_site_gradients;
     /// with qp_response: max |E - rebuilt QP energy| over the QP window
     double qp_rebuild_error = 0.0;
     /// with qp_selfconsistent: max |R - rebuilt RPA energy|
@@ -524,6 +542,9 @@ class DFTEngine {
   double NuclearRepulsion(const QMMolecule& mol) const;
   /// Compute the classical interaction energy between nuclei and external
   /// multipoles.
+  bool ExternalTermsCoveredByForces() const;
+  void AddExternalSitesGradient(Orbitals& orb, const Eigen::MatrixXd& Dmat,
+                                Eigen::MatrixXd& grad) const;
   double ExternalRepulsion(
       const QMMolecule& mol,
       const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
