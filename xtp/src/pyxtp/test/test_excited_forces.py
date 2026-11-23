@@ -247,3 +247,56 @@ def test_relaxed_density_finite_field(tmp_path):
     fd = (omega[1] - omega[2]) / (2 * field) / units.Hartree
     assert abs(change[2]) > 0.1
     assert change[2] == pytest.approx(fd, abs=2e-5)
+
+
+def write_mps(path, shift=0.0):
+    """Write three external sites (rank 2, 1, 0) around water.
+
+    shift moves the first site along x (Angstrom).
+    """
+    with open(path, 'w') as mps:
+        mps.write('! three sites\n! N=3\nUnits angstrom\n'
+                  f'  O {2.0 + shift} -0.6 0.8 Rank 2\n+0.3\n'
+                  '0.10 -0.15 0.20\n0.25 -0.10 0.15 0.05 -0.20\nP +0.0\n'
+                  '  H -1.5 1.4 -0.5 Rank 1\n-0.2\n0.05 -0.08 0.03\n'
+                  'P +0.0\n'
+                  '  C 0.3 -1.8 -1.2 Rank 0\n+0.1\nP +0.0\n')
+
+
+@pytest.mark.skipif(not RUN, reason="set PYXTP_RUN_DFTGWBSE=1")
+def test_embedded_forces_finite_difference(tmp_path, derivatives):
+    """Check S1 forces on atoms and sites in frozen external multipoles.
+
+    The analytic forces (G0W0 with QP response, TDA) on an atom and on a
+    site are compared with finite differences of the total S1 energy;
+    atoms and sites together carry no net force.
+    """
+    def energy_and_forces(name, dx_atom=0.0, dx_site=0.0, forces=False):
+        directory = tmp_path / name
+        directory.mkdir()
+        cwd = os.getcwd()
+        os.chdir(directory)
+        try:
+            write_mps('sites.mps', dx_site)
+            calc = make_calc()
+            calc.set(**{'mpsfile': str(directory / 'sites.mps')})
+            atoms = water()
+            atoms.positions[1, 0] += dx_atom
+            atoms.calc = calc
+            if forces:
+                return (atoms.get_forces(), calc.get_site_forces())
+            return atoms.get_potential_energy()
+        finally:
+            os.chdir(cwd)
+
+    forces, site_forces = energy_and_forces('ref', forces=True)
+    assert site_forces.shape == (3, 3)
+    net = forces.sum(axis=0) + site_forces.sum(axis=0)
+    assert np.abs(net).max() < 1e-5
+    h = 5e-4  # Angstrom
+    fd_atom = -(energy_and_forces('ap', dx_atom=h) -
+                energy_and_forces('am', dx_atom=-h)) / (2 * h)
+    fd_site = -(energy_and_forces('sp', dx_site=h) -
+                energy_and_forces('sm', dx_site=-h)) / (2 * h)
+    assert forces[1, 0] == pytest.approx(fd_atom, rel=5e-4)
+    assert site_forces[0, 0] == pytest.approx(fd_site, rel=5e-4, abs=1e-5)

@@ -451,6 +451,31 @@ environment converged self-consistently with the QM density their
 response does not contribute to the ground-state forces (the polarization
 energy is stationary), but it does for excited states.
 
+QM/MM forces
+************
+
+``qmmm`` with ``qmregion.compute_forces true`` computes, after the
+inter-region loop has converged, the forces on the QM atoms of the tracked
+state (ground state, charged e/h states, BSE singlets and triplets,
+perturbative QP levels) with the environment at its converged moments,
+and writes them to the job output (``forces``, Hartree/Bohr). They are
+the derivatives of the converged QM/MM energy if the environment has been
+converged against the density whose energy derivative it is: the
+ground-state density for the ground state, and the relaxed density for
+excited states (``relaxed_density true``; a warning is given otherwise).
+The total energy is then stationary in the induced moments, so their
+response does not enter the forces.
+
+Checks (methane S1, G0W0, 3-21G, finite differences of the converged
+total energy): a self-consistent polarizable site in a unit test agrees
+to :math:`6\times 10^{-6}`; a QM/MM run with one Thole region to
+:math:`7\times 10^{-4}` and with static regions only to
+:math:`1\times 10^{-4}` (the finite-difference accuracy); with two Thole
+regions and a static region to :math:`1\times 10^{-4}` (ground state) and
+:math:`8\times 10^{-4}` (S1).
+With the relaxed density replaced by the unrelaxed one in the unit test
+the forces are off by 7%.
+
 Limitations
 ***********
 

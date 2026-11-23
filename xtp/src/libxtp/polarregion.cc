@@ -402,8 +402,8 @@ double PolarRegion::InteractwithPolarRegion(const PolarRegion& region) {
         e_thread += ee.ApplyStaticField<PolarSegment, Estatic::V>(pseg2, pseg1);
         e_thread += ee.ApplyInducedField<Estatic::V>(pseg2, pseg1);
       }
-      e += e_thread;
     }
+    e += e_thread;
   }
   return e;
 }

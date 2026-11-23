@@ -33,12 +33,14 @@
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/pmlocalization.h"
 #include "votca/xtp/polarregion.h"
+#include "votca/xtp/polarsite.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
 #include <votca/tools/constants.h>
 
 #include <algorithm>
+#include <boost/format.hpp>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -99,6 +101,15 @@ void QMRegion::Initialize(const tools::Property& prop) {
   localize_options_ = prop.get("localize");
   relaxed_density_ =
       prop.ifExistsReturnElseReturnDefault<bool>("relaxed_density", false);
+  compute_forces_ =
+      prop.ifExistsReturnElseReturnDefault<bool>("compute_forces", false);
+  if (compute_forces_) {
+    if (dftoptions_.get("name").as<std::string>() != "xtp") {
+      throw std::runtime_error("compute_forces: needs the xtp DFT package");
+    }
+    // ground-state forces with every DFT run (the last one is used)
+    dftoptions_.get("xtpdft.compute_forces").value() = "true";
+  }
 
   if (prop.get("dftpackage.xtpdft.dft_in_dft.activeatoms")
           .as<std::string>()
@@ -182,6 +193,26 @@ void QMRegion::Initialize(const tools::Property& prop) {
     }
     if (dftoptions_.get("name").as<std::string>() != "xtp") {
       throw std::runtime_error("relaxed_density: needs the xtp DFT package");
+    }
+  }
+  if (compute_forces_) {
+    if (screening_) {
+      throw std::runtime_error(
+          "compute_forces: not available with environment_screening");
+    }
+    if (do_dft_in_dft_) {
+      throw std::runtime_error(
+          "compute_forces: not available with DFT-in-DFT embedding");
+    }
+    if (do_gwbse_ && initstate_.Type().isExciton() && !relaxed_density_) {
+      XTP_LOG(Log::error, log_)
+          << TimeStamp()
+          << " WARNING: compute_forces for an excited state without "
+             "relaxed_density: the environment is converged against the "
+             "unrelaxed density, so the forces at frozen environment "
+             "moments are not the derivatives of the QM/MM energy; set "
+             "relaxed_density true"
+          << std::flush;
     }
   }
 }
@@ -274,7 +305,7 @@ double QMRegion::StateEnergy(const QMState& state) const {
 }
 
 ScreeningEnvironment QMRegion::BuildScreeningEnvironment(
-    const std::vector<std::unique_ptr<Region> >& regions) const {
+    const std::vector<std::unique_ptr<Region>>& regions) const {
   ScreeningEnvironment env;
   env.shell_dielectric = screening_shell_dielectric_;
   env.include_kreac = screening_include_kreac_;
@@ -352,7 +383,7 @@ std::string QMRegion::ScreeningAuxBasisName() const {
 }
 
 void QMRegion::CheckScreeningEnvironment(
-    const std::vector<std::unique_ptr<Region> >& regions) const {
+    const std::vector<std::unique_ptr<Region>>& regions) const {
   if (!screening_) {
     return;
   }
@@ -391,7 +422,7 @@ void QMRegion::CheckScreeningEnvironment(
 }
 
 void QMRegion::EvaluateScreenedGWBSE(
-    std::vector<std::unique_ptr<Region> >& regions) {
+    std::vector<std::unique_ptr<Region>>& regions) {
   if (!screening_) {
     return;
   }
@@ -542,7 +573,7 @@ bool QMRegion::Converged() const {
   return converged;
 }
 
-void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
+void QMRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
 
   std::vector<double> interact_energies = ApplyInfluenceOfOtherRegions(regions);
   double e_ext =
@@ -844,6 +875,100 @@ void QMRegion::AppendResult(tools::Property& prop) const {
     prop.add("Initial_State", statetracker_.InitialState().ToString());
     prop.add("Final_State", statetracker_.CalcState(orb_).ToString());
   }
+  if (forces_.rows() > 0) {
+    tools::Property& forces = prop.add("forces", "");
+    forces.setAttribute("state", forces_state_.ToString());
+    forces.setAttribute("unit", "Hartree/Bohr");
+    for (Index a = 0; a < forces_.rows(); ++a) {
+      tools::Property& atom =
+          forces.add("atom", (boost::format("%1$+1.8e %2$+1.8e %3$+1.8e") %
+                              forces_(a, 0) % forces_(a, 1) % forces_(a, 2))
+                                 .str());
+      atom.setAttribute("id", a);
+      atom.setAttribute("element", orb_.QMAtoms()[a].getElement());
+    }
+  }
+}
+
+void QMRegion::ComputeForces() {
+  if (!orb_.hasForces()) {
+    throw std::runtime_error(
+        "compute_forces: the last DFT run stored no forces (see its log, e.g. "
+        "an Ewald background or external field, whose force terms are not "
+        "implemented)");
+  }
+  QMState state = QMState("groundstate");
+  if (do_gwbse_ || initstate_.Type().isKSState()) {
+    state = statetracker_.CalcState(orb_);
+  }
+  forces_ = orb_.getForces();
+  forces_state_ = state;
+  const QMStateType type = state.Type();
+  const bool bse = type == QMStateType::Singlet || type == QMStateType::Triplet;
+  const bool qp = type == QMStateType::PQPstate;
+  if (!bse && !qp) {
+    if (type != QMStateType::Gstate && type != QMStateType::Electron &&
+        type != QMStateType::Hole) {
+      throw std::runtime_error("compute_forces: not implemented for state " +
+                               state.ToString());
+    }
+    // ground state, or the charged system of e/h: the DFT forces
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Forces of " << state.ToString()
+        << " (DFT, environment frozen)" << std::flush;
+    return;
+  }
+  // the external sites exactly as the last DFT run saw them
+  std::vector<std::unique_ptr<StaticSite>> sites;
+  for (const std::unique_ptr<StaticSite>& site :
+       qmpackage_->getExternalSites()) {
+    if (const PolarSite* p = dynamic_cast<const PolarSite*>(site.get())) {
+      sites.push_back(std::make_unique<PolarSite>(*p));
+    } else {
+      sites.push_back(std::make_unique<StaticSite>(*site));
+    }
+  }
+  DFTEngine dft;
+  dft.setLogger(&log_);
+  tools::Property dftoptions = dftoptions_;
+  dft.Initialize(dftoptions);
+  if (!sites.empty()) {
+    dft.setExternalcharges(&sites);
+  }
+  DFTEngine::BSEGradientInput input =
+      bse ? DFTEngine::BSEGradientInputFromOrbitals(
+                orb_, type == QMStateType::Singlet, state.StateIdx())
+          : DFTEngine::QPGradientInputFromOrbitals(orb_, {state.StateIdx()});
+  DFTEngine::ConfigureQPResponse(input, orb_, gwbseoptions_, &log_);
+  const DFTEngine::BSEGradientResult result =
+      dft.BSEExcitationGradient(orb_, input);
+  if (bse) {
+    const double omega =
+        (type == QMStateType::Singlet ? orb_.BSESinglets() : orb_.BSETriplets())
+            .eigenvalues()(state.StateIdx());
+    if (std::abs(result.omega - omega) > 1e-4) {
+      throw std::runtime_error(
+          "compute_forces: the excitation energy rebuilt for the gradient "
+          "differs from the BSE eigenvalue by " +
+          std::to_string(std::abs(result.omega - omega)) + " Ha");
+    }
+    forces_ -= result.gradient;
+  } else {
+    // E(N-1) - E(N) = -E_p for an occupied level, E(N+1) - E(N) = E_p
+    const double sign = (state.StateIdx() <= orb_.getHomo()) ? -1.0 : 1.0;
+    forces_ -= sign * result.qp_gradients.front();
+  }
+  if (input.qp_response && result.qp_rebuild_error > 1e-4) {
+    throw std::runtime_error(
+        "compute_forces: the QP energies rebuilt for the gradient differ "
+        "from the GW ones by " +
+        std::to_string(result.qp_rebuild_error) + " Ha");
+  }
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Forces of " << state.ToString() << " ("
+      << sites.size() << " external sites at their converged moments"
+      << (relaxed_density_ ? "" : ", unrelaxed environment: approximate") << ")"
+      << std::flush;
 }
 
 void QMRegion::Reset() {

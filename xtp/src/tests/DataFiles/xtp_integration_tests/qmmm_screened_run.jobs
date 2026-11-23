@@ -13,19 +13,19 @@
 			</regions>
 		</input>
 		<status>COMPLETE</status>
-		<host>vm:382</host>
-		<time>19:25:42</time>
+		<host>vm:2071</host>
+		<time>11:02:02</time>
 		<output>
 			<regions>
 				<region Tot_charge="0.000000e+00" id="0" size="1" type="qmregion">
-					<E_total>-1081.196944</E_total>
+					<E_total>-1081.196969</E_total>
 					<Initial_State>s1</Initial_State>
 					<Final_State>s1</Final_State>
 				</region>
 				<region Tot_charge="-8.743006e-16" id="1" size="16" type="polarregion">
-					<E_static>-0.099167</E_static>
-					<E_polar>-0.002140</E_polar>
-					<E_total>-0.101306</E_total>
+					<E_static>0.001260</E_static>
+					<E_polar>-0.002139</E_polar>
+					<E_total>-0.000880</E_total>
 				</region>
 				<region Tot_charge="-6.536438e-15" id="3" size="118" type="staticregion"/>
 				<region Tot_charge="-2.040035e-15" id="2" size="37" type="polarregion">
@@ -34,15 +34,15 @@
 					<E_total>-0.003137</E_total>
 				</region>
 			</regions>
-			<E_tot>-1081.301388</E_tot>
-			<Compute_Time>15</Compute_Time>
+			<E_tot>-1081.200986</E_tot>
+			<Compute_Time>2</Compute_Time>
 			<Total_Charge>-0.000000</Total_Charge>
 			<Iterations>3</Iterations>
-			<E_ground>-1094.822712</E_ground>
+			<E_ground>-1094.722285</E_ground>
 			<screened_site_energies>
-				<h>12.658889</h>
-				<e>6.374837</e>
-				<s>13.521325</s>
+				<h>12.658875</h>
+				<e>6.374835</e>
+				<s>13.521300</s>
 				<state>s1</state>
 			</screened_site_energies>
 		</output>

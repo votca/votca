@@ -108,6 +108,14 @@ class QMRegion : public Region {
    * coupling. Updates the region energy with the state energy found.
    */
   bool EnvironmentScreeningEnabled() const { return screening_; }
+
+  /// qmregion.compute_forces: forces on the QM atoms of the converged
+  /// iterative QM/MM state (ground state from the last DFT run, excited
+  /// states and QP levels from the analytic GW-BSE gradient), with the
+  /// environment at its converged (frozen) moments. Call after the
+  /// inter-region loop has converged.
+  bool ComputeForcesRequested() const { return compute_forces_; }
+  void ComputeForces();
   void EvaluateScreenedGWBSE(std::vector<std::unique_ptr<Region> >& regions);
   // After EvaluateScreenedGWBSE: adds <screened_site_energies> (h, e and
   // s or t, in eV, relative to the ground state) for -j read. No-op
@@ -163,6 +171,11 @@ class QMRegion : public Region {
   // measured with) the relaxed density of the tracked state instead of the
   // unrelaxed one; computed once per GW-BSE run (cache)
   bool relaxed_density_ = false;
+  // compute_forces: forces (Hartree/Bohr) of the tracked state, written to
+  // the job output
+  bool compute_forces_ = false;
+  Eigen::MatrixXd forces_;
+  QMState forces_state_;
   mutable Eigen::MatrixXd relaxed_dmat_;
   mutable QMState relaxed_dmat_state_;
   mutable bool relaxed_dmat_valid_ = false;

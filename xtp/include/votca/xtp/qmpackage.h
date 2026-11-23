@@ -75,6 +75,12 @@ class QMPackage {
     WriteChargeOption();
   }
 
+  /// the external sites given to the package (AddRegion), e.g. for gradient
+  /// terms computed outside the package
+  const std::vector<std::unique_ptr<StaticSite> >& getExternalSites() const {
+    return externalsites_;
+  }
+
   void setRunDir(const std::string& run_dir) { run_dir_ = run_dir; }
 
   void setInputFileName(const std::string& input_file_name) {
@@ -139,7 +145,7 @@ class QMPackage {
  protected:
   virtual void ParseSpecificOptions(const tools::Property& options) = 0;
   struct MinimalMMCharge {
-    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q) {};
+    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q){};
     Eigen::Vector3d pos_;
     double q_;
   };

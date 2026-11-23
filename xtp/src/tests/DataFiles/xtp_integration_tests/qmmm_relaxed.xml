@@ -23,6 +23,7 @@
 				<oscillatorstrength>0.0001</oscillatorstrength>
 			</statetracker>
 			<relaxed_density>true</relaxed_density>
+			<compute_forces>true</compute_forces>
 		</qmregion>
 		<polarregion>
 			<id>1</id>

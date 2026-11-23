@@ -13,19 +13,26 @@
 			</regions>
 		</input>
 		<status>COMPLETE</status>
-		<host>vm:1173</host>
-		<time>12:13:52</time>
+		<host>vm:2072</host>
+		<time>11:02:14</time>
 		<output>
 			<regions>
 				<region Tot_charge="0.000000e+00" id="0" size="1" type="qmregion">
 					<E_total>-1081.137123</E_total>
 					<Initial_State>s1</Initial_State>
 					<Final_State>s1</Final_State>
+					<forces state="s1" unit="Hartree/Bohr">
+						<atom element="C" id="0">+5.57047883e-03 -1.23110698e-01 -2.24618225e-02</atom>
+						<atom element="H" id="1">+5.14914276e-02 +6.18113208e-02 +2.27377914e-02</atom>
+						<atom element="H" id="2">+2.93982568e-03 -1.08200973e-02 -3.33320242e-02</atom>
+						<atom element="H" id="3">-7.28763637e-03 +9.85265522e-02 -1.07460629e-02</atom>
+						<atom element="H" id="4">-5.30359642e-02 -2.64520885e-02 +4.37048939e-02</atom>
+					</forces>
 				</region>
 				<region Tot_charge="-8.743006e-16" id="1" size="16" type="polarregion">
-					<E_static>-0.100456</E_static>
+					<E_static>0.001018</E_static>
 					<E_polar>0.017687</E_polar>
-					<E_total>-0.082769</E_total>
+					<E_total>0.018705</E_total>
 				</region>
 				<region Tot_charge="-6.536438e-15" id="3" size="118" type="staticregion"/>
 				<region Tot_charge="-2.040035e-15" id="2" size="37" type="polarregion">
@@ -34,8 +41,8 @@
 					<E_total>-0.001732</E_total>
 				</region>
 			</regions>
-			<E_tot>-1081.221624</E_tot>
-			<Compute_Time>13</Compute_Time>
+			<E_tot>-1081.120150</E_tot>
+			<Compute_Time>15</Compute_Time>
 			<Total_Charge>-0.000000</Total_Charge>
 			<Iterations>8</Iterations>
 		</output>

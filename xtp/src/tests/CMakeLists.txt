@@ -109,6 +109,7 @@ list(APPEND test_cases test_oscillatorstrength_filter)
 list(APPEND test_cases test_overlap_filter)
 list(APPEND test_cases test_parallelism)
 list(APPEND test_cases test_pmlocalization)
+list(APPEND test_cases test_polarregion)
 list(APPEND test_cases test_polarsite)
 list(APPEND test_cases test_populationanalysis)
 list(APPEND test_cases test_polarsegment)
@@ -349,7 +350,8 @@ if(RUN_XTP_INTEGRATIONTESTS)
   # xtp_parallel -e qmmm, iterative embedded GW-BSE (S1 of methane against
   # two Thole regions) with qmregion.relaxed_density: the polar regions see
   # the relaxed S1 density (orbital and G0W0-correction response) instead
-  # of the unrelaxed one. Same tolerances as the screened test.
+  # of the unrelaxed one, and the S1 forces on the QM atoms at the converged
+  # environment (compute_forces). Same tolerances as the screened test.
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_qmmm_relaxed)
   file(MAKE_DIRECTORY ${RUNPATH})
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
@@ -363,7 +365,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Run_xtp_parallel_qmmm_relaxed COMMAND xtp_parallel -e qmmm -o qmmm_relaxed.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_xtp_parallel_qmmm_relaxed PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_relaxed_jobs TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
   if(HAS_XML_COMPARE)
-    add_test(NAME integration_Compare_xtp_parallel_qmmm_relaxed_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_relaxed_run.jobs ${RUNPATH}/qmmm_relaxed.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_polar:1e-6:2e-3 --tag-tol E_static:1e-6:2e-3 WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_parallel_qmmm_relaxed_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_relaxed_run.jobs ${RUNPATH}/qmmm_relaxed.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_polar:1e-6:2e-3 --tag-tol E_static:1e-6:2e-3 --tag-tol atom:1e-3:1e-5 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_qmmm_relaxed_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_relaxed)
   else()
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_relaxed (votca_compare_xml not found)")

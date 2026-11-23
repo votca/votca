@@ -408,6 +408,17 @@ class xtp(Calculator):
                     state = state.decode()
                 self.excited_forces_state = str(state)
 
+            # forces on the external sites (mpsfile), frozen moments,
+            # Hartree/Bohr -> eV/Angstrom; one row per site of the mps file
+            self.site_forces = None
+            self.excited_site_forces = None
+            if 'site_forces' in orb and orb['site_forces'].shape[0] > 0:
+                self.site_forces = H2EV * orb['site_forces'][()] / BOHR2ANG
+            if 'excited_state_site_forces' in orb and \
+                    orb['excited_state_site_forces'].shape[0] > 0:
+                self.excited_site_forces = (
+                    H2EV * orb['excited_state_site_forces'][()] / BOHR2ANG)
+
             self.has_data = True
 
         # create the results
@@ -428,6 +439,11 @@ class xtp(Calculator):
                     self.excited_forces_state == self.tracked_state:
                 self.results['forces'] = self.excited_forces
                 self.has_forces = True
+        if self.excited_state is not None:
+            if self.excited_site_forces is not None:
+                self.results['site_forces'] = self.excited_site_forces
+        elif self.site_forces is not None:
+            self.results['site_forces'] = self.site_forces
 
     @staticmethod
     def _parse_state(state: str) -> str:
@@ -814,6 +830,21 @@ class xtp(Calculator):
         if self._try_analytic_forces(atoms=atoms):
             return self.results['forces']
         return self.calculate_numerical_forces(eps=eps, atoms=atoms)
+
+    def get_site_forces(self, atoms: Atoms = None) -> np.ndarray:
+        """Return the forces on the external sites (eV/Angstrom).
+
+        With an mps file (option mpsfile) the analytic forces include the
+        interaction with these sites at frozen moments; the forces on the
+        sites (one row per site of the mps file) belong to the same state
+        as get_forces: the excited state if excited_state is set, else the
+        ground state (needs dftpackage.xtpdft.compute_forces).
+        """
+        self.get_forces(atoms)
+        if 'site_forces' not in self.results:
+            raise RuntimeError('no forces on external sites: set mpsfile '
+                               'and use analytic forces')
+        return self.results['site_forces']
 
     def read_forces_from_logfile(self, logfile: Pathlike) -> None:
         """Read Forces from VOTCA logfile

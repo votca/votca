@@ -17,6 +17,7 @@
         <dftpackage link="dftpackage.xml"/>
         <localize link="localize.xml"/>
         <statetracker link="statetracker.xml" default="OPTIONAL" />
+        <compute_forces help="after the inter-region loop has converged, compute the analytic forces on the QM atoms of the tracked state (DFT ground state, charged e/h states, BSE singlets/triplets and perturbative QP levels with GW-BSE) with the environment at its converged moments, and write them to the job output (Hartree/Bohr). For the iterative scheme these are the derivatives of the QM/MM energy when the environment is converged against the density the energy responds to: the ground-state density, or for excited states the relaxed density (set relaxed_density true). xtp DFT package with an auxiliary basis; not with environment_screening, DFT-in-DFT or an Ewald region" default="false" choices="bool" />
         <relaxed_density help="polarize the polar regions with the relaxed density of the tracked state (orbital relaxation and, for G0W0/evGW with sigma_integrator ppm or exact, the response of the QP corrections; DFTEngine::RelaxedDensityMatrix) instead of the unrelaxed one; for BSE singlets/triplets and perturbative QP levels, xtp DFT package with an auxiliary basis, closed shell, no environment_screening or DFT-in-DFT" default="false" choices="bool" />
         <!-- Embedded GW-BSE after Li, D'Avino, Duchemin, Beljonne, Blase,
              Phys. Rev. B (2018), arXiv:1801.01755, and Amblard, Blase, Duchemin, JCP 160,

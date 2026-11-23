@@ -237,6 +237,23 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     }
   }
 
+  // qmregion.compute_forces: forces of the converged state on the QM atoms
+  if (jres.getStatus() == Job::JobStatus::COMPLETE &&
+      screened_qmregion == nullptr) {
+    QMRegion* qmregion = dynamic_cast<QMRegion*>(jobtop.Regions()[0].get());
+    if (qmregion != nullptr && qmregion->ComputeForcesRequested()) {
+      try {
+        qmregion->ComputeForces();
+      } catch (std::exception& e) {
+        XTP_LOG(Log::error, pLog)
+            << TimeStamp() << " Forces failed: " << e.what() << std::flush;
+        jres.setStatus(Job::JobStatus::FAILED);
+        jres.setError(std::string("Forces failed: ") + e.what());
+        return jres;
+      }
+    }
+  }
+
   tools::Property results;
   tools::Property& jobresult = results.add("output", "");
   tools::Property& regionsresults = jobresult.add("regions", "");

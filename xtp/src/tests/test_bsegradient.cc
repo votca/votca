@@ -42,9 +42,11 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aopotential.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/bse.h"
 #include "votca/xtp/dftengine.h"
+#include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/excitonfollow.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/polarsite.h"
@@ -676,6 +678,149 @@ BOOST_AUTO_TEST_CASE(embedded_bse_gradient) {
   BOOST_CHECK_SMALL(std::abs(an_sites - fd_sites),
                     5e-5 * res.site_gradient.norm() + 1e-6);
   BOOST_CHECK_SMALL(net.cwiseAbs().maxCoeff(), 1e-6);
+  libint2::finalize();
+}
+
+// Polarizable embedding converged self-consistently, as in the iterative
+// QM/MM scheme: one polarizable site (charge, isotropic polarizability)
+// whose induced dipole mu = alpha F is iterated against the field F of the
+// QM density (ground state) or of the relaxed S1 density (with
+// qmregion.relaxed_density). The total energy E_QM(R, mu) + mu^2/(2 alpha)
+// is then stationary in mu, so the forces at frozen moments are its exact
+// derivatives: checked against finite differences of the converged total
+// energy (mu re-converged at each displaced geometry).
+namespace {
+struct PolarizableResult {
+  double energy;          // converged total energy (Hartree)
+  Eigen::MatrixXd force;  // analytic force at frozen mu (Hartree/Bohr)
+  Eigen::Vector3d mu;
+};
+
+PolarizableResult ConvergePolarizable(const Eigen::Matrix3d& pos, bool excited,
+                                      bool forces) {
+  const std::string xc = "XC_HYB_GGA_XC_PBEH";
+  const Windows w{0, 23, 0, 23};
+  const double alpha = 8.0;
+  const Eigen::Vector3d site_pos(3.2, -1.6, 1.4);
+  Eigen::Vector3d mu = Eigen::Vector3d::Zero();
+  PolarizableResult result;
+  for (Index iter = 0; iter < 60; ++iter) {
+    std::vector<std::unique_ptr<StaticSite>> sites;
+    auto p = std::make_unique<PolarSite>(0, "O", site_pos);
+    Vector9d Q = Vector9d::Zero();
+    Q(0) = 0.4;
+    p->setMultipole(Q, 0);
+    p->setpolarization(alpha * Eigen::Matrix3d::Identity());
+    p->setInduced_Dipole(mu);
+    sites.push_back(std::move(p));
+    DFTEngine dft;
+    InitializeEngine(dft, xc, Eigen::Vector3d::Zero(), forces);
+    dft.setExternalcharges(&sites);
+    Orbitals orb = RunSCF(pos, dft);
+    double energy = orb.getDFTTotalEnergy();
+    Eigen::MatrixXd D = orb.DensityMatrixGroundState();
+    Eigen::MatrixXd force = forces ? orb.getForces() : Eigen::MatrixXd();
+    if (excited) {
+      Eigen::VectorXd X;
+      Eigen::VectorXd Y;
+      const double omega = SolveBSE(orb, w, true, true, &X, &Y);
+      energy += omega;
+      const Eigen::VectorXd& eps = orb.MOs().eigenvalues();
+      const Index nmo = eps.size();
+      const Index homo = orb.getHomo();
+      DFTEngine::BSEGradientInput in;
+      in.singlet = true;
+      in.vmin = w.vmin;
+      in.cmax = w.cmax;
+      in.rpamin = w.rpamin;
+      in.rpamax = w.rpamax;
+      in.X = X;
+      in.Y = Y;
+      in.energies_bse =
+          eps.segment(w.vmin, w.cmax - w.vmin + 1) +
+          ShiftBSE(nmo, homo).segment(w.vmin, w.cmax - w.vmin + 1);
+      in.energies_rpa =
+          eps.segment(w.rpamin, w.rpamax - w.rpamin + 1) +
+          ShiftRPA(nmo, homo).segment(w.rpamin, w.rpamax - w.rpamin + 1);
+      in.density_only = !forces;
+      const DFTEngine::BSEGradientResult res =
+          dft.BSEExcitationGradient(orb, in);
+      D += res.relaxed_density;
+      if (forces) {
+        force -= res.gradient;
+      }
+    }
+    // F = -dE_QM/dmu: electrons (D) and nuclei, linear in mu
+    Eigen::Vector3d field;
+    {
+      BasisSet bs;
+      bs.Load(DataFile("def2-svp.xml"));
+      AOBasis basis;
+      basis.Fill(bs, orb.QMAtoms());
+      eeInteractor interactor;
+      for (Index c = 0; c < 3; ++c) {
+        StaticSite unit(0, "X", site_pos);
+        Vector9d Qu = Vector9d::Zero();
+        Qu.segment<3>(1) = Eigen::Vector3d::Unit(c);
+        unit.setMultipole(Qu, 1);
+        std::vector<std::unique_ptr<StaticSite>> u;
+        u.push_back(std::make_unique<StaticSite>(unit));
+        AOMultipole m;
+        m.FillPotential(basis, u);
+        double dE = m.Matrix().cwiseProduct(D).sum();
+        for (const QMAtom& atom : orb.QMAtoms()) {
+          StaticSite nucleus(atom, double(atom.getNuccharge()));
+          dE += interactor.CalcStaticEnergy_site(unit, nucleus);
+        }
+        field(c) = -dE;
+      }
+    }
+    const Eigen::Vector3d mu_new = alpha * field;
+    result.energy = energy + 0.5 * mu.squaredNorm() / alpha;
+    result.force = force;
+    result.mu = mu;
+    if ((mu_new - mu).cwiseAbs().maxCoeff() < 1e-9) {
+      break;
+    }
+    mu = mu_new;
+  }
+  return result;
+}
+
+void CheckPolarizableStationarity(bool excited) {
+  const PolarizableResult ref =
+      ConvergePolarizable(WaterPositions(), excited, true);
+  const double h = 5e-4;
+  const Eigen::Matrix3d da = AtomDirection();
+  const double ep =
+      ConvergePolarizable(WaterPositions() + h * da, excited, false).energy;
+  const double em =
+      ConvergePolarizable(WaterPositions() - h * da, excited, false).energy;
+  const double fd = -(ep - em) / (2.0 * h) * kAngstromPerBohr;
+  const double analytic = (ref.force.array() * da.array()).sum();
+  std::cout << (excited ? "S1" : "ground state")
+            << " in a self-consistent polarizable site: induced dipole "
+            << ref.mu.transpose() << ", directional force analytic " << analytic
+            << ", FD " << fd << std::endl;
+  BOOST_CHECK_SMALL(std::abs(analytic - fd), 5e-5 * ref.force.norm() + 1e-6);
+}
+}  // namespace
+
+BOOST_AUTO_TEST_CASE(polarizable_embedding_stationarity) {
+  if (!kAllCases) {
+    std::cout << "SKIPPING polarizable_embedding_stationarity in a Debug build"
+              << std::endl;
+    return;
+  }
+  libint2::initialize();
+  if (!HasLibint2DerivativeSupport()) {
+    std::cout << "SKIPPING: this libint2 build lacks derivative integrals"
+              << std::endl;
+    libint2::finalize();
+    return;
+  }
+  CheckPolarizableStationarity(false);
+  CheckPolarizableStationarity(true);
   libint2::finalize();
 }
 
