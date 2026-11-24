@@ -341,7 +341,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   # iterations converge normally; nothing hangs.
   set_tests_properties(integration_Run_xtp_parallel_qmmm_screened PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_screened_jobs TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
   if(HAS_XML_COMPARE)
-    add_test(NAME integration_Compare_xtp_parallel_qmmm_screened_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_screened_run.jobs ${RUNPATH}/qmmm_screened.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_ground:1e-6:2e-3 --tag-tol h:1e-6:2e-3 --tag-tol e:1e-6:2e-3 --tag-tol s:1e-6:2e-3 WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_parallel_qmmm_screened_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_screened_run.jobs ${RUNPATH}/qmmm_screened.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol atom:1e-3:1e-5 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_ground:1e-6:2e-3 --tag-tol h:1e-6:2e-3 --tag-tol e:1e-6:2e-3 --tag-tol s:1e-6:2e-3 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_qmmm_screened_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_screened)
   else()
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_screened (votca_compare_xml not found)")
@@ -369,6 +369,104 @@ if(RUN_XTP_INTEGRATIONTESTS)
     set_tests_properties(integration_Compare_xtp_parallel_qmmm_relaxed_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_relaxed)
   else()
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_relaxed (votca_compare_xml not found)")
+  endif()
+
+  # xtp_parallel -e qmmm -j run: S1 with the polar regions converged against
+  # the ground state (qmregion.environment_polarization ground) and its
+  # forces, which include the response of the environment through the
+  # ground state (checked against finite differences, see the docs)
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_qmmm_ground)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_einternal.hdf5 ${RUNPATH}/state.hdf5)
+  add_test(NAME integration_Setup_xtp_parallel_qmmm_ground_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/qmmm_ground.jobs ${RUNPATH}/qmmm_ground.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_qmmm_ground_jobs PROPERTIES FIXTURES_SETUP qmmm_ground_jobs)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/qmmm_ground.xml ${RUNPATH}/qmmm_ground.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
+  add_test(NAME integration_Run_xtp_parallel_qmmm_ground COMMAND xtp_parallel -e qmmm -o qmmm_ground.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_parallel_qmmm_ground PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_ground_jobs TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
+  if(HAS_XML_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_qmmm_ground_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_ground_run.jobs ${RUNPATH}/qmmm_ground.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_polar:1e-6:2e-3 --tag-tol E_static:1e-6:2e-3 --tag-tol atom:1e-3:1e-5 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_qmmm_ground_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_ground)
+  else()
+    message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_ground (votca_compare_xml not found)")
+  endif()
+
+  # the same with charge-response segments (methane model fitted with crfit,
+  # PBE/3-21G: MP_FILES/Methane_n.crm, system_cr.xml)
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_qmmm_ground_cr)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system_cr.xml ${RUNPATH}/system_cr.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_einternal.hdf5 ${RUNPATH}/state.hdf5)
+  add_test(NAME integration_Setup_xtp_parallel_qmmm_ground_cr_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/qmmm_ground_cr.jobs ${RUNPATH}/qmmm_ground_cr.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_qmmm_ground_cr_jobs PROPERTIES FIXTURES_SETUP qmmm_ground_cr_jobs)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/qmmm_ground_cr.xml ${RUNPATH}/qmmm_ground_cr.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
+  add_test(NAME integration_Run_xtp_parallel_qmmm_ground_cr COMMAND xtp_parallel -e qmmm -o qmmm_ground_cr.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_parallel_qmmm_ground_cr PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED qmmm_ground_cr_jobs TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
+  if(HAS_XML_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_qmmm_ground_cr_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_ground_cr_run.jobs ${RUNPATH}/qmmm_ground_cr.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_polar:1e-6:2e-3 --tag-tol E_static:1e-6:2e-3 --tag-tol atom:1e-3:1e-5 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_qmmm_ground_cr_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_ground_cr)
+  else()
+    message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_ground_cr (votca_compare_xml not found)")
+  endif()
+
+  # xtp_parallel -e qmmm -j run, one step of a geometry optimization: the
+  # QM atoms at the geometry the qmmm_relaxed run wrote (qmregion geometry,
+  # job frame, instead of the segment mapping) and its final orbitals as the
+  # first guess (qmregion guess). Same geometry, so the energies and forces
+  # of the qmmm_relaxed reference must come out again.
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_qmmm_geometry)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_einternal.hdf5 ${RUNPATH}/state.hdf5)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/qmmm_geometry.xml ${RUNPATH}/qmmm_geometry.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
+  add_test(NAME integration_Setup_xtp_parallel_qmmm_geometry_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/qmmm_relaxed.jobs ${RUNPATH}/qmmm_geometry.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_qmmm_geometry_jobs PROPERTIES FIXTURES_SETUP qmmm_geometry_jobs)
+  add_test(NAME integration_Setup_xtp_parallel_qmmm_geometry_input COMMAND ${Python_EXECUTABLE} ${REFPATH}/qmmm_geometry_setup.py ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_qmmm_relaxed ${RUNPATH})
+  set_tests_properties(integration_Setup_xtp_parallel_qmmm_geometry_input PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_relaxed FIXTURES_SETUP qmmm_geometry_input)
+  add_test(NAME integration_Run_xtp_parallel_qmmm_geometry COMMAND xtp_parallel -e qmmm -o qmmm_geometry.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_parallel_qmmm_geometry PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED "qmmm_geometry_jobs;qmmm_geometry_input" TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
+  if(HAS_XML_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_qmmm_geometry_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_relaxed_run.jobs ${RUNPATH}/qmmm_geometry.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol E_polar:1e-6:2e-3 --tag-tol E_static:1e-6:2e-3 --tag-tol atom:1e-3:1e-5 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_qmmm_geometry_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_geometry)
+  else()
+    message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_geometry (votca_compare_xml not found)")
+  endif()
+
+  # Ewald background (ewaldbackground on the periodic test system) and the S1
+  # forces of the QM region in it (qmmm with an ewaldregion,
+  # compute_forces): the Ewald terms of the forces through QMRegion, the
+  # potential at the nuclei and on the grid, for the DFT and the BSE
+  # gradient. Checked once against finite differences of the total energy
+  # (ground state 2e-5, Ewald part alone 5e-5).
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_qmmm_ewald)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_einternal.hdf5 ${RUNPATH}/state.hdf5)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/ewaldbackground.xml ${RUNPATH}/ewaldbackground.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/qmmm_ewald.xml ${RUNPATH}/qmmm_ewald.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
+  add_test(NAME integration_Setup_xtp_parallel_qmmm_ewald_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/qmmm_ewald.jobs ${RUNPATH}/qmmm_ewald.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_qmmm_ewald_jobs PROPERTIES FIXTURES_SETUP qmmm_ewald_jobs)
+  add_test(NAME integration_Run_xtp_run_ewaldbackground COMMAND xtp_run -e ewaldbackground -o ewaldbackground.xml -f state.hdf5 WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_run_ewaldbackground PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_SETUP qmmm_ewald_background TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
+  add_test(NAME integration_Run_xtp_parallel_qmmm_ewald COMMAND xtp_parallel -e qmmm -o qmmm_ewald.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_parallel_qmmm_ewald PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED "qmmm_ewald_jobs;qmmm_ewald_background" TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
+  if(HAS_XML_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_qmmm_ewald_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/qmmm_ewald_run.jobs ${RUNPATH}/qmmm_ewald.jobs --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --atol 1e-5 --rtol 1e-6 --tag-tol E_total:1e-6:2e-3 --tag-tol E_tot:1e-6:2e-3 --tag-tol atom:1e-3:1e-5 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_qmmm_ewald_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_ewald)
+  else()
+    message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_qmmm_ewald (votca_compare_xml not found)")
   endif()
 
   # xtp_parallel -e qmmm (MM only) -j read
@@ -887,6 +985,16 @@ set(XTP_HEAVY_TESTS
   integration_Compare_xtp_parallel_qmmm_screened_output
   integration_Run_xtp_parallel_qmmm_relaxed
   integration_Compare_xtp_parallel_qmmm_relaxed_output
+  integration_Run_xtp_parallel_qmmm_ground
+  integration_Compare_xtp_parallel_qmmm_ground_output
+  integration_Run_xtp_parallel_qmmm_ground_cr
+  integration_Compare_xtp_parallel_qmmm_ground_cr_output
+  integration_Setup_xtp_parallel_qmmm_geometry_input
+  integration_Run_xtp_parallel_qmmm_geometry
+  integration_Compare_xtp_parallel_qmmm_geometry_output
+  integration_Run_xtp_run_ewaldbackground
+  integration_Run_xtp_parallel_qmmm_ewald
+  integration_Compare_xtp_parallel_qmmm_ewald_output
   integration_Run_xtp_parallel_eqm_run
   integration_Compare_xtp_parallel_eqm_run_output
   integration_Compare_xtp_parallel_eqm_run_output2

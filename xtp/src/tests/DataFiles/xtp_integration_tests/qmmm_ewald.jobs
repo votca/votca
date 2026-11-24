@@ -1,0 +1,17 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag>Methane_0:s1</tag>
+		<input>
+			<site_energies>0:s1</site_energies>
+			<regions>
+				<qmregion>
+					<id>0</id>
+					<state>s1</state>
+					<segments>0:n</segments>
+				</qmregion>
+			</regions>
+		</input>
+		<status>AVAILABLE</status>
+	</job>
+</jobs>

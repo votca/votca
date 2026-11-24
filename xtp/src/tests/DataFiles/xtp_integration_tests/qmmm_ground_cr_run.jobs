@@ -1,0 +1,57 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag>Methane_0:s1</tag>
+		<input>
+			<site_energies>0:s1</site_energies>
+			<regions>
+				<qmregion>
+					<id>0</id>
+					<state>s1</state>
+					<segments>0:n</segments>
+				</qmregion>
+			</regions>
+		</input>
+		<status>COMPLETE</status>
+		<host>vm:3114</host>
+		<time>19:36:31</time>
+		<output>
+			<regions>
+				<region Tot_charge="0.000000e+00" id="0" size="1" type="qmregion">
+					<E_total>-1081.099545</E_total>
+					<Initial_State>s1</Initial_State>
+					<Final_State>s1</Final_State>
+					<forces state="s1" unit="Hartree/Bohr">
+						<atom element="C" id="0">+2.03025396e-02 -1.37119029e-01 -3.07374707e-03</atom>
+						<atom element="H" id="1">+4.95348966e-02 +6.06670999e-02 +1.62719680e-02</atom>
+						<atom element="H" id="2">+4.05745659e-03 -1.32091069e-02 -3.57702682e-02</atom>
+						<atom element="H" id="3">-1.97228813e-02 +1.04945190e-01 -9.74471934e-03</atom>
+						<atom element="H" id="4">-5.43525891e-02 -1.51996291e-02 +3.20764566e-02</atom>
+					</forces>
+					<geometry unit="Angstrom">
+						<atom element="C" id="0">+30.2999798300 +1.2703692212 +5.5205464484</atom>
+						<atom element="H" id="1">+31.2392257985 +1.4802007673 +6.0301373462</atom>
+						<atom element="H" id="2">+30.4910162415 +0.6553685784 +4.6433052732</atom>
+						<atom element="H" id="3">+29.8500000000 +2.2100000000 +5.2100000000</atom>
+						<atom element="H" id="4">+29.6200000000 +0.7500000000 +6.2000000000</atom>
+					</geometry>
+				</region>
+				<region Tot_charge="-8.743006e-16" id="1" size="16" type="polarregion">
+					<E_static>0.002373</E_static>
+					<E_polar>-0.001279</E_polar>
+					<E_total>0.001094</E_total>
+				</region>
+				<region Tot_charge="-6.536438e-15" id="3" size="118" type="staticregion"/>
+				<region Tot_charge="-2.040035e-15" id="2" size="37" type="polarregion">
+					<E_static>0.001264</E_static>
+					<E_polar>-0.002539</E_polar>
+					<E_total>-0.001275</E_total>
+				</region>
+			</regions>
+			<E_tot>-1081.099726</E_tot>
+			<Compute_Time>4</Compute_Time>
+			<Total_Charge>-0.000000</Total_Charge>
+			<Iterations>3</Iterations>
+		</output>
+	</job>
+</jobs>

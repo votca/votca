@@ -20,10 +20,13 @@
 // Standard includes
 #include <algorithm>
 #include <iomanip>
+#include <map>
 #include <numeric>
 
 // Local VOTCA includes
 #include "votca/xtp/chargeresponsesolver.h"
+#include "votca/xtp/checkpoint.h"
+#include "votca/xtp/checkpoint_utils.h"
 #include "votca/xtp/citations.h"
 #include "votca/xtp/dipoledipoleinteraction.h"
 #include "votca/xtp/eeinteractor.h"
@@ -57,6 +60,79 @@ void PolarRegion::Initialize(const tools::Property& prop) {
     throw std::runtime_error("polarregion: cr_width must be >= 0");
   }
   SetupChargeResponseSites();
+  const std::string guess =
+      prop.ifExistsReturnElseReturnDefault<std::string>("guess", "");
+  if (!guess.empty()) {
+    LoadGuess(guess);
+  }
+}
+
+// The induced dipoles (and induced charges of charge-response sites) of this
+// region in a checkpoint of an earlier qmmm job, e.g. the previous step of a
+// geometry optimization, where only the QM atoms moved. Used only as the
+// start of the first solve, so a guess that does not fit is dropped with a
+// warning rather than failing the job: the segments have to be the same
+// (ids, sizes, site positions), which they are for the same job of the same
+// setup.
+void PolarRegion::LoadGuess(const std::string& filename) {
+  auto skip = [&](const std::string& reason) {
+    XTP_LOG(Log::error, log_) << TimeStamp() << " WARNING: polar region "
+                              << getId() << " does not use the guess from "
+                              << filename << ": " << reason << std::flush;
+  };
+  PolarRegion previous(getId(), log_);
+  try {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+    CheckpointFile cpf(filename, CheckpointAccessLevel::READ);
+    CheckpointReader r = cpf.getReader("region_" + std::to_string(getId()));
+    std::string type;
+    r(type, "type");
+    if (type != identify()) {
+      skip("region " + std::to_string(getId()) + " there is a " + type);
+      return;
+    }
+    previous.ReadFromCpt(r);
+  } catch (const std::exception& e) {
+    skip(e.what());
+    return;
+  }
+  if (previous.size() != size()) {
+    skip("different number of segments");
+    return;
+  }
+  // matched by segment id: the checkpoint does not keep the order
+  std::map<Index, const PolarSegment*> by_id;
+  for (const PolarSegment& seg : previous) {
+    by_id[seg.getId()] = &seg;
+  }
+  std::vector<const PolarSegment*> match;
+  match.reserve(segments_.size());
+  for (const PolarSegment& a : segments_) {
+    auto it = by_id.find(a.getId());
+    if (it == by_id.end() || it->second->size() != a.size()) {
+      skip("segment " + std::to_string(a.getId()) + " is not there");
+      return;
+    }
+    const PolarSegment& b = *it->second;
+    for (Index k = 0; k < a.size(); ++k) {
+      if ((a[k].getPos() - b[k].getPos()).norm() > 1e-6) {
+        skip("site positions of segment " + std::to_string(a.getId()) +
+             " differ");
+        return;
+      }
+    }
+    match.push_back(&b);
+  }
+  for (std::size_t i = 0; i < segments_.size(); ++i) {
+    for (Index k = 0; k < segments_[i].size(); ++k) {
+      segments_[i][k].setInduced_Dipole((*match[i])[k].Induced_Dipole());
+      segments_[i][k].setInduced_Charge((*match[i])[k].Induced_Charge());
+    }
+  }
+  guess_loaded_ = true;
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Polar region " << getId() << ": induced moments from "
+      << filename << " as the start" << std::flush;
 }
 
 bool PolarRegion::hasChargeResponse() const {
@@ -289,7 +365,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
     eeInteractor interactor(exp_damp_);
     ChargeResponseSolver solver(segments_, interactor);
     const ChargeResponseSolver::Info info =
-        solver.Solve(deltaD_, max_iter_, E_hist_.filled());
+        solver.Solve(deltaD_, max_iter_, E_hist_.filled() || guess_loaded_);
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " Charge response: " << solver.size()
         << " unknowns, CG #iterations: " << info.iterations
@@ -308,7 +384,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
   }
 
   Eigen::VectorXd initial_induced_dipoles;
-  if (!E_hist_.filled() || segments_.size() == 1) {
+  if ((!E_hist_.filled() && !guess_loaded_) || segments_.size() == 1) {
     initial_induced_dipoles = CalcInducedDipoleInsideSegments();
   } else {
     initial_induced_dipoles = ReadInducedDipolesFromLastIteration();

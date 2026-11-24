@@ -38,6 +38,17 @@ class Ewald_Potential {
 
   Mat_p_Energy IntegrateEwald(Index basissize) const;
 
+  // Derivative of the electron energy Tr(D V) in this potential, V the
+  // matrix of IntegrateEwald, with respect to the nuclear coordinates
+  // (natoms x 3), at fixed density matrix D and fixed potential phi(r):
+  // the basis-function (Pulay) term only, -int (d rho/dR_A)|_D phi, by
+  // quadrature on this grid. It is the derivative of the exact integral;
+  // the derivative of the grid itself (point translation and weights) is
+  // left out, so finite differences of the quadrature energy agree with
+  // it to the accuracy of the quadrature.
+  Eigen::MatrixXd Gradient(const Eigen::MatrixXd& density_matrix,
+                           Index natoms) const;
+
  private:
   const Grid grid_;
 };

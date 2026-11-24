@@ -8,11 +8,12 @@ response of the orbitals, of the quasiparticle energies and of the
 screened interaction W -- unlike the excited-state density of
 ``Orbitals::DensityMatrixFull``, which is unrelaxed.
 
-Conventions: VOTCA adds -F.r to the one-electron Hamiltonian for a field
-F given in ``externalfield`` (Hartree/bohr). With E(F) = E(0) + mu.F -
+Conventions: VOTCA adds -F.(r - R_com) to the one-electron Hamiltonian for
+a field F given in ``externalfield`` (Hartree/bohr), and
+sum_A Z_A F.(R_A - R_com) for the nuclei. With E(F) = E(0) + mu.F -
 1/2 F.alpha.F one gets
 
-    mu_el   = dE_DFT/dF       (electronic dipole w.r.t. the centre of mass)
+    mu      = dE_DFT/dF       (total dipole w.r.t. the centre of mass)
     dmu_n   = dOmega_n/dF     (change of the dipole on excitation)
     dalpha_n,ii = -d2 Omega_n/dF_i^2
 
@@ -481,7 +482,7 @@ class FiniteFieldDipoles:
         dmu = np.full((n, 3), np.nan)
         dalpha = np.full((n, 3), np.nan)
         lin = np.full((n, 3), np.nan) if self.order == 4 else None
-        mu_el, alpha0 = nan3.copy(), nan3.copy()
+        mu, alpha0 = nan3.copy(), nan3.copy()
         min_ov = np.ones(n)
         overlaps = []
         runs = {}
@@ -508,7 +509,7 @@ class FiniteFieldDipoles:
                 data, cols = runs[(c, k)]
                 e[k] = data.dft_energy
                 om[k] = data.omega[cols]
-            mu_el[i] = central_first(e, self.field, self.order)
+            mu[i] = central_first(e, self.field, self.order)
             alpha0[i] = -central_second(e, self.field, self.order)
             dmu[:, i] = central_first(om, self.field, self.order)
             dalpha[:, i] = -central_second(om, self.field, self.order)
@@ -521,11 +522,9 @@ class FiniteFieldDipoles:
                 gd[i] = central_first({k: om[k][g].sum() for k in om},
                                       self.field, self.order)
 
-        com = center_of_mass(ref.elements, ref.positions)
-        mu_nuc = (ref.charges[:, None] * (ref.positions - com)).sum(axis=0)
-        ground = np.where(np.isnan(mu_el), np.nan, mu_nuc + mu_el)
+        # the nuclei are in the field too, so dE/dF is the total dipole
         return FiniteFieldResult(self.components, self.field, self.order,
-                                 self.spin, ref.omega[:n], ground, alpha0,
+                                 self.spin, ref.omega[:n], mu, alpha0,
                                  dmu, dalpha, min_ov, groups, group_dmu, lin,
                                  self.overlap_threshold)
 

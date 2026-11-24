@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <functional>
 #ifndef VOTCA_XTP_DFTENGINE_H
 #define VOTCA_XTP_DFTENGINE_H
 
@@ -35,7 +36,9 @@
 #include "hirshfeldpartition.h"
 #include "uks_convergenceacc.h"
 
+#include "classicalsegment.h"
 #include "ecpaobasis.h"
+#include "environmentscreening.h"
 #include "extended_hueckel.h"
 #include "logger.h"
 #include "qmmolecule.h"
@@ -97,7 +100,7 @@ class DFTEngine {
   /// Provide external static sites whose electrostatic potential enters the
   /// Hamiltonian.
   void setExternalcharges(
-      std::vector<std::unique_ptr<StaticSite> >* externalsites) {
+      std::vector<std::unique_ptr<StaticSite>>* externalsites) {
     externalsites_ = externalsites;
   }
 
@@ -113,6 +116,46 @@ class DFTEngine {
   Eigen::MatrixXd ExternalSitesGradient(const QMMolecule& mol,
                                         const Eigen::MatrixXd& D, bool nuclei,
                                         Eigen::MatrixXd& site_gradient) const;
+  /// The same for any list of sites.
+  Eigen::MatrixXd SitesGradient(
+      const QMMolecule& mol, const Eigen::MatrixXd& D, bool nuclei,
+      const std::vector<std::unique_ptr<StaticSite>>& sites,
+      Eigen::MatrixXd& site_gradient) const;
+
+  /// Polarizable environment converged against the GROUND-STATE density
+  /// while the energy is that of an excited state (QM/MM with
+  /// qmregion.environment_polarization ground): the induced dipoles of
+  /// these Thole segments then respond to the geometry through the ground
+  /// state, which BSEExcitationGradient includes -- a reaction-field kernel
+  /// in the Z-vector (and its source and W terms) and the interaction of
+  /// the dipoles the relaxed density would induce with the ground-state
+  /// charges. The segments are the polar sites as the QM region sees them
+  /// (positions, polarizabilities); the converged dipoles themselves are
+  /// external sites as usual. Thole segments (point dipoles) and
+  /// charge-response segments (Gaussian induced charges and dipoles, joint
+  /// response of ChargeResponseSolver).
+  void setEnvironmentResponse(const std::vector<PolarSegment>& segments,
+                              double exp_damp);
+
+  /// Screened GW-BSE (environment_screening): the BSE energy of
+  /// BSEExcitationGradient is built with the integrals dressed by the
+  /// reaction field of env, (1 + R)^1/2 on the auxiliary index, as GWBSE
+  /// does with include_kreac (every pairing of two integrals through
+  /// u = v + v_reac), and its gradient includes the derivatives of the
+  /// reaction field (the auxiliary functions move, the environment is
+  /// fixed). QP corrections fixed (no qp_response).
+  void setScreeningEnvironment(const ScreeningEnvironment& env) {
+    screening_env_ = env;
+  }
+
+  /// All frozen external one-electron terms together: the sites
+  /// (ExternalSitesGradient), the homogeneous field (externalfield) and the
+  /// Ewald background potential (setEwaldgrid; its nuclear part from
+  /// setEwaldNuclearGradient). Same arguments and conventions as
+  /// ExternalSitesGradient.
+  Eigen::MatrixXd ExternalPotentialGradient(
+      const QMMolecule& mol, const Eigen::MatrixXd& D, bool nuclei,
+      Eigen::MatrixXd& site_gradient) const;
 
   void setEwaldgrid(const Vxc_Grid& ewaldgrid) {
     external_ewaldgrid_ = ewaldgrid;
@@ -125,6 +168,12 @@ class DFTEngine {
   // only, exactly as IntegrateExternalMultipoles pairs its AO matrix with
   // ExternalRepulsion for the multipole route.
   void setEwaldNuclearEnergy(double energy) { ewald_nuclear_energy_ = energy; }
+
+  // d/dR_A of sum_B Z_B phi(R_B) (natoms x 3), the nuclear part of the
+  // Ewald force term; the electronic part is integrated on the grid.
+  void setEwaldNuclearGradient(const Eigen::MatrixXd& gradient) {
+    ewald_nuclear_gradient_ = gradient;
+  }
 
   /// Use the MOs already in the Orbitals passed to Evaluate as the SCF guess
   /// when they fit this calculation (same basis set and size, same electron
@@ -184,9 +233,14 @@ class DFTEngine {
   /// preconditioned conjugate gradients for all h_k together until
   /// |residual| < tolerance |rhs|. Returns the first-order density matrices
   /// dP_k (total). Throws for open-shell states or if CG does not converge.
+  /// extra_kernel (optional): an additional linear response kernel K[dP]
+  /// (AO in, AO out) added to G, e.g. the reaction field of a polarizable
+  /// environment.
   std::vector<Eigen::MatrixXd> StaticResponse(
       const Orbitals& orb, const std::vector<Eigen::MatrixXd>& perturbations,
-      double tolerance = 1e-7, Index max_iterations = 100);
+      double tolerance = 1e-7, Index max_iterations = 100,
+      const std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)>&
+          extra_kernel = {});
 
   /// Input of BSEExcitationGradient: one BSE state and the orbital
   /// energies its Hamiltonian was built with. The energies are taken as KS
@@ -447,13 +501,25 @@ class DFTEngine {
   /// into the AO basis.
   Mat_p_Energy IntegrateExternalMultipoles(
       const QMMolecule& mol,
-      const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
+      const std::vector<std::unique_ptr<StaticSite>>& multipoles) const;
   /// Integrate an external electron density represented by another orbital
   /// container.
   Mat_p_Energy IntegrateExternalDensity(const QMMolecule& mol,
                                         const Orbitals& extdensity) const;
   /// Integrate a homogeneous external electric field into the AO basis.
   Eigen::MatrixXd IntegrateExternalField(const QMMolecule& mol) const;
+  /// The nuclei in the same field, sum_A Z_A F.(R_A - R_com): with it
+  /// dE/dF is the total dipole and a nucleus feels Z_A F.
+  double ExternalFieldNuclearEnergy(const QMMolecule& mol) const;
+  /// d/dR of the field energy at fixed D (natoms x 3)
+  Eigen::MatrixXd ExternalFieldGradient(const QMMolecule& mol,
+                                        const Eigen::MatrixXd& D,
+                                        bool nuclei) const;
+  /// d/dR of the Ewald background energy at fixed D (natoms x 3)
+  Eigen::MatrixXd EwaldGradient(const QMMolecule& mol, const Eigen::MatrixXd& D,
+                                bool nuclei) const;
+  /// The integration grid of mol with the external Ewald potential values
+  Vxc_Grid EwaldGridWithPotential(const QMMolecule& mol) const;
 
   /// Generate an initial guess by diagonalizing the core Hamiltonian only.
   tools::EigenSystem IndependentElectronGuess(const Mat_p_Energy& H0) const;
@@ -543,11 +609,12 @@ class DFTEngine {
   /// Compute the classical interaction energy between nuclei and external
   /// multipoles.
   bool ExternalTermsCoveredByForces() const;
-  void AddExternalSitesGradient(Orbitals& orb, const Eigen::MatrixXd& Dmat,
-                                Eigen::MatrixXd& grad) const;
+  Eigen::Vector3d AddExternalPotentialGradient(Orbitals& orb,
+                                               const Eigen::MatrixXd& Dmat,
+                                               Eigen::MatrixXd& grad) const;
   double ExternalRepulsion(
       const QMMolecule& mol,
-      const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
+      const std::vector<std::unique_ptr<StaticSite>>& multipoles) const;
   /// Average density-matrix elements over functions belonging to the same
   /// atomic shell.
   Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat,
@@ -698,7 +765,7 @@ class DFTEngine {
                          std::string& reason) const;
 
   // external charges
-  std::vector<std::unique_ptr<StaticSite> >* externalsites_ = nullptr;
+  std::vector<std::unique_ptr<StaticSite>>* externalsites_ = nullptr;
 
   // exchange and correlation
   double ScaHFX_ = 0.0;
@@ -740,6 +807,11 @@ class DFTEngine {
   Vxc_Grid external_ewaldgrid_;
   bool has_ewaldgrid_ = false;
   double ewald_nuclear_energy_ = 0.0;
+  Eigen::MatrixXd ewald_nuclear_gradient_;
+  // setEnvironmentResponse
+  std::vector<PolarSegment> env_segments_;
+  double env_exp_damp_ = 0.39;
+  ScreeningEnvironment screening_env_;
   // Spin-DFT Extension
   Index num_alpha_electrons_ = 0;
   Index num_beta_electrons_ = 0;

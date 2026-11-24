@@ -1,0 +1,50 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag>Methane_0:s1</tag>
+		<input>
+			<site_energies>0:s1</site_energies>
+			<regions>
+				<qmregion>
+					<id>0</id>
+					<state>s1</state>
+					<segments>0:n</segments>
+				</qmregion>
+			</regions>
+		</input>
+		<status>COMPLETE</status>
+		<host>vm:1455</host>
+		<time>14:25:45</time>
+		<output>
+			<regions>
+				<region Tot_charge="0.000000e+00" id="0" size="1" type="qmregion">
+					<E_total>-1081.098950</E_total>
+					<Initial_State>s1</Initial_State>
+					<Final_State>s1</Final_State>
+					<forces state="s1" unit="Hartree/Bohr">
+						<atom element="C" id="0">+2.04653425e-02 -1.37435602e-01 -2.72434730e-03</atom>
+						<atom element="H" id="1">+4.95802255e-02 +6.06320120e-02 +1.60536216e-02</atom>
+						<atom element="H" id="2">+4.24022798e-03 -1.34810441e-02 -3.57544744e-02</atom>
+						<atom element="H" id="3">-2.00957673e-02 +1.05213032e-01 -9.49513661e-03</atom>
+						<atom element="H" id="4">-5.43781855e-02 -1.48456629e-02 +3.16985011e-02</atom>
+					</forces>
+					<geometry unit="Angstrom">
+						<atom element="C" id="0">+30.2999798300 +1.2703692212 +5.5205464484</atom>
+						<atom element="H" id="1">+31.2392257985 +1.4802007673 +6.0301373462</atom>
+						<atom element="H" id="2">+30.4910162415 +0.6553685784 +4.6433052732</atom>
+						<atom element="H" id="3">+29.8500000000 +2.2100000000 +5.2100000000</atom>
+						<atom element="H" id="4">+29.6200000000 +0.7500000000 +6.2000000000</atom>
+					</geometry>
+				</region>
+				<region Tot_charge="-5.549727e-14" id="1" size="1000" type="ewaldregion">
+					<E_ewald_background>not_implemented</E_ewald_background>
+					<segments>1000</segments>
+					<checkpoint>ewaldbackground.hdf5</checkpoint>
+				</region>
+			</regions>
+			<E_tot>-1081.098950</E_tot>
+			<Compute_Time>45</Compute_Time>
+			<Total_Charge>-0.000000</Total_Charge>
+		</output>
+	</job>
+</jobs>

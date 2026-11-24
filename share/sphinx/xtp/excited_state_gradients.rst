@@ -451,6 +451,37 @@ environment converged self-consistently with the QM density their
 response does not contribute to the ground-state forces (the polarization
 energy is stationary), but it does for excited states.
 
+Homogeneous field and Ewald background
+**************************************
+
+A homogeneous field (``externalfield``) adds
+:math:`-\mathbf{F}\cdot(\mathbf{r}-\mathbf{R}_\mathrm{com})` to the
+one-electron Hamiltonian and
+:math:`\sum_A Z_A\mathbf{F}\cdot(\mathbf{R}_A-\mathbf{R}_\mathrm{com})` to
+the energy of the nuclei, so that :math:`\mathrm{d}E/\mathrm{d}\mathbf{F}`
+is the total dipole and a nucleus feels :math:`-Z_A\mathbf{F}` (the
+nuclear term was added with the forces; DFT total energies in a field
+change by it, excitation energies do not). The periodic Ewald background
+of ``qmmm`` (``ewaldregion``) acts on the electrons through its potential
+on the integration grid and on the nuclei through the potential at the
+nuclei. For both, the electronic part of the force is the derivative of
+the exact integral :math:`-\int (\partial\rho/\partial R_A)\,\phi`,
+evaluated on the integration grid; finite differences of the energy, which
+for the Ewald background is itself a grid quadrature, agree with it to the
+accuracy of the grid (:math:`2\times 10^{-5}` relative on the ``fine``
+grid). The gradient of the Ewald potential at the nuclei is taken by
+central differences (:math:`h=10^{-4}` bohr) in the same evaluation. In a
+``qmmm`` job (methane in the periodic methane background of the
+integration tests, with a Thole region) finite differences of the total
+energy agree with the forces to :math:`2\times 10^{-5}` (ground state)
+and :math:`5\times 10^{-4}` (S1, limited by the near-degenerate state);
+the Ewald part alone, from the difference of runs with and without the
+background, to :math:`5\times 10^{-5}`. The
+background is frozen, including the periodic images of the QM molecule
+itself: the copy of the QM segment it leaves out is the lattice image of
+the classical background copy nearest to the QM centroid, so small changes
+of the QM geometry leave the background potential unchanged.
+
 QM/MM forces
 ************
 
@@ -465,6 +496,9 @@ ground-state density for the ground state, and the relaxed density for
 excited states (``relaxed_density true``; a warning is given otherwise).
 The total energy is then stationary in the induced moments, so their
 response does not enter the forces.
+With ``environment_polarization ground`` and with ``environment_screening``
+the environment is converged against the ground state, and its response
+to the excitation's geometry dependence is part of the gradient (below).
 
 Checks (methane S1, G0W0, 3-21G, finite differences of the converged
 total energy): a self-consistent polarizable site in a unit test agrees
@@ -476,14 +510,201 @@ regions and a static region to :math:`1\times 10^{-4}` (ground state) and
 With the relaxed density replaced by the unrelaxed one in the unit test
 the forces are off by 7%.
 
+Environment polarized by the ground state
+*****************************************
+
+With ``qmregion.environment_polarization ground`` the polar regions are
+converged against the ground-state density, and the energy of an excited
+state (or QP level) is the ground-state QM/MM energy plus the excitation
+energy. The induced dipoles then follow the geometry through the ground
+state, and the excitation energy depends on them, so frozen moments are
+not enough. With the dipoles as variables of their own, the Lagrangian
+gives two additional pieces:
+
+* the Z-vector equation of the relaxed density contains the reaction field
+  of the environment: a density change induces dipoles
+  :math:`\delta\mu = -A^{-1} t`, :math:`t_i` its coupling to a dipole at
+  site :math:`i`, :math:`A` the Thole operator of all polar regions
+  together, whose potential acts back on the electrons (in the response,
+  its source and the energy-weighted density);
+* the dipoles :math:`\lambda = \delta\mu[P]` that the relaxed density
+  :math:`P` would induce interact with the ground-state charges (density
+  and nuclei); the derivative of that interaction is added.
+
+The couplings are the exact AO integrals the QM Hamiltonian uses (an
+RI-fitted field is off by several percent at sites in the tails of the
+density). Checks: a polarizable site converged against the ground state
+with S1 on top agrees with finite differences to
+:math:`2\times 10^{-5}` (without the two pieces 4%); in QM/MM (methane
+S1, two Thole regions) :math:`2\times 10^{-4}`, and along the direction
+of the correction :math:`2\times 10^{-4}` against :math:`2\times 10^{-3}`
+without it. With charge-response segments (methane model fitted with
+``crfit``): a charge-response molecule converged against the ground state
+:math:`3\times 10^{-5}` (5% without), QM/MM :math:`1.6\times 10^{-4}`,
+along the correction :math:`1.4\times 10^{-4}` against
+:math:`1.2\times 10^{-3}`. All polar regions with the same ``exp_damp``
+(several polar regions: the default, which also couples them).
+
+Screened GW-BSE
+***************
+
+In the screened scheme (``environment_screening``) the QM/MM loop
+converges the polar regions against the ground state, and one GW-BSE run
+on top screens the excitation by the environment: the three-centre
+integrals are dressed with :math:`(1+R)^{1/2}` on the auxiliary index,
+:math:`R` the reaction field of the polar sites in the metric of the fit
+functions, and the QP energies contain the static reaction-field
+self-energy :math:`\Sigma_\mathrm{reac}`. With ``qmregion.compute_forces``
+the forces are those of :math:`E_\mathrm{GS}^\mathrm{QM/MM} + \Omega`:
+the ground-state forces at the converged moments plus the gradient of
+:math:`\Omega`, which includes the response of the environment through
+the ground state (as with ``environment_polarization ground``, above) and
+the dependence of the screening on the geometry.
+``DFTEngine::setScreeningEnvironment`` makes the BSE gradient use the
+same dressed integrals. The energy depends on the auxiliary representation
+only through the effective interaction between the fit functions,
+:math:`u = V^{-1} + V^{-1} B_\mathrm{env} V^{-1}`
+(:math:`B_\mathrm{env} = -C^T \chi C`, :math:`C` the fields and
+potentials of the auxiliary functions at the sites, :math:`\chi` the
+fixed response of the environment), so its derivative follows from that
+of the gas-phase code: the three-centre integrals, the Coulomb metric, and
+:math:`B_\mathrm{env}`, whose sources move with the atoms
+(``EnvironmentScreening::KernelGradient``; derivatives with respect to the
+site positions by central differences). The static self-energies are not
+functions of the dressed integrals: :math:`(1-a_x)\Sigma_x` is with the
+bare :math:`V^{-1}`, :math:`\Sigma_\mathrm{reac}` with
+:math:`V^{-1} B_\mathrm{env} V^{-1}`; the response of the QP corrections
+(G0W0/evGW, ``ppm`` or ``exact``) differentiates both kernels explicitly.
+Without ``include_kreac`` the BSE exchange is with the bare
+:math:`V^{-1}` as well, and is differentiated the same way; the direct
+term is unchanged, since :math:`W_\mathrm{tot} = (u^{-1} + \epsilon - 1)^{-1}`
+with the bare integrals gives the same interaction as
+:math:`\epsilon^{-1}` with the dressed ones.
+
+Checks: S1 of water in a fixed Thole environment (explicit and shell
+sites, smeared) and in a charge-response molecule, QP corrections fixed:
+finite differences :math:`3\times 10^{-6}` and :math:`3\times 10^{-5}`
+(the screening moves the projected gradient by 40%). ``qmmm`` (methane
+S1, G0W0, two Thole regions, one of them a shell with
+:math:`\epsilon = 4`): :math:`7\times 10^{-5}` along the forces,
+:math:`8\times 10^{-4}` along a random direction (absolute
+:math:`4\times 10^{-8}` Ha); with the QP corrections kept fixed the
+forces are off by 7% and 28% along those directions, without the
+response of :math:`\Sigma_\mathrm{reac}` by 2% and 18%. Without
+``include_kreac``: water in the Thole environment
+:math:`2\times 10^{-5}`; ``qmmm`` along the forces
+:math:`1\times 10^{-5}` (Richardson extrapolation of the steps
+:math:`5\times 10^{-4}` and :math:`10^{-3}` Å, which differ from the
+forces by :math:`2.4\times 10^{-4}` and :math:`9.9\times 10^{-4}`, the
+quadratic truncation of the near-degenerate S1 of methane),
+:math:`6\times 10^{-4}` along a random direction.
+
+Geometry optimization in QM/MM
+******************************
+
+``qmmm`` itself does not move atoms; an optimizer drives it by running one
+job per geometry. With ``compute_forces`` the job output also holds the QM
+coordinates the forces belong to, in the frame of the job (``geometry``,
+Angstrom), and the job directory holds the final orbitals
+(``qmregion_final.orb``). The next step gives the new coordinates as an xyz
+file in that frame (``qmregion.geometry``), which replaces the segment
+mapping: the mapping fits each fragment onto its MD frame and would undo
+rigid-body motion and change the geometry between fragments. The orbitals of
+the previous step can start the SCF (``qmregion.guess``; they are
+orthogonalized in the new geometry), and the induced moments of the
+previous step the polar regions (``polarregion.guess``, a checkpoint of
+that job; segments are matched by id, and a checkpoint that does not fit
+the region is ignored with a warning).
+
+The environment is frozen at its topology: the region partition follows
+the segment positions of the topology, and the Ewald background, including
+the periodic images of the QM molecule, stays as converged (the copy of the
+QM segment it leaves out is fixed by the topology). The polar regions are
+re-converged in every job, so with ``relaxed_density`` the energy is
+stationary in their induced moments and the forces are its derivatives.
+If the geometry changes much, the multipoles of the QM segment can be
+refitted at the optimized geometry and the background recomputed (usually
+one such cycle).
+
+Check (the S1 setup above, H1 displaced by :math:`\pm 5\times 10^{-4}` Å
+through ``qmregion.geometry``, guess from the reference job): finite
+differences agree with the forces to :math:`8\times 10^{-4}`; the
+orbital guess halves the number of iterations of the first SCF, and the
+induced moments of the reference job reduce the QM/MM iterations from 19
+to 14 at unchanged energy and forces.
+
+``xtp_qmmm_optimize`` (with ``pyxtp``) runs this loop with an ASE optimizer
+(BFGS, FIRE or Sella)::
+
+    xtp_qmmm_optimize -o qmmm.xml -f state.hdf5 -t 4 --fmax 0.05
+
+With ``--optimizer Sella`` the QM region is optimized in internal
+coordinates plus explicit translations and rotations of the whole region:
+in a fixed environment the energy is not invariant under rigid-body motion,
+which Sella projects out by default (as for a free molecule) and would then
+stop with a net force and torque left. Sella converges the soft modes of a
+solute in a cage (torsions, out-of-plane modes, rigid-body motion) much
+faster than BFGS in Cartesian coordinates.
+A frozen cage from a classical MD snapshot need not fit the QM model (other
+charges, polarization, the excited state), and the QM region can then
+drift and rotate in it for many steps (anisole S1 in water: 0.28 Å and
+13° within 17 steps, 1 meV per step). ``--freeze-rigid-body`` (Sella)
+keeps the position and orientation of the QM region and relaxes only its
+internal coordinates; convergence then refers to the forces without net
+force and torque.
+
+It takes the qmmm options and job file of an existing setup (the first job,
+or ``--job-id``), passes the orbitals and induced moments of each step on
+to the next, runs every step in its own directory under ``--workdir``
+(the entries of the setup directory are linked there; the state file is
+only read), and writes the trajectory and the optimized geometry in the job
+frame (``optimized.xyz``, for ``qmregion.geometry`` of later jobs). Atoms
+can be kept in place with ``--fix``. In Python,
+``pyxtp.qmmm_optimize.QMMMCalculator`` is the ASE calculator behind it.
+A job that fails (e.g. a QM/MM loop that does not converge in
+``max_iterations`` once the state changes character) stops the
+optimization with the step directory to look at; check that the tracked
+state stays the intended one (the summary prints it per step).
+
+Short-range terms: the qmmm energy has no repulsion between QM and
+environment atoms (the polar and static regions are point multipoles,
+point or Gaussian induced moments), and the xtp DFT has no dispersion.
+Single points are fine with that; an optimization is not: in water, the
+hydroxyl H of phenol moves onto the O of a neighbouring water and the O-H
+bond stretches (0.96 to 1.00 Å in a few steps, energy still falling). As
+in standard QM/MM, ``--lj params.json`` (``pyxtp.qmmm_optimize.
+LennardJones``) adds Lennard-Jones terms between QM and environment atoms,
+typically with the parameters of the force field of the MD (JSON:
+``"qm"`` element table or one ``[sigma, epsilon]`` per QM atom,
+``"environment"`` element table, optional ``"cutoff"``; σ in Å, ε in
+kJ/mol, Lorentz-Berthelot mixing; environment elements without an entry get
+none). ``--d3 pbe0`` (``pyxtp.qmmm_optimize.D3Dispersion``, needs the python
+package ``dftd3`` of simple-dftd3) adds Grimme's D3 with the damping
+parameters of the given functional (``--d3-damping``, default
+Becke-Johnson; three-body term with ``--d3-atm``) within the QM region and,
+without ``--lj``, also with the environment atoms within ``--d3-cutoff``
+(15 Å) of a QM atom (``--d3-qm-only`` for the QM region alone; with
+``--lj`` the dispersion between QM and environment is that of LJ). The
+environment atoms are the sites with an element name in the checkpoint of
+the first job; they stay where they are, each term keeps the atoms within
+its cutoff at the start, and the D3 energy with the environment is
+:math:`E_\mathrm{D3}(\mathrm{QM+env}) - E_\mathrm{D3}(\mathrm{env})`, so
+the forces on the QM atoms are its exact derivatives. These terms enter
+the geometry only: the electronic structure (and the excitation energy) is
+that of the job, and the same terms are added for ground and excited
+states.
+
 Limitations
 ***********
 
 * Closed-shell ground states; singlet and triplet BSE states.
 * Only the xtp DFT package, with an auxiliary basis (RI).
-* Embedding only in frozen external multipoles (see below); no Ewald
-  background, external fields or environment screening, no truncated
-  bases.
+* Embedding in frozen external multipoles, homogeneous fields and the
+  frozen Ewald background, and polar regions converged against the state
+  (``relaxed_density``) or the ground state (``environment_polarization
+  ground``; see above), and the screened scheme
+  (``environment_screening``); no external
+  densities or potential matrices, no truncated bases.
 * No off-diagonal QP Hamiltonian in the BSE (``use_Hqp_offdiag``), no
   QSGW, no contour deformation (QP corrections are then kept fixed), no
   dynamical screening of the BSE kernel.

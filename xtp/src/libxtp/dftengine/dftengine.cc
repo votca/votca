@@ -398,10 +398,10 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
 // would silently miss their derivatives, so they are skipped instead.
 bool DFTEngine::ExternalTermsCoveredByForces() const {
   std::string missing;
-  if (integrate_ext_field_) {
-    missing = "an external electric field";
-  } else if (has_ewaldgrid_) {
-    missing = "the Ewald background potential";
+  if (has_ewaldgrid_ && ewald_nuclear_gradient_.size() == 0) {
+    missing =
+        "the Ewald background potential (its nuclear gradient was not "
+        "given)";
   } else if (integrate_ext_density_) {
     missing = "an external density";
   } else if (ext_potential_matrix_.size() > 0) {
@@ -416,20 +416,32 @@ bool DFTEngine::ExternalTermsCoveredByForces() const {
   return false;
 }
 
-// External sites (frozen moments): their part of the atomic gradient is
-// added to grad, the forces on the sites are stored in orb.
-void DFTEngine::AddExternalSitesGradient(Orbitals& orb,
-                                         const Eigen::MatrixXd& Dmat,
-                                         Eigen::MatrixXd& grad) const {
-  if (externalsites_ == nullptr || externalsites_->empty()) {
-    return;
+// External sites (frozen moments), homogeneous field and Ewald background:
+// their part of the atomic gradient is added to grad, the forces on the
+// sites are stored in orb. Returns the net gradient of the field and Ewald
+// terms, a real net force on the molecule (the sites carry the opposite of
+// theirs), for the translational-invariance check.
+Eigen::Vector3d DFTEngine::AddExternalPotentialGradient(
+    Orbitals& orb, const Eigen::MatrixXd& Dmat, Eigen::MatrixXd& grad) const {
+  const bool sites = externalsites_ != nullptr && !externalsites_->empty();
+  if (!sites && !integrate_ext_field_ && !has_ewaldgrid_) {
+    return Eigen::Vector3d::Zero();
   }
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << "   Computing the external-site gradient ("
-      << externalsites_->size() << " sites, frozen moments)" << std::flush;
+      << TimeStamp() << "   Computing the external-potential gradient ("
+      << (sites ? externalsites_->size() : 0) << " sites at frozen moments"
+      << (integrate_ext_field_ ? ", homogeneous field" : "")
+      << (has_ewaldgrid_ ? ", Ewald background" : "") << ")" << std::flush;
+  const QMMolecule& mol = orb.QMAtoms();
   Eigen::MatrixXd site_grad;
-  grad += ExternalSitesGradient(orb.QMAtoms(), Dmat, true, site_grad);
-  orb.setSiteForces(-site_grad);
+  grad += ExternalSitesGradient(mol, Dmat, true, site_grad);
+  if (sites) {
+    orb.setSiteForces(-site_grad);
+  }
+  const Eigen::MatrixXd background =
+      ExternalFieldGradient(mol, Dmat, true) + EwaldGradient(mol, Dmat, true);
+  grad += background;
+  return background.colwise().sum().transpose();
 }
 
 void DFTEngine::ComputeAndStoreForces(
@@ -555,11 +567,13 @@ void DFTEngine::ComputeAndStoreForces(
         << TimeStamp() << "   RI-K gradient done" << std::flush;
   }
 
-  AddExternalSitesGradient(orb, Dmat, grad);
+  const Eigen::Vector3d net_background =
+      AddExternalPotentialGradient(orb, Dmat, grad);
 
   // Translational invariance: the total gradient must sum to zero over
-  // atoms (and external sites). Only logged, not thrown.
-  Eigen::Vector3d sum = grad.colwise().sum();
+  // atoms (and external sites), apart from the net force of a field or the
+  // Ewald background. Only logged, not thrown.
+  Eigen::Vector3d sum = grad.colwise().sum().transpose() - net_background;
   if (orb.hasSiteForces()) {
     sum -= orb.getSiteForces().colwise().sum();
   }
@@ -719,10 +733,11 @@ void DFTEngine::ComputeAndStoreForcesUKS(
   grad += vxcpotential.GridWeightGradientUKS(Dspin.alpha, Dspin.beta,
                                              orb.QMAtoms());
 
-  AddExternalSitesGradient(orb, Dspin.alpha + Dspin.beta, grad);
+  const Eigen::Vector3d net_background =
+      AddExternalPotentialGradient(orb, Dspin.alpha + Dspin.beta, grad);
 
   // Translational invariance check, logged only (as for RKS).
-  Eigen::Vector3d sum = grad.colwise().sum();
+  Eigen::Vector3d sum = grad.colwise().sum().transpose() - net_background;
   if (orb.hasSiteForces()) {
     sum -= orb.getSiteForces().colwise().sum();
   }
@@ -1858,48 +1873,18 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
         << TimeStamp() << " Integrating external electric field with F[Hrt]="
         << extfield_.transpose() << std::flush;
     H0 += IntegrateExternalField(mol);
+    const double e_nuc_field = ExternalFieldNuclearEnergy(mol);
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Nuclei-external field energy "
+        << std::setprecision(9) << e_nuc_field << std::flush;
+    E0 += e_nuc_field;
   }
 
   if (has_ewaldgrid_) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Integrating external Ewald Potential" << std::flush;
     auto t = timings_.Measure("setup: Ewald potential on grid");
-    Vxc_Grid ewaldgrid;
-    ewaldgrid.GridSetup(grid_name_, mol, dftbasis_);
-
-    // The rebuild is required: external_ewaldgrid_ was built in QMRegion
-    // against a local AOBasis, and a Vxc_Grid holds raw `const AOShell*`
-    // into that basis, which now dangle. Only its coordinates and potential
-    // values may be read (see QMRegion::ewaldgrid_).
-    //
-    // The grids agree only if both used the same grid name, molecule and
-    // basis; checked, since a mismatch would silently give a wrong H0.
-    if (ewaldgrid.getBoxesSize() != external_ewaldgrid_.getBoxesSize()) {
-      throw std::runtime_error(
-          "DFTEngine: the external Ewald potential grid has " +
-          std::to_string(external_ewaldgrid_.getBoxesSize()) +
-          " boxes but this molecule's own grid has " +
-          std::to_string(ewaldgrid.getBoxesSize()) +
-          ". The potential was evaluated on a different grid than the one "
-          "being integrated over.");
-    }
-    // make sure the Potential values are copied from the external ewald grid to
-    // this one
-    for (Index i = 0; i < ewaldgrid.getBoxesSize(); ++i) {
-      GridBox& box = ewaldgrid[i];
-      const std::vector<double>& source =
-          external_ewaldgrid_[i].getPotentialValues();
-      if (Index(source.size()) != box.size()) {
-        throw std::runtime_error("DFTEngine: box " + std::to_string(i) +
-                                 " of the external Ewald "
-                                 "potential grid holds " +
-                                 std::to_string(source.size()) +
-                                 " values for " + std::to_string(box.size()) +
-                                 " grid points.");
-      }
-      std::vector<double>& values = box.getPotentialValues();
-      values = source;
-    }
+    Vxc_Grid ewaldgrid = EwaldGridWithPotential(mol);
     // The AO matrix depends on the basis, the grid and the potential values;
     // reuse it from the previous run if all three are the same.
     std::string ewald_key;
@@ -2977,7 +2962,9 @@ std::vector<Eigen::MatrixXd> DFTEngine::CoupledResponse(
 
 std::vector<Eigen::MatrixXd> DFTEngine::StaticResponse(
     const Orbitals& orb, const std::vector<Eigen::MatrixXd>& perturbations,
-    double tolerance, Index max_iterations) {
+    double tolerance, Index max_iterations,
+    const std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)>&
+        extra_kernel) {
   timings_.Reset();
   Orbitals work = orb;
   Prepare(work);
@@ -3037,6 +3024,9 @@ std::vector<Eigen::MatrixXd> DFTEngine::StaticResponse(
         CoupledResponse(vxc, P0, C_occ, C_virt, U, &fxc_kernel);
     for (std::size_t k = 0; k < U.size(); ++k) {
       result[k] += diag.cwiseProduct(U[k]);
+      if (extra_kernel) {
+        result[k] += C_virt.transpose() * extra_kernel(density(U[k])) * C_occ;
+      }
     }
     return result;
   };
@@ -3536,13 +3526,19 @@ double DFTEngine::ExternalRepulsion(
 Eigen::MatrixXd DFTEngine::ExternalSitesGradient(
     const QMMolecule& mol, const Eigen::MatrixXd& D, bool nuclei,
     Eigen::MatrixXd& site_gradient) const {
-  const Index natoms = mol.size();
-  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
   if (externalsites_ == nullptr || externalsites_->empty()) {
     site_gradient.resize(0, 3);
-    return grad;
+    return Eigen::MatrixXd::Zero(mol.size(), 3);
   }
-  const std::vector<std::unique_ptr<StaticSite>>& sites = *externalsites_;
+  return SitesGradient(mol, D, nuclei, *externalsites_, site_gradient);
+}
+
+Eigen::MatrixXd DFTEngine::SitesGradient(
+    const QMMolecule& mol, const Eigen::MatrixXd& D, bool nuclei,
+    const std::vector<std::unique_ptr<StaticSite>>& sites,
+    Eigen::MatrixXd& site_gradient) const {
+  const Index natoms = mol.size();
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
   const Index nsites = Index(sites.size());
   site_gradient = Eigen::MatrixXd::Zero(nsites, 3);
 
@@ -3619,6 +3615,45 @@ Eigen::MatrixXd DFTEngine::ExternalSitesGradient(
   return grad;
 }
 
+Vxc_Grid DFTEngine::EwaldGridWithPotential(const QMMolecule& mol) const {
+  Vxc_Grid ewaldgrid;
+  ewaldgrid.GridSetup(grid_name_, mol, dftbasis_);
+
+  // The rebuild is required: external_ewaldgrid_ was built in QMRegion
+  // against a local AOBasis, and a Vxc_Grid holds raw `const AOShell*`
+  // into that basis, which now dangle. Only its coordinates and potential
+  // values may be read (see QMRegion::ewaldgrid_).
+  //
+  // The grids agree only if both used the same grid name, molecule and
+  // basis; checked, since a mismatch would silently give a wrong H0.
+  if (ewaldgrid.getBoxesSize() != external_ewaldgrid_.getBoxesSize()) {
+    throw std::runtime_error(
+        "DFTEngine: the external Ewald potential grid has " +
+        std::to_string(external_ewaldgrid_.getBoxesSize()) +
+        " boxes but this molecule's own grid has " +
+        std::to_string(ewaldgrid.getBoxesSize()) +
+        ". The potential was evaluated on a different grid than the one "
+        "being integrated over.");
+  }
+  // make sure the Potential values are copied from the external ewald grid to
+  // this one
+  for (Index i = 0; i < ewaldgrid.getBoxesSize(); ++i) {
+    GridBox& box = ewaldgrid[i];
+    const std::vector<double>& source =
+        external_ewaldgrid_[i].getPotentialValues();
+    if (Index(source.size()) != box.size()) {
+      throw std::runtime_error("DFTEngine: box " + std::to_string(i) +
+                               " of the external Ewald "
+                               "potential grid holds " +
+                               std::to_string(source.size()) + " values for " +
+                               std::to_string(box.size()) + " grid points.");
+    }
+    std::vector<double>& values = box.getPotentialValues();
+    values = source;
+  }
+  return ewaldgrid;
+}
+
 Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {
 
   AODipole dipole;
@@ -3630,6 +3665,104 @@ Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {
     result -= dipole.Matrix()[i] * extfield_[i];
   }
   return result;
+}
+
+void DFTEngine::setEnvironmentResponse(
+    const std::vector<PolarSegment>& segments, double exp_damp) {
+  env_segments_ = segments;
+  env_exp_damp_ = exp_damp;
+}
+
+double DFTEngine::ExternalFieldNuclearEnergy(const QMMolecule& mol) const {
+  // The electrons get -F.(r - R_com) (IntegrateExternalField), i.e. they
+  // sit in the potential phi(r) = F.(r - R_com); the nuclei in the same one.
+  const Eigen::Vector3d com = mol.getPos();
+  double e = 0.0;
+  for (const QMAtom& atom : mol) {
+    e += double(atom.getNuccharge()) * extfield_.dot(atom.getPos() - com);
+  }
+  return e;
+}
+
+// E = -int rho phi + sum_B Z_B phi(R_B), phi(r) = F.(r - c), c = R_com the
+// centre of mass, which moves with every atom: dc/dR_A = m_A/M.
+//   electrons, basis term:  -int (d rho/dR_A)|_D phi   (on the grid; phi is
+//                           linear, the quadrature is accurate)
+//   electrons, centre term: +N_el F m_A/M, N_el = Tr(D S)
+//   nuclei:                 Z_A F - Z_tot F m_A/M
+// For a neutral molecule the centre terms cancel and the nuclei feel Z_A F.
+Eigen::MatrixXd DFTEngine::ExternalFieldGradient(const QMMolecule& mol,
+                                                 const Eigen::MatrixXd& D,
+                                                 bool nuclei) const {
+  const Index natoms = mol.size();
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  if (!integrate_ext_field_) {
+    return grad;
+  }
+  const Eigen::Vector3d com = mol.getPos();
+  Vxc_Grid grid;
+  grid.GridSetup(grid_name_, mol, dftbasis_);
+  for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+    GridBox& box = grid[i];
+    std::vector<double>& values = box.getPotentialValues();
+    values.resize(std::size_t(box.size()));
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    for (Index p = 0; p < box.size(); ++p) {
+      values[std::size_t(p)] = extfield_.dot(points[std::size_t(p)] - com);
+    }
+  }
+  grad += Ewald_Potential<Vxc_Grid>(grid).Gradient(D, natoms);
+
+  AOOverlap overlap;
+  overlap.Fill(dftbasis_);
+  double charge = -D.cwiseProduct(overlap.Matrix()).sum();
+  if (nuclei) {
+    for (Index a = 0; a < natoms; ++a) {
+      const double z = double(mol[a].getNuccharge());
+      grad.row(a) += z * extfield_.transpose();
+      charge += z;
+    }
+  }
+  tools::Elements elements;
+  double mass = 0.0;
+  for (const QMAtom& atom : mol) {
+    mass += elements.getMass(atom.getElement());
+  }
+  for (Index a = 0; a < natoms; ++a) {
+    grad.row(a) -=
+        charge * elements.getMass(mol[a].getElement()) / mass * extfield_;
+  }
+  return grad;
+}
+
+Eigen::MatrixXd DFTEngine::EwaldGradient(const QMMolecule& mol,
+                                         const Eigen::MatrixXd& D,
+                                         bool nuclei) const {
+  const Index natoms = mol.size();
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  if (!has_ewaldgrid_) {
+    return grad;
+  }
+  const Vxc_Grid grid = EwaldGridWithPotential(mol);
+  grad += Ewald_Potential<Vxc_Grid>(grid).Gradient(D, natoms);
+  if (nuclei) {
+    if (ewald_nuclear_gradient_.rows() != natoms) {
+      throw std::runtime_error(
+          "DFTEngine::EwaldGradient: no nuclear gradient of the Ewald "
+          "potential was given (setEwaldNuclearGradient)");
+    }
+    grad += ewald_nuclear_gradient_;
+  }
+  return grad;
+}
+
+Eigen::MatrixXd DFTEngine::ExternalPotentialGradient(
+    const QMMolecule& mol, const Eigen::MatrixXd& D, bool nuclei,
+    Eigen::MatrixXd& site_gradient) const {
+  Eigen::MatrixXd grad = ExternalSitesGradient(mol, D, nuclei, site_gradient);
+  grad += ExternalFieldGradient(mol, D, nuclei);
+  grad += EwaldGradient(mol, D, nuclei);
+  return grad;
 }
 
 Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(

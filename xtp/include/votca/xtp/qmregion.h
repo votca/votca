@@ -55,7 +55,7 @@ class QMRegion : public Region {
 
   bool Converged() const override;
 
-  void Evaluate(std::vector<std::unique_ptr<Region> >& regions) override;
+  void Evaluate(std::vector<std::unique_ptr<Region>>& regions) override;
 
   void WriteToCpt(CheckpointWriter& w) const override;
 
@@ -115,8 +115,8 @@ class QMRegion : public Region {
   /// environment at its converged (frozen) moments. Call after the
   /// inter-region loop has converged.
   bool ComputeForcesRequested() const { return compute_forces_; }
-  void ComputeForces();
-  void EvaluateScreenedGWBSE(std::vector<std::unique_ptr<Region> >& regions);
+  void ComputeForces(const std::vector<std::unique_ptr<Region>>& regions);
+  void EvaluateScreenedGWBSE(std::vector<std::unique_ptr<Region>>& regions);
   // After EvaluateScreenedGWBSE: adds <screened_site_energies> (h, e and
   // s or t, in eV, relative to the ground state) for -j read. No-op
   // otherwise.
@@ -125,7 +125,7 @@ class QMRegion : public Region {
   // a diagnosis, unless 1 + R is positive definite. Needs no ground state:
   // call it before the QM/MM loop. No-op without environment_screening.
   void CheckScreeningEnvironment(
-      const std::vector<std::unique_ptr<Region> >& regions) const;
+      const std::vector<std::unique_ptr<Region>>& regions) const;
 
  protected:
   void AppendResult(tools::Property& prop) const override;
@@ -138,7 +138,7 @@ class QMRegion : public Region {
   void AddNucleiFields(std::vector<PolarSegment>& segments,
                        const StaticSegment& seg) const;
   ScreeningEnvironment BuildScreeningEnvironment(
-      const std::vector<std::unique_ptr<Region> >& regions) const;
+      const std::vector<std::unique_ptr<Region>>& regions) const;
   std::string ScreeningAuxBasisName() const;
 
   Index size_ = 0;
@@ -174,6 +174,17 @@ class QMRegion : public Region {
   // compute_forces: forces (Hartree/Bohr) of the tracked state, written to
   // the job output
   bool compute_forces_ = false;
+  // qmregion.environment_polarization ground: the polar regions are
+  // converged against the ground-state density, the energy of an excited
+  // state is that of the ground-state QM/MM system plus the excitation
+  bool polarize_ground_ = false;
+  // geometry optimization: QM coordinates in the job frame (qmregion
+  // geometry), orbitals of the previous step as the first SCF guess
+  // (qmregion guess)
+  void ApplyGeometryFile(const std::string& filename);
+  void LoadGuessOrbitals(const std::string& filename);
+  void WriteFinalOrbitals() const;
+  bool guess_loaded_ = false;
   Eigen::MatrixXd forces_;
   QMState forces_state_;
   mutable Eigen::MatrixXd relaxed_dmat_;
@@ -278,6 +289,9 @@ class QMRegion : public Region {
   // sum_A Z_A phi(R_A). The grid carries the potential the ELECTRONS
   // feel; the nuclei sit in the same potential and have no other way in.
   double ewald_nuclear_energy_ = 0.0;
+  // d/dR_A of it (natoms x 3), by central differences of the potential
+  // (only with compute_forces)
+  Eigen::MatrixXd ewald_nuclear_gradient_;
 };
 
 }  // namespace xtp

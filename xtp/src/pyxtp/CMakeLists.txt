@@ -101,4 +101,8 @@ if(BUILD_TESTING AND PYpytest_FOUND)
   # about 30 s in Release, more than 1500 s (CTest's default) in the CI
   # Debug build before the numerical-force check was reduced
   set_tests_properties(integration_test_xtp_binds_excited_forces PROPERTIES TIMEOUT ${VOTCA_LONG_TEST_TIMEOUT})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/test/test_qmmm_optimize.py ${RUNPATH}/test_qmmm_optimize.py)
+  # QM/MM geometry optimizer against a fake xtp_parallel (a few seconds)
+  add_test(NAME integration_test_xtp_binds_qmmm_optimize COMMAND ${Python_EXECUTABLE} -m pytest ${RUNPATH}/test_qmmm_optimize.py -v WORKING_DIRECTORY ${RUNPATH}  )
+  set_property(TEST integration_test_xtp_binds_qmmm_optimize PROPERTY ENVIRONMENT "PYTHONPATH=${XTP_PYPATH}:$ENV{PYTHONPATH};VOTCASHARE=${CMAKE_CURRENT_SOURCE_DIR}/../../share")
 endif()

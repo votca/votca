@@ -212,6 +212,13 @@ class EnvironmentScreening {
       const Eigen::MatrixXd& F, const std::vector<PolarSegment>& segments,
       double exp_damp);
   /**
+   * \brief A = alpha^-1 + T_Thole of the sites of segments (3 N x 3 N), the
+   * operator of ReactionFieldKernel and PolarRegion: induced dipoles
+   * mu = A^-1 E for a field E at the sites.
+   */
+  static Eigen::MatrixXd TholeMatrix(const std::vector<PolarSegment>& segments,
+                                     double exp_damp);
+  /**
    * \brief B for an explicit region with charge-response segments (Thole
    * segments may be mixed in): the induced charges respond to the
    * potential Phi (AuxPotentialAtPoints at the charge-response sites, in
@@ -271,6 +278,19 @@ class EnvironmentScreening {
    * Symmetric positive definite. Throws unless 1 + R is.
    */
   static Eigen::MatrixXd DressingMatrix(const Eigen::MatrixXd& R);
+  /**
+   * \brief Derivative of Tr(Z B) with respect to the QM atoms (natoms x 3),
+   * B = Kernel(auxbasis, env), Z symmetric (N_aux x N_aux): the auxiliary
+   * functions move with their atoms, the environment is fixed. With
+   * B = -C^T chi C (C the sources of the auxiliary functions at the sites,
+   * chi the fixed response) this is 2 sum (chi C Z) . dC/ds, the
+   * derivatives of the sources with respect to the site positions by
+   * central differences (h = 1e-4 bohr; moving a function is moving the
+   * site the other way). For gradients of the screened GW-BSE energy.
+   */
+  static Eigen::MatrixXd KernelGradient(const AOBasis& auxbasis,
+                                        const ScreeningEnvironment& env,
+                                        const Eigen::MatrixXd& Z);
 
   /**
    * \brief B for a whole environment: ReactionFieldKernel of the explicit

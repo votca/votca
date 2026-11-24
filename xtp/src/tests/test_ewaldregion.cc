@@ -1091,6 +1091,45 @@ Eigen::Vector3d CentroidOf(const PolarSegment& seg) {
 }
 }  // namespace
 
+// The QM region registers its foreground at the centroid of the mapped QM
+// atoms, which differs from the classical background copy's centroid (QM
+// vs classical geometry, or a displaced QM geometry, e.g. in a geometry
+// optimization or a finite-difference force check). BuildSums snaps the
+// registered position to the nearest lattice image of the background copy,
+// so the same copy is suppressed and the potential is unchanged: the
+// background stays the same frozen function of r.
+BOOST_AUTO_TEST_CASE(foreground_exclusion_independent_of_qm_geometry) {
+  const std::string file = "ewaldregion_test_snap.hdf5";
+  WriteWaterBackground(file, true);
+  const Eigen::Vector3d c0 = CentroidOf(Water(0, true));
+  std::vector<Eigen::Vector3d> points;
+  for (Index i = 0; i < 20; ++i) {
+    points.push_back(c0 + 2.0 * Eigen::Vector3d::Random());
+  }
+  auto potential = [&](Index id, const Eigen::Vector3d& pos) {
+    Logger log;
+    log.setReportLevel(Log::error);
+    EwaldRegion region(1, log);
+    tools::Property prop = RegionDefinition(file);
+    region.Initialize(prop.get("ewaldregion"));
+    region.RegisterForeground({{id, pos}});
+    return region.PotentialAt(points);
+  };
+  const Eigen::VectorXd exact = potential(0, c0);
+  const Eigen::VectorXd offset =
+      potential(0, c0 + Eigen::Vector3d(0.1, -0.05, 0.08));
+  const Eigen::VectorXd relaxed =
+      potential(0, c0 + Eigen::Vector3d(-0.6, 0.4, 0.3));
+  // a different segment carved out instead: the exclusion matters
+  const Eigen::VectorXd other = potential(1, CentroidOf(Water(1, true)));
+  std::remove(file.c_str());
+  const double scale = exact.cwiseAbs().maxCoeff();
+  BOOST_CHECK_GT(scale, 1e-3);
+  BOOST_CHECK_SMALL((offset - exact).cwiseAbs().maxCoeff(), 1e-12 * scale);
+  BOOST_CHECK_SMALL((relaxed - exact).cwiseAbs().maxCoeff(), 1e-12 * scale);
+  BOOST_CHECK_GT((other - exact).cwiseAbs().maxCoeff(), 1e-2 * scale);
+}
+
 // ApplyPotentialTo puts PotentialAt on the charge-response sites (with or
 // without a declared foreground) and nothing on other sites, and the
 // potential is consistent with the field ApplyFieldTo delivers: in the

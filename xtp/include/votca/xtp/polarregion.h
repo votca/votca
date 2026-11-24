@@ -105,6 +105,10 @@ class PolarRegion : public MMRegion<PolarSegment> {
   // charge-response options (bohr; Thole damping of their dipoles)
   double cr_width_ = 0.7 * tools::conv::ang2bohr;
   bool cr_thole_dipoles_ = false;
+  // induced moments of an earlier job of the same setup as the start of the
+  // first solve (polarregion guess; geometry optimizations)
+  void LoadGuess(const std::string& filename);
+  bool guess_loaded_ = false;
 
   // marks the sites of the charge-response segments with the options above
   void SetupChargeResponseSites();

@@ -29,6 +29,7 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include "votca/xtp/checkpoint.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/staticregion.h"
@@ -84,7 +85,8 @@ std::unique_ptr<StaticRegion> External(Index id, Logger& log) {
 }
 
 std::unique_ptr<PolarRegion> Polar(Index id, Logger& log,
-                                   const std::vector<PolarSegment>& segs) {
+                                   const std::vector<PolarSegment>& segs,
+                                   const std::string& guess = "") {
   auto region = std::make_unique<PolarRegion>(id, log);
   for (const PolarSegment& s : segs) {
     region->push_back(s);
@@ -94,6 +96,9 @@ std::unique_ptr<PolarRegion> Polar(Index id, Logger& log,
   opt.add("tolerance_dipole", "1e-12");
   opt.add("tolerance_energy", "1e-12");
   opt.add("exp_damp", "0.39");
+  if (!guess.empty()) {
+    opt.add("guess", guess);
+  }
   region->Initialize(opt);
   return region;
 }
@@ -175,6 +180,50 @@ BOOST_AUTO_TEST_CASE(split_equals_merged) {
   BOOST_CHECK_GT(mu, 1e-3);
   BOOST_CHECK_LT(dmu, 1e-8);
   BOOST_CHECK_CLOSE(e_split, e_merged, 1e-6);
+}
+
+// polarregion guess: the induced moments of a checkpoint of an earlier job
+// (here: the converged merged region) start the first solve. Segments are
+// matched by id, since the checkpoint does not keep their order; a
+// checkpoint whose segments do not match is ignored.
+BOOST_AUTO_TEST_CASE(guess_from_checkpoint) {
+  Logger log;
+  log.setReportLevel(votca::Log::error);
+  const std::vector<PolarSegment> mols = Molecules();
+  std::vector<std::unique_ptr<Region>> converged;
+  converged.push_back(Polar(0, log, mols));
+  converged.push_back(External(1, log));
+  Converge(converged);
+  const std::vector<Eigen::Vector3d> mu = Dipoles(converged);
+  const std::string file = "polarregion_guess.hdf5";
+  {
+    CheckpointFile cpf(file, CheckpointAccessLevel::CREATE);
+    CheckpointWriter w = cpf.getWriter("region_0");
+    converged[0]->WriteToCpt(w);
+  }
+  // the same segments: moments loaded before any evaluation
+  std::vector<std::unique_ptr<Region>> seeded;
+  seeded.push_back(Polar(0, log, mols, file));
+  const std::vector<Eigen::Vector3d> mu_seed = Dipoles(seeded);
+  BOOST_REQUIRE_EQUAL(mu_seed.size(), mu.size());
+  double dev = 0.0;
+  for (std::size_t i = 0; i < mu.size(); ++i) {
+    dev = std::max(dev, (mu_seed[i] - mu[i]).norm());
+  }
+  BOOST_CHECK_SMALL(dev, 1e-12);
+  // and converging from them gives the same answer
+  seeded.push_back(External(1, log));
+  const double e_seeded = Converge(seeded);
+  const double e_ref = converged[0]->Etotal() + converged[1]->Etotal();
+  BOOST_CHECK_CLOSE(e_seeded, e_ref, 1e-8);
+  // different segments (one molecule fewer): ignored, moments stay zero
+  const std::vector<PolarSegment> fewer(mols.begin(), mols.end() - 1);
+  std::vector<std::unique_ptr<Region>> other;
+  other.push_back(Polar(0, log, fewer, file));
+  for (const Eigen::Vector3d& d : Dipoles(other)) {
+    BOOST_CHECK_EQUAL(d.norm(), 0.0);
+  }
+  std::remove(file.c_str());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

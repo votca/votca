@@ -124,8 +124,18 @@ def compare_values(path: str, a: Optional[str], b: Optional[str],
         fa, fb = to_float(sa), to_float(sb)
         if not num_equal(fa, fb, atol, rtol):
             diffs.append(f"{path}: numeric mismatch {fa} vs {fb} (atol={atol}, rtol={rtol})")
-    else:
-        diffs.append(f"{path}: text mismatch {sa!r} vs {sb!r}")
+        return
+    # Whitespace-separated numbers (e.g. a force or position vector): element
+    # by element with the same tolerances
+    va = parse_float_vector(sa)
+    vb = parse_float_vector(sb)
+    if va and vb and len(va) == len(vb):
+        if not all(num_equal(x, y, atol, rtol) for x, y in zip(va, vb)):
+            diffs.append(
+                f"{path}: numeric-vector mismatch {va} vs {vb} (atol={atol}, rtol={rtol})"
+            )
+        return
+    diffs.append(f"{path}: text mismatch {sa!r} vs {sb!r}")
 
 
 def compare_elements(

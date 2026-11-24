@@ -103,12 +103,36 @@ void QMRegion::Initialize(const tools::Property& prop) {
       prop.ifExistsReturnElseReturnDefault<bool>("relaxed_density", false);
   compute_forces_ =
       prop.ifExistsReturnElseReturnDefault<bool>("compute_forces", false);
+  const std::string polarization =
+      prop.ifExistsReturnElseReturnDefault<std::string>(
+          "environment_polarization", "state");
+  if (polarization != "state" && polarization != "ground") {
+    throw std::runtime_error("environment_polarization: state or ground, got " +
+                             polarization);
+  }
+  polarize_ground_ = polarization == "ground";
+  if (polarize_ground_ && relaxed_density_) {
+    throw std::runtime_error(
+        "environment_polarization ground: the polar regions are converged "
+        "against the ground state, relaxed_density does not apply");
+  }
   if (compute_forces_) {
     if (dftoptions_.get("name").as<std::string>() != "xtp") {
       throw std::runtime_error("compute_forces: needs the xtp DFT package");
     }
     // ground-state forces with every DFT run (the last one is used)
     dftoptions_.get("xtpdft.compute_forces").value() = "true";
+  }
+  // after the segments were mapped (JobTopology pushes them back first)
+  const std::string geometry =
+      prop.ifExistsReturnElseReturnDefault<std::string>("geometry", "");
+  if (!geometry.empty()) {
+    ApplyGeometryFile(geometry);
+  }
+  const std::string guess =
+      prop.ifExistsReturnElseReturnDefault<std::string>("guess", "");
+  if (!guess.empty()) {
+    LoadGuessOrbitals(guess);
   }
 
   if (prop.get("dftpackage.xtpdft.dft_in_dft.activeatoms")
@@ -196,15 +220,12 @@ void QMRegion::Initialize(const tools::Property& prop) {
     }
   }
   if (compute_forces_) {
-    if (screening_) {
-      throw std::runtime_error(
-          "compute_forces: not available with environment_screening");
-    }
     if (do_dft_in_dft_) {
       throw std::runtime_error(
           "compute_forces: not available with DFT-in-DFT embedding");
     }
-    if (do_gwbse_ && initstate_.Type().isExciton() && !relaxed_density_) {
+    if (do_gwbse_ && initstate_.Type().isExciton() && !relaxed_density_ &&
+        !polarize_ground_ && !screening_) {
       XTP_LOG(Log::error, log_)
           << TimeStamp()
           << " WARNING: compute_forces for an excited state without "
@@ -608,18 +629,21 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
     }
     qmpackage_->setEwaldgrid(ewaldgrid_);
     qmpackage_->setEwaldNuclearEnergy(ewald_nuclear_energy_);
+    if (ewald_nuclear_gradient_.size() > 0) {
+      qmpackage_->setEwaldNuclearGradient(ewald_nuclear_gradient_);
+    }
   }
 
   // From the second inter-region iteration on, only the environment has
   // changed: start the SCF from the previous iteration's orbitals.
-  const bool warm_start = E_hist_.filled() && orb_.hasMOs();
+  const bool warm_start = (E_hist_.filled() || guess_loaded_) && orb_.hasMOs();
   qmpackage_->setWarmStart(warm_start);
   // From the second inter-region iteration on, the inner SCF only needs to
   // be converged a factor 10 beyond what the outer loop resolves: its
   // energy error is second order in the density error, and its density
   // error stays below the outer density tolerance. Not with GW-BSE, which
   // takes the orbitals as they are; capped at 1e-5 in both.
-  if (warm_start && !do_gwbse_) {
+  if (warm_start && E_hist_.filled() && !do_gwbse_) {
     qmpackage_->setSCFToleranceFloor(std::min(0.1 * DeltaE_, 1e-5),
                                      std::min(0.1 * DeltaD_, 1e-5));
   }
@@ -774,6 +798,9 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
 Eigen::MatrixXd QMRegion::StateDensity(const QMState& state) const {
   const bool relaxable =
       state.Type().isExciton() || state.Type() == QMStateType::PQPstate;
+  if (polarize_ground_ && relaxable) {
+    return orb_.DensityMatrixGroundState();
+  }
   if (!relaxed_density_ || !relaxable) {
     return orb_.DensityMatrixFull(state);
   }
@@ -887,18 +914,107 @@ void QMRegion::AppendResult(tools::Property& prop) const {
       atom.setAttribute("id", a);
       atom.setAttribute("element", orb_.QMAtoms()[a].getElement());
     }
+    // the coordinates the forces belong to, in the frame of the job: input
+    // for qmregion geometry in the next step of an optimization
+    tools::Property& geometry = prop.add("geometry", "");
+    geometry.setAttribute("unit", "Angstrom");
+    for (Index a = 0; a < orb_.QMAtoms().size(); ++a) {
+      const Eigen::Vector3d r =
+          orb_.QMAtoms()[a].getPos() * tools::conv::bohr2ang;
+      tools::Property& atom = geometry.add(
+          "atom",
+          (boost::format("%1$+1.10f %2$+1.10f %3$+1.10f") % r(0) % r(1) % r(2))
+              .str());
+      atom.setAttribute("id", a);
+      atom.setAttribute("element", orb_.QMAtoms()[a].getElement());
+    }
   }
 }
 
-void QMRegion::ComputeForces() {
+// The QM atoms at the coordinates of an xyz file in the frame of the job
+// (as written to the job output with compute_forces), instead of the
+// segment mapping, which fits each fragment onto its MD frame and would undo
+// any rigid-body motion and change the geometry between fragments. Same
+// atoms in the same order as the mapped region. The region partition and the
+// Ewald foreground stay as set up from the topology (frozen environment).
+void QMRegion::ApplyGeometryFile(const std::string& filename) {
+  QMMolecule& mol = orb_.QMAtoms();
+  if (mol.size() == 0) {
+    throw std::runtime_error(
+        "qmregion geometry: the region holds no atoms to place");
+  }
+  QMMolecule given("geometry", 0);
+  given.LoadFromFile(filename);
+  if (given.size() != mol.size()) {
+    throw std::runtime_error("qmregion geometry: '" + filename + "' has " +
+                             std::to_string(given.size()) +
+                             " atoms, the QM region " +
+                             std::to_string(mol.size()));
+  }
+  double max_shift = 0.0;
+  for (Index a = 0; a < mol.size(); ++a) {
+    if (given[a].getElement() != mol[a].getElement()) {
+      throw std::runtime_error("qmregion geometry: atom " + std::to_string(a) +
+                               " of '" + filename + "' is " +
+                               given[a].getElement() + ", in the QM region " +
+                               mol[a].getElement());
+    }
+    max_shift =
+        std::max(max_shift, (given[a].getPos() - mol[a].getPos()).norm());
+    mol[a].setPos(given[a].getPos());
+  }
+  mol.calcPos();
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " QM atoms placed at the coordinates of " << filename
+      << " (largest shift from the mapped geometry "
+      << max_shift * tools::conv::bohr2ang << " Angstrom)" << std::flush;
+  if (max_shift > 1.0 * tools::conv::ang2bohr) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " WARNING: an atom moved by more than 1 Angstrom "
+        << "from the mapped geometry; is the file in the frame of this job?"
+        << std::flush;
+  }
+}
+
+// MOs (and electron counts and basis) of an orb file as the first SCF guess;
+// DFTEngine checks that they fit and orthogonalizes them in the current
+// geometry (as for the warm start between inter-region iterations).
+void QMRegion::LoadGuessOrbitals(const std::string& filename) {
+  Orbitals guess;
+  guess.ReadFromCpt(filename);
+  if (!guess.hasMOs()) {
+    throw std::runtime_error("qmregion guess: '" + filename + "' holds no MOs");
+  }
+  orb_.MOs() = guess.MOs();
+  orb_.MOs_beta() = guess.MOs_beta();
+  orb_.setNumberOfAlphaElectrons(guess.getNumberOfAlphaElectrons());
+  orb_.setNumberOfBetaElectrons(guess.getNumberOfBetaElectrons());
+  orb_.setNumberOfOccupiedLevels(guess.getNumberOfAlphaElectrons());
+  orb_.setNumberOfOccupiedLevelsBeta(guess.getNumberOfBetaElectrons());
+  if (guess.hasDFTbasisName()) {
+    // the basis the MOs belong to, on the atoms of this region
+    orb_.SetupDftBasis(guess.getDFTbasisName());
+  }
+  guess_loaded_ = true;
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " First SCF guess from " << filename << std::flush;
+}
+
+void QMRegion::ComputeForces(
+    const std::vector<std::unique_ptr<Region>>& regions) {
   if (!orb_.hasForces()) {
     throw std::runtime_error(
         "compute_forces: the last DFT run stored no forces (see its log, e.g. "
-        "an Ewald background or external field, whose force terms are not "
-        "implemented)");
+        "an external density, whose force term is not implemented)");
   }
   QMState state = QMState("groundstate");
-  if (do_gwbse_ || initstate_.Type().isKSState()) {
+  if (screening_) {
+    if (!screened_done_) {
+      throw std::runtime_error(
+          "compute_forces: the screened GW-BSE run did not take place");
+    }
+    state = screened_state_;
+  } else if (do_gwbse_ || initstate_.Type().isKSState()) {
     state = statetracker_.CalcState(orb_);
   }
   forces_ = orb_.getForces();
@@ -916,6 +1032,7 @@ void QMRegion::ComputeForces() {
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " Forces of " << state.ToString()
         << " (DFT, environment frozen)" << std::flush;
+    WriteFinalOrbitals();
     return;
   }
   // the external sites exactly as the last DFT run saw them
@@ -934,6 +1051,58 @@ void QMRegion::ComputeForces() {
   dft.Initialize(dftoptions);
   if (!sites.empty()) {
     dft.setExternalcharges(&sites);
+  }
+  if (ewald_grid_ready_) {
+    // the electrons' share of the Ewald force term (the nuclei are in the
+    // DFT forces)
+    dft.setEwaldgrid(ewaldgrid_);
+  }
+  // With environment screening the QM/MM loop converged the polar regions
+  // against the ground state (ApplyQMFieldToPolarSegments), as with
+  // environment_polarization ground; the excitation's own polarization is
+  // in W, whose environment part moves with the auxiliary functions.
+  const bool ground_polarized = polarize_ground_ || screening_;
+  if (screening_) {
+    const ScreeningEnvironment env = BuildScreeningEnvironment(regions);
+    if (!env.empty()) {
+      dft.setScreeningEnvironment(env);
+    }
+  }
+  if (ground_polarized) {
+    // the polar regions respond to the geometry through the ground state:
+    // all their segments as one Thole system (the region partition is
+    // bookkeeping, see PolarRegion::InteractwithPolarRegion)
+    std::vector<PolarSegment> polar;
+    double exp_damp = -1.0;
+    Index n_polar = 0;
+    for (const std::unique_ptr<Region>& reg : regions) {
+      const PolarRegion* p = dynamic_cast<const PolarRegion*>(reg.get());
+      if (p == nullptr) {
+        continue;
+      }
+      ++n_polar;
+      if (exp_damp >= 0.0 && std::abs(p->ExpDamp() - exp_damp) > 1e-12) {
+        throw std::runtime_error(
+            "compute_forces with environment_polarization ground: the polar "
+            "regions have different exp_damp");
+      }
+      // between regions the dipoles interact with the default damping of
+      // eeInteractor (PolarRegion::InteractwithPolarRegion)
+      constexpr double kDefaultDamp = 0.39;
+      if (n_polar > 1 && std::abs(p->ExpDamp() - kDefaultDamp) > 1e-12) {
+        throw std::runtime_error(
+            "compute_forces with environment_polarization ground: several "
+            "polar regions with an exp_damp other than 0.39 (the damping "
+            "between regions); not supported");
+      }
+      exp_damp = p->ExpDamp();
+      for (const PolarSegment& seg : *p) {
+        polar.push_back(seg);
+      }
+    }
+    if (!polar.empty()) {
+      dft.setEnvironmentResponse(polar, exp_damp);
+    }
   }
   DFTEngine::BSEGradientInput input =
       bse ? DFTEngine::BSEGradientInputFromOrbitals(
@@ -967,8 +1136,22 @@ void QMRegion::ComputeForces() {
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Forces of " << state.ToString() << " ("
       << sites.size() << " external sites at their converged moments"
-      << (relaxed_density_ ? "" : ", unrelaxed environment: approximate") << ")"
-      << std::flush;
+      << (relaxed_density_ ? ""
+          : screening_
+              ? ", environment polarized by the ground state, screened GW-BSE"
+          : polarize_ground_ ? ", environment polarized by the ground state"
+                             : ", unrelaxed environment: approximate")
+      << ")" << std::flush;
+  WriteFinalOrbitals();
+}
+
+// The converged orbitals of the job, as the guess of the next geometry
+// (qmregion guess).
+void QMRegion::WriteFinalOrbitals() const {
+  const std::string file = workdir_ + "/qmregion_final.orb";
+  orb_.WriteToCpt(file);
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Wrote the final orbitals to " << file << std::flush;
 }
 
 void QMRegion::Reset() {
@@ -1191,9 +1374,24 @@ double QMRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
   for (const QMAtom& atom : orb_.QMAtoms()) {
     points.push_back(atom.getPos());
   }
+  // For the forces, the potential at +-h along x, y, z around each nucleus,
+  // in the same call: grad phi by central differences. The background
+  // sources are far from the QM nuclei, so phi is smooth there and h =
+  // 1e-4 bohr leaves an error far below that of the grid integration.
+  const double h = 1e-4;
+  const Index n_nuclei = orb_.QMAtoms().size();
+  if (compute_forces_) {
+    for (const QMAtom& atom : orb_.QMAtoms()) {
+      for (Index k = 0; k < 3; ++k) {
+        for (double sign : {+1.0, -1.0}) {
+          points.push_back(atom.getPos() + sign * h * Eigen::Vector3d::Unit(k));
+        }
+      }
+    }
+  }
   const Eigen::VectorXd phi_all = region.PotentialAt(points);
   const Eigen::VectorXd phi = phi_all.head(n_grid);
-  const Eigen::VectorXd phi_nuclei = phi_all.tail(phi_all.size() - n_grid);
+  const Eigen::VectorXd phi_nuclei = phi_all.segment(n_grid, n_nuclei);
 
   // Vxc_Grid::getGridpoints() walks grid_boxes_ in order and each box's
   // own points in order, so the flat vector maps back by giving each box
@@ -1229,6 +1427,18 @@ double QMRegion::InteractwithEwaldRegion(const EwaldRegion& region) {
   for (const QMAtom& atom : orb_.QMAtoms()) {
     ewald_nuclear_energy_ += double(atom.getNuccharge()) * phi_nuclei[a];
     ++a;
+  }
+  if (compute_forces_) {
+    ewald_nuclear_gradient_ = Eigen::MatrixXd::Zero(n_nuclei, 3);
+    Index offset_fd = n_grid + n_nuclei;
+    for (Index b = 0; b < n_nuclei; ++b) {
+      const double z = double(orb_.QMAtoms()[b].getNuccharge());
+      for (Index k = 0; k < 3; ++k) {
+        ewald_nuclear_gradient_(b, k) =
+            z * (phi_all[offset_fd] - phi_all[offset_fd + 1]) / (2.0 * h);
+        offset_fd += 2;
+      }
+    }
   }
 
   ewald_potential_evaluated_ = true;

@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -41,16 +42,21 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include "votca/xtp/aogaussiansites.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/bse.h"
+#include "votca/xtp/chargeresponse.h"
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/excitonfollow.h"
+#include "votca/xtp/gaussiankernel.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/polarsite.h"
 #include "votca/xtp/threecenter.h"
+#include "votca/xtp/vxc_grid.h"
 
 using namespace votca::xtp;
 using votca::Index;
@@ -158,7 +164,8 @@ Eigen::VectorXd ShiftRPA(Index nmo, Index homo) {
 
 // Lowest TDA BSE state for the converged ground state in orb.
 double SolveBSE(Orbitals& orb, const Windows& w, bool singlet, bool tda,
-                Eigen::VectorXd* X = nullptr, Eigen::VectorXd* Y = nullptr) {
+                Eigen::VectorXd* X = nullptr, Eigen::VectorXd* Y = nullptr,
+                const ScreeningEnvironment* screening = nullptr) {
   QMMolecule mol = orb.QMAtoms();
   BasisSet dftset;
   dftset.Load(DataFile("def2-svp.xml"));
@@ -210,6 +217,15 @@ double SolveBSE(Orbitals& orb, const Windows& w, bool singlet, bool tda,
   orb.setTDAApprox(tda);
   orb.RPAInputEnergies() = rpa_energies;
   BSE bse(TestLog(), Mmn);
+  if (screening != nullptr) {
+    // as GWBSE: R in the metric of the stored integrals; dressed route, or
+    // the bare one (W_tot explicit, exchange with v) without K_reac
+    const Eigen::MatrixXd Bk =
+        EnvironmentScreening::Kernel(auxbasis, *screening);
+    bse.setReactionField(
+        EnvironmentScreening::SymmetrizedReactionField(Bk, Mmn.InvSqrt()),
+        screening->include_kreac);
+  }
   bse.configure(opt, rpa_energies, Hqp);
   const votca::tools::EigenSystem* es;
   if (singlet) {
@@ -681,6 +697,181 @@ BOOST_AUTO_TEST_CASE(embedded_bse_gradient) {
   libint2::finalize();
 }
 
+// Homogeneous field and Ewald background: the other frozen external
+// potentials. configure(dft, mol) installs the potential for the molecule
+// at its current geometry (the field goes in through the options).
+namespace {
+using Configure = std::function<void(DFTEngine&, const QMMolecule&)>;
+
+const Eigen::Vector3d kField(0.012, -0.020, 0.015);
+
+// A smooth background potential: a few distant point charges (bohr),
+// evaluated on the integration grid and at the nuclei as QMRegion does
+// with EwaldRegion::PotentialAt.
+struct Background {
+  std::vector<std::pair<Eigen::Vector3d, double>> charges = {
+      {Eigen::Vector3d(9.0, -2.0, 3.0), 0.8},
+      {Eigen::Vector3d(-7.5, 6.0, -1.0), -0.6},
+      {Eigen::Vector3d(1.0, -3.0, -9.5), 0.5}};
+  double Phi(const Eigen::Vector3d& r) const {
+    double phi = 0.0;
+    for (const auto& c : charges) {
+      phi += c.second / (r - c.first).norm();
+    }
+    return phi;
+  }
+  Eigen::Vector3d GradPhi(const Eigen::Vector3d& r) const {
+    Eigen::Vector3d g = Eigen::Vector3d::Zero();
+    for (const auto& c : charges) {
+      const Eigen::Vector3d d = r - c.first;
+      g -= c.second * d / std::pow(d.norm(), 3);
+    }
+    return g;
+  }
+};
+
+void InstallBackground(DFTEngine& dft, const QMMolecule& mol) {
+  const Background bg;
+  BasisSet bs;
+  bs.Load(DataFile("def2-svp.xml"));
+  AOBasis basis;
+  basis.Fill(bs, mol);
+  Vxc_Grid grid;
+  grid.GridSetup("fine", mol, basis);
+  for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+    GridBox& box = grid[i];
+    std::vector<double>& values = box.getPotentialValues();
+    values.clear();
+    for (const Eigen::Vector3d& r : box.getGridPoints()) {
+      values.push_back(bg.Phi(r));
+    }
+  }
+  double e_nuc = 0.0;
+  Eigen::MatrixXd g_nuc(mol.size(), 3);
+  for (Index a = 0; a < mol.size(); ++a) {
+    const double z = double(mol[a].getNuccharge());
+    e_nuc += z * bg.Phi(mol[a].getPos());
+    g_nuc.row(a) = z * bg.GradPhi(mol[a].getPos()).transpose();
+  }
+  // only coordinates and values of the grid are read by the engine
+  dft.setEwaldgrid(grid);
+  dft.setEwaldNuclearEnergy(e_nuc);
+  dft.setEwaldNuclearGradient(g_nuc);
+}
+
+// ground-state forces against finite differences of the total energy
+void CheckExternalForces(const std::string& label, const Eigen::Vector3d& field,
+                         const Configure& configure) {
+  const std::string xc = "XC_HYB_GGA_XC_PBEH";
+  auto energy = [&](const Eigen::Matrix3d& pos) {
+    DFTEngine dft;
+    InitializeEngine(dft, xc, field);
+    configure(dft, BuildWater(pos));
+    return RunSCF(pos, dft).getDFTTotalEnergy();
+  };
+  DFTEngine dft;
+  InitializeEngine(dft, xc, field, true);
+  configure(dft, BuildWater(WaterPositions()));
+  const Orbitals orb = RunSCF(WaterPositions(), dft);
+  BOOST_REQUIRE(orb.hasForces());
+  const Eigen::MatrixXd& F = orb.getForces();
+  const double h = 5e-4;
+  const Eigen::Matrix3d da = AtomDirection();
+  const double fd =
+      (energy(WaterPositions() + h * da) - energy(WaterPositions() - h * da)) /
+      (2.0 * h) * kAngstromPerBohr;
+  const double an = -(F.array() * da.array()).sum();
+  std::cout << label << " ground state: analytic " << an << " FD " << fd
+            << "; net force " << F.colwise().sum() << std::endl;
+  BOOST_CHECK_SMALL(std::abs(an - fd), 5e-5 * F.norm() + 1e-6);
+}
+
+// BSE excitation energy (fixed corrections) against finite differences
+void CheckExternalBSEGradient(const std::string& label,
+                              const Eigen::Vector3d& field,
+                              const Configure& configure) {
+  const std::string xc = "XC_HYB_GGA_XC_PBEH";
+  const Windows w{0, 23, 0, 23};
+  auto omega = [&](const Eigen::Matrix3d& pos) {
+    DFTEngine dft;
+    InitializeEngine(dft, xc, field);
+    configure(dft, BuildWater(pos));
+    Orbitals o = RunSCF(pos, dft);
+    return SolveBSE(o, w, true, true);
+  };
+  DFTEngine dft;
+  InitializeEngine(dft, xc, field);
+  configure(dft, BuildWater(WaterPositions()));
+  Orbitals orb = RunSCF(WaterPositions(), dft);
+  Eigen::VectorXd X;
+  Eigen::VectorXd Y;
+  const double omega_ref = SolveBSE(orb, w, true, true, &X, &Y);
+  const Eigen::VectorXd& eps = orb.MOs().eigenvalues();
+  const Index nmo = eps.size();
+  const Index homo = orb.getHomo();
+  DFTEngine::BSEGradientInput in;
+  in.singlet = true;
+  in.vmin = w.vmin;
+  in.cmax = w.cmax;
+  in.rpamin = w.rpamin;
+  in.rpamax = w.rpamax;
+  in.X = X;
+  in.Y = Y;
+  in.energies_bse = eps.segment(w.vmin, w.cmax - w.vmin + 1) +
+                    ShiftBSE(nmo, homo).segment(w.vmin, w.cmax - w.vmin + 1);
+  in.energies_rpa =
+      eps.segment(w.rpamin, w.rpamax - w.rpamin + 1) +
+      ShiftRPA(nmo, homo).segment(w.rpamin, w.rpamax - w.rpamin + 1);
+  const DFTEngine::BSEGradientResult res = dft.BSEExcitationGradient(orb, in);
+  BOOST_CHECK_SMALL(res.omega - omega_ref, 1e-9);
+  const double h = 5e-4;
+  const Eigen::Matrix3d da = AtomDirection();
+  const double fd =
+      (omega(WaterPositions() + h * da) - omega(WaterPositions() - h * da)) /
+      (2.0 * h) * kAngstromPerBohr;
+  const double an = (res.gradient.array() * da.array()).sum();
+  std::cout << label << " BSE: analytic " << an << " FD " << fd << std::endl;
+  BOOST_CHECK_SMALL(std::abs(an - fd), 5e-5 * res.gradient.norm() + 1e-6);
+}
+
+void NoExternal(DFTEngine&, const QMMolecule&) {}
+}  // namespace
+
+// Homogeneous field: the nuclei feel Z_A F, the electrons the field through
+// the density; for the neutral molecule the net force vanishes.
+BOOST_AUTO_TEST_CASE(field_forces) {
+  libint2::initialize();
+  if (!HasLibint2DerivativeSupport()) {
+    std::cout << "SKIPPING: this libint2 build lacks derivative integrals"
+              << std::endl;
+    libint2::finalize();
+    return;
+  }
+  CheckExternalForces("field", kField, NoExternal);
+  if (kAllCases) {
+    CheckExternalBSEGradient("field", kField, NoExternal);
+  }
+  libint2::finalize();
+}
+
+// Ewald background (a potential on the integration grid plus the nuclei in
+// the same potential), here a smooth model potential.
+BOOST_AUTO_TEST_CASE(ewald_background_forces) {
+  libint2::initialize();
+  if (!HasLibint2DerivativeSupport()) {
+    std::cout << "SKIPPING: this libint2 build lacks derivative integrals"
+              << std::endl;
+    libint2::finalize();
+    return;
+  }
+  CheckExternalForces("Ewald", Eigen::Vector3d::Zero(), InstallBackground);
+  if (kAllCases) {
+    CheckExternalBSEGradient("Ewald", Eigen::Vector3d::Zero(),
+                             InstallBackground);
+  }
+  libint2::finalize();
+}
+
 // Polarizable embedding converged self-consistently, as in the iterative
 // QM/MM scheme: one polarizable site (charge, isotropic polarizability)
 // whose induced dipole mu = alpha F is iterated against the field F of the
@@ -696,8 +887,13 @@ struct PolarizableResult {
   Eigen::Vector3d mu;
 };
 
-PolarizableResult ConvergePolarizable(const Eigen::Matrix3d& pos, bool excited,
-                                      bool forces) {
+// mode: ground state; S1 with the site converged against the relaxed S1
+// density; S1 with the site converged against the ground state
+enum class Polarization { Ground, ExcitedRelaxed, ExcitedOnGround };
+
+PolarizableResult ConvergePolarizable(const Eigen::Matrix3d& pos,
+                                      Polarization mode, bool forces) {
+  const bool excited = mode == Polarization::ExcitedRelaxed;
   const std::string xc = "XC_HYB_GGA_XC_PBEH";
   const Windows w{0, 23, 0, 23};
   const double alpha = 8.0;
@@ -780,6 +976,38 @@ PolarizableResult ConvergePolarizable(const Eigen::Matrix3d& pos, bool excited,
     result.force = force;
     result.mu = mu;
     if ((mu_new - mu).cwiseAbs().maxCoeff() < 1e-9) {
+      if (mode == Polarization::ExcitedOnGround) {
+        // S1 on top of the ground-state polarized site; the gradient with
+        // the response of the site through the ground state
+        PolarSegment seg("site", 0);
+        PolarSite site(0, "O", site_pos);
+        site.setpolarization(alpha * Eigen::Matrix3d::Identity());
+        seg.push_back(site);
+        dft.setEnvironmentResponse({seg}, 0.39);
+        Eigen::VectorXd X;
+        Eigen::VectorXd Y;
+        result.energy += SolveBSE(orb, w, true, true, &X, &Y);
+        if (forces) {
+          const Eigen::VectorXd& eps = orb.MOs().eigenvalues();
+          const Index nmo = eps.size();
+          const Index homo = orb.getHomo();
+          DFTEngine::BSEGradientInput in;
+          in.singlet = true;
+          in.vmin = w.vmin;
+          in.cmax = w.cmax;
+          in.rpamin = w.rpamin;
+          in.rpamax = w.rpamax;
+          in.X = X;
+          in.Y = Y;
+          in.energies_bse =
+              eps.segment(w.vmin, w.cmax - w.vmin + 1) +
+              ShiftBSE(nmo, homo).segment(w.vmin, w.cmax - w.vmin + 1);
+          in.energies_rpa =
+              eps.segment(w.rpamin, w.rpamax - w.rpamin + 1) +
+              ShiftRPA(nmo, homo).segment(w.rpamin, w.rpamax - w.rpamin + 1);
+          result.force -= dft.BSEExcitationGradient(orb, in).gradient;
+        }
+      }
       break;
     }
     mu = mu_new;
@@ -787,18 +1015,249 @@ PolarizableResult ConvergePolarizable(const Eigen::Matrix3d& pos, bool excited,
   return result;
 }
 
-void CheckPolarizableStationarity(bool excited) {
-  const PolarizableResult ref =
-      ConvergePolarizable(WaterPositions(), excited, true);
+// A charge-response molecule (two sites: Gaussian induced charges with
+// charge flow Pi, Gaussian induced dipoles) converged against the ground
+// state, S1 on top. Inside one charge-response segment there are no
+// couplings, so its response to the QM charges is exact in closed form:
+// dq = -Pi t_q, mu_k = -alpha_k t_mu,k, with t the couplings of the QM
+// electrons and nuclei to unit Gaussian charges and dipoles; the classical
+// energy is 1/2 dq Pi^+ dq + sum 1/2 mu^2 / alpha.
+PolarizableResult ConvergeChargeResponse(const Eigen::Matrix3d& pos,
+                                         bool forces) {
+  const std::string xc = "XC_HYB_GGA_XC_PBEH";
+  const Windows w{0, 23, 0, 23};
+  const std::vector<Eigen::Vector3d> site_pos = {
+      Eigen::Vector3d(3.4, -1.8, 1.5), Eigen::Vector3d(4.6, -0.4, 2.7)};
+  const std::vector<double> q0 = {0.3, -0.3};
+  const std::vector<double> alpha = {5.0, 3.0};
+  const double width = 1.2;
+  Eigen::Matrix2d pi;
+  pi << 0.6, -0.6, -0.6, 0.6;
+  const Eigen::Matrix2d pi_plus =
+      Eigen::CompleteOrthogonalDecomposition<Eigen::Matrix2d>(pi)
+          .pseudoInverse();
+  auto segment = [&](const Eigen::Vector2d& dq,
+                     const std::vector<Eigen::Vector3d>& mu) {
+    PolarSegment seg("cr", 0);
+    for (Index k = 0; k < 2; ++k) {
+      PolarSite site(k, k == 0 ? "O" : "H", site_pos[std::size_t(k)]);
+      Vector9d Q = Vector9d::Zero();
+      Q(0) = q0[std::size_t(k)];
+      site.setMultipole(Q, 0);
+      site.setpolarization(alpha[std::size_t(k)] * Eigen::Matrix3d::Identity());
+      site.setChargeResponse(width, false);
+      site.setInduced_Charge(dq(k));
+      site.setInduced_Dipole(mu[std::size_t(k)]);
+      seg.push_back(site);
+    }
+    seg.setChargeResponse(ChargeResponse({"O", "H"}, Eigen::MatrixXd(pi)));
+    return seg;
+  };
+  Eigen::Vector2d dq = Eigen::Vector2d::Zero();
+  std::vector<Eigen::Vector3d> mu(2, Eigen::Vector3d::Zero());
+  PolarizableResult result;
+  for (Index iter = 0; iter < 80; ++iter) {
+    const PolarSegment seg = segment(dq, mu);
+    std::vector<std::unique_ptr<StaticSite>> sites;
+    for (const PolarSite& site : seg) {
+      sites.push_back(std::make_unique<PolarSite>(site));
+    }
+    DFTEngine dft;
+    InitializeEngine(dft, xc, Eigen::Vector3d::Zero(), forces);
+    dft.setExternalcharges(&sites);
+    Orbitals orb = RunSCF(pos, dft);
+    // couplings of the ground-state QM charges to the unit Gaussians
+    BasisSet bs;
+    bs.Load(DataFile("def2-svp.xml"));
+    AOBasis basis;
+    basis.Fill(bs, orb.QMAtoms());
+    const Eigen::MatrixXd pg = AOGaussianSites::PotentialAndGradientAt(
+        basis, orb.DensityMatrixGroundState(), site_pos, {width, width});
+    Eigen::Vector2d tq;
+    std::vector<Eigen::Vector3d> tmu(2);
+    for (Index k = 0; k < 2; ++k) {
+      tq(k) = -pg(k, 0);
+      tmu[std::size_t(k)] = -pg.block<1, 3>(k, 1).transpose();
+      for (const QMAtom& atom : orb.QMAtoms()) {
+        const Eigen::Vector3d r = atom.getPos() - site_pos[std::size_t(k)];
+        const GaussianKernel kern(r.norm(), width);
+        tq(k) += double(atom.getNuccharge()) * kern.B0;
+        tmu[std::size_t(k)] += double(atom.getNuccharge()) * kern.B1 * r;
+      }
+    }
+    const Eigen::Vector2d dq_new = -pi * tq;
+    std::vector<Eigen::Vector3d> mu_new(2);
+    double change = (dq_new - dq).cwiseAbs().maxCoeff();
+    double e_cl = 0.5 * dq.dot(pi_plus * dq);
+    for (std::size_t k = 0; k < 2; ++k) {
+      mu_new[k] = -alpha[k] * tmu[k];
+      change = std::max(change, (mu_new[k] - mu[k]).cwiseAbs().maxCoeff());
+      e_cl += 0.5 * mu[k].squaredNorm() / alpha[k];
+    }
+    result.energy = orb.getDFTTotalEnergy() + e_cl;
+    result.force = forces ? orb.getForces() : Eigen::MatrixXd();
+    result.mu = mu[0];
+    if (change < 1e-9) {
+      dft.setEnvironmentResponse({seg}, 0.39);
+      Eigen::VectorXd X;
+      Eigen::VectorXd Y;
+      result.energy += SolveBSE(orb, w, true, true, &X, &Y);
+      if (forces) {
+        const Eigen::VectorXd& eps = orb.MOs().eigenvalues();
+        const Index nmo = eps.size();
+        const Index homo = orb.getHomo();
+        DFTEngine::BSEGradientInput in;
+        in.singlet = true;
+        in.vmin = w.vmin;
+        in.cmax = w.cmax;
+        in.rpamin = w.rpamin;
+        in.rpamax = w.rpamax;
+        in.X = X;
+        in.Y = Y;
+        in.energies_bse =
+            eps.segment(w.vmin, w.cmax - w.vmin + 1) +
+            ShiftBSE(nmo, homo).segment(w.vmin, w.cmax - w.vmin + 1);
+        in.energies_rpa =
+            eps.segment(w.rpamin, w.rpamax - w.rpamin + 1) +
+            ShiftRPA(nmo, homo).segment(w.rpamin, w.rpamax - w.rpamin + 1);
+        result.force -= dft.BSEExcitationGradient(orb, in).gradient;
+      }
+      return result;
+    }
+    dq = dq_new;
+    mu = mu_new;
+  }
+  BOOST_FAIL("charge-response site did not converge");
+  return result;
+}
+
+void CheckChargeResponseOnGround() {
+  const PolarizableResult ref = ConvergeChargeResponse(WaterPositions(), true);
   const double h = 5e-4;
   const Eigen::Matrix3d da = AtomDirection();
   const double ep =
-      ConvergePolarizable(WaterPositions() + h * da, excited, false).energy;
+      ConvergeChargeResponse(WaterPositions() + h * da, false).energy;
   const double em =
-      ConvergePolarizable(WaterPositions() - h * da, excited, false).energy;
+      ConvergeChargeResponse(WaterPositions() - h * da, false).energy;
   const double fd = -(ep - em) / (2.0 * h) * kAngstromPerBohr;
   const double analytic = (ref.force.array() * da.array()).sum();
-  std::cout << (excited ? "S1" : "ground state")
+  std::cout << "S1 (charge-response molecule on the ground state): directional "
+               "force analytic "
+            << analytic << ", FD " << fd << std::endl;
+  BOOST_CHECK_SMALL(std::abs(analytic - fd), 5e-5 * ref.force.norm() + 1e-6);
+}
+
+// Screened GW-BSE (include_kreac): the S1 energy of water with the
+// integrals dressed by the reaction field of a fixed environment, ground
+// state in vacuum, QP corrections fixed. The environment acts only through
+// R, so this isolates the derivatives of the dressed integrals and of the
+// reaction field.
+ScreeningEnvironment TholeScreening() {
+  ScreeningEnvironment env;
+  PolarSegment seg("pair", 0);
+  const std::vector<Eigen::Vector3d> pos = {Eigen::Vector3d(3.6, -1.9, 1.4),
+                                            Eigen::Vector3d(4.9, -0.8, 2.4)};
+  for (Index k = 0; k < 2; ++k) {
+    PolarSite site(k, "O", pos[std::size_t(k)]);
+    site.setpolarization((k == 0 ? 6.0 : 3.0) * Eigen::Matrix3d::Identity());
+    seg.push_back(site);
+  }
+  env.explicit_segments.push_back(seg);
+  PolarSegment shell("shell", 1);
+  PolarSite far(0, "C", Eigen::Vector3d(-5.5, 4.0, -3.0));
+  far.setpolarization(9.0 * Eigen::Matrix3d::Identity());
+  shell.push_back(far);
+  env.shell_segments.push_back(shell);
+  env.include_kreac = true;
+  env.site_width = 0.5;
+  return env;
+}
+
+ScreeningEnvironment ChargeResponseScreening() {
+  ScreeningEnvironment env;
+  PolarSegment seg("cr", 0);
+  const std::vector<Eigen::Vector3d> pos = {Eigen::Vector3d(3.6, -1.9, 1.4),
+                                            Eigen::Vector3d(4.9, -0.8, 2.4)};
+  for (Index k = 0; k < 2; ++k) {
+    PolarSite site(k, k == 0 ? "O" : "H", pos[std::size_t(k)]);
+    site.setpolarization((k == 0 ? 5.0 : 3.0) * Eigen::Matrix3d::Identity());
+    site.setChargeResponse(1.2, false);
+    seg.push_back(site);
+  }
+  Eigen::MatrixXd pi(2, 2);
+  pi << 0.6, -0.6, -0.6, 0.6;
+  seg.setChargeResponse(ChargeResponse({"O", "H"}, pi));
+  env.explicit_segments.push_back(seg);
+  env.include_kreac = true;
+  env.site_width = 0.5;
+  return env;
+}
+
+void CheckScreenedGradient(const std::string& label,
+                           const ScreeningEnvironment& env) {
+  const std::string xc = "XC_HYB_GGA_XC_PBEH";
+  const Windows w{0, 23, 0, 23};
+  auto omega = [&](const Eigen::Matrix3d& pos) {
+    DFTEngine dft;
+    InitializeEngine(dft, xc);
+    Orbitals o = RunSCF(pos, dft);
+    return SolveBSE(o, w, true, true, nullptr, nullptr, &env);
+  };
+  DFTEngine dft;
+  InitializeEngine(dft, xc);
+  Orbitals orb = RunSCF(WaterPositions(), dft);
+  Eigen::VectorXd X;
+  Eigen::VectorXd Y;
+  const double omega_ref = SolveBSE(orb, w, true, true, &X, &Y, &env);
+  const double omega_vacuum = SolveBSE(orb, w, true, true);
+  dft.setScreeningEnvironment(env);
+  const Eigen::VectorXd& eps = orb.MOs().eigenvalues();
+  const Index nmo = eps.size();
+  const Index homo = orb.getHomo();
+  DFTEngine::BSEGradientInput in;
+  in.singlet = true;
+  in.vmin = w.vmin;
+  in.cmax = w.cmax;
+  in.rpamin = w.rpamin;
+  in.rpamax = w.rpamax;
+  in.X = X;
+  in.Y = Y;
+  in.energies_bse = eps.segment(w.vmin, w.cmax - w.vmin + 1) +
+                    ShiftBSE(nmo, homo).segment(w.vmin, w.cmax - w.vmin + 1);
+  in.energies_rpa =
+      eps.segment(w.rpamin, w.rpamax - w.rpamin + 1) +
+      ShiftRPA(nmo, homo).segment(w.rpamin, w.rpamax - w.rpamin + 1);
+  const DFTEngine::BSEGradientResult res = dft.BSEExcitationGradient(orb, in);
+  const double h = 5e-4;
+  const Eigen::Matrix3d da = AtomDirection();
+  const double fd =
+      (omega(WaterPositions() + h * da) - omega(WaterPositions() - h * da)) /
+      (2.0 * h) * kAngstromPerBohr;
+  const double an = (res.gradient.array() * da.array()).sum();
+  std::cout << label << " screened S1: Omega " << omega_ref << " (vacuum "
+            << omega_vacuum << ", rebuilt " << res.omega
+            << "); gradient analytic " << an << " FD " << fd << std::endl;
+  BOOST_CHECK_SMALL(res.omega - omega_ref, 1e-8);
+  BOOST_CHECK_GT(std::abs(omega_ref - omega_vacuum), 1e-4);
+  BOOST_CHECK_SMALL(std::abs(an - fd), 5e-5 * res.gradient.norm() + 1e-6);
+}
+
+void CheckPolarizableStationarity(Polarization mode) {
+  const PolarizableResult ref =
+      ConvergePolarizable(WaterPositions(), mode, true);
+  const double h = 5e-4;
+  const Eigen::Matrix3d da = AtomDirection();
+  const double ep =
+      ConvergePolarizable(WaterPositions() + h * da, mode, false).energy;
+  const double em =
+      ConvergePolarizable(WaterPositions() - h * da, mode, false).energy;
+  const double fd = -(ep - em) / (2.0 * h) * kAngstromPerBohr;
+  const double analytic = (ref.force.array() * da.array()).sum();
+  const char* label = mode == Polarization::Ground ? "ground state"
+                      : mode == Polarization::ExcitedRelaxed
+                          ? "S1 (site on the relaxed S1 density)"
+                          : "S1 (site on the ground state)";
+  std::cout << label
             << " in a self-consistent polarizable site: induced dipole "
             << ref.mu.transpose() << ", directional force analytic " << analytic
             << ", FD " << fd << std::endl;
@@ -819,8 +1278,30 @@ BOOST_AUTO_TEST_CASE(polarizable_embedding_stationarity) {
     libint2::finalize();
     return;
   }
-  CheckPolarizableStationarity(false);
-  CheckPolarizableStationarity(true);
+  CheckPolarizableStationarity(Polarization::Ground);
+  CheckPolarizableStationarity(Polarization::ExcitedRelaxed);
+  CheckPolarizableStationarity(Polarization::ExcitedOnGround);
+  CheckChargeResponseOnGround();
+  libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(screened_bse_gradient) {
+  if (!kAllCases) {
+    std::cout << "SKIPPING screened_bse_gradient in a Debug build" << std::endl;
+    return;
+  }
+  libint2::initialize();
+  if (!HasLibint2DerivativeSupport()) {
+    std::cout << "SKIPPING: this libint2 build lacks derivative integrals"
+              << std::endl;
+    libint2::finalize();
+    return;
+  }
+  CheckScreenedGradient("Thole (explicit + shell)", TholeScreening());
+  CheckScreenedGradient("charge-response", ChargeResponseScreening());
+  ScreeningEnvironment no_kreac = TholeScreening();
+  no_kreac.include_kreac = false;
+  CheckScreenedGradient("Thole without K_reac", no_kreac);
   libint2::finalize();
 }
 

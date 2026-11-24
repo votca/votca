@@ -126,6 +126,11 @@ class QMPackage {
     has_ewald_nuclear_energy_ = true;
   }
 
+  // d/dR_A of sum_B Z_B phi(R_B) (natoms x 3), for the forces
+  void setEwaldNuclearGradient(const Eigen::MatrixXd& gradient) {
+    ewald_nuclear_gradient_ = gradient;
+  }
+
   // Start the SCF from the orbitals handed to WriteInputFile instead of the
   // configured guess (QM/MM iterations after the first). Packages that cannot
   // do this ignore it.
@@ -188,6 +193,7 @@ class QMPackage {
   bool has_ewaldgrid_ = false;
   double ewald_nuclear_energy_ = 0.0;
   bool has_ewald_nuclear_energy_ = false;
+  Eigen::MatrixXd ewald_nuclear_gradient_;
   bool warm_start_ = false;
 };
 

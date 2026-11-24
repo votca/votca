@@ -1376,7 +1376,89 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
   }
   return result;
 }
+
+// ===========================================================================
+// Field coupling of an electron density at points:
+//   t(k, x) = d/ds_x Tr(D V(s)) at s = points[k],
+// V(s) the nuclear-attraction-type matrix of a unit positive charge at s
+// (libint2::Operator::nuclear, sign as AOMultipole::FillPotential). A point
+// dipole p at s has the electron potential p . grad_s V(s), so
+// Tr(D V_dipole) = p . t: t is the coupling of the induced dipoles of a
+// polarizable environment to the density, exactly as the QM Hamiltonian
+// sees them, from the derivative buffers of the charge position (one pass
+// over the significant shell pairs per point).
+// ===========================================================================
+Eigen::MatrixXd DensityFieldAtPoints(
+    const AOBasis& aobasis, const Eigen::MatrixXd& D,
+    const std::vector<Eigen::Vector3d>& points) {
+  CheckDerivativeTable(
+      BuildTableCovers(LIBINT2_PREFIXED_NAME(libint2_build_elecpot1),
+                       aobasis.getMaxL(), aobasis.getMaxL()),
+      "DensityFieldAtPoints", aobasis.getMaxL());
+  const Index npoints = Index(points.size());
+  Eigen::MatrixXd t = Eigen::MatrixXd::Zero(npoints, 3);
+  if (npoints == 0) {
+    return t;
+  }
+  const Index nthreads = OPENMP::getMaxThreads();
+  const std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
+  const std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
+  const std::vector<std::vector<Index>> pairs = aobasis.ComputeShellPairs();
+  std::vector<libint2::Engine> engines(static_cast<std::size_t>(nthreads));
+  for (Index i = 0; i < nthreads; ++i) {
+    engines[std::size_t(i)] =
+        libint2::Engine(libint2::Operator::nuclear, aobasis.getMaxNprim(),
+                        static_cast<int>(aobasis.getMaxL()), 1);
+  }
+  std::exception_ptr eptr = nullptr;
+#pragma omp parallel for schedule(dynamic)
+  for (Index k = 0; k < npoints; ++k) {
+    try {
+      libint2::Engine& engine = engines[std::size_t(OPENMP::getThreadId())];
+      std::vector<std::pair<double, std::array<double, 3>>> charge = {
+          {1.0,
+           {points[std::size_t(k)].x(), points[std::size_t(k)].y(),
+            points[std::size_t(k)].z()}}};
+      engine.set_params(charge);
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
+      Eigen::Vector3d tk = Eigen::Vector3d::Zero();
+      for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
+        const Index bf1 = shell2bf[std::size_t(s1)];
+        const Index n1 = Index(shells[std::size_t(s1)].size());
+        for (Index s2 : pairs[std::size_t(s1)]) {
+          engine.compute(shells[std::size_t(s1)], shells[std::size_t(s2)]);
+          if (buf[6] == nullptr) {
+            continue;
+          }
+          const Index bf2 = shell2bf[std::size_t(s2)];
+          const Index n2 = Index(shells[std::size_t(s2)].size());
+          const double factor = (s1 == s2) ? 1.0 : 2.0;
+          for (Index x = 0; x < 3; ++x) {
+            Eigen::Map<const MatrixLibInt> b(buf[std::size_t(6 + x)], n1, n2);
+            tk(x) += factor * b.cwiseProduct(D.block(bf1, bf2, n1, n2)).sum();
+          }
+        }
+      }
+      t.row(k) = tk.transpose();
+    } catch (...) {
+#pragma omp critical
+      {
+        if (!eptr) {
+          eptr = std::current_exception();
+        }
+      }
+    }
+  }
+  if (eptr) {
+    std::rethrow_exception(eptr);
+  }
+  return t;
+}
 #else   // !(LIBINT_INCLUDE_ONEBODY)
+Eigen::MatrixXd DensityFieldAtPoints(const AOBasis&, const Eigen::MatrixXd&,
+                                     const std::vector<Eigen::Vector3d>&) {
+  ThrowNoDerivativeSupport("DensityFieldAtPoints", "--enable-1body=1");
+}
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     const AOBasis&, const QMMolecule&) {
   ThrowNoDerivativeSupport("ComputeNuclearAttractionDerivatives",

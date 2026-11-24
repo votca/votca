@@ -211,8 +211,9 @@ about two.
   for groups of mixing states the derivative of the sum of their energies is
   given as well, which is reliable even when the individual values are not.
 * Conventions: atomic units; ``externalfield`` adds :math:`-\mathbf{F}\cdot\mathbf{r}`
-  to the one-electron Hamiltonian, so that :math:`\mathrm{d}E/\mathrm{d}\mathbf{F}`
-  is the dipole moment. The ground-state dipole is given with respect to the
+  to the one-electron Hamiltonian and :math:`\sum_A Z_A\mathbf{F}\cdot\mathbf{R}_A`
+  to the energy of the nuclei, so that :math:`\mathrm{d}E/\mathrm{d}\mathbf{F}`
+  is the total dipole moment. The ground-state dipole is given with respect to the
   centre of mass (the origin of the field operator).
 
 The command-line script ``xtp_excited_dipoles`` wraps this class. It is

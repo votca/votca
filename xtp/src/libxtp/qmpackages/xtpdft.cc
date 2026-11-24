@@ -78,6 +78,9 @@ bool XTPDFT::RunDFT() {
     if (has_ewald_nuclear_energy_) {
       xtpdft.setEwaldNuclearEnergy(ewald_nuclear_energy_);
     }
+    if (ewald_nuclear_gradient_.size() > 0) {
+      xtpdft.setEwaldNuclearGradient(ewald_nuclear_gradient_);
+    }
   }
 
   if (setup_cache_) {

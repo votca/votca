@@ -113,7 +113,8 @@ struct ChargeResponseSystem {
 
 ChargeResponseSystem BuildChargeResponseSystem(
     const Eigen::MatrixXd& F, const Eigen::MatrixXd& Phi,
-    const std::vector<PolarSegment>& segments, double exp_damp) {
+    const std::vector<PolarSegment>& segments, double exp_damp,
+    bool factorize = true) {
   std::vector<PolarSegment> segs = segments;  // the solver needs its own
   const eeInteractor interactor(exp_damp);
   ChargeResponseSolver solver(segs, interactor);
@@ -133,7 +134,9 @@ ChargeResponseSystem BuildChargeResponseSystem(
   C.bottomRows(3 * ns) = F.transpose();
   ChargeResponseSystem sys;
   sys.MhC = solver.ApplyMhalf(C);
-  sys.llt.compute(solver.DenseOperator());
+  if (factorize) {
+    sys.llt.compute(solver.DenseOperator());
+  }
   return sys;
 }
 }  // namespace
@@ -191,6 +194,11 @@ Eigen::MatrixXd EnvironmentScreening::ReactionFieldKernel(
   Eigen::MatrixXd B = Eigen::MatrixXd::Zero(F.rows(), F.rows());
   B.selfadjointView<Eigen::Lower>().rankUpdate(Y.transpose(), -1.0);
   return B.selfadjointView<Eigen::Lower>();
+}
+
+Eigen::MatrixXd EnvironmentScreening::TholeMatrix(
+    const std::vector<PolarSegment>& segments, double exp_damp) {
+  return AssembleThole(SitesOf(segments), exp_damp);
 }
 
 Eigen::MatrixXd EnvironmentScreening::ShellKernel(
@@ -300,6 +308,132 @@ Eigen::MatrixXd EnvironmentScreening::Kernel(const AOBasis& auxbasis,
     B += ShellKernel(F, env.shell_segments, env.shell_dielectric);
   }
   return B;
+}
+
+Eigen::MatrixXd EnvironmentScreening::KernelGradient(
+    const AOBasis& auxbasis, const ScreeningEnvironment& env,
+    const Eigen::MatrixXd& Z) {
+  const Index natoms = Index(auxbasis.getFuncPerAtom().size());
+  const Index naux = auxbasis.AOBasisSize();
+  if (Z.rows() != naux || Z.cols() != naux) {
+    throw std::runtime_error("EnvironmentScreening::KernelGradient: Z is " +
+                             std::to_string(Z.rows()) + "x" +
+                             std::to_string(Z.cols()) + ", expected " +
+                             std::to_string(naux) + " square");
+  }
+  // auxiliary function -> atom
+  std::vector<Index> aux_atom(std::size_t(naux), 0);
+  for (const AOShell& shell : auxbasis) {
+    for (Index k = 0; k < shell.getNumFunc(); ++k) {
+      aux_atom[std::size_t(shell.getStartIndex() + k)] = shell.getAtomIndex();
+    }
+  }
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  const double h = 1e-4;  // bohr, central differences in the site positions
+  // grad_a += 2 sum_{Q on a} sum_j H_jQ dC_jQ/ds, for B = -C^T chi C with
+  // H = chi C Z: Tr(Z dB) = -2 sum H dC, and moving the auxiliary function
+  // is moving the site the other way (dC/dR_a = -dC/ds)
+  auto accumulate = [&](const Eigen::MatrixXd& H,
+                        const std::array<Eigen::MatrixXd, 3>& dC) {
+    for (Index x = 0; x < 3; ++x) {
+      const Eigen::VectorXd perQ =
+          H.cwiseProduct(dC[std::size_t(x)]).colwise().sum().transpose();
+      for (Index Q = 0; Q < naux; ++Q) {
+        grad(aux_atom[std::size_t(Q)], x) += 2.0 * perQ(Q);
+      }
+    }
+  };
+  auto shifted = [](std::vector<Eigen::Vector3d> pos, Index x, double d) {
+    for (Eigen::Vector3d& p : pos) {
+      p(x) += d;
+    }
+    return pos;
+  };
+  auto positions = [](const std::vector<PolarSegment>& segs) {
+    std::vector<Eigen::Vector3d> pos;
+    for (const PolarSite* site : SitesOf(segs)) {
+      pos.push_back(site->getPos());
+    }
+    return pos;
+  };
+
+  if (!env.explicit_segments.empty()) {
+    const std::vector<PolarSegment>& segs = env.explicit_segments;
+    const std::vector<Eigen::Vector3d> pos = positions(segs);
+    const std::vector<double> widths = SiteWidths(segs, env.site_width);
+    const Eigen::MatrixXd F = AuxFieldAtPoints(auxbasis, pos, widths);
+    if (HasChargeResponse(segs)) {
+      std::vector<Eigen::Vector3d> cr_pos;
+      std::vector<double> cr_widths;
+      ChargeResponsePoints(segs, cr_pos, cr_widths);
+      const ChargeResponseSystem sys = BuildChargeResponseSystem(
+          F, AuxPotentialAtPoints(auxbasis, cr_pos, cr_widths), segs,
+          env.exp_damp);
+      if (!sys.llt.ok()) {
+        throw std::runtime_error(
+            "EnvironmentScreening::KernelGradient: charge-response operator "
+            "not positive definite");
+      }
+      // B = -(M^1/2 C)^T A^-1 (M^1/2 C), M^1/2 fixed
+      const Eigen::MatrixXd H = sys.llt.Solve(sys.MhC * Z);
+      std::array<Eigen::MatrixXd, 3> dC;
+      for (Index x = 0; x < 3; ++x) {
+        Eigen::MatrixXd plus;
+        Eigen::MatrixXd minus;
+        for (double sign : {+1.0, -1.0}) {
+          const ChargeResponseSystem s = BuildChargeResponseSystem(
+              AuxFieldAtPoints(auxbasis, shifted(pos, x, sign * h), widths),
+              AuxPotentialAtPoints(auxbasis, shifted(cr_pos, x, sign * h),
+                                   cr_widths),
+              segs, env.exp_damp, false);
+          (sign > 0 ? plus : minus) = s.MhC;
+        }
+        dC[std::size_t(x)] = (plus - minus) / (2.0 * h);
+      }
+      accumulate(H, dC);
+    } else {
+      const CholeskyFactor llt(AssembleThole(SitesOf(segs), env.exp_damp));
+      if (!llt.ok()) {
+        throw std::runtime_error(
+            "EnvironmentScreening::KernelGradient: Thole matrix not positive "
+            "definite");
+      }
+      const Eigen::MatrixXd H = llt.Solve(F.transpose() * Z);
+      std::array<Eigen::MatrixXd, 3> dC;
+      for (Index x = 0; x < 3; ++x) {
+        dC[std::size_t(x)] =
+            ((AuxFieldAtPoints(auxbasis, shifted(pos, x, h), widths) -
+              AuxFieldAtPoints(auxbasis, shifted(pos, x, -h), widths)) /
+             (2.0 * h))
+                .transpose();
+      }
+      accumulate(H, dC);
+    }
+  }
+  if (!env.shell_segments.empty()) {
+    const std::vector<PolarSegment>& segs = env.shell_segments;
+    const std::vector<const PolarSite*> sites = SitesOf(segs);
+    const std::vector<Eigen::Vector3d> pos = positions(segs);
+    const std::vector<double> widths = SiteWidths(segs, env.site_width);
+    const Eigen::MatrixXd FZ =
+        AuxFieldAtPoints(auxbasis, pos, widths).transpose() * Z;
+    Eigen::MatrixXd H(FZ.rows(), FZ.cols());
+    for (std::size_t j = 0; j < sites.size(); ++j) {
+      H.middleRows(3 * Index(j), 3) = sites[j]->getpolarization() /
+                                      env.shell_dielectric *
+                                      FZ.middleRows(3 * Index(j), 3);
+    }
+    std::array<Eigen::MatrixXd, 3> dC;
+    for (Index x = 0; x < 3; ++x) {
+      dC[std::size_t(x)] =
+          ((AuxFieldAtPoints(auxbasis, shifted(pos, x, h), widths) -
+            AuxFieldAtPoints(auxbasis, shifted(pos, x, -h), widths)) /
+           (2.0 * h))
+              .transpose();
+    }
+    accumulate(H, dC);
+  }
+  return grad;
 }
 
 Eigen::MatrixXd EnvironmentScreening::DressingMatrix(const Eigen::MatrixXd& R) {

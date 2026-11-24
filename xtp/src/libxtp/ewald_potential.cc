@@ -166,6 +166,64 @@ Mat_p_Energy Ewald_Potential<Grid>::IntegrateEwald(Index basissize) const {
   return Mat_p_Energy(0.0, -vewald.matrix());
 }
 
+template <class Grid>
+Eigen::MatrixXd Ewald_Potential<Grid>::Gradient(
+    const Eigen::MatrixXd& density_matrix, Index natoms) const {
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
+    if (box.Matrixsize() &&
+        Index(box.getPotentialValues().size()) != box.size()) {
+      throw std::runtime_error("Ewald_Potential::Gradient: box " +
+                               std::to_string(i) +
+                               " has no potential value for every grid point.");
+    }
+  }
+  const Index nthreads = OPENMP::getMaxThreads();
+  std::vector<Eigen::MatrixXd> grad_thread(std::size_t(nthreads),
+                                           Eigen::MatrixXd::Zero(natoms, 3));
+#pragma omp parallel for schedule(guided)
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+    Eigen::MatrixXd& grad = grad_thread[std::size_t(OPENMP::getThreadId())];
+    const Eigen::MatrixXd D_here = box.ReadFromBigMatrix(density_matrix);
+    // box-local AO index -> atom
+    std::vector<Index> local_atom(std::size_t(box.Matrixsize()));
+    const std::vector<const AOShell*>& shells = box.getShells();
+    const std::vector<GridboxRange>& ranges = box.getAOranges();
+    for (std::size_t s = 0; s < shells.size(); ++s) {
+      for (Index k = 0; k < ranges[s].size; ++k) {
+        local_atom[std::size_t(ranges[s].start + k)] =
+            shells[s]->getAtomIndex();
+      }
+    }
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+    const std::vector<double>& pot = box.getPotentialValues();
+    for (Index p = 0; p < box.size(); ++p) {
+      const double wphi = weights[std::size_t(p)] * pot[std::size_t(p)];
+      if (std::abs(wphi) < 1.e-20) {
+        continue;
+      }
+      const AOShell::AOValues ao = box.CalcAOValues(points[std::size_t(p)]);
+      // d rho/dR_A|_D = -2 sum_{mu on A} (D chi)_mu grad chi_mu; the
+      // electrons carry charge -1, so E = -int rho phi (see IntegrateEwald)
+      const Eigen::VectorXd Dchi = D_here * ao.values;
+      for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
+        grad.row(local_atom[std::size_t(mu)]) +=
+            2.0 * wphi * Dchi(mu) * ao.derivatives.row(mu);
+      }
+    }
+  }
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (const Eigen::MatrixXd& g : grad_thread) {
+    grad += g;
+  }
+  return grad;
+}
+
 template class Ewald_Potential<Vxc_Grid>;
 
 }  // namespace xtp

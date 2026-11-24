@@ -1,0 +1,181 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+import argparse
+import os
+import sys
+
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
+# the interpreter VOTCA installed pyxtp for (set at configure time)
+PYXTP_PYTHON = '@Python_EXECUTABLE@'
+PROGTITLE = 'THE VOTCA::XTP QM/MM geometry optimizer'
+PROGDESCR = ('Optimizes the geometry of the QM region of a qmmm job (ground, '
+             'charged or excited state) in its frozen environment: one '
+             'xtp_parallel qmmm job per step with the QM coordinates of the '
+             'step (qmregion.geometry), the orbitals of the previous step as '
+             'guess (qmregion.guess) and analytic forces '
+             '(qmregion.compute_forces). For excited states set '
+             'qmregion.relaxed_density. Needs pyxtp; --lj adds QM-environment '
+             'Lennard-Jones, --d3 D3 dispersion (simple-dftd3).')
+VOTCAHEADER = f"""
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{PROGTITLE}
+
+please read and cite: @PROJECT_CITATION@
+and submit bugs to @PROJECT_CONTACT@
+xtp_qmmm_optimize, version {VERSION}
+
+"""
+
+
+class XtpHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
+
+
+parser = argparse.ArgumentParser(prog='xtp_qmmm_optimize',
+                                 formatter_class=lambda prog: XtpHelpFormatter(
+                                     prog, max_help_position=70),
+                                 description=PROGDESCR)
+parser.add_argument("-o", "--options", required=True,
+                    help="qmmm options file (<options><qmmm>...)")
+parser.add_argument("-j", "--jobfile",
+                    help="job file with the job to optimize (default: the "
+                         "job_file of the options)")
+parser.add_argument("-i", "--job-id", help="id of the job (default: the first)")
+parser.add_argument("-f", "--file", default="state.hdf5",
+                    help="state file of the system")
+parser.add_argument("-s", "--setup", default=".",
+                    help="directory with the qmmm setup (state file, "
+                         "mapping, MD/QC/MP files); options and job file "
+                         "are relative to it")
+parser.add_argument("-w", "--workdir", default="qmmm_opt",
+                    help="directory for the step directories")
+parser.add_argument("--fmax", type=float, default=0.05,
+                    help="convergence: largest force in eV/Angstrom")
+parser.add_argument("--steps", type=int, default=100,
+                    help="maximum number of optimizer steps")
+parser.add_argument("--optimizer", default="BFGS",
+                    choices=["BFGS", "FIRE", "Sella"], help="ASE optimizer")
+parser.add_argument("--maxstep", type=float,
+                    help="largest atomic step in Angstrom (BFGS, FIRE; "
+                         "ASE default 0.2)")
+parser.add_argument("--freeze-rigid-body", action="store_true",
+                    help="keep the position and orientation of the QM "
+                         "region, relax only its internal coordinates "
+                         "(Sella only; fmax without net force and torque)")
+parser.add_argument("--fix", default="",
+                    help="QM atoms kept in place, comma-separated indices")
+parser.add_argument("-t", "--threads", type=int, default=1,
+                    help="threads per qmmm job")
+parser.add_argument("--executable", default="xtp_parallel",
+                    help="xtp_parallel to run the jobs with")
+parser.add_argument("--lj", metavar="JSON",
+                    help="Lennard-Jones between QM and environment atoms: "
+                         "JSON file with \"qm\" (element -> [sigma, epsilon] "
+                         "or a list per QM atom), \"environment\" (element -> "
+                         "[sigma, epsilon]) and optionally \"cutoff\" "
+                         "(Angstrom, default 12); sigma in Angstrom, epsilon "
+                         "in kJ/mol, Lorentz-Berthelot mixing")
+parser.add_argument("--d3", metavar="FUNCTIONAL",
+                    help="add Grimme's D3 dispersion with the damping "
+                         "parameters of this functional (e.g. pbe0); needs "
+                         "the python package dftd3 (simple-dftd3)")
+parser.add_argument("--d3-damping", default="d3bj",
+                    choices=["d3bj", "d3zero", "d3bjm", "d3zerom"],
+                    help="D3 damping function")
+parser.add_argument("--d3-atm", action="store_true",
+                    help="include the three-body (ATM) term")
+parser.add_argument("--d3-qm-only", action="store_true",
+                    help="D3 only within the QM region (default: also with "
+                         "the atoms of the polar and static regions; with "
+                         "--lj always QM only, LJ has the dispersion "
+                         "between QM and environment)")
+parser.add_argument("--d3-cutoff", type=float, default=15.0,
+                    help="environment atoms within this distance (Angstrom) "
+                         "of a QM atom enter D3")
+
+
+def main():
+    args = parser.parse_args()
+    print(VOTCAHEADER)
+    try:
+        from ase import units
+        from ase.io import write
+        from pyxtp.qmmm_optimize import (D3Dispersion, LennardJones,
+                                         QMMMCalculator, optimize)
+    except ImportError as err:
+        sys.exit(f"xtp_qmmm_optimize needs pyxtp, which could not be "
+                 f"imported with {sys.executable}: {err}\n"
+                 f"VOTCA installs pyxtp for {PYXTP_PYTHON} (into its user "
+                 "site-packages, or CMAKE_INSTALL_PYTHON_LIBDIR if set). Run "
+                 "the script with that interpreter, or add the install "
+                 "directory to PYTHONPATH.")
+
+    terms = []
+    if args.lj:
+        import json
+        with open(args.lj) as f:
+            lj = json.load(f)
+        terms.append(LennardJones(lj["qm"], lj["environment"],
+                                  cutoff=lj.get("cutoff", 12.0)))
+    if args.d3:
+        try:
+            terms.append(D3Dispersion(method=args.d3, damping=args.d3_damping,
+                                      atm=args.d3_atm,
+                                      environment=not (args.d3_qm_only or
+                                                       args.lj),
+                                      cutoff=args.d3_cutoff))
+        except ImportError as err:
+            sys.exit(str(err))
+    calc = QMMMCalculator(setup=args.setup, options=args.options,
+                          jobfile=args.jobfile, job_id=args.job_id,
+                          statefile=args.file, workdir=args.workdir,
+                          executable=args.executable, threads=args.threads,
+                          terms=terms)
+    fix = [int(i) for i in args.fix.split(",") if i.strip()]
+    traj = os.path.join(calc.workdir, "optimization.traj")
+    atoms, converged = optimize(calc, fmax=args.fmax, steps=args.steps,
+                                optimizer=args.optimizer, fix=fix,
+                                trajectory=traj, maxstep=args.maxstep,
+                                rigid_body=not args.freeze_rigid_body)
+    out = os.path.join(calc.workdir, "optimized.xyz")
+    write(out, atoms)
+    names = [t.name for t in terms]
+    print("\n step  E_tot (eV)          fmax (eV/A)  state" +
+          (f"   (E_tot includes {', '.join(n.upper() for n in names)}; eV)"
+           if names else ""))
+    for r in calc.history:
+        f = r["forces"] * units.Hartree / units.Bohr
+        f[fix] = 0.0
+        fm = max((f ** 2).sum(axis=1)) ** 0.5
+        note = f"  {r['warning']}" if "warning" in r else ""
+        extra = "".join(f"  E_{n.upper()} {r['energy_' + n]:.6f}"
+                        for n in names)
+        print(f" {r['step']:4d}  {r['energy']:.6f}  {fm:12.5f}  "
+              f"{r['final_state']}{extra}{note}")
+    print(f"\n{'Converged' if converged else 'NOT converged'} after "
+          f"{calc.nsteps} qmmm jobs; geometry (job frame) in {out}, "
+          f"trajectory in {traj}; use it as qmregion.geometry.")
+    return 0 if converged else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

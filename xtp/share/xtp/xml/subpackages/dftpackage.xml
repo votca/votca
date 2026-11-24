@@ -4,7 +4,7 @@
   <spin help="Molecular multiplicity" default="1" choices="int+" />
   <basisset help="Basis set for MOs" default="def2-tzvp" />
   <auxbasisset help="Auxiliary basis set for RI" default="OPTIONAL" />
-  <externalfield help="Field given in x y z components" unit="Hartree/bohr" default="OPTIONAL" />
+  <externalfield help="Homogeneous field F in x y z components: adds -F.(r-R_com) for the electrons and Z_A F.(R_A-R_com) for the nuclei, so dE/dF is the dipole" unit="Hartree/bohr" default="OPTIONAL" />
   <executable help="Path to executable for dftpackage" default="OPTIONAL" />
   <ecp help="Effective Core Potentials for DFT Calculations" default="OPTIONAL" />
   <optimize help="Perform a molecular geometry optimization" default="false" choices="bool" />

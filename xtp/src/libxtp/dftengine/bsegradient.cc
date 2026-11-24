@@ -18,7 +18,9 @@
  */
 
 // Analytic nuclear gradient of a BSE excitation energy (TDA or full) with
-// static RPA screening and fixed (geometry-independent) QP corrections.
+// static RPA screening; QP corrections fixed or with their response
+// (qp_response), optionally screened by an environment
+// (setScreeningEnvironment).
 //
 // Notation. p, q, r: MOs; i, j, k: occupied, a, b: virtual (all MOs of the
 // closed-shell KS reference); v, c: occupied/virtual levels of the BSE window
@@ -76,10 +78,15 @@
 // degeneracies).
 
 // Local VOTCA includes
+#include "votca/xtp/aogaussiansites.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aopotential.h"
+#include "votca/xtp/chargeresponsesolver.h"
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/dftgradient.h"
+#include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/eigen.h"
+#include "votca/xtp/environmentscreening.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/out_of_window_shift.h"
 #include "votca/xtp/riderivatives.h"
@@ -87,6 +94,7 @@
 #include <algorithm>
 #include <chrono>
 #include <functional>
+#include <memory>
 
 namespace votca {
 namespace xtp {
@@ -97,6 +105,9 @@ std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
     const AOBasis& aobasis);
 std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
     const AOBasis& aobasis);
+Eigen::MatrixXd DensityFieldAtPoints(
+    const AOBasis& aobasis, const Eigen::MatrixXd& D,
+    const std::vector<Eigen::Vector3d>& points);
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     const AOBasis& aobasis, const QMMolecule& mol);
 bool HasLibint2DerivativeSupport();
@@ -168,6 +179,164 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   const Eigen::MatrixXd C_virt = C.rightCols(nvirt);
   const Eigen::MatrixXd D0 = 2.0 * C_occ * C_occ.transpose();
 
+  // Polarizable environment converged against the ground state
+  // (setEnvironmentResponse). With the induced dipoles mu as independent
+  // variables, stationarity of E_GS + E_cl in mu and the Lagrangian
+  // L = Omega + z.dE_GS/dkappa + lambda.dE_GS/dmu give, after eliminating
+  // lambda, a Z-vector whose response contains the reaction field of the
+  // environment, K_env[D] = V_{mu[D]}, mu[D] = -A^-1 t[D]: the coupling
+  // t_i = Tr(V_i D) of the density to a dipole at site i, the Thole
+  // response A^-1 and the potential of the induced dipoles back on the
+  // electrons. It enters the source (D), the Z-vector and the W matrix
+  // (P), and lambda = mu[P] of the relaxed density P adds the derivative
+  // of its interaction with the ground-state charges (D0 and the nuclei) at
+  // fixed D0. t and V are the exact AO couplings the QM Hamiltonian uses
+  // (DensityFieldAtPoints, AOMultipole): an RI-fitted field is off by
+  // several percent at sites in the tails of the density.
+  const bool env_response = !env_segments_.empty();
+  // the sites in segment order; with charge-response segments the joint
+  // response is that of ChargeResponseSolver, x = M^1/2 A^-1 M^1/2 c with
+  // unknowns (induced charges of the charge-response sites, dipoles of all
+  // sites), else the Thole operator alone
+  std::vector<PolarSegment> env_segs = env_segments_;  // the solver keeps refs
+  const eeInteractor env_interactor(env_exp_damp_);
+  std::vector<const PolarSite*> env_sites;
+  for (const PolarSegment& seg : env_segs) {
+    for (const PolarSite& site : seg) {
+      env_sites.push_back(&site);
+    }
+  }
+  const Index env_n = Index(env_sites.size());
+  bool env_cr = false;
+  for (const PolarSegment& seg : env_segs) {
+    env_cr = env_cr || seg.hasChargeResponse();
+  }
+  std::unique_ptr<ChargeResponseSolver> env_solver;
+  Index env_nq = 0;
+  std::vector<Eigen::Vector3d> env_point_pos;  // point (Thole) sites
+  std::vector<Index> env_point_site;
+  std::vector<Eigen::Vector3d> env_cr_pos;  // charge-response sites
+  std::vector<double> env_cr_width;
+  std::vector<Index> env_cr_site;
+  for (Index k = 0; k < env_n; ++k) {
+    const PolarSite& site = *env_sites[std::size_t(k)];
+    if (site.isChargeResponse()) {
+      env_cr_pos.push_back(site.getPos());
+      env_cr_width.push_back(site.CRWidth());
+      env_cr_site.push_back(k);
+    } else {
+      env_point_pos.push_back(site.getPos());
+      env_point_site.push_back(k);
+    }
+  }
+  CholeskyFactor env_A;
+  if (env_response) {
+    if (env_cr) {
+      env_solver =
+          std::make_unique<ChargeResponseSolver>(env_segs, env_interactor);
+      env_nq = env_solver->NumCharges();
+      env_A.compute(env_solver->DenseOperator());
+    } else {
+      env_A.compute(
+          EnvironmentScreening::TholeMatrix(env_segments_, env_exp_damp_));
+    }
+    if (!env_A.ok()) {
+      throw std::runtime_error(
+          "BSEExcitationGradient: the response operator of the environment "
+          "is not positive definite");
+    }
+  }
+  // couplings t_j = d Tr(D H_m)/d m_j of an AO electron density to unit
+  // moments, in the unknowns' order: Gaussian charge and dipole of a
+  // charge-response site (AOGaussianSites: H = -Potential, so minus the
+  // potential seen by the Gaussian and minus its gradient), point dipole
+  // of a Thole site (DensityFieldAtPoints)
+  auto env_couplings = [&](const Eigen::MatrixXd& Dao) {
+    Eigen::VectorXd t = Eigen::VectorXd::Zero(env_nq + 3 * env_n);
+    if (!env_point_pos.empty()) {
+      const Eigen::MatrixXd tp =
+          DensityFieldAtPoints(dftbasis_, Dao, env_point_pos);
+      for (std::size_t i = 0; i < env_point_site.size(); ++i) {
+        t.segment<3>(env_nq + 3 * env_point_site[i]) =
+            tp.row(Index(i)).transpose();
+      }
+    }
+    if (!env_cr_pos.empty()) {
+      const Eigen::MatrixXd pg = AOGaussianSites::PotentialAndGradientAt(
+          dftbasis_, Dao, env_cr_pos, env_cr_width);
+      for (std::size_t i = 0; i < env_cr_site.size(); ++i) {
+        const Index k = env_cr_site[i];
+        t(env_solver->ChargeIndex(k)) = -pg(Index(i), 0);
+        t.segment<3>(env_nq + 3 * k) = -pg.block<1, 3>(Index(i), 1).transpose();
+      }
+    }
+    return t;
+  };
+  // induced moments of the environment for an AO electron density
+  auto env_moments = [&](const Eigen::MatrixXd& Dao) {
+    const Eigen::VectorXd t = env_couplings(Dao);
+    if (!env_cr) {
+      return Eigen::VectorXd(-env_A.Solve(t));
+    }
+    const Eigen::MatrixXd y =
+        env_A.Solve(env_solver->ApplyMhalf(Eigen::MatrixXd(t)));
+    return Eigen::VectorXd(-env_solver->ApplyMhalf(y).col(0));
+  };
+  // sites carrying given induced moments, as the QM Hamiltonian sees them
+  auto moment_sites = [&](const Eigen::VectorXd& m) {
+    std::vector<std::unique_ptr<StaticSite>> sites;
+    for (Index k = 0; k < env_n; ++k) {
+      const PolarSite& ref = *env_sites[std::size_t(k)];
+      const Eigen::Vector3d mu = m.segment<3>(env_nq + 3 * k);
+      if (ref.isChargeResponse()) {
+        auto site = std::make_unique<PolarSite>(k, "X", ref.getPos());
+        site->setChargeResponse(ref.CRWidth(), ref.CRTholeDipoles());
+        site->setInduced_Charge(m(env_solver->ChargeIndex(k)));
+        site->setInduced_Dipole(mu);
+        sites.push_back(std::move(site));
+      } else {
+        auto site = std::make_unique<StaticSite>(k, "X", ref.getPos());
+        Vector9d moments = Vector9d::Zero();
+        moments.segment<3>(1) = mu;
+        site->setMultipole(moments, 1);
+        sites.push_back(std::move(site));
+      }
+    }
+    return sites;
+  };
+  // the electron operator of given induced moments (as
+  // IntegrateExternalMultipoles builds it, without its log)
+  auto env_kernel = [&](const Eigen::MatrixXd& Dao) {
+    const Eigen::VectorXd m = env_moments(Dao);
+    std::vector<std::unique_ptr<StaticSite>> points;
+    std::vector<AOGaussianSites::Source> gaussians;
+    for (Index k = 0; k < env_n; ++k) {
+      const PolarSite& ref = *env_sites[std::size_t(k)];
+      const Eigen::Vector3d mu = m.segment<3>(env_nq + 3 * k);
+      if (ref.isChargeResponse()) {
+        gaussians.push_back(
+            {ref.getPos(), ref.CRWidth(), m(env_solver->ChargeIndex(k)), mu});
+      } else {
+        auto site = std::make_unique<StaticSite>(k, "X", ref.getPos());
+        Vector9d moments = Vector9d::Zero();
+        moments.segment<3>(1) = mu;
+        site->setMultipole(moments, 1);
+        points.push_back(std::move(site));
+      }
+    }
+    Eigen::MatrixXd H =
+        Eigen::MatrixXd::Zero(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
+    if (!points.empty()) {
+      AOMultipole potential;
+      potential.FillPotential(dftbasis_, points);
+      H += potential.Matrix();
+    }
+    if (!gaussians.empty()) {
+      H -= AOGaussianSites::Potential(dftbasis_, gaussians);
+    }
+    return H;
+  };
+
   // windows
   if (in.vmin < 0 || in.vmin > homo || in.cmax <= homo || in.cmax >= nmo ||
       in.rpamin < 0 || in.rpamin > homo || in.rpamax <= homo ||
@@ -218,6 +387,7 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   aocoulomb.Fill(auxbasis_);
   const Index naux = auxbasis_.AOBasisSize();
   Eigen::MatrixXd L;
+  Eigen::MatrixXd Linv;  // V^1/2
   {
     const SymmetricEigenSystem es = SymmetricEigen(aocoulomb.Matrix());
     if (es.values.minCoeff() <= 0.0) {
@@ -226,6 +396,38 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
     }
     L = es.vectors * es.values.cwiseInverse().cwiseSqrt().asDiagonal() *
         es.vectors.transpose();
+    Linv = es.vectors * es.values.cwiseSqrt().asDiagonal() *
+           es.vectors.transpose();
+  }
+  // Screened GW-BSE (setScreeningEnvironment): B = J K with K = L S (Kfit),
+  // S = (1 + R)^1/2, R = L B_env L, so that K K^T = V^-1 + V^-1 B_env V^-1
+  // =: u, the effective interaction between the fit functions. The energy
+  // depends on the auxiliary representation only through u (it is
+  // invariant under rotations of the auxiliary index), which gives its
+  // derivative from G = B^T g: dOmega/du = 1/2 K^-T G K^-1.
+  const bool screened = !screening_env_.empty();
+  Eigen::MatrixXd Kfit = L;
+  Eigen::MatrixXd Kfit_inv = Linv;
+  Eigen::MatrixXd Benv;
+  Eigen::MatrixXd Rfit;  // R = L B_env L
+  Eigen::MatrixXd Sinv;  // (1 + R)^-1/2: bare B = dressed B S^-1
+  if (screened) {
+    Benv = EnvironmentScreening::Kernel(auxbasis_, screening_env_);
+    Benv = 0.5 * (Benv + Benv.transpose()).eval();
+    Rfit = L * Benv * L;
+    Rfit = (0.5 * (Rfit + Rfit.transpose())).eval();
+    const SymmetricEigenSystem es = SymmetricEigen(
+        Eigen::MatrixXd(Eigen::MatrixXd::Identity(naux, naux) + Rfit));
+    if (es.values.minCoeff() <= 0.0) {
+      throw std::runtime_error(
+          "BSEExcitationGradient: 1 + R not positive definite");
+    }
+    const Eigen::MatrixXd S = es.vectors * es.values.cwiseSqrt().asDiagonal() *
+                              es.vectors.transpose();
+    Sinv = es.vectors * es.values.cwiseSqrt().cwiseInverse().asDiagonal() *
+           es.vectors.transpose();
+    Kfit = L * S;
+    Kfit_inv = Sinv * Linv;
   }
   // (R|pq) first, then B = J L in place by blocks of rows: one array of
   // nw^2 x Naux (the size of the GW-BSE integrals) instead of two
@@ -236,7 +438,7 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
         Eigen::MatrixXd m = Cw.transpose() * (I * Cw);
         Bmat.col(R) = Eigen::Map<const Eigen::VectorXd>(m.data(), nw * nw);
       });
-  RightMultiplyInPlace(Bmat, L);
+  RightMultiplyInPlace(Bmat, Kfit);
   auto B = [&Bmat, nw](Index P) {
     return Eigen::Map<const Eigen::MatrixXd>(Bmat.col(P).data(), nw, nw);
   };
@@ -286,9 +488,25 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   for (Index P = 0; P < naux; ++P) {
     x(P) = XpY.cwiseProduct(B(P).block(v0, c0, vt, ct)).sum();
   }
-  const double omega_x = 2.0 * kappa * x.squaredNorm();
-  for (Index P = 0; P < naux; ++P) {
-    g(P).block(v0, c0, vt, ct) += 4.0 * kappa * x(P) * XpY;
+  // Screened without K_reac (include_kreac false): the BSE exchange is
+  // with the bare v, 2 kappa x_J^T V^-1 x_J with x_J = sum XpY J = K^-T x,
+  // which is not a function of the dressed integrals; its derivative is
+  // taken in J directly (zx = V^-1 x_J, applied downstream). The direct
+  // term needs nothing new: W_tot = (u^-1 + eps - 1)^-1 with the bare
+  // integrals (BSE::ScreenedInteraction) gives the same B W B^T as
+  // eps^-1 with the dressed ones.
+  const bool bare_exchange = screened && !screening_env_.include_kreac;
+  Eigen::VectorXd zx;
+  double omega_x = 0.0;
+  if (bare_exchange) {
+    const Eigen::VectorXd xJ = Kfit_inv.transpose() * x;
+    zx = L * (L * xJ);
+    omega_x = 2.0 * kappa * xJ.dot(zx);
+  } else {
+    omega_x = 2.0 * kappa * x.squaredNorm();
+    for (Index P = 0; P < naux; ++P) {
+      g(P).block(v0, c0, vt, ct) += 4.0 * kappa * x(P) * XpY;
+    }
   }
 
   // static RPA screening
@@ -403,6 +621,9 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
   phase("BSE energy and partial derivatives");
   // normalization of the full BSE (1 for TDA and normalized vectors)
   gmat /= norm;
+  if (zx.size() > 0) {
+    zx /= std::sqrt(norm);  // enters quadratically below
+  }
   w /= norm;
   wA /= norm;
   BSEGradientResult result;
@@ -410,6 +631,26 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
 
   // u_p: coefficients of sum_p u_p <p|V_xc|p> in the energy (QP response)
   Eigen::VectorXd u = Eigen::VectorXd::Zero(nmo);
+  // Screened route with QP response: the static self-energies are not
+  // functions of the dressed integrals. (1 - a_x) Sigma_x is with the bare
+  // v, Sigma_reac (static COH+SEX of v_reac, GW::CalculateGWPerturbation)
+  // with v_reac = V^-1 B_env V^-1 between the fit functions. In bare
+  // B = J L (= dressed B S^-1) they are
+  //   Sigma_x,p = -sum_k B_pk B_pk^T,  Sigma_reac,p = 1/2 sum_n s_n B_pn R
+  //   B_pn^T (s_n = -1 occupied, +1 virtual, RPA window),
+  // so their derivatives are kept apart from g: gstat (d/dB at fixed L and
+  // R, per QP level nr x Naux) and the kernel weights Yv = sum c B^T B of
+  // the bare v and Yr of R. Downstream turns them into J coefficients
+  // (gstat L), the metric term -Tr(L (Yv + R Yr + Yr R) L dV) and the
+  // environment term Tr(L Yr L dB_env).
+  std::vector<Eigen::MatrixXd> gstat;
+  Eigen::MatrixXd Yv;
+  Eigen::MatrixXd Yr;
+  auto reset_static = [&]() {
+    gstat.clear();
+    Yv.resize(0, 0);
+    Yr.resize(0, 0);
+  };
 
   // ---- from the partial derivatives g, w, u of one target to its gradient
   // relaxed difference densities of the targets (AO, both spins), filled
@@ -434,9 +675,63 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
         Bmat.resize(0, 0);
       }
       G = (0.5 * (G + G.transpose())).eval();
-      grad = -0.5 * ContractCoulombMetricDerivatives(auxbasis_, L * G * L);
+      if (screened) {
+        // dOmega = Tr(Gamma du), Gamma = 1/2 K^-T G K^-1, with
+        // du = -V^-1 dV V^-1 (1 + B_env V^-1) - V^-1 B_env V^-1 dV V^-1
+        //      + V^-1 dB_env V^-1; Z = V^-1 Gamma V^-1
+        const Eigen::MatrixXd Vinv = L * L;
+        const Eigen::MatrixXd Gamma = 0.5 * Kfit_inv.transpose() * G * Kfit_inv;
+        const Eigen::MatrixXd Z = Vinv * Gamma * Vinv;
+        const Eigen::MatrixXd ZBV = Z * Benv * Vinv;
+        grad = -ContractCoulombMetricDerivatives(auxbasis_,
+                                                 Z + ZBV + ZBV.transpose());
+        // the environment term is linear in its weight: one call for the
+        // dressed integrals and Sigma_reac together
+        Eigen::MatrixXd Zenv = Z;
+        if (Yv.size() > 0) {
+          const Eigen::MatrixXd Mv = L * (Yv + Rfit * Yr + Yr * Rfit) * L;
+          grad -= ContractCoulombMetricDerivatives(
+              auxbasis_, Eigen::MatrixXd(0.5 * (Mv + Mv.transpose())));
+          Zenv += L * Yr * L;
+        }
+        grad += EnvironmentScreening::KernelGradient(
+            auxbasis_, screening_env_,
+            Eigen::MatrixXd(0.5 * (Zenv + Zenv.transpose())));
+        if (zx.size() > 0) {
+          // bare exchange: 2 kappa x_J^T dV^-1 x_J = -2 kappa Tr(zx zx^T dV)
+          grad -= ContractCoulombMetricDerivatives(
+              auxbasis_, Eigen::MatrixXd(2.0 * kappa * zx * zx.transpose()));
+        }
+      } else {
+        // the same for K = L: -Tr(Z dV), Z = 1/2 L G L
+        grad = -0.5 * ContractCoulombMetricDerivatives(auxbasis_, L * G * L);
+      }
     }
-    RightMultiplyInPlace(gmat, L);
+    // g K^T (= g L without screening): the coefficients of the raw
+    // three-centre integrals J in B = J K
+    RightMultiplyInPlace(gmat, Eigen::MatrixXd(Kfit.transpose()));
+    // static self-energies of the screened route: J coefficients gstat L
+    for (std::size_t p = 0; p < gstat.size(); ++p) {
+      if (gstat[p].size() == 0) {
+        continue;
+      }
+      const Eigen::MatrixXd gJ = gstat[p] * L;
+      for (Index n = 0; n < gJ.rows(); ++n) {
+        gmat.row((in.qpmin - lo + Index(p)) + nw * (k0 + n)) += gJ.row(n);
+      }
+    }
+    reset_static();
+    if (zx.size() > 0) {
+      // bare exchange: J coefficients 4 kappa zx XpY on the (v, c) block
+      // (zx carries 1/sqrt(norm), XpY the other one)
+      const Eigen::RowVectorXd zrow =
+          (4.0 * kappa / std::sqrt(norm)) * zx.transpose();
+      for (Index c = 0; c < ct; ++c) {
+        for (Index v = 0; v < vt; ++v) {
+          gmat.row((v0 + v) + nw * (c0 + c)) += XpY(v, c) * zrow;
+        }
+      }
+    }
     const Eigen::MatrixXd& gL = gmat;
     if (!in.density_only) {
       grad += ContractThreeCenterDerivatives(
@@ -511,6 +806,9 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
       if (ScaHFX_ > 0) {
         G += 0.5 * ScaHFX_ * ERIs_.CalculateEXX_3c(Eigen::MatrixXd(0, 0), Xao);
       }
+      if (env_response) {
+        G += env_kernel(Xao);
+      }
       return Eigen::MatrixXd(C.transpose() * G * C);
     };
 
@@ -541,7 +839,12 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
       // the gradient error is linear in the Z residual: 1e-6 relative changed
       // the forces of pyridine + 6 H2O by 1e-8 Ha/Bohr against 1e-8 (three
       // iterations fewer), far below the FD agreement and optimizer thresholds
-      std::vector<Eigen::MatrixXd> dP = StaticResponse(orb, {h}, 1e-6, 200);
+      std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)> extra;
+      if (env_response) {
+        extra = env_kernel;
+      }
+      std::vector<Eigen::MatrixXd> dP =
+          StaticResponse(orb, {h}, 1e-6, 200, extra);
       Zvo = 0.5 * C_virt.transpose() * S * dP[0] * S * C_occ;
     }
 
@@ -582,8 +885,17 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
     // the field of the density change
     {
       Eigen::MatrixXd site_grad;
-      grad += ExternalSitesGradient(mol, Pao, false, site_grad);
+      grad += ExternalPotentialGradient(mol, Pao, false, site_grad);
       site_gradients.push_back(site_grad);
+    }
+    // environment converged against the ground state: the dipoles lambda
+    // that the relaxed density induces, interacting with the ground-state
+    // charges (see env_response above)
+    if (env_response) {
+      const std::vector<std::unique_ptr<StaticSite>> lambda_sites =
+          moment_sites(env_moments(Pao));
+      Eigen::MatrixXd unused;
+      grad += SitesGradient(mol, D0, true, lambda_sites, unused);
     }
     phase("one-electron and overlap derivatives");
     // RI-J, exact: the Hartree energy is quadratic in the density
@@ -637,6 +949,7 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
       w.setZero();
       wA.setZero();
       u.setZero();
+      reset_static();
       std::vector<Index> partners;
       const Index first = (level <= homo) ? in.vmin : homo + 1;
       const Index last = (level <= homo) ? homo : in.cmax;
@@ -862,6 +1175,44 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
       }
     };
 
+    // the static part of sigma_p: (1 - a_x) Sigma_x and, screened,
+    // Sigma_reac; Bp = rows of the integrals as stored (dressed if screened)
+    auto sigmaStatic = [&](const Eigen::MatrixXd& Bp) {
+      if (!screened) {
+        return -(1.0 - ax) * Bp.topRows(nk).squaredNorm();
+      }
+      const Eigen::MatrixXd Bb = Bp * Sinv;
+      const Eigen::MatrixXd BR = Bb * Rfit;
+      return -(1.0 - ax) * Bb.topRows(nk).squaredNorm() +
+             0.5 * (BR.cwiseProduct(Bb).bottomRows(nr - nk).sum() -
+                    BR.cwiseProduct(Bb).topRows(nk).sum());
+    };
+    // screened: weight v on sigma_p into gstat, Yv, Yr (unscreened the
+    // Sigma_x term goes into g with the correlation part)
+    auto accumulateStatic = [&](Index p, double v, const Eigen::MatrixXd& Bp) {
+      if (!screened) {
+        return;
+      }
+      if (gstat.empty()) {
+        gstat.assign(std::size_t(nq), Eigen::MatrixXd());
+        Yv = Eigen::MatrixXd::Zero(naux, naux);
+        Yr = Eigen::MatrixXd::Zero(naux, naux);
+      }
+      const Eigen::MatrixXd Bb = Bp * Sinv;
+      Eigen::VectorXd s = Eigen::VectorXd::Ones(nr);
+      s.head(nk).setConstant(-1.0);
+      Eigen::MatrixXd gb = (v * s).asDiagonal() * (Bb * Rfit);
+      gb.topRows(nk) += (-2.0 * (1.0 - ax) * v) * Bb.topRows(nk);
+      if (gstat[std::size_t(p)].size() == 0) {
+        gstat[std::size_t(p)] = gb;
+      } else {
+        gstat[std::size_t(p)] += gb;
+      }
+      Yv.noalias() +=
+          (-(1.0 - ax) * v) * Bb.topRows(nk).transpose() * Bb.topRows(nk);
+      Yr.noalias() += Bb.transpose() * ((0.5 * v) * s).asDiagonal() * Bb;
+    };
+
     if (in.sigma_integrator == "ppm") {
 
       const SymmetricEigenSystem es0 = SymmetricEigen(epsilon);
@@ -943,9 +1294,8 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
         const double sigma_c = (aBt2 * H).sum();
         dsigma(p) = (aBt2 * Hp).sum();
         poles.col(p) = -(aBt2 * Hp).rowwise().sum().matrix();
-        const double sigma_x = -(1.0 - ax) * Bp.topRows(nk).squaredNorm();
         const double e_rebuilt =
-            eps(pabs) + sigma_x - Vxc_mo(pabs, pabs) + sigma_c;
+            eps(pabs) + sigmaStatic(Bp) - Vxc_mo(pabs, pabs) + sigma_c;
         result.qp_rebuild_error =
             std::max(result.qp_rebuild_error, std::abs(e_rebuilt - omega_p));
       }
@@ -975,11 +1325,13 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
           if (accumulate) {
             w(q0 + p) += v;        // eps_p
             u(in.qpmin + p) -= v;  // -v_xc
+            accumulateStatic(p, v, Bp);
             const Eigen::MatrixXd gBp = GBt * Phi.transpose();
             for (Index n = 0; n < nr; ++n) {
               for (Index P = 0; P < naux; ++P) {
                 double gpn = gBp(n, P);
-                if (n < nk) {  // Sigma_x: -(1 - a_x) sum_{i occ} (B_pi)^2
+                if (n < nk && !screened) {
+                  // Sigma_x: -(1 - a_x) sum_{i occ} (B_pi)^2
                   gpn += -2.0 * (1.0 - ax) * v * Bp(n, P);
                 }
                 g(P)(q0 + p, r0 + n) += gpn;
@@ -1160,9 +1512,8 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
         const double sigma_c = 2.0 * (A2 * pt.phi).sum();
         dsigma(p) = 2.0 * (A2 * pt.hp).sum();
         poles.col(p) = -2.0 * (A2 * pt.hp).rowwise().sum().matrix();
-        const double sigma_x = -(1.0 - ax) * Bp.topRows(nk).squaredNorm();
         const double e_rebuilt =
-            eps(pabs) + sigma_x - Vxc_mo(pabs, pabs) + sigma_c;
+            eps(pabs) + sigmaStatic(Bp) - Vxc_mo(pabs, pabs) + sigma_c;
         result.qp_rebuild_error =
             std::max(result.qp_rebuild_error, std::abs(e_rebuilt - omega_p));
       }
@@ -1209,13 +1560,14 @@ DFTEngine::BSEGradientResult DFTEngine::BSEExcitationGradient(
           const Eigen::MatrixXd gKraw = gK * sD.asDiagonal();  // d/d(B_pn.b)
           gB.noalias() += gKraw.transpose() * Bp;
           if (accumulate) {
-            w(q0 + p) += v;                           // eps_p
-            u(in.qpmin + p) -= v;                     // -v_xc
+            w(q0 + p) += v;        // eps_p
+            u(in.qpmin + p) -= v;  // -v_xc
+            accumulateStatic(p, v, Bp);
             const Eigen::MatrixXd gBp = gKraw * Bkd;  // d/dB_pn
             for (Index n = 0; n < nr; ++n) {
               for (Index P = 0; P < naux; ++P) {
                 double gpn = gBp(n, P);
-                if (n < nk) {  // Sigma_x
+                if (n < nk && !screened) {  // Sigma_x
                   gpn += -2.0 * (1.0 - ax) * v * Bp(n, P);
                 }
                 g(P)(q0 + p, r0 + n) += gpn;

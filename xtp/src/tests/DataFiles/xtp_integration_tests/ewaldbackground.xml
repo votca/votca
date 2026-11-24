@@ -1,0 +1,6 @@
+<options>
+<ewaldbackground>
+  <multipoles>system.xml</multipoles>
+  <output><checkpoint>ewaldbackground.hdf5</checkpoint></output>
+</ewaldbackground>
+</options>
