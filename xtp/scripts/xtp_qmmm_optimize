@@ -84,7 +84,7 @@ parser.add_argument("--freeze-rigid-body", action="store_true",
 parser.add_argument("--fix", default="",
                     help="QM atoms kept in place, comma-separated indices")
 parser.add_argument("-t", "--threads", type=int, default=1,
-                    help="threads per qmmm job")
+                    help="OpenMP threads of each qmmm job (xtp_parallel -x; one job at a time)")
 parser.add_argument("--executable", default="xtp_parallel",
                     help="xtp_parallel to run the jobs with")
 parser.add_argument("--lj", metavar="JSON",

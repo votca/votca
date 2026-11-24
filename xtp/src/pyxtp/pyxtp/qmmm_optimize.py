@@ -346,7 +346,8 @@ class QMMMCalculator(Calculator):
     statefile : state file passed to ``xtp_parallel -f``.
     workdir : directory for the step directories.
     executable : ``xtp_parallel``.
-    threads : threads per job (``-t``).
+    threads : OpenMP threads of the job (``xtp_parallel -x``; one job at a
+        time, ``-t 1``).
     terms : terms added to energy and forces (``LennardJones``,
         ``D3Dispersion``), each with a distinct ``name``.
     """
@@ -464,7 +465,7 @@ class QMMMCalculator(Calculator):
                     f.write(f"{el} {r[0]:.10f} {r[1]:.10f} {r[2]:.10f}\n")
         self._write_options(stepdir, positions is not None)
         cmd = [self.executable, "-e", "qmmm", "-o", "qmmm.xml", "-f",
-               self.statefile, "-x", "1", "-t", str(self.threads), "-j", "run"]
+               self.statefile, "-t", "1", "-x", str(self.threads), "-j", "run"]
         with open(os.path.join(stepdir, "run.log"), "w") as log:
             proc = subprocess.run(cmd, cwd=stepdir, stdout=log,
                                   stderr=subprocess.STDOUT)

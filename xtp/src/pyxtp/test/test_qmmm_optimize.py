@@ -211,6 +211,25 @@ def test_units(setup):
     assert (e[0] - e[1]) / (2 * h) == pytest.approx(-f[1, 0], rel=1e-5)
 
 
+def test_threads_are_openmp_threads_of_one_job(setup):
+    # one job at a time: the threads go to OpenMP (-x), not to job-level
+    # parallelism (-t), which would leave all but one thread idle
+    tmp_path, _ = setup
+    rec = tmp_path / "record"
+    rec.write_text(f"#!{sys.executable}\nimport sys\n"
+                   f"open({str(tmp_path / 'argv.txt')!r}, 'w').write(' '.join(sys.argv[1:]))\n"
+                   "sys.exit(3)\n")
+    rec.chmod(rec.stat().st_mode | stat.S_IEXEC)
+    calc = QMMMCalculator(setup=str(tmp_path / "setup"), options="qmmm.xml",
+                          workdir=str(tmp_path / "opt"), executable=str(rec),
+                          threads=6)
+    with pytest.raises(QMMMJobError):
+        calc.start_atoms()
+    argv = (tmp_path / "argv.txt").read_text().split()
+    assert argv[argv.index("-x") + 1] == "6"
+    assert argv[argv.index("-t") + 1] == "1"
+
+
 def test_failed_job_is_reported(setup):
     tmp_path, _ = setup
     bad = tmp_path / "bad"
