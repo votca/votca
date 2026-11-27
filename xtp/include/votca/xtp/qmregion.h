@@ -190,6 +190,11 @@ class QMRegion : public Region {
   mutable Eigen::MatrixXd relaxed_dmat_;
   mutable QMState relaxed_dmat_state_;
   mutable bool relaxed_dmat_valid_ = false;
+  // polarization_mixing: the density the polar regions see is
+  // (1 - beta) D_new + beta D_previous, which damps period-2 oscillations of
+  // the inter-region loop; the fixed point is unchanged
+  double polarization_mixing_ = 0.0;
+  Eigen::MatrixXd polarizing_dmat_;
   // density of state used by the loop: the relaxed one with relaxed_density
   // (BSE states and perturbative QP levels), else Orbitals::DensityMatrixFull
   Eigen::MatrixXd StateDensity(const QMState& state) const;

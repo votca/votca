@@ -103,6 +103,12 @@ void QMRegion::Initialize(const tools::Property& prop) {
       prop.ifExistsReturnElseReturnDefault<bool>("relaxed_density", false);
   compute_forces_ =
       prop.ifExistsReturnElseReturnDefault<bool>("compute_forces", false);
+  polarization_mixing_ =
+      prop.ifExistsReturnElseReturnDefault<double>("polarization_mixing", 0.0);
+  if (!(polarization_mixing_ >= 0.0 && polarization_mixing_ < 1.0)) {
+    throw std::runtime_error("polarization_mixing must be in [0, 1), got " +
+                             std::to_string(polarization_mixing_));
+  }
   const std::string polarization =
       prop.ifExistsReturnElseReturnDefault<std::string>(
           "environment_polarization", "state");
@@ -791,6 +797,16 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
   E_hist_.push_back(energy);
 
   Dmat_hist_.push_back(StateDensity(state));
+  // the density the polar regions are polarized by in the next step
+  // (ApplyQMFieldToPolarSegments): mixed with the previous one
+  const Eigen::MatrixXd& dnew = Dmat_hist_.back();
+  if (polarization_mixing_ > 0.0 && polarizing_dmat_.rows() == dnew.rows() &&
+      polarizing_dmat_.cols() == dnew.cols()) {
+    polarizing_dmat_ = (1.0 - polarization_mixing_) * dnew +
+                       polarization_mixing_ * polarizing_dmat_;
+  } else {
+    polarizing_dmat_ = dnew;
+  }
   UpdateOverlapSqrt();
   return;
 }
@@ -1227,7 +1243,12 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   if ((do_gwbse_ && !screening_) || initstate_.Type().isKSState()) {
     state = statetracker_.CalcState(orb_);
   }
-  Eigen::MatrixXd dmat = StateDensity(state);
+  // the density of the last QM evaluation, mixed with the previous ones
+  // (polarization_mixing); the same as StateDensity(state) without mixing
+  Eigen::MatrixXd dmat =
+      (polarization_mixing_ > 0.0 && polarizing_dmat_.size() > 0)
+          ? polarizing_dmat_
+          : StateDensity(state);
   double Ngrid = numint.IntegrateDensity(dmat);
   AOOverlap overlap;
   overlap.Fill(basis);
