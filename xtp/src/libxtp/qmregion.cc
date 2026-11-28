@@ -230,6 +230,16 @@ void QMRegion::Initialize(const tools::Property& prop) {
       throw std::runtime_error(
           "compute_forces: not available with DFT-in-DFT embedding");
     }
+    if (screening_ &&
+        gwbseoptions_.ifExistsReturnElseReturnDefault<std::string>(
+            "gw.mode", "evGW") == "G0W0" &&
+        gwbseoptions_.ifExistsReturnElseReturnDefault<bool>(
+            "gw.reaction_shift_in_g", false)) {
+      throw std::runtime_error(
+          "compute_forces: not available with gw.reaction_shift_in_g (the "
+          "response of the QP energies to the shifted poles of G is not "
+          "implemented yet)");
+    }
     if (do_gwbse_ && initstate_.Type().isExciton() && !relaxed_density_ &&
         !polarize_ground_ && !screening_) {
       XTP_LOG(Log::error, log_)

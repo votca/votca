@@ -136,6 +136,12 @@ class GW {
     // the environment's induced dipoles follow the QP density as well.
     // false: bare v (a control; inconsistent with the dressed W).
     bool qsgw_hartree_screened = true;
+    // Environment screening with a non-self-consistent G (G0W0): the poles
+    // of G in Sigma_c sit at the starting energies plus the static
+    // Sigma_reac shifts (W unchanged), so that the QP energies follow
+    // Sigma_reac fully instead of Z Sigma_reac. evGW puts the shifts into G
+    // through its eigenvalue update already; no effect there.
+    bool reaction_shift_in_g = false;
     // Static self-energy of QSGW: "eta" = the symmetrised
     // 1/2 Re[Sigma(e_p) + Sigma(e_q)] with denominators t/(t^2 + eta^2);
     // "srg" = the similarity-renormalization-group form of Marie and Loos,
@@ -302,9 +308,15 @@ class GW {
     }
   }
 
+  /// The RPA energies of W, which the BSE screening uses. With
+  /// reaction_shift_in_g the energies in G differ (shifted by Sigma_reac).
   Eigen::VectorXd RPAInputEnergies() const {
-    return rpa_.getRPAInputEnergies();
+    return (screening_energies_.size() > 0) ? screening_energies_
+                                            : rpa_.getRPAInputEnergies();
   }
+  /// true if the poles of G carry the Sigma_reac shifts (reaction_shift_in_g
+  /// active in the last CalculateGWPerturbation)
+  bool ReactionShiftInG() const { return screening_energies_.size() > 0; }
 
  private:
   Index qptotal_;
@@ -316,6 +328,10 @@ class GW {
   // QP solution of the last solve and the energies in G it used (DumpSigma)
   Eigen::VectorXd qp_solution_;
   Eigen::VectorXd rpa_energies_solved_;
+  // reaction_shift_in_g: the RPA energies W was built with (the energies in
+  // G are these plus the Sigma_reac shifts); empty otherwise
+  Eigen::VectorXd screening_energies_;
+  void ShiftPolesOfG();
   // wall-clock accounting of the GW steps, reported at the end
   mutable DFTTimings timings_;
 

@@ -141,6 +141,29 @@ environment by that charge. The HOMO and LUMO quasiparticle energies
 therefore include it directly, which is how the embedded scheme provides
 hole and electron site energies (see :ref:`embedded-usage`).
 
+**G0W0 and the poles of G.** :math:`\Sigma^\text{reac}` moves the
+quasiparticle energies, and :math:`\Sigma^\text{c}(\omega)` is then
+evaluated at the moved energies. In G0W0 the poles of :math:`G_0` stay at
+the starting (DFT) energies, so the frequency dependence of
+:math:`\Sigma^\text{c}` cancels part of the shift: to first order the
+quasiparticle energy moves by :math:`Z\,\Sigma^\text{reac}` instead of
+:math:`\Sigma^\text{reac}`. For a constant potential the self-consistent
+answer is the full shift; the damping is an artefact of :math:`G_0` not
+containing the static shift. evGW and QSGW put the shifted energies into
+:math:`G`, so they do not have it. The BSE screening (static
+:math:`W_\text{reac}`, :math:`K^\text{reac}`) has no such damping either,
+and in G0W0 the residual between the quasiparticle-gap reduction and the
+loss of exciton binding, and with it the sign of the screened-minus-ground
+offset of excitation energies, then depends on :math:`Z`. With
+``gw.reaction_shift_in_g`` the poles of :math:`G_0` in
+:math:`\Sigma^\text{c}` are placed at the starting energies plus the
+diagonal of :math:`\Sigma^\text{reac}` (levels outside the GW window get
+the shift of the nearest window level of their side); :math:`W` and the
+energies the BSE
+screening uses are unchanged. The option has no effect with evGW or QSGW,
+needs ``sigma_integrator`` ``ppm`` or ``exact``, and is not yet supported
+with forces.
+
 
 Neutral excitations (BSE)
 *************************

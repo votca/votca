@@ -855,6 +855,74 @@ BOOST_AUTO_TEST_CASE(qsgw_reaction_field_independent_of_aux_frame) {
   libint2::finalize();
 }
 
+// reaction_shift_in_g. G0W0 with a reaction field: the poles of G move by
+// the static Sigma_reac shifts, W stays. Then (i) the energies of W, which
+// the BSE takes, are those of the run without the option; (ii) the QP
+// energies follow Sigma_reac further: E_on - E_off has the sign of
+// Sigma_reac and is a fraction of it ((1 - Z) Sigma_reac to first order);
+// (iii) evGW, whose G holds the shifts already, is unchanged; (iv) cda,
+// which builds W from the energies in G, is refused.
+BOOST_AUTO_TEST_CASE(reaction_shift_in_g) {
+  if (!libint2::initialized()) libint2::initialize();
+  auto run = [](GW::options opt, bool shift, Eigen::VectorXd* w_energies,
+                Eigen::VectorXd* sigma_reac) {
+    GWTestSystem system("mo_eigenvectors.mm", "vxc.mm");
+    opt.reaction_shift_in_g = shift;
+    GW gw(system.log, system.Mmn, system.vxc, system.mo_eigenvalues);
+    gw.configure(opt);
+    gw.setReactionField(PolarSitesReactionField(system.Mmn));
+    gw.CalculateGWPerturbation();
+    if (w_energies != nullptr) {
+      *w_energies = gw.RPAInputEnergies();
+    }
+    if (sigma_reac != nullptr) {
+      *sigma_reac = gw.getSigmaReac().diagonal();
+    }
+    BOOST_CHECK_EQUAL(gw.ReactionShiftInG(),
+                      shift && opt.gw_sc_max_iterations == 1);
+    return Eigen::VectorXd(gw.getGWAResults());
+  };
+  GW::options opt = MakeGWTestOptions();
+  Eigen::VectorXd w_off, w_on, sr;
+  const Eigen::VectorXd e_off = run(opt, false, &w_off, &sr);
+  const Eigen::VectorXd e_on = run(opt, true, &w_on, nullptr);
+  BOOST_CHECK_SMALL((w_on - w_off).cwiseAbs().maxCoeff(), 1e-14);
+  const Eigen::VectorXd d = e_on - e_off;
+  for (votca::Index l : {opt.homo - 1, opt.homo, opt.homo + 1, opt.homo + 2}) {
+    const double ratio = d(l) / sr(l);
+    BOOST_TEST_MESSAGE("level " << l << " Sigma_reac " << sr(l)
+                                << " E_on - E_off " << d(l) << " ratio "
+                                << ratio);
+    BOOST_REQUIRE_GT(std::abs(sr(l)), 1e-4);
+    BOOST_CHECK_GT(ratio, 0.0);
+    BOOST_CHECK_LT(ratio, 0.5);
+  }
+
+  GW::options ev = MakeGWTestOptions();
+  ev.reset_3c = 0;  // Rebuild needs basis objects GWTestSystem drops
+  ev.gw_sc_max_iterations = 100;
+  ev.gw_sc_limit = 1e-7;
+  ev.g_sc_limit = 1e-10;
+  ev.gw_mixing_order = 3;
+  ev.gw_mixing_alpha = 0.7;
+  const Eigen::VectorXd ev_off = run(ev, false, nullptr, nullptr);
+  const Eigen::VectorXd ev_on = run(ev, true, nullptr, nullptr);
+  BOOST_CHECK_SMALL((ev_on - ev_off).cwiseAbs().maxCoeff(), 1e-12);
+
+  GW::options cda = MakeGWTestOptions();
+  cda.sigma_integration = "cda";
+  cda.order = 12;
+  cda.alpha = 1e-3;
+  cda.quadrature_scheme = "legendre";
+  BOOST_CHECK_EXCEPTION(
+      run(cda, true, nullptr, nullptr), std::runtime_error,
+      [](const std::runtime_error& e) {
+        return std::string(e.what()).find("reaction_shift_in_g") !=
+               std::string::npos;
+      });
+  libint2::finalize();
+}
+
 // Step 5. With R = 0 the dressing is the identity, and everything --
 // exchange, RPA, Sigma_c, the QP energies -- must be what it is without an
 // environment at all.

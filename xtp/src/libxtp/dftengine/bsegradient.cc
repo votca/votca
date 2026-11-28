@@ -1749,6 +1749,13 @@ bool DFTEngine::ConfigureQPResponse(BSEGradientInput& input,
       !(integrator == "ppm" || integrator == "exact")) {
     return false;
   }
+  if (mode == "G0W0" && gwbse.ifExistsReturnElseReturnDefault<bool>(
+                            "gw.reaction_shift_in_g", false)) {
+    throw std::runtime_error(
+        "gw.reaction_shift_in_g: the response of the QP energies to the "
+        "shifted poles of G is not implemented; forces and QP gradients need "
+        "reaction_shift_in_g false");
+  }
   input.qp_response = true;
   input.sigma_integrator = integrator;
   input.qp_selfconsistent = (mode == "evGW");

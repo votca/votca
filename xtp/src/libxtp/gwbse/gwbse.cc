@@ -693,6 +693,8 @@ void GWBSE::Initialize(tools::Property& options) {
       "gw.qsgw_hartree_update", true);
   gwopt_.qsgw_hartree_screened = options.ifExistsReturnElseReturnDefault<bool>(
       "gw.qsgw_hartree_screened", true);
+  gwopt_.reaction_shift_in_g = options.ifExistsReturnElseReturnDefault<bool>(
+      "gw.reaction_shift_in_g", false);
   gwopt_.qsgw_regularization =
       options.ifExistsReturnElseReturnDefault<std::string>(
           "gw.qsgw_regularization", "eta");

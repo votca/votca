@@ -284,9 +284,72 @@ Eigen::VectorXd GW::ScissorShift_DFTlevel(
   return shifted_energies;
 }
 
+// reaction_shift_in_g: W is built; from now on the poles of G sit at the
+// energies W was built with plus the static Sigma_reac shifts. Levels
+// outside the QP window (no Sigma_reac computed) take the shift of the
+// nearest window level of their side (occupied: qpmin, virtual: qpmax). The
+// evGW out-of-window rules are not used: max assumes corrections that open
+// the gap, while Sigma_reac closes it.
+void GW::ShiftPolesOfG() {
+  screening_energies_ = rpa_.getRPAInputEnergies();
+  const Eigen::VectorXd sr = Sigma_reac_.diagonal();
+  const Index offset = opt_.qpmin - opt_.rpamin;
+  Eigen::VectorXd shift(screening_energies_.size());
+  for (Index k = 0; k < shift.size(); ++k) {
+    const Index level = k + opt_.rpamin;
+    Index q = k - offset;  // index in the QP window
+    if (q < 0 || q >= qptotal_) {
+      // nearest window level of the same kind (none: no shift)
+      const bool occupied = level <= opt_.homo;
+      const Index first =
+          occupied ? opt_.qpmin : std::max(opt_.qpmin, opt_.homo + 1);
+      const Index last =
+          occupied ? std::min(opt_.qpmax, opt_.homo) : opt_.qpmax;
+      if (first > last) {
+        shift(k) = 0.0;
+        continue;
+      }
+      q = std::clamp(level, first, last) - opt_.qpmin;
+    }
+    shift(k) = sr(q);
+  }
+  rpa_.setRPAInputEnergies(screening_energies_ + shift);
+  const Index homo_rpa = opt_.homo - opt_.rpamin;
+  XTP_LOG(Log::error, log_)
+      << TimeStamp()
+      << (boost::format(" Poles of G shifted by Sigma_reac (W unchanged): "
+                        "HOMO %1$+.4f LUMO %2$+.4f eV, occupied %3$+.4f.."
+                        "%4$+.4f, virtual %5$+.4f..%6$+.4f eV") %
+          (shift(homo_rpa) * tools::conv::hrt2ev) %
+          (shift(homo_rpa + 1) * tools::conv::hrt2ev) %
+          (shift.head(homo_rpa + 1).minCoeff() * tools::conv::hrt2ev) %
+          (shift.head(homo_rpa + 1).maxCoeff() * tools::conv::hrt2ev) %
+          (shift.tail(shift.size() - homo_rpa - 1).minCoeff() *
+           tools::conv::hrt2ev) %
+          (shift.tail(shift.size() - homo_rpa - 1).maxCoeff() *
+           tools::conv::hrt2ev))
+             .str()
+      << std::flush;
+}
+
 void GW::CalculateGWPerturbation() {
   timings_.Reset();
   qsgw_final_energies_.resize(0);
+  screening_energies_.resize(0);
+  bool shift_g = opt_.reaction_shift_in_g && reaction_field_.size() > 0;
+  if (shift_g && (opt_.gw_sc_max_iterations > 1 || opt_.do_qsgw)) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp()
+        << " gw.reaction_shift_in_g: no effect with evGW/QSGW (the energies "
+           "in G contain Sigma_reac through the self-consistency)"
+        << std::flush;
+    shift_g = false;
+  }
+  if (shift_g && opt_.sigma_integration == "cda") {
+    throw std::runtime_error(
+        "gw.reaction_shift_in_g needs sigma_integrator ppm or exact (cda "
+        "builds W from the energies in G)");
+  }
   {
     auto t = timings_.Measure("exchange Sigma_x");
     Sigma_x_ = (1 - opt_.ScaHFX) * sigma_->CalcExchangeMatrix();
@@ -394,6 +457,9 @@ void GW::CalculateGWPerturbation() {
       XTP_LOG(Log::info, log_)
           << TimeStamp() << " Calculated screening via RPA (build "
           << screening.builds() << ")" << std::flush;
+      if (shift_g && i_gw == 0) {
+        ShiftPolesOfG();
+      }
     }
     XTP_LOG(Log::info, log_)
         << TimeStamp() << " Solving QP equations " << std::flush;
